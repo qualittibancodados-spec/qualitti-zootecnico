@@ -1,0 +1,38 @@
+name: Atualizar dados do painel
+
+on:
+  schedule:
+    - cron: '0 9 * * *'
+  workflow_dispatch: {}
+
+permissions:
+  contents: write
+
+jobs:
+  atualizar:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Baixar o repositório
+        uses: actions/checkout@v4
+
+      - name: Preparar Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Instalar dependências
+        run: pip install pandas openpyxl google-api-python-client google-auth
+
+      - name: Rodar a atualização
+        env:
+          GDRIVE_FOLDER_ID: ${{ secrets.GDRIVE_FOLDER_ID }}
+          GDRIVE_SERVICE_ACCOUNT_KEY: ${{ secrets.GDRIVE_SERVICE_ACCOUNT_KEY }}
+        run: python scripts/atualizar_dados.py
+
+      - name: Publicar os dados atualizados
+        run: |
+          git config user.name "qualitti-bot"
+          git config user.email "actions@github.com"
+          git add data/
+          git diff --staged --quiet && echo "Nada mudou hoje." || git commit -m "Atualização automática dos dados ($(date -u +%Y-%m-%d))"
+          git push
