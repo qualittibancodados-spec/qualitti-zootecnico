@@ -1,0 +1,3136 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Qualitti Zootécnico Web</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@500;600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<style>
+  :root{
+    --vermelho: #C1272D;
+    --vermelho-escuro: #8F1D22;
+    --dourado: #F2A900;
+    --dourado-claro: #F8CE66;
+    --bg: #F4F6F8;
+    --card: #FFFFFF;
+    --texto: #1C2430;
+    --texto-suave: #6A7686;
+    --borda: #E6EAEF;
+    --verde-ok: #2E9E6B;
+    --verde-bg: #E7F6EF;
+    --vermelho-alerta: #E0403F;
+    --vermelho-bg: #FCEBEA;
+    /* sidebar vermelha (marca) */
+    --side-bg: #C1272D;
+    --side-bg2: #8F1D22;
+    --side-txt: #F6D9D0;
+    --side-ativo: #FFFFFF;
+    --sombra: 0 1px 3px rgba(20,26,38,.06), 0 6px 20px rgba(20,26,38,.05);
+    --sombra-hover: 0 4px 12px rgba(20,26,38,.10), 0 12px 32px rgba(20,26,38,.08);
+    --raio: 16px;
+    --sidebar-w: 250px;
+  }
+  *{box-sizing:border-box; margin:0; padding:0;}
+  body{ font-family:'Plus Jakarta Sans','Inter',system-ui,sans-serif; background:var(--bg); color:var(--texto); -webkit-font-smoothing:antialiased; }
+  h1,h2,h3,.display{ font-family:'Sora','Plus Jakarta Sans',sans-serif; }
+
+  /* ===================== SIDEBAR ===================== */
+  .sidebar{
+    position:fixed; top:0; left:0; width:var(--sidebar-w); height:100vh;
+    background:linear-gradient(180deg,var(--side-bg) 0%,var(--side-bg2) 100%);
+    display:flex; flex-direction:column; z-index:60;
+    padding:22px 16px; border-right:3px solid var(--dourado);
+  }
+  .sidebar-marca{ display:flex; align-items:center; gap:12px; padding:4px 6px 22px; margin-bottom:8px; border-bottom:1px solid rgba(255,255,255,.18); }
+  .logo-mark{ height:42px; display:flex; align-items:center; flex-shrink:0; }
+  .logo-mark img{ height:100%; width:auto; object-fit:contain; display:block; }
+  .sidebar-marca-txt h1{ color:#fff; font-size:16px; font-weight:700; line-height:1.1; letter-spacing:-.01em; }
+  .sidebar-marca-txt p{ color:var(--side-txt); font-size:11px; font-weight:500; margin-top:3px; }
+
+  .sidebar-nav{ flex:1; display:flex; flex-direction:column; gap:6px; overflow-y:auto; }
+  .nav-secao{ color:#F3C9C1; font-size:10px; font-weight:700; text-transform:uppercase; letter-spacing:.09em; padding:16px 8px 6px; }
+
+  .modulos{ display:flex; flex-direction:column; gap:5px; }
+  .modulo{
+    display:flex; align-items:center; gap:10px; width:100%; text-align:left;
+    background:transparent; border:none; color:var(--side-txt);
+    font-family:inherit; font-size:13.5px; font-weight:600;
+    padding:11px 12px; border-radius:11px; cursor:pointer; transition:.16s;
+  }
+  .modulo .modulo-ic{ font-size:16px; }
+  .modulo:hover{ background:rgba(255,255,255,.14); color:#fff; }
+  .modulo.ativo{ background:#fff; color:var(--vermelho); box-shadow:0 4px 14px rgba(0,0,0,.18); }
+
+  .tabs{ display:flex; flex-direction:column; gap:4px; }
+  .tab{
+    display:flex; align-items:center; justify-content:space-between;
+    background:transparent; border:none; color:var(--side-txt);
+    font-family:inherit; font-size:13px; font-weight:600;
+    padding:10px 12px; border-radius:10px; cursor:pointer; transition:.16s;
+  }
+  .tab:hover{ background:rgba(255,255,255,.14); color:#fff; }
+  .tab.ativo{ background:rgba(255,255,255,.18); color:#fff; box-shadow:inset 3px 0 0 var(--dourado); }
+  .tab .count{ display:inline-block; padding:1px 8px; border-radius:10px; background:rgba(255,255,255,.14); font-size:11px; font-weight:700; }
+  .tab.ativo .count{ background:var(--dourado); color:#20160a; }
+
+  .sidebar-rodape{ color:#EBB8B0; font-size:10.5px; font-weight:600; text-align:center; padding-top:14px; border-top:1px solid rgba(255,255,255,.18); letter-spacing:.03em; }
+
+  /* topbar mobile + overlay (escondidos no desktop) */
+  .topbar-mobile{ display:none; }
+  .overlay{ display:none; }
+
+  main{ margin-left:var(--sidebar-w); max-width:1250px; padding:26px 30px 70px; }
+  main + main{ margin-left:var(--sidebar-w); }
+
+  /* placeholder (legado, mantido) */
+  .placeholder-modulo{ background:var(--card); border:1px solid var(--borda); border-radius:var(--raio); padding:60px 24px; text-align:center; margin-top:8px; box-shadow:var(--sombra); }
+  .placeholder-icone{ font-size:44px; margin-bottom:12px; }
+  .placeholder-modulo h2{ font-size:20px; color:var(--vermelho); margin-bottom:10px; }
+  .placeholder-modulo p{ color:var(--texto-suave); font-size:13.5px; line-height:1.6; }
+
+  .filtros{ background:var(--card); border:1px solid var(--borda); border-radius:var(--raio); padding:16px; margin-bottom:16px; box-shadow:var(--sombra); }
+  .filtros-grid{ display:grid; grid-template-columns:repeat(auto-fit, minmax(150px,1fr)); gap:12px; }
+  .campo label{ display:block; font-size:11px; font-weight:700; color:var(--texto-suave); text-transform:uppercase; letter-spacing:.04em; margin-bottom:6px; }
+  select{ width:100%; padding:10px 12px; border-radius:10px; border:1.5px solid var(--borda); background:#fff; font-size:13.5px; font-family:inherit; color:var(--texto); font-weight:500; transition:.15s; }
+  select:focus{ outline:none; border-color:var(--dourado); box-shadow:0 0 0 3px rgba(242,169,0,.15); }
+
+  .metrica-row{ margin-top:14px; padding-top:14px; border-top:1px solid var(--borda); display:flex; align-items:center; gap:10px; flex-wrap:wrap; }
+  .metrica-row > span{ font-size:11px; font-weight:700; color:var(--texto-suave); text-transform:uppercase; letter-spacing:.04em; }
+  .segmented{ display:flex; background:var(--bg); border-radius:11px; padding:4px; gap:3px; flex-wrap:wrap; }
+  .segmented button{
+    border:none; background:transparent; padding:8px 15px; border-radius:8px;
+    font-family:inherit; font-size:12.5px; font-weight:600; color:var(--texto-suave); cursor:pointer; transition:.15s;
+  }
+  .segmented button:hover{ color:var(--texto); }
+  .segmented button.ativo{ background:var(--vermelho); color:#fff; box-shadow:0 2px 8px rgba(193,39,45,.28); }
+
+  .quadro{ background:var(--card); border:1px solid var(--borda); border-radius:var(--raio); padding:18px; margin-bottom:16px; overflow-x:auto; box-shadow:var(--sombra); }
+
+  /* cabeçalho de página + abas de visão (lado direito) */
+  .matriz-diaria{ border-collapse:collapse; font-size:11.5px; width:auto; min-width:100%; }
+  .matriz-diaria th, .matriz-diaria td{ border:1px solid var(--borda); padding:5px 7px; text-align:center; white-space:nowrap; }
+  .matriz-diaria thead th{ background:#F1F4F7; font-weight:700; font-size:10px; color:var(--texto-suave); position:sticky; top:0; z-index:2; }
+  .matriz-diaria th.rowhead{ text-align:left; position:sticky; left:0; z-index:3; background:#fff; min-width:150px; }
+  .matriz-diaria thead th.rowhead{ z-index:4; background:#F1F4F7; }
+  .matriz-diaria tr.linha-nuc th.rowhead{ font-weight:800; color:var(--vermelho-escuro); background:#FFF4E1; box-shadow:inset 3px 0 0 var(--dourado); }
+  .matriz-diaria tr.linha-nuc td{ font-weight:700; background:#FFF4E1; }
+  .matriz-diaria th.rowhead.av{ padding-left:20px; font-weight:500; color:var(--texto-suave); }
+  .matriz-diaria td.cel{ font-variant-numeric:tabular-nums; }
+  .matriz-diaria td.aloj{ font-weight:600; background:#F7F9FB; }
+  .matriz-diaria .idade-atual{ font-weight:800; background:#EEF3F8; color:var(--texto); border-right:2px solid var(--borda); }
+  .matriz-diaria td.tot{ font-weight:800; background:#F4EFE6; border-left:2px solid var(--dourado); }
+  .matriz-diaria td.pct{ font-weight:800; background:#F4EFE6; }
+  /* destaque de salto de mortalidade */
+  .matriz-diaria td.salto1{ background:#FCE9C7; }   /* alta moderada */
+  .matriz-diaria td.salto2{ background:#F8C98E; }   /* alta forte */
+  .matriz-diaria td.salto3{ background:#EF9A6B; color:#5a2312; font-weight:700; } /* pico */
+  .matriz-diaria .col-idade{ min-width:32px; }
+  .tabela-scroll.arrastavel{ cursor:grab; }
+  .tabela-scroll.arrastavel.arrastando{ cursor:grabbing; user-select:none; }
+  .matriz-diaria .legenda-salto{ display:flex; gap:12px; flex-wrap:wrap; margin-top:12px; font-size:11.5px; color:var(--texto-suave); align-items:center; }
+  .matriz-diaria .ls-item{ display:inline-flex; align-items:center; gap:5px; }
+  .matriz-diaria .ls-cor{ width:16px; height:12px; border-radius:3px; display:inline-block; }
+
+  /* cabeçalho de página + abas de visão (lado direito) */
+  .pagina-head{ display:flex; align-items:center; justify-content:space-between; gap:16px; flex-wrap:wrap; margin-bottom:18px; }
+  .pagina-titulo{ font-size:24px; font-weight:800; letter-spacing:-.02em; color:var(--texto); }
+  .tabs-visao{ display:flex; gap:6px; background:var(--card); padding:5px; border-radius:13px; border:1px solid var(--borda); box-shadow:var(--sombra); }
+  .tab-visao{ display:flex; align-items:center; gap:7px; background:transparent; border:none; color:var(--texto-suave);
+    font-family:inherit; font-size:13.5px; font-weight:600; padding:9px 18px; border-radius:9px; cursor:pointer; transition:.16s; }
+  .tab-visao:hover{ color:var(--texto); background:var(--bg); }
+  .tab-visao.ativo{ background:var(--vermelho); color:#fff; box-shadow:0 2px 10px rgba(193,39,45,.3); }
+  .tab-visao .count{ display:inline-block; padding:1px 8px; border-radius:10px; background:rgba(0,0,0,.08); font-size:11px; font-weight:700; }
+  .tab-visao.ativo .count{ background:rgba(255,255,255,.25); color:#fff; }
+  .quadro-header{ display:flex; justify-content:space-between; align-items:baseline; margin-bottom:12px; flex-wrap:wrap; gap:6px;}
+  .quadro-header h2{ font-size:15px; font-weight:700; }
+  .quadro-header .info{ font-size:12px; color:var(--texto-suave); font-weight:500; }
+  table{ width:100%; border-collapse:collapse; font-size:13px; min-width:640px; }
+  thead th{
+    text-align:left; font-size:10.5px; font-weight:700; text-transform:uppercase; letter-spacing:.03em;
+    color:var(--texto-suave); padding:8px 10px; border-bottom:2px solid var(--borda);
+    position:sticky; top:0; background:var(--card);
+  }
+  tbody td{ padding:9px 10px; border-bottom:1px solid var(--borda); vertical-align:middle; }
+  tbody tr{ cursor:pointer; transition:.1s; }
+  tbody tr:hover{ background:#FAF8F4; }
+  tbody tr.selecionada{ background:#FCF3E3; }
+  tbody tr.selecionada:hover{ background:#FBEFD8; }
+  .dotcor{ width:10px; height:10px; border-radius:50%; display:inline-block; margin-right:8px; flex-shrink:0; vertical-align:middle;}
+  .nome-lote{ font-weight:600; }
+  .pct-valor{ font-weight:700; font-variant-numeric:tabular-nums; }
+  .badge-sit{ font-size:9.5px; padding:2px 6px; border-radius:6px; font-weight:700; }
+  .badge-sit.aberto{ background:var(--verde-bg); color:var(--verde-ok); }
+  .badge-sit.fechado{ background:#F1EFEC; color:var(--texto-suave); }
+  .tendencia{ display:inline-flex; align-items:center; gap:4px; font-weight:700; font-size:12.5px; white-space:nowrap; }
+  .tendencia.subiu{ color:var(--vermelho-alerta); }
+  .tendencia.desceu{ color:var(--verde-ok); }
+  .tendencia.neutro{ color:var(--texto-suave); font-weight:500; font-size:11.5px;}
+
+  .cards{ display:grid; grid-template-columns:repeat(auto-fit, minmax(158px,1fr)); gap:14px; margin-bottom:16px; }
+  .card{ background:var(--card); border:1px solid var(--borda); border-radius:var(--raio); padding:18px; box-shadow:var(--sombra); position:relative; overflow:hidden; transition:.18s; }
+  .card::before{ content:''; position:absolute; top:0; left:0; width:4px; height:100%; background:var(--dourado); }
+  .card:hover{ box-shadow:var(--sombra-hover); transform:translateY(-2px); }
+  .card .label{ font-size:11px; color:var(--texto-suave); font-weight:700; text-transform:uppercase; letter-spacing:.04em; margin-bottom:8px;}
+  .card .valor{ font-family:'Sora',sans-serif; font-size:27px; font-weight:800; line-height:1; letter-spacing:-.02em;}
+  .card .sub{ font-size:11.5px; color:var(--texto-suave); margin-top:6px; font-weight:500;}
+  .card.destaque-ok::before{ background:var(--verde-ok);}
+  .card.destaque-alerta::before{ background:var(--vermelho-alerta);}
+
+  .painel-grafico, .painel{ background:var(--card); border:1px solid var(--borda); border-radius:var(--raio); padding:20px; box-shadow:var(--sombra); margin-bottom:16px; }
+  .painel-grafico-header, .painel-header{ display:flex; justify-content:space-between; align-items:baseline; flex-wrap:wrap; gap:8px; margin-bottom:14px; }
+  .painel-grafico-header h2, .painel-header h2{ font-size:16px; font-weight:700; letter-spacing:-.01em;}
+  .painel-grafico-header .info, .painel-header .info{ font-size:12px; color:var(--texto-suave); font-weight:500; }
+  .chart-wrap{ position:relative; height:340px; }
+  .legenda-custom{ display:flex; flex-wrap:wrap; gap:8px 16px; margin-top:14px; padding-top:14px; border-top:1px solid var(--borda); }
+  .legenda-item{ display:flex; align-items:center; gap:6px; font-size:12px; font-weight:500; color:var(--texto-suave);}
+  .legenda-item .barra{ width:16px; height:3px; border-radius:2px;}
+
+  .linha-nucleo{ font-weight:600; }
+  .linha-nucleo td{ padding:10px; }
+  .btn-expandir{
+    width:22px; height:22px; border-radius:6px; border:1.5px solid var(--borda);
+    background:#fff; color:var(--vermelho); font-weight:800; font-size:14px;
+    line-height:1; cursor:pointer; display:flex; align-items:center; justify-content:center;
+    padding:0; transition:.15s;
+  }
+  .btn-expandir.aberto{ background:var(--vermelho); color:#fff; border-color:var(--vermelho); }
+  .linha-aviario-filho td{ padding:7px 10px 7px 34px; font-size:12.5px; color:var(--texto-suave); border-bottom:1px dashed var(--borda); }
+  .linha-aviario-filho .nome-aviario{ color:var(--texto); font-weight:500; }
+  .linha-aviario-filho .pct-valor{ color:var(--texto); }
+  .barra-mini{ display:inline-block; height:6px; border-radius:3px; background:var(--dourado); vertical-align:middle; margin-left:8px; }
+
+  .secao-titulo{
+    font-size:13px; font-weight:700; text-transform:uppercase; letter-spacing:.05em;
+    color:var(--vermelho-escuro); margin:20px 4px 12px; padding-bottom:6px;
+    border-bottom:2px solid var(--dourado);
+  }
+  .nota-grafico{ font-size:11.5px; color:var(--texto-suave); margin-top:10px; line-height:1.4; }
+
+  .legenda-tendencia{
+    background:#FBF9F5; border:1px solid var(--borda); border-radius:10px;
+    padding:10px 12px; margin-bottom:12px; font-size:12px; color:var(--texto-suave); line-height:1.7;
+  }
+  .legenda-tendencia strong{ color:var(--texto); }
+  .legenda-tendencia .leg-item{ display:inline-block; margin-left:14px; }
+  .legenda-tendencia .tendencia{ font-size:12px; }
+
+  .tabela-scroll{ overflow-x:auto; -webkit-overflow-scrolling:touch; }
+
+  /* Ranking por granja — cards */
+  .ranking-lista{ display:flex; flex-direction:column; gap:8px; }
+  .ranking-card{
+    border:1px solid var(--borda); border-radius:12px; overflow:hidden; background:#fff;
+    transition:.15s;
+  }
+  .ranking-card-head{
+    display:grid; grid-template-columns:34px 1fr auto 30px; align-items:center; gap:12px;
+    padding:12px 14px; cursor:pointer;
+  }
+  .ranking-card-head:hover{ background:#FAF8F4; }
+  .rank-pos{
+    width:30px; height:30px; border-radius:8px; display:flex; align-items:center; justify-content:center;
+    font-weight:800; font-size:14px; color:#fff; flex-shrink:0;
+  }
+  .rank-info .rank-nome{ font-weight:700; font-size:14px; }
+  .rank-info .rank-sub{ font-size:11.5px; color:var(--texto-suave); margin-top:2px; }
+  .rank-barra-wrap{ min-width:0; }
+  .rank-valor{ font-weight:800; font-size:18px; font-variant-numeric:tabular-nums; text-align:right; white-space:nowrap; }
+  .rank-valor small{ font-size:11px; font-weight:600; color:var(--texto-suave); }
+  .rank-barra-track{ height:8px; border-radius:5px; background:#EFEAE0; margin-top:7px; overflow:hidden; }
+  .rank-barra-fill{ height:100%; border-radius:5px; transition:width .3s; }
+  .rank-expandir{
+    width:28px; height:28px; border-radius:7px; border:1.5px solid var(--borda); background:#fff;
+    color:var(--vermelho); font-weight:800; font-size:15px; cursor:pointer; display:flex; align-items:center; justify-content:center;
+  }
+  .rank-expandir.aberto{ background:var(--vermelho); color:#fff; border-color:var(--vermelho); }
+  .rank-filhos{ border-top:1px dashed var(--borda); padding:6px 14px 12px; background:#FCFBF9; }
+  .rank-filho{
+    display:flex; justify-content:space-between; align-items:center; gap:10px;
+    padding:7px 0; border-bottom:1px dashed var(--borda); font-size:13px;
+  }
+  .rank-filho:last-child{ border-bottom:none; }
+  .rank-filho .rf-nome{ color:var(--texto); font-weight:500; }
+  .rank-filho .rf-sub{ font-size:11px; color:var(--texto-suave); }
+  .rank-filho .rf-pct{ font-weight:700; font-variant-numeric:tabular-nums; }
+
+  @media (max-width:560px){
+    .ranking-card-head{ grid-template-columns:30px 1fr auto 28px; gap:8px; padding:11px; }
+    .rank-info .rank-nome{ font-size:13px; }
+    .rank-valor{ font-size:16px; }
+  }
+
+  .segmented-sm{ padding:2px; }
+  .segmented-sm button{ padding:5px 10px; font-size:11.5px; }
+
+  .chips-nucleos{ display:flex; flex-wrap:wrap; gap:6px; margin-bottom:14px; }
+  .chip-nucleo{
+    padding:6px 11px; border-radius:20px; border:1.5px solid var(--borda); background:#fff;
+    font-size:12px; font-weight:600; cursor:pointer; user-select:none; transition:.15s;
+    display:flex; align-items:center; gap:6px;
+  }
+  .chip-nucleo .cbola{ width:9px; height:9px; border-radius:50%; }
+  .chip-nucleo.ativo{ border-color:transparent; color:#fff; }
+
+  .vazio{ text-align:center; padding:40px 20px; color:var(--texto-suave); }
+  .vazio strong{ display:block; color:var(--texto); font-size:14px; margin-bottom:4px;}
+
+  ::-webkit-scrollbar{ height:6px; width:6px; }
+  ::-webkit-scrollbar-thumb{ background:var(--borda); border-radius:4px; }
+
+  /* ===================== RESPONSIVO ===================== */
+  /* Tablet: sidebar mais estreita */
+  @media (max-width:1100px){
+    :root{ --sidebar-w:220px; }
+    main{ padding:22px 22px 60px; }
+  }
+
+  /* Mobile: sidebar vira gaveta lateral */
+  @media (max-width:860px){
+    .topbar-mobile{
+      display:flex; align-items:center; gap:14px; position:sticky; top:0; z-index:55;
+      background:linear-gradient(135deg,var(--vermelho) 0%,var(--vermelho-escuro) 100%);
+      padding:12px 16px; border-bottom:3px solid var(--dourado);
+    }
+    .hamburguer{ width:38px; height:38px; border:none; background:rgba(255,255,255,.15); border-radius:10px; cursor:pointer; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:4px; padding:0; }
+    .hamburguer span{ display:block; width:18px; height:2px; background:#fff; border-radius:2px; transition:.2s; }
+    .topbar-logo{ height:30px; display:flex; align-items:center; }
+    .topbar-logo img{ height:100%; width:auto; }
+    .topbar-titulo{ color:#fff; font-family:'Sora',sans-serif; font-weight:700; font-size:15px; }
+
+    .sidebar{ transform:translateX(-100%); transition:transform .28s cubic-bezier(.4,0,.2,1); box-shadow:0 0 40px rgba(0,0,0,.3); }
+    .sidebar.aberta{ transform:translateX(0); }
+    .overlay{ display:block; position:fixed; inset:0; background:rgba(15,20,30,.5); z-index:59; opacity:0; pointer-events:none; transition:.28s; }
+    .overlay.ativa{ opacity:1; pointer-events:auto; }
+
+    main{ margin-left:0; padding:16px 15px 60px; }
+    .cards{ grid-template-columns:repeat(auto-fit, minmax(140px,1fr)); gap:11px; }
+    .card .valor{ font-size:23px; }
+  }
+
+  @media (max-width:560px){
+    .ranking-card-head{ grid-template-columns:30px 1fr auto 28px; gap:8px; padding:11px; }
+    .rank-info .rank-nome{ font-size:13px; }
+    .rank-valor{ font-size:16px; }
+  }
+  @media (max-width:480px){
+    .chart-wrap{ height:280px; }
+    table{ font-size:12px; }
+    .cards{ grid-template-columns:1fr 1fr; }
+  }
+
+/* ===== CSS do módulo Resultado Zootécnico (prefixado com #mod-resultado) ===== */
+  #mod-resultado .tabs-internas{ display:flex; gap:8px; margin-bottom:18px; flex-wrap:wrap; background:var(--card); padding:6px; border-radius:14px; border:1px solid var(--borda); box-shadow:var(--sombra); width:fit-content; }
+  #mod-resultado .tab-int{ background:transparent; border:none; color:var(--texto-suave);
+    font-family:inherit; font-size:13.5px; font-weight:600; padding:9px 20px; border-radius:10px; cursor:pointer; transition:.16s; }
+  #mod-resultado .tab-int:hover{ color:var(--texto); background:var(--bg); }
+  #mod-resultado .tab-int.ativo{ background:var(--vermelho); color:#fff; box-shadow:0 2px 10px rgba(193,39,45,.3); }
+
+  #mod-resultado table.matriz{ border-collapse:collapse; font-size:12px; width:auto; min-width:100%; }
+  #mod-resultado table.matriz th, #mod-resultado table.matriz td{ border:1px solid var(--borda); padding:6px 8px; text-align:center; white-space:nowrap; }
+  #mod-resultado table.matriz thead th{ background:#FBF7EE; font-weight:700; font-size:10.5px; text-transform:uppercase; letter-spacing:.02em; position:sticky; top:0; z-index:2; }
+  #mod-resultado table.matriz th.rowhead{ text-align:left; position:sticky; left:0; z-index:3; background:#fff; min-width:170px; }
+  #mod-resultado table.matriz thead th.rowhead{ z-index:4; background:#FBF7EE; }
+  #mod-resultado table.matriz tr.linha-nucleo{ background:#FFF4E1; }
+  #mod-resultado table.matriz tr.linha-nucleo:hover{ background:#FDECCB; }
+  #mod-resultado table.matriz tr.linha-nucleo th.rowhead{ font-weight:800; color:var(--vermelho-escuro); background:#FBE7C2; box-shadow:inset 3px 0 0 var(--dourado); }
+  #mod-resultado table.matriz tr.linha-nucleo td{ font-weight:700; background:#FFF4E1; }
+  #mod-resultado table.matriz th.th-sort{ cursor:pointer; user-select:none; }
+  #mod-resultado table.matriz th.th-sort:hover{ background:#F0E7D3; color:var(--vermelho); }
+  #mod-resultado .matriz-controles{ display:flex; align-items:center; justify-content:space-between; gap:12px; margin-bottom:12px; flex-wrap:wrap; }
+  #mod-resultado .btn-recolher{ background:#fff; border:1.5px solid var(--borda); color:var(--texto); font-family:inherit; font-size:12.5px; font-weight:700; padding:8px 16px; border-radius:9px; cursor:pointer; transition:.15s; white-space:nowrap; }
+  #mod-resultado .btn-recolher:hover{ border-color:var(--vermelho); color:var(--vermelho); }
+  #mod-resultado table.matriz .nuc-toggle{ display:inline-block; width:16px; cursor:pointer; color:var(--vermelho); font-size:11px; user-select:none; }
+  #mod-resultado table.matriz .nuc-toggle:hover{ color:var(--vermelho-escuro); }
+  #mod-resultado table.matriz th.rowhead.aviario{ padding-left:22px; font-weight:500; color:var(--texto-suave); }
+  #mod-resultado table.matriz td.cel{ font-variant-numeric:tabular-nums; font-weight:600; }
+  #mod-resultado table.matriz td.subano{ background:#FBF7EE; font-weight:700; font-variant-numeric:tabular-nums; border-left:1px dashed var(--dourado-claro); }
+  #mod-resultado table.matriz th.subano{ background:#F4EFE6; }
+  #mod-resultado table.matriz th.th-ano{ cursor:pointer; user-select:none; }
+  #mod-resultado table.matriz th.th-ano:hover{ background:#F4EFE6; }
+  #mod-resultado table.matriz th.th-ano .ano-toggle{ font-size:10px; color:var(--vermelho); margin-right:2px; }
+  #mod-resultado table.matriz td.media{ background:#F4EFE6; font-weight:800; border-left:2px solid var(--dourado); }
+  #mod-resultado table.matriz col.sep, #mod-resultado table.matriz th.sep{ border-left:2px solid var(--dourado-claro); }
+  #mod-resultado .matriz-legenda{ display:flex; align-items:center; gap:10px; margin:12px 0 0; font-size:11.5px; color:var(--texto-suave); flex-wrap:wrap; }
+  #mod-resultado .heat-escala{ display:inline-flex; height:12px; width:120px; border-radius:6px; overflow:hidden; }
+  #mod-resultado .podio{ display:flex; align-items:flex-end; justify-content:center; gap:10px; margin:8px 0 18px; }
+  #mod-resultado .podio-col{ display:flex; flex-direction:column; align-items:center; flex:1; max-width:180px; }
+  #mod-resultado .podio-nome{ font-size:12.5px; font-weight:700; text-align:center; margin-bottom:3px; line-height:1.2; min-height:30px; display:flex; align-items:flex-end; }
+  #mod-resultado .podio-valor{ font-size:19px; font-weight:800; color:var(--vermelho); margin-bottom:6px; font-variant-numeric:tabular-nums; }
+  #mod-resultado .podio-bloco{ width:100%; border-radius:10px 10px 0 0; display:flex; flex-direction:column; align-items:center; justify-content:flex-start; padding-top:10px; color:#fff; box-shadow:inset 0 -3px 0 rgba(0,0,0,.08); }
+  #mod-resultado .podio-medalha{ font-size:22px; line-height:1; }
+  #mod-resultado .podio-pos{ font-size:14px; font-weight:800; margin-top:2px; }
+  #mod-resultado .podio-sub{ font-size:11px; color:var(--texto-suave); margin-top:5px; font-weight:600; }
+  @media (max-width:480px){ #mod-resultado .podio-nome{ font-size:11px; } #mod-resultado .podio-valor{ font-size:16px; } }
+#mod-resultado *{box-sizing:border-box;margin:0;padding:0;}
+#mod-resultado body{font-family:'Inter',system-ui,sans-serif;background:var(--bg);color:var(--texto);-webkit-font-smoothing:antialiased;}
+#mod-resultado header{background:linear-gradient(135deg,var(--vermelho) 0%,var(--vermelho-escuro) 100%);
+    padding:16px 20px 0;border-bottom:3px solid var(--dourado);position:sticky;top:0;z-index:30;}
+#mod-resultado .header-top{display:flex;align-items:center;gap:14px;padding-bottom:14px;}
+#mod-resultado .logo-mark{height:48px;display:flex;align-items:center;flex-shrink:0;}
+#mod-resultado .logo-mark img{height:100%;width:auto;object-fit:contain;display:block;}
+#mod-resultado header h1{color:#fff;font-size:17px;font-weight:700;line-height:1.2;}
+#mod-resultado header p{color:var(--dourado-claro);font-size:11.5px;font-weight:500;margin-top:2px;}
+#mod-resultado .tabs{display:flex;gap:2px;}
+#mod-resultado .tab{flex:1;background:rgba(255,255,255,.08);border:none;color:rgba(255,255,255,.75);
+    font-family:inherit;font-size:12.5px;font-weight:600;padding:11px 8px;cursor:pointer;border-radius:8px 8px 0 0;transition:.15s;}
+#mod-resultado .tab.ativo{background:var(--bg);color:var(--vermelho-escuro);}
+#mod-resultado main{max-width:1150px;margin:0 auto;padding:16px;padding-bottom:60px;}
+#mod-resultado .filtros{background:var(--card);border:1px solid var(--borda);border-radius:14px;padding:14px;margin-bottom:14px;}
+#mod-resultado .filtros-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:10px;}
+#mod-resultado .campo label{display:block;font-size:11px;font-weight:600;color:var(--texto-suave);text-transform:uppercase;letter-spacing:.03em;margin-bottom:5px;}
+#mod-resultado select{width:100%;padding:9px 10px;border-radius:8px;border:1.5px solid var(--borda);background:#fff;font-size:13.5px;font-family:inherit;color:var(--texto);}
+#mod-resultado select:focus{outline:2px solid var(--dourado);border-color:var(--dourado);}
+#mod-resultado .cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;margin-bottom:14px;}
+#mod-resultado .card{background:var(--card);border:1px solid var(--borda);border-radius:14px;padding:14px;border-left:4px solid var(--dourado);}
+#mod-resultado .card.principal{border-left-color:var(--vermelho);background:linear-gradient(135deg,#fff 60%,#FFF6E8);}
+#mod-resultado .card .label{font-size:11px;color:var(--texto-suave);font-weight:600;text-transform:uppercase;letter-spacing:.03em;margin-bottom:6px;}
+#mod-resultado .card .valor{font-size:26px;font-weight:800;line-height:1;}
+#mod-resultado .card.principal .valor{color:var(--vermelho);font-size:30px;}
+#mod-resultado .card .sub{font-size:11.5px;color:var(--texto-suave);margin-top:5px;font-weight:500;}
+#mod-resultado .card .tend{font-size:11.5px;font-weight:700;margin-top:4px;}
+#mod-resultado .tend.up{color:var(--verde-ok);}
+#mod-resultado .tend.down{color:var(--vermelho-alerta);}
+#mod-resultado .painel{background:var(--card);border:1px solid var(--borda);border-radius:14px;padding:16px;margin-bottom:14px;}
+#mod-resultado .painel-header{display:flex;justify-content:space-between;align-items:baseline;flex-wrap:wrap;gap:8px;margin-bottom:12px;}
+#mod-resultado .painel-header h2{font-size:15px;font-weight:700;}
+#mod-resultado .painel-header .info{font-size:12px;color:var(--texto-suave);font-weight:500;}
+#mod-resultado .chart-wrap{position:relative;height:320px;}
+#mod-resultado .segmented{display:flex;background:var(--bg);border-radius:9px;padding:3px;gap:3px;flex-wrap:wrap;}
+#mod-resultado .segmented button{border:none;background:transparent;padding:7px 12px;border-radius:7px;font-family:inherit;font-size:12px;font-weight:600;color:var(--texto-suave);cursor:pointer;transition:.15s;}
+#mod-resultado .segmented button.ativo{background:var(--vermelho);color:#fff;}
+#mod-resultado .nota{font-size:11.5px;color:var(--texto-suave);margin-top:10px;line-height:1.5;}
+#mod-resultado /* ranking */
+  .ranking-lista{display:flex;flex-direction:column;gap:8px;}
+#mod-resultado .rank-card{border:1px solid var(--borda);border-radius:12px;background:#fff;padding:12px 14px;
+    display:grid;grid-template-columns:32px 1fr auto;align-items:center;gap:12px;}
+#mod-resultado .rank-pos{width:30px;height:30px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:14px;color:#fff;}
+#mod-resultado .rank-nome{font-weight:700;font-size:13.5px;}
+#mod-resultado .rank-sub{font-size:11.5px;color:var(--texto-suave);margin-top:2px;}
+#mod-resultado .rank-track{height:8px;border-radius:5px;background:#EFEAE0;margin-top:7px;overflow:hidden;}
+#mod-resultado .rank-fill{height:100%;border-radius:5px;}
+#mod-resultado .rank-valor{font-weight:800;font-size:18px;font-variant-numeric:tabular-nums;text-align:right;white-space:nowrap;}
+#mod-resultado .rank-valor small{font-size:11px;font-weight:600;color:var(--texto-suave);}
+#mod-resultado /* tabela por lote */
+  .busca{width:100%;padding:10px 12px;border-radius:9px;border:1.5px solid var(--borda);font-size:14px;font-family:inherit;margin-bottom:12px;}
+#mod-resultado .busca:focus{outline:2px solid var(--dourado);border-color:var(--dourado);}
+#mod-resultado .tabela-scroll{overflow-x:auto;}
+#mod-resultado table{width:100%;border-collapse:collapse;font-size:12.5px;min-width:720px;}
+#mod-resultado thead th{text-align:left;font-size:10.5px;font-weight:700;text-transform:uppercase;letter-spacing:.03em;color:var(--texto-suave);padding:8px 9px;border-bottom:2px solid var(--borda);cursor:pointer;white-space:nowrap;}
+#mod-resultado thead th:hover{color:var(--vermelho);}
+#mod-resultado tbody td{padding:8px 9px;border-bottom:1px solid var(--borda);white-space:nowrap;}
+#mod-resultado tbody tr:hover{background:#FAF8F4;}
+#mod-resultado .num{font-variant-numeric:tabular-nums;text-align:right;font-weight:600;}
+#mod-resultado .kpi-lote{display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:10px;margin-bottom:14px;}
+#mod-resultado .kpi-box{background:#FCFBF9;border:1px solid var(--borda);border-radius:10px;padding:11px;}
+#mod-resultado .kpi-box .k{font-size:10.5px;color:var(--texto-suave);font-weight:600;text-transform:uppercase;}
+#mod-resultado .kpi-box .v{font-size:18px;font-weight:800;margin-top:3px;}
+#mod-resultado .vazio{text-align:center;padding:40px 20px;color:var(--texto-suave);}
+#mod-resultado .vazio strong{display:block;color:var(--texto);font-size:14px;margin-bottom:4px;}
+#mod-resultado ::-webkit-scrollbar{height:6px;width:6px;}
+#mod-resultado ::-webkit-scrollbar-thumb{background:var(--borda);border-radius:4px;}
+@media (max-width:480px){#mod-resultado .chart-wrap{height:260px;}
+#mod-resultado header h1{font-size:15px;}}
+
+
+/* ===== CSS módulo Condenas (prefixado #mod-condenas) ===== */
+#mod-condenas h1, #mod-condenas h2, #mod-condenas h3{font-family:'Sora',sans-serif;}
+#mod-condenas .wrap{max-width:1200px;margin:0 auto;}
+#mod-condenas .pagina-titulo{font-size:24px;font-weight:800;letter-spacing:-.02em;margin-bottom:16px;}
+#mod-condenas .tabs-internas{display:flex;gap:8px;margin-bottom:18px;flex-wrap:wrap;background:var(--card);padding:6px;border-radius:14px;border:1px solid var(--borda);box-shadow:var(--sombra);width:fit-content;}
+#mod-condenas .tab-int{background:transparent;border:none;color:var(--texto-suave);font-family:inherit;font-size:13.5px;font-weight:600;padding:9px 20px;border-radius:10px;cursor:pointer;transition:.16s;}
+#mod-condenas .tab-int:hover{color:var(--texto);background:var(--bg);}
+#mod-condenas .tab-int.ativo{background:var(--vermelho);color:#fff;box-shadow:0 2px 10px rgba(193,39,45,.3);}
+#mod-condenas .filtros{background:var(--card);border:1px solid var(--borda);border-radius:var(--raio);padding:16px;margin-bottom:16px;box-shadow:var(--sombra);}
+#mod-condenas .filtros-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px;}
+#mod-condenas .campo label{display:block;font-size:11px;font-weight:700;color:var(--texto-suave);text-transform:uppercase;letter-spacing:.04em;margin-bottom:6px;}
+#mod-condenas select{width:100%;padding:10px 12px;border-radius:10px;border:1.5px solid var(--borda);background:#fff;font-size:13.5px;font-family:inherit;color:var(--texto);font-weight:500;}
+#mod-condenas select:focus{outline:none;border-color:var(--dourado);box-shadow:0 0 0 3px rgba(242,169,0,.15);}
+#mod-condenas .metrica-row{margin-top:14px;padding-top:14px;border-top:1px solid var(--borda);display:flex;align-items:center;gap:10px;flex-wrap:wrap;}
+#mod-condenas .metrica-row>span{font-size:11px;font-weight:700;color:var(--texto-suave);text-transform:uppercase;letter-spacing:.04em;}
+#mod-condenas .segmented{display:flex;background:var(--bg);border-radius:11px;padding:4px;gap:3px;flex-wrap:wrap;}
+#mod-condenas .segmented button{border:none;background:transparent;padding:8px 15px;border-radius:8px;font-family:inherit;font-size:12.5px;font-weight:600;color:var(--texto-suave);cursor:pointer;transition:.15s;}
+#mod-condenas .segmented button.ativo{background:var(--vermelho);color:#fff;box-shadow:0 2px 8px rgba(193,39,45,.28);}
+#mod-condenas .cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:14px;margin-bottom:16px;}
+#mod-condenas .card{background:var(--card);border:1px solid var(--borda);border-radius:var(--raio);padding:18px;box-shadow:var(--sombra);position:relative;overflow:hidden;}
+#mod-condenas .card::before{content:'';position:absolute;top:0;left:0;width:4px;height:100%;background:var(--dourado);}
+#mod-condenas .card.destaque::before{background:var(--vermelho);}
+#mod-condenas .card .label{font-size:11px;color:var(--texto-suave);font-weight:700;text-transform:uppercase;letter-spacing:.04em;margin-bottom:8px;}
+#mod-condenas .card .valor{font-family:'Sora',sans-serif;font-size:27px;font-weight:800;line-height:1;letter-spacing:-.02em;}
+#mod-condenas .card.destaque .valor{color:var(--vermelho);}
+#mod-condenas .card .sub{font-size:11.5px;color:var(--texto-suave);margin-top:6px;font-weight:500;}
+#mod-condenas .painel{background:var(--card);border:1px solid var(--borda);border-radius:var(--raio);padding:20px;box-shadow:var(--sombra);margin-bottom:16px;}
+#mod-condenas .painel-header{display:flex;justify-content:space-between;align-items:baseline;flex-wrap:wrap;gap:8px;margin-bottom:14px;}
+#mod-condenas .painel-header h2{font-size:16px;font-weight:700;}
+#mod-condenas .painel-header .info{font-size:12px;color:var(--texto-suave);font-weight:500;}
+#mod-condenas .chart-wrap{position:relative;height:300px;}
+#mod-condenas .nota{font-size:11.5px;color:var(--texto-suave);margin-top:12px;line-height:1.5;}
+#mod-condenas /* ranking pódio */
+  .podio{display:flex;align-items:flex-end;justify-content:center;gap:10px;margin:8px 0 18px;}
+#mod-condenas .podio-col{display:flex;flex-direction:column;align-items:center;flex:1;max-width:180px;}
+#mod-condenas .podio-nome{font-size:12.5px;font-weight:700;text-align:center;margin-bottom:3px;line-height:1.2;min-height:30px;display:flex;align-items:flex-end;}
+#mod-condenas .podio-valor{font-size:19px;font-weight:800;color:var(--vermelho);margin-bottom:6px;font-variant-numeric:tabular-nums;}
+#mod-condenas .podio-bloco{width:100%;border-radius:10px 10px 0 0;display:flex;flex-direction:column;align-items:center;padding-top:10px;color:#fff;}
+#mod-condenas .podio-medalha{font-size:22px;line-height:1;}
+#mod-condenas .podio-pos{font-size:14px;font-weight:800;margin-top:2px;}
+#mod-condenas .podio-sub{font-size:11px;color:var(--texto-suave);margin-top:5px;font-weight:600;}
+#mod-condenas .rank-lista{display:flex;flex-direction:column;gap:8px;}
+#mod-condenas .rank-card{border:1px solid var(--borda);border-radius:12px;background:#fff;padding:12px 14px;display:grid;grid-template-columns:32px 1fr auto;align-items:center;gap:12px;}
+#mod-condenas .rank-pos{width:30px;height:30px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:14px;color:#fff;}
+#mod-condenas .rank-nome{font-weight:700;font-size:13.5px;}
+#mod-condenas .rank-sub{font-size:11.5px;color:var(--texto-suave);margin-top:2px;}
+#mod-condenas .rank-track{height:8px;border-radius:5px;background:#EFEAE0;margin-top:7px;overflow:hidden;}
+#mod-condenas .rank-fill{height:100%;border-radius:5px;}
+#mod-condenas .rank-valor{font-weight:800;font-size:18px;font-variant-numeric:tabular-nums;text-align:right;white-space:nowrap;}
+#mod-condenas .rank-valor small{font-size:11px;font-weight:600;color:var(--texto-suave);}
+#mod-condenas /* barras de tipo */
+  .tipo-lista{display:flex;flex-direction:column;gap:7px;}
+#mod-condenas .tipo-row{display:grid;grid-template-columns:200px 1fr 90px;align-items:center;gap:12px;font-size:12.5px;}
+#mod-condenas .tipo-nome{font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+#mod-condenas .tipo-track{height:20px;border-radius:5px;background:#F1F3F6;overflow:hidden;position:relative;}
+#mod-condenas .tipo-fill{height:100%;border-radius:5px;background:linear-gradient(90deg,var(--dourado),var(--vermelho));}
+#mod-condenas .tipo-val{text-align:right;font-weight:700;font-variant-numeric:tabular-nums;}
+#mod-condenas /* matriz */
+  .matriz-controles{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:12px;flex-wrap:wrap;}
+  .btn-recolher{background:#fff;border:1.5px solid var(--borda);color:var(--texto);font-family:inherit;font-size:12.5px;font-weight:700;padding:8px 16px;border-radius:9px;cursor:pointer;transition:.15s;white-space:nowrap;}
+  .btn-recolher:hover{border-color:var(--vermelho);color:var(--vermelho);}
+  .matriz-diaria .nuc-toggle{display:inline-block;width:16px;cursor:pointer;color:var(--vermelho);font-size:11px;user-select:none;}
+  .matriz-diaria .nuc-toggle:hover{color:var(--vermelho-escuro);}
+  .matriz-diaria th.th-sort{cursor:pointer;user-select:none;}
+  .matriz-diaria th.th-sort:hover{background:#F0E7D3;color:var(--vermelho);}
+#mod-condenas .btn-recolher{background:#fff;border:1.5px solid var(--borda);color:var(--texto);font-family:inherit;font-size:12.5px;font-weight:700;padding:8px 16px;border-radius:9px;cursor:pointer;}
+#mod-condenas .btn-recolher:hover{border-color:var(--vermelho);color:var(--vermelho);}
+#mod-condenas .tabela-scroll{overflow-x:auto;}
+#mod-condenas .tabela-scroll.arrastavel{cursor:grab;}
+#mod-condenas .tabela-scroll.arrastavel.arrastando{cursor:grabbing;user-select:none;}
+#mod-condenas table.matriz{border-collapse:collapse;font-size:12px;width:auto;min-width:100%;}
+#mod-condenas table.matriz th, #mod-condenas table.matriz td{border:1px solid var(--borda);padding:6px 10px;text-align:center;white-space:nowrap;}
+#mod-condenas table.matriz thead th{background:#FBF7EE;font-weight:700;font-size:10.5px;text-transform:uppercase;letter-spacing:.02em;}
+#mod-condenas table.matriz th.rowhead{text-align:left;position:sticky;left:0;background:#fff;min-width:170px;}
+#mod-condenas table.matriz thead th.rowhead{background:#FBF7EE;}
+#mod-condenas table.matriz tr.linha-nucleo{background:#FFF4E1;}
+#mod-condenas table.matriz tr.linha-nucleo th.rowhead{font-weight:800;color:var(--vermelho-escuro);background:#FBE7C2;box-shadow:inset 3px 0 0 var(--dourado);}
+#mod-condenas table.matriz tr.linha-nucleo td{font-weight:700;background:#FFF4E1;}
+#mod-condenas table.matriz th.rowhead.aviario{padding-left:22px;font-weight:500;color:var(--texto-suave);}
+#mod-condenas table.matriz td.cel{font-variant-numeric:tabular-nums;font-weight:600;}
+#mod-condenas table.matriz td.media{background:#F4EFE6;font-weight:800;border-left:2px solid var(--dourado);}
+#mod-condenas table.matriz th.subano{background:#F4EFE6;}
+#mod-condenas table.matriz td.subano{background:#FBF7EE;font-weight:700;font-variant-numeric:tabular-nums;border-left:1px dashed var(--dourado-claro);}
+#mod-condenas table.matriz th.th-ano{cursor:pointer;user-select:none;}
+#mod-condenas table.matriz th.th-ano:hover{background:#F4EFE6;}
+#mod-condenas table.matriz .ano-toggle{font-size:10px;color:var(--vermelho);margin-right:2px;}
+#mod-condenas table.matriz .tipo-toggle{display:inline-block;width:16px;cursor:pointer;color:var(--dourado);font-weight:800;font-size:12px;user-select:none;}
+#mod-condenas table.matriz .tipo-toggle:hover{color:#B8860B;}
+#mod-condenas table.matriz tr.linha-tipo th.rowhead{padding-left:38px;font-weight:500;color:var(--texto-suave);font-size:11.5px;}
+#mod-condenas table.matriz tr.linha-tipo td{color:var(--texto-suave);font-size:11.5px;}
+#mod-condenas table.matriz tr.aviario-expandido th.rowhead{background:#FBF1DD;font-weight:800;color:var(--vermelho-escuro);box-shadow:inset 3px 0 0 var(--dourado);}
+#mod-condenas table.matriz tr.aviario-expandido td{background:#FBF1DD;}
+#mod-condenas table.matriz tr.aviario-expandido .tipo-toggle{color:var(--vermelho-escuro);}
+#mod-condenas table.matriz th.th-sort{cursor:pointer;user-select:none;}
+#mod-condenas table.matriz th.th-sort:hover{background:#F0E7D3;color:var(--vermelho);}
+#mod-condenas table.matriz .nuc-toggle{display:inline-block;width:16px;cursor:pointer;color:var(--vermelho);font-size:11px;}
+#mod-condenas table.matriz .sep{border-left:2px solid var(--dourado-claro);}
+#mod-condenas .vazio{text-align:center;padding:40px 20px;color:var(--texto-suave);}
+#mod-condenas ::-webkit-scrollbar{height:7px;width:7px;}
+#mod-condenas ::-webkit-scrollbar-thumb{background:var(--borda);border-radius:4px;}
+@media(max-width:560px){#mod-condenas .tipo-row{grid-template-columns:130px 1fr 70px;font-size:11.5px;}}
+</style>
+</head>
+<body>
+
+<div class="topbar-mobile">
+  <button class="hamburguer" id="btnMenu" aria-label="Menu">
+    <span></span><span></span><span></span>
+  </button>
+  <div class="topbar-logo"><img src="logo.png" alt="Qualitti"></div>
+  <div class="topbar-titulo">Zootécnico</div>
+</div>
+
+<div class="overlay" id="overlay"></div>
+
+<aside class="sidebar" id="sidebar">
+  <div class="sidebar-marca">
+    <div class="logo-mark"><img src="logo.png" alt="Qualitti"></div>
+    <div class="sidebar-marca-txt">
+      <h1>Zootécnico</h1>
+      <p>Análise da produção</p>
+    </div>
+  </div>
+
+  <nav class="sidebar-nav">
+    <div class="nav-secao">Módulos</div>
+    <div class="modulos">
+      <button class="modulo ativo" data-modulo="mortalidade">
+        <span class="modulo-ic">🐔</span> Mortalidade
+      </button>
+      <button class="modulo" data-modulo="resultado">
+        <span class="modulo-ic">📈</span> Resultado Zootécnico
+      </button>
+      <button class="modulo" data-modulo="condenas">
+        <span class="modulo-ic">🔎</span> Condenas
+      </button>
+    </div>
+  </nav>
+
+  <div class="sidebar-rodape">Qualitti Alimentos</div>
+</aside>
+
+<main>
+
+  <!-- ============ MÓDULO: RESULTADO ZOOTÉCNICO ============ -->
+  <div data-modulo-view="resultado" style="display:none;">
+    <div id="mod-resultado">
+
+  <div class="pagina-head">
+    <h1 class="pagina-titulo">Resultado Zootécnico</h1>
+  </div>
+
+  <div class="tabs-internas">
+    <button class="tab-int ativo" data-aba="geral">Visão geral</button>
+    <button class="tab-int" data-aba="desempenho">Desempenho</button>
+    <button class="tab-int" data-aba="matriz">Matriz</button>
+  </div>
+
+  <div class="filtros">
+    <div class="filtros-grid">
+      <div class="campo"><label>Ano</label><select id="rz_fAno"></select></div>
+      <div class="campo"><label>Núcleo</label><select id="rz_fNucleo"></select></div>
+      <div class="campo"><label>Linhagem</label><select id="rz_fLinhagem"></select></div>
+      <div class="campo"><label>Sexo</label><select id="rz_fSexo"></select></div>
+    </div>
+  </div>
+
+  <!-- ============ VISÃO GERAL ============ -->
+  <div data-aba-view="geral">
+    <div class="cards" id="rz_cardsKPI"></div>
+
+    <div class="painel">
+      <div class="painel-header">
+        <h2 id="rz_tituloEvolucao">Evolução do Fator de Produção</h2>
+        <div class="segmented" id="rz_segPeriodo">
+          <button data-p="ano" class="ativo">Por ano</button>
+          <button data-p="rodada">Por rodada</button>
+        </div>
+      </div>
+      <div class="chart-wrap" style="height:280px;"><canvas id="rz_chartEvolucao"></canvas></div>
+      <p class="nota" id="rz_notaEvolucao"></p>
+    </div>
+
+    <div class="painel">
+      <div class="painel-header">
+        <h2>Ranking por dimensão</h2>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:10px;margin-bottom:14px;">
+        <div class="segmented" id="rz_segDimensao">
+          <button data-d="nucleo" class="ativo">Núcleo</button>
+          <button data-d="tecnico">Técnico</button>
+          <button data-d="granjeiro">Granjeiro</button>
+          <button data-d="linhagem">Linhagem</button>
+          <button data-d="nutricao">Nutrição</button>
+          <button data-d="incubatorio">Incubatório</button>
+          <button data-d="rodada">Rodada</button>
+        </div>
+        <div class="segmented" id="rz_segIndicador">
+          <button data-k="fp" class="ativo">Fator Produção</button>
+          <button data-k="gmd">GMD</button>
+          <button data-k="ca">CA</button>
+          <button data-k="iep">IEP</button>
+          <button data-k="mortElim">% Mort+Elim</button>
+          <button data-k="pmAbate">Peso abate</button>
+          <button data-k="condenas">% Condenas</button>
+        </div>
+      </div>
+      <div id="rz_ranking" class="ranking-lista"></div>
+      <p class="nota" id="rz_notaRanking"></p>
+    </div>
+  </div>
+
+  <!-- ============ DESEMPENHO ============ -->
+  <div data-aba-view="desempenho" style="display:none;">
+    <div class="painel">
+      <div class="painel-header">
+        <h2>Curva de crescimento (peso × idade)</h2>
+        <span class="info">Peso médio por idade · comparar linhagens</span>
+      </div>
+      <div id="rz_chipsLinhagem" class="segmented" style="margin-bottom:12px;"></div>
+      <div class="chart-wrap"><canvas id="rz_chartCrescimento"></canvas></div>
+      <p class="nota">Peso médio (kg) medido a cada 7 dias, do alojamento ao abate. Compare a curva de cada linhagem/filtro com a média geral.</p>
+    </div>
+
+    <div class="painel">
+      <div class="painel-header">
+        <h2>Previsto × Real (peso de abate)</h2>
+        <span class="info">Acurácia da predição de peso</span>
+      </div>
+      <div class="chart-wrap" style="height:280px;"><canvas id="rz_chartPrevReal"></canvas></div>
+      <p class="nota" id="rz_notaPrevReal"></p>
+    </div>
+
+    <div class="painel">
+      <div class="painel-header">
+        <h2 id="rz_tituloEficiencia">Eficiência: conversão alimentar × Fator de Produção</h2>
+        <span class="info">Cada ponto = 1 lote</span>
+      </div>
+      <div class="chart-wrap"><canvas id="rz_chartEficiencia"></canvas></div>
+      <p class="nota">Canto ideal: <strong>esquerda e no alto</strong> — baixa conversão alimentar (come menos por kg) e alto Fator de Produção. Cor por linhagem.</p>
+    </div>
+  </div>
+
+  <!-- ============ MATRIZ (Ano/Rodada × Núcleo/Aviário) ============ -->
+  <div data-aba-view="matriz" style="display:none;">
+    <div class="painel">
+      <div class="painel-header">
+        <h2 id="rz_tituloMatriz">Matriz de Fator de Produção</h2>
+        <span class="info">Colunas: ano › rodada · Linhas: núcleo › aviário</span>
+      </div>
+      <div class="matriz-controles">
+        <div class="segmented" id="rz_segMatriz">
+          <button data-k="fp" class="ativo">Fator Produção</button>
+          <button data-k="gmd">GMD</button>
+          <button data-k="ca">CA</button>
+          <button data-k="iep">IEP</button>
+          <button data-k="mortElim">% Mort+Elim</button>
+          <button data-k="pmAbate">Peso abate</button>
+          <button data-k="condenas">% Condenas</button>
+        </div>
+        <button class="btn-recolher" id="rz_btnRecolher">Expandir todos</button>
+      </div>
+      <div class="tabela-scroll arrastavel" id="rz_scrollMatriz">
+        <table class="matriz" id="rz_tabelaMatriz"></table>
+      </div>
+      <p class="nota" id="rz_notaMatriz"></p>
+    </div>
+  </div>
+
+    </div>
+  </div>
+
+  <!-- ============ MÓDULO: CONDENAS ============ -->
+  <div data-modulo-view="condenas" style="display:none;">
+    <div id="mod-condenas">
+
+  <div class="pagina-titulo">Condenas</div>
+
+  <div class="tabs-internas">
+    <button class="tab-int ativo" data-aba="geral">Visão geral</button>
+    <button class="tab-int" data-aba="tipo">Por tipo</button>
+    <button class="tab-int" data-aba="matriz">Matriz</button>
+  </div>
+
+  <div class="filtros">
+    <div class="filtros-grid">
+      <div class="campo"><label>Ano</label><select id="cd_fAno"></select></div>
+      <div class="campo"><label>Núcleo</label><select id="cd_fNucleo"></select></div>
+      <div class="campo"><label>Aviário</label><select id="cd_fAviario"></select></div>
+    </div>
+    <div class="metrica-row">
+      <span>Base do percentual:</span>
+      <div class="segmented" id="cd_segMetrica">
+        <button data-m="peso" class="ativo">% em peso (kg)</button>
+        <button data-m="aves">% em aves</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- VISÃO GERAL -->
+  <div data-aba-view="geral">
+    <div class="cards" id="cd_cards"></div>
+    <div class="painel">
+      <div class="painel-header"><h2 id="cd_tituloEvo">Evolução da condena por ano</h2><span class="info">% ponderado pelo abate</span></div>
+      <div class="chart-wrap" style="height:260px;"><canvas id="cd_chartEvo"></canvas></div>
+      <p class="nota" id="cd_notaEvo"></p>
+    </div>
+    <div class="painel">
+      <div class="painel-header"><h2>Evolução mensal da condena</h2><span class="info">cronológico</span></div>
+      <div class="chart-wrap" style="height:260px;"><canvas id="cd_chartMensal"></canvas></div>
+      <p class="nota" id="cd_notaMensal"></p>
+    </div>
+    <div class="painel">
+      <div class="painel-header"><h2>Condena por incubatório</h2><span class="info">menor é melhor</span></div>
+      <div id="cd_rankingIncub"></div>
+      <p class="nota">Origem do pinto — ajuda a isolar se a condena tem relação com a procedência.</p>
+    </div>
+    <div class="painel">
+      <div class="painel-header"><h2>Ranking de condena por núcleo</h2><span class="info">menor é melhor</span></div>
+      <div id="cd_ranking"></div>
+      <p class="nota">Pódio = os 3 <strong>melhores</strong> (menor condena). Abaixo, do 4º ao pior. Cor da barra proporcional.</p>
+    </div>
+  </div>
+
+  <!-- POR TIPO -->
+  <div data-aba-view="tipo" style="display:none;">
+    <div class="painel">
+      <div class="painel-header"><h2 id="cd_tituloTipo">Condena por tipo</h2><span class="info" id="cd_infoTipo"></span></div>
+      <div class="tipo-lista" id="cd_tipoLista"></div>
+      <p class="nota">Participação de cada tipo no total condenado (em peso ou aves, conforme o seletor). Use os filtros de Núcleo/Aviário para ver o que puxa a condena num lugar específico.</p>
+    </div>
+  </div>
+
+  <!-- MATRIZ -->
+  <div data-aba-view="matriz" style="display:none;">
+    <div class="painel">
+      <div class="painel-header"><h2 id="cd_tituloMatriz">Matriz de condena — núcleo × ano</h2><span class="info">Linhas: núcleo › aviário</span></div>
+      <div class="matriz-controles">
+        <span class="info">Clique num ano ou na média para ordenar</span>
+        <button class="btn-recolher" id="cd_btnRecolher">Expandir todos</button>
+      </div>
+      <div class="tabela-scroll arrastavel" id="cd_scrollMatriz"><table class="matriz" id="cd_tabelaMatriz"></table></div>
+      <p class="nota" id="cd_notaMatriz"></p>
+    </div>
+  </div>
+
+    </div>
+  </div>
+
+  <!-- ============ MÓDULO: MORTALIDADE ============ -->
+  <div data-modulo-view="mortalidade">
+
+  <div class="pagina-head">
+    <h1 class="pagina-titulo">Mortalidade</h1>
+    <div class="tabs-visao" id="tabsMortalidade">
+      <button class="tab-visao ativo" data-situacao="Aberto">Em andamento <span class="count" id="countAberto">0</span></button>
+      <button class="tab-visao" data-situacao="Fechado">Histórico <span class="count" id="countFechado">0</span></button>
+    </div>
+  </div>
+
+  <div class="filtros" id="filtrosMortalidade">
+    <div class="filtros-grid">
+      <div class="campo">
+        <label for="fNucleo">Núcleo</label>
+        <select id="fNucleo"></select>
+      </div>
+      <div class="campo">
+        <label for="fAviario">Aviário</label>
+        <select id="fAviario"></select>
+      </div>
+      <div class="campo">
+        <label for="fSexo">Sexo</label>
+        <select id="fSexo">
+          <option value="Todos">Todos</option>
+          <option value="Machos">Machos</option>
+          <option value="Fêmeas">Fêmeas</option>
+          <option value="Mistos">Mistos</option>
+        </select>
+      </div>
+    </div>
+    <div class="metrica-row">
+      <span>Mortalidade:</span>
+      <div class="segmented" id="segMetrica">
+        <button data-metrica="pctTotal" class="ativo">Total</button>
+        <button data-metrica="pctNatural">Natural</button>
+        <button data-metrica="pctElim">Eliminada</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==================== ABA: EM ANDAMENTO ==================== -->
+  <div data-view="andamento">
+
+    <div class="cards" id="cards"></div>
+
+    <div class="quadro">
+      <div class="quadro-header">
+        <h2>Mortalidade diária por idade</h2>
+        <span class="info" id="infoMatrizDiaria"></span>
+      </div>
+      <div class="matriz-controles" style="margin-bottom:10px;">
+        <span class="info">Clique em "Total" ou "%" para classificar · clique na seta do núcleo para recolher/expandir</span>
+        <button class="btn-recolher" id="btnRecolherMD">Recolher todos</button>
+      </div>
+      <p class="nota-grafico" style="margin:0 0 12px;">Acompanhamento dia a dia das baixas de cada aviário em andamento, por núcleo — com o <strong>subtotal do núcleo</strong> ao final de cada grupo. A célula fica destacada quando há <strong>salto brusco</strong> de mortalidade em relação ao dia anterior. A coluna <strong>Idade atual</strong> mostra a idade de hoje (data de hoje − alojamento). <span style="color:var(--texto-suave)">💡 Clique e arraste a tabela para o lado para navegar entre as idades.</span></p>
+      <div class="tabela-scroll arrastavel" id="scrollMatrizDiaria">
+        <table class="matriz-diaria" id="tabelaMatrizDiaria"></table>
+      </div>
+    </div>
+
+    <div class="quadro">
+      <div class="quadro-header">
+        <h2>Lotes em andamento</h2>
+        <span class="info" id="infoQuadro"></span>
+      </div>
+      <div class="legenda-tendencia">
+        <strong>Tendência do aviário:</strong> compara este lote com a <em>média dos até 3 ciclos anteriores do mesmo aviário, na mesma idade em que este lote está agora</em> (não o resultado final do ciclo deles).
+        <span class="leg-item"><span class="tendencia subiu">▲ subiu</span> = pior que a média recente</span>
+        <span class="leg-item"><span class="tendencia desceu">▼ caiu</span> = melhor que a média recente</span>
+        <span class="leg-item">em pontos percentuais (p.p.)</span>
+      </div>
+      <div class="tabela-scroll">
+        <table>
+          <thead>
+            <tr>
+              <th></th>
+              <th>Núcleo</th>
+              <th>Aviário</th>
+              <th>Idade atual</th>
+              <th>% Mortalidade</th>
+              <th>Tendência do aviário</th>
+            </tr>
+          </thead>
+          <tbody id="corpoQuadro"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <div class="painel-grafico">
+      <div class="painel-grafico-header">
+        <h2 id="tituloIdadeAndamento">Mortalidade média por idade — em andamento</h2>
+        <span class="info">Todos os lotes em andamento · acumulada · ponderada</span>
+      </div>
+      <div class="chart-wrap" style="height:280px;"><canvas id="graficoIdadeAndamento"></canvas></div>
+      <p class="nota-grafico" id="notaIdadeAndamento"></p>
+    </div>
+
+    <div class="painel-grafico">
+      <div class="painel-grafico-header">
+        <h2 id="tituloBarrasAndamento">Mortalidade por núcleo — em andamento</h2>
+        <span class="info">Lotes em andamento · ponderada pelo alojamento</span>
+      </div>
+      <div class="chart-wrap" style="height:280px;"><canvas id="graficoBarrasAndamento"></canvas></div>
+    </div>
+
+    <div class="quadro">
+      <div class="quadro-header">
+        <h2>Ranking de mortalidade por granja</h2>
+        <span class="info" id="infoRankingAndamento"></span>
+      </div>
+      <div id="rankingNucleosAndamento" class="ranking-lista"></div>
+    </div>
+
+    <div class="painel-grafico">
+      <div class="painel-grafico-header">
+        <h2 id="tituloGrafico">Curva de mortalidade por lote</h2>
+        <div class="segmented segmented-sm" id="segModoLinha">
+          <button data-modo="acumulada" class="ativo">Acumulada</button>
+          <button data-modo="periodo">Por período</button>
+        </div>
+      </div>
+      <span class="info" id="infoGrafico" style="display:block;margin-bottom:8px;"></span>
+      <div class="chart-wrap"><canvas id="graficoMortalidade"></canvas></div>
+      <div class="legenda-custom" id="legendaCustom"></div>
+    </div>
+
+    <div class="painel-grafico">
+      <div class="painel-grafico-header">
+        <h2 id="tituloGraficoEmpresa">Mortalidade média por idade — empresa</h2>
+        <span class="info">Acumulada · andamento vs histórico · ponderada pelo alojamento</span>
+      </div>
+      <div class="chart-wrap"><canvas id="graficoEmpresa"></canvas></div>
+      <p class="nota-grafico" id="notaEmpresa"></p>
+    </div>
+
+  </div>
+
+  <!-- ==================== ABA: HISTÓRICO ==================== -->
+  <div data-view="historico" style="display:none;">
+
+    <div class="cards" id="cardsHistorico"></div>
+
+    <div class="painel-grafico">
+      <div class="painel-grafico-header">
+        <h2 id="tituloTendenciaAno">Tendência de mortalidade por ano</h2>
+        <span class="info">Todos os ciclos fechados · ponderada pelo alojamento</span>
+      </div>
+      <div class="chart-wrap" style="height:280px;"><canvas id="graficoAno"></canvas></div>
+    </div>
+
+    <div class="quadro">
+      <div class="quadro-header">
+        <h2>Ranking de mortalidade por granja</h2>
+        <span class="info" id="infoRanking"></span>
+      </div>
+      <div id="rankingNucleos" class="ranking-lista"></div>
+    </div>
+
+    <div class="painel-grafico">
+      <div class="painel-grafico-header">
+        <h2>Composição: natural × eliminada por idade</h2>
+        <span class="info">Histórico · % acumulada empilhada</span>
+      </div>
+      <div class="chart-wrap"><canvas id="graficoComposicao"></canvas></div>
+      <div class="legenda-custom" id="legendaComposicao"></div>
+    </div>
+
+    <div class="painel-grafico">
+      <div class="painel-grafico-header">
+        <h2 id="tituloCurvaNucleo">Curva de mortalidade por idade — comparar núcleos</h2>
+        <span class="info">Histórico · acumulada · ponderada</span>
+      </div>
+      <p class="nota-grafico" style="margin:0 0 10px;">Mostra o padrão médio de cada granja ao longo do ciclo — em que idade cada núcleo concentra a mortalidade. Toque nos núcleos para incluir/remover.</p>
+      <div id="chipsNucleos" class="chips-nucleos"></div>
+      <div class="chart-wrap"><canvas id="graficoCurvaNucleo"></canvas></div>
+      <div class="legenda-custom" id="legendaCurvaNucleo"></div>
+    </div>
+
+    <div class="secao-titulo">Desempenho e origem</div>
+
+    <div class="painel-grafico">
+      <div class="painel-grafico-header">
+        <h2>Mortalidade × ganho de peso (GPD)</h2>
+        <span class="info">Cada ponto = 1 lote fechado · idade ≥ 35d</span>
+      </div>
+      <div class="chart-wrap"><canvas id="graficoScatter"></canvas></div>
+      <p class="nota-grafico">Canto ideal: <strong>direita e embaixo</strong> — alto ganho de peso com baixa mortalidade. Pontos no alto à esquerda são lotes que morreram mais e ganharam menos peso.</p>
+    </div>
+
+    <div class="painel-grafico">
+      <div class="painel-grafico-header">
+        <h2 id="tituloIncubatorio">Mortalidade por incubatório</h2>
+        <span class="info">Origem do pinto · ponderada pelo alojamento</span>
+      </div>
+      <div class="chart-wrap" style="height:240px;"><canvas id="graficoIncubatorio"></canvas></div>
+      <p class="nota-grafico">A mortalidade inicial (natural, 1ª semana) costuma refletir a qualidade do pinto. Troque a métrica para <strong>Natural</strong> acima para isolar esse efeito.</p>
+    </div>
+
+  </div>
+
+  </div><!-- fim modulo-view mortalidade -->
+
+</main>
+
+<script>
+// Carrega os dados de arquivos separados (em vez de embutidos no HTML).
+// Isso permite que a automação do Drive atualize só os arquivos em /data,
+// sem precisar tocar neste HTML.
+function fetchJSONSync(url){
+  const xhr = new XMLHttpRequest();
+  xhr.open('GET', url, false); // síncrono: garante que os dados existem antes do resto do script rodar
+  xhr.send(null);
+  if(xhr.status !== 200 && xhr.status !== 0) throw new Error('Falha ao carregar '+url+': HTTP '+xhr.status);
+  return JSON.parse(xhr.responseText);
+}
+const RAW_DATA = fetchJSONSync('./data/mortalidade_data.json');
+const RESUMO_LOTES = fetchJSONSync('./data/resumo_lotes.json');
+const AGG_IDADE = fetchJSONSync('./data/agg_idade.json');
+const AGG_NUCLEO = fetchJSONSync('./data/agg_nucleo_idade.json');
+const MORT_DIARIA = fetchJSONSync('./data/mort_diaria_abertos.json');
+</script>
+<script>
+// ========================= Preparação =========================
+
+// ---- Detalhado (medições por idade) — usado pra desenhar as curvas do gráfico ----
+const lotesDetalhe = new Map(); // loteId (texto) -> {medicoes:[{idade, totalBaixa, morte, elim}]}
+RAW_DATA.forEach(r => {
+  if(!lotesDetalhe.has(r['Lote'])) lotesDetalhe.set(r['Lote'], { alojadas: r['Alojadas'], medicoes: [] });
+  lotesDetalhe.get(r['Lote']).medicoes.push({
+    idade: r['Idade'],
+    totalBaixa: r['Total Baixa'] || 0,
+    morte: r['Morte'] || 0,
+    elim: r['Elim'] || 0
+  });
+});
+lotesDetalhe.forEach(l => l.medicoes.sort((a,b) => a.idade - b.idade));
+
+const lotesComDetalhe = new Set(lotesDetalhe.keys());
+
+// ---- Resumo completo (todo o histórico, por Lote — chave única de verdade) — usado pro quadro geral e cálculo de tendência ----
+// ordenar por aviário + data de alojamento, pra achar "lote anterior" de cada aviário
+const porAviario = new Map();
+RESUMO_LOTES.forEach(l => {
+  if(!porAviario.has(l.aviario)) porAviario.set(l.aviario, []);
+  porAviario.get(l.aviario).push(l);
+});
+porAviario.forEach(arr => arr.sort((a,b) => a.dataAloj.localeCompare(b.dataAloj)));
+
+// ---- Lookup diário por lote (pra comparar tendência na MESMA idade, não no valor final) ----
+const camposAcc = {pctTotal:'Total Baixa', pctNatural:'Morte', pctElim:'Elim'};
+const diarioPorLote = new Map();
+RAW_DATA.forEach(r => {
+  const lid = r['Lote'];
+  if(!diarioPorLote.has(lid)) diarioPorLote.set(lid, []);
+  diarioPorLote.get(lid).push(r);
+});
+diarioPorLote.forEach(arr => arr.sort((a,b)=>a['Idade']-b['Idade']));
+
+// % acumulado de um lote até uma idade-alvo específica (não o valor final do ciclo dele)
+function pctNaIdade(loteId, idadeAlvo, metrica){
+  const arr = diarioPorLote.get(loteId);
+  if(!arr || !arr.length) return null;
+  const alojadas = arr[0]['Alojadas'];
+  const campo = camposAcc[metrica];
+  let acc = 0, achou = false;
+  for(const r of arr){
+    if(r['Idade'] > idadeAlvo) break;
+    acc += (r[campo] || 0);
+    achou = true;
+  }
+  if(!achou || !alojadas) return null;
+  return acc / alojadas * 100;
+}
+
+function tendenciaDoLote(lote, metrica){
+  const seq = porAviario.get(lote.aviario);
+  const idx = seq.findIndex(l => l.loteId === lote.loteId);
+  if(idx <= 0) return null;
+  const anteriores = seq.slice(Math.max(0, idx-3), idx); // até 3 ciclos antes
+  const idadeAlvo = lote.idadeFinal; // idade atual do lote em andamento
+  // compara com o que os ciclos anteriores tinham acumulado NA MESMA IDADE (não o valor final do ciclo completo deles)
+  const valores = anteriores.map(l => {
+    const v = pctNaIdade(l.loteId, idadeAlvo, metrica);
+    return v != null ? v : l[metrica]; // sem dado diário disponível: usa o valor final como aproximação
+  });
+  const mediaAnterior = valores.reduce((s,v) => s + v, 0) / valores.length;
+  return {
+    delta: +(lote[metrica] - mediaAnterior).toFixed(2),
+    nCiclos: anteriores.length,
+    mediaAnterior: +mediaAnterior.toFixed(2)
+  };
+}
+
+// ---- lotes exibíveis no quadro: os que têm detalhe carregado (abertos + histórico recente) ----
+const lotesExibiveis = RESUMO_LOTES.filter(l => lotesComDetalhe.has(l.loteId));
+
+const nomeNucleo = n => (n || '').replace('NÚCLEO ', '');
+const paletaCores = ['#A61C1C','#C9A227','#3A7D44','#2E6E9E','#8E44AD','#D97706','#0E7C7B','#B33F62','#556B2F','#5B4636'];
+const corPorIndice = i => paletaCores[i % paletaCores.length];
+
+// contadores: andamento = aviários abertos exibíveis; histórico = todos os ciclos fechados na base completa
+document.getElementById('countAberto').textContent = deduplicarPorAviario(lotesExibiveis.filter(l=>l.situacao==='Aberto')).length;
+document.getElementById('countFechado').textContent = RESUMO_LOTES.filter(l=>l.situacao==='Fechado').length;
+
+// ========================= Estado =========================
+let situacaoAtiva = 'Aberto';
+let abaAtiva = 'andamento'; // andamento | historico
+let metricaAtiva = 'pctTotal';
+let sexoAtivo = 'Todos';
+let modoLinha = 'acumulada'; // acumulada | periodo
+let lotesSelecionados = new Set();
+
+const metricaLabel = { pctTotal: 'Total (natural + eliminada)', pctNatural: 'Natural', pctElim: 'Eliminada' };
+const campoContagem = { pctTotal: 'totalBaixaAcum', pctNatural: 'morteAcum', pctElim: 'elimAcum' };
+
+// ========================= Filtros Núcleo/Aviário =========================
+// Dois mapas: um só com lotes ABERTOS (para a visão Em andamento) e outro com tudo (Histórico).
+// Assim, conforme os lotes alternam (abate sai / aloja entra), o filtro reflete a realidade da aba.
+const nucleoAviariosAberto = new Map();
+const nucleoAviariosTodos = new Map();
+lotesExibiveis.forEach(l => {
+  if(!nucleoAviariosTodos.has(l.nucleo)) nucleoAviariosTodos.set(l.nucleo, new Set());
+  nucleoAviariosTodos.get(l.nucleo).add(l.aviario);
+  if(l.situacao === 'Aberto'){
+    if(!nucleoAviariosAberto.has(l.nucleo)) nucleoAviariosAberto.set(l.nucleo, new Set());
+    nucleoAviariosAberto.get(l.nucleo).add(l.aviario);
+  }
+});
+// mapa ativo conforme a aba (andamento usa só abertos)
+function mapaFiltro(){ return abaAtiva === 'andamento' ? nucleoAviariosAberto : nucleoAviariosTodos; }
+
+const selNucleo = document.getElementById('fNucleo');
+const selAviario = document.getElementById('fAviario');
+
+function popularNucleos(){
+  const mapa = mapaFiltro();
+  const anterior = selNucleo.value;
+  const nucleos = Array.from(mapa.keys()).sort();
+  selNucleo.innerHTML = '<option value="Todos">Todos os núcleos</option>' + nucleos.map(n => `<option value="${n}">${nomeNucleo(n)}</option>`).join('');
+  // preserva a seleção se ainda existir na nova aba; senão volta pra Todos
+  selNucleo.value = nucleos.includes(anterior) ? anterior : 'Todos';
+}
+function popularAviarios(){
+  const mapa = mapaFiltro();
+  const nucleoSel = selNucleo.value;
+  const anterior = selAviario.value;
+  let aviarios = [];
+  if(nucleoSel === 'Todos'){ const s = new Set(); mapa.forEach(set=>set.forEach(a=>s.add(a))); aviarios = Array.from(s); }
+  else aviarios = Array.from(mapa.get(nucleoSel) || []);
+  aviarios.sort();
+  selAviario.innerHTML = '<option value="Todos">Todos os aviários</option>' + aviarios.map(a => `<option value="${a}">${a}</option>`).join('');
+  selAviario.value = aviarios.includes(anterior) ? anterior : 'Todos';
+}
+popularNucleos(); popularAviarios();
+
+// ========================= Arrastar para rolar (drag-to-scroll) =========================
+function ativarArrastar(el){
+  if(!el || el._arrastarAtivo) return;
+  el._arrastarAtivo = true;
+  let baixo=false, xIni=0, scrollIni=0, moveu=false;
+  el.addEventListener('mousedown', e=>{
+    // ignora clique em elementos interativos
+    if(e.target.closest('button,a,select,input')) return;
+    baixo=true; moveu=false; xIni=e.pageX; scrollIni=el.scrollLeft;
+    el.classList.add('arrastando');
+  });
+  window.addEventListener('mousemove', e=>{
+    if(!baixo) return;
+    const dx = e.pageX - xIni;
+    if(Math.abs(dx)>3) moveu=true;
+    el.scrollLeft = scrollIni - dx;
+  });
+  window.addEventListener('mouseup', ()=>{ baixo=false; el.classList.remove('arrastando'); });
+  el.addEventListener('mouseleave', ()=>{ if(baixo){ baixo=false; el.classList.remove('arrastando'); } });
+  // impede que o arraste vire clique (ex: selecionar lote)
+  el.addEventListener('click', e=>{ if(moveu){ e.stopPropagation(); e.preventDefault(); } }, true);
+}
+
+// ========================= Menu mobile (hambúrguer) =========================
+(function(){
+  const btn = document.getElementById('btnMenu');
+  const sidebar = document.getElementById('sidebar');
+  const overlay = document.getElementById('overlay');
+  if(!btn) return;
+  function abrir(){ sidebar.classList.add('aberta'); overlay.classList.add('ativa'); }
+  function fechar(){ sidebar.classList.remove('aberta'); overlay.classList.remove('ativa'); }
+  btn.addEventListener('click', ()=> sidebar.classList.contains('aberta') ? fechar() : abrir());
+  overlay.addEventListener('click', fechar);
+  // fecha ao escolher um item de navegação no mobile
+  document.querySelectorAll('.sidebar .modulo').forEach(el=>el.addEventListener('click', ()=>{ if(window.innerWidth<=860) fechar(); }));
+})();
+
+// ========================= Módulos (nível principal) =========================
+document.querySelectorAll('.modulo').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('.modulo').forEach(b => b.classList.remove('ativo'));
+    btn.classList.add('ativo');
+    const mod = btn.dataset.modulo;
+    document.querySelector('[data-modulo-view="mortalidade"]').style.display = (mod==='mortalidade') ? '' : 'none';
+    document.querySelector('[data-modulo-view="resultado"]').style.display = (mod==='resultado') ? '' : 'none';
+    document.querySelector('[data-modulo-view="condenas"]').style.display = (mod==='condenas') ? '' : 'none';
+    document.getElementById('tabsMortalidade').style.display = (mod==='mortalidade') ? '' : 'none';
+    // os filtros do topo pertencem ao módulo mortalidade (Resultado e Condenas têm os seus próprios dentro deles)
+    document.getElementById('filtrosMortalidade').style.display = (mod==='mortalidade') ? '' : 'none';
+    // dispara o render dos módulos na 1ª vez que abrem
+    if(mod==='resultado' && window.renderResultado) window.renderResultado();
+    if(mod==='condenas' && window.renderCondenas) window.renderCondenas();
+    window.scrollTo({top:0, behavior:'smooth'});
+  });
+});
+
+// ========================= Tabs de Visão =========================
+document.querySelectorAll('.tab-visao').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('.tab-visao').forEach(b => b.classList.remove('ativo'));
+    btn.classList.add('ativo');
+    situacaoAtiva = btn.dataset.situacao;
+    abaAtiva = (situacaoAtiva === 'Aberto') ? 'andamento' : 'historico';
+    // repopula os filtros conforme a aba (andamento = só núcleos com lote aberto)
+    popularNucleos(); popularAviarios();
+    document.querySelector('[data-view="andamento"]').style.display = (abaAtiva==='andamento') ? '' : 'none';
+    document.querySelector('[data-view="historico"]').style.display = (abaAtiva==='historico') ? '' : 'none';
+    if(abaAtiva==='andamento') selecionarPadrao();
+    render();
+    window.scrollTo({top:0, behavior:'smooth'});
+  });
+});
+
+// ========================= Segmentado (métrica) =========================
+document.querySelectorAll('#segMetrica button').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('#segMetrica button').forEach(b => b.classList.remove('ativo'));
+    btn.classList.add('ativo');
+    metricaAtiva = btn.dataset.metrica;
+    render();
+  });
+});
+
+selNucleo.addEventListener('change', () => { popularAviarios(); selecionarPadrao(); render(); });
+selAviario.addEventListener('change', () => { selecionarPadrao(); render(); });
+
+// filtro de sexo (afeta tudo)
+document.getElementById('fSexo').addEventListener('change', (e) => {
+  sexoAtivo = e.target.value;
+  if(abaAtiva==='andamento') selecionarPadrao();
+  render();
+});
+
+// toggle acumulada / por período (só o gráfico de linha)
+document.querySelectorAll('#segModoLinha button').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('#segModoLinha button').forEach(b => b.classList.remove('ativo'));
+    btn.classList.add('ativo');
+    modoLinha = btn.dataset.modo;
+    const lotes = lotesFiltrados();
+    renderGrafico(lotes.filter(l => lotesSelecionados.has(l.loteId)));
+  });
+});
+
+// ========================= Lógica principal =========================
+
+// Um aviário aparece várias vezes na base (um lote por ciclo). Pra visão geral,
+// cada aviário conta só uma vez: o lote mais recente (maior Data Aloj) que passar no filtro.
+function deduplicarPorAviario(lista){
+  const porAviario = new Map();
+  lista.forEach(l => {
+    const atual = porAviario.get(l.aviario);
+    if(!atual || l.dataAloj > atual.dataAloj) porAviario.set(l.aviario, l);
+  });
+  return Array.from(porAviario.values());
+}
+
+function passaSexo(l){ return sexoAtivo === 'Todos' || l.sexo === sexoAtivo; }
+
+function lotesFiltrados(){
+  const nucleoSel = selNucleo.value, aviarioSel = selAviario.value;
+  const base = lotesExibiveis.filter(l => {
+    if(l.situacao !== situacaoAtiva) return false;
+    if(nucleoSel !== 'Todos' && l.nucleo !== nucleoSel) return false;
+    if(aviarioSel !== 'Todos' && l.aviario !== aviarioSel) return false;
+    if(!passaSexo(l)) return false;
+    return true;
+  });
+  return deduplicarPorAviario(base).sort((a,b) => b[metricaAtiva] - a[metricaAtiva]);
+}
+
+function selecionarPadrao(){
+  const lotes = lotesFiltrados();
+  lotesSelecionados = new Set(lotes.slice(0,6).map(l => l.loteId));
+}
+
+function renderQuadro(lotes){
+  const corpo = document.getElementById('corpoQuadro');
+  document.getElementById('infoQuadro').textContent = `${lotes.length} aviário(s) · lote mais recente de cada um · ordenado por maior % (${metricaLabel[metricaAtiva]}) · clique numa linha para incluir/remover do gráfico`;
+
+  if(lotes.length === 0){
+    corpo.innerHTML = `<tr><td colspan="6" style="text-align:center;color:var(--texto-suave);padding:24px;">Nenhum aviário encontrado com esse filtro.</td></tr>`;
+    return;
+  }
+
+  corpo.innerHTML = lotes.map((l, i) => {
+    const selecionado = lotesSelecionados.has(l.loteId);
+    const cor = selecionado ? corPorIndice(Array.from(lotesSelecionados).indexOf(l.loteId)) : '#D8D2C6';
+    const pct = l[metricaAtiva];
+    const tend = tendenciaDoLote(l, metricaAtiva);
+    let tendHtml;
+    if(!tend){
+      tendHtml = `<span class="tendencia neutro">— 1º ciclo do aviário</span>`;
+    } else {
+      const ref = `<span style="font-weight:500;color:var(--texto-suave)">vs média ${tend.mediaAnterior.toFixed(2)}% (${tend.nCiclos} ciclo${tend.nCiclos>1?'s':''})</span>`;
+      if(tend.delta > 0.01){
+        tendHtml = `<span class="tendencia subiu">▲ +${tend.delta.toFixed(2)} p.p. ${ref}</span>`;
+      } else if(tend.delta < -0.01){
+        tendHtml = `<span class="tendencia desceu">▼ ${tend.delta.toFixed(2)} p.p. ${ref}</span>`;
+      } else {
+        tendHtml = `<span class="tendencia neutro">≈ estável ${ref}</span>`;
+      }
+    }
+    return `<tr class="${selecionado?'selecionada':''}" data-lote="${l.loteId}">
+      <td><span class="dotcor" style="background:${cor}"></span></td>
+      <td>${nomeNucleo(l.nucleo)}</td>
+      <td class="nome-lote">${l.aviario}</td>
+      <td>${l.idadeFinal}d</td>
+      <td><span class="pct-valor">${pct.toFixed(2)}%</span></td>
+      <td>${tendHtml}</td>
+    </tr>`;
+  }).join('');
+
+  corpo.querySelectorAll('tr[data-lote]').forEach(tr => {
+    tr.addEventListener('click', () => {
+      const loteId = tr.dataset.lote;
+      if(lotesSelecionados.has(loteId)) lotesSelecionados.delete(loteId); else lotesSelecionados.add(loteId);
+      render();
+    });
+  });
+}
+
+// Cards do topo do "Em andamento": resumo do estado atual de TODOS os lotes abertos (não só os selecionados)
+function renderCards(){
+  const cont = document.getElementById('cards');
+  // usa os mesmos filtros do topo (núcleo, aviário, sexo) — situacaoAtiva já é 'Aberto' nesta aba
+  const abertos = lotesFiltrados();
+  if(abertos.length === 0){ cont.innerHTML='<div class="vazio">Nenhum lote em andamento com esse filtro.</div>'; return; }
+
+  const campo = campoContagem[metricaAtiva];
+  const somaContagem = abertos.reduce((s,l) => s + l[campo], 0);
+  const somaAlojadas = abertos.reduce((s,l) => s + l.alojadas, 0);
+  const media = somaContagem / somaAlojadas * 100;
+  const melhor = abertos.reduce((a,b) => a[metricaAtiva] < b[metricaAtiva] ? a : b);
+  const pior = abertos.reduce((a,b) => a[metricaAtiva] > b[metricaAtiva] ? a : b);
+  const idadeMedia = Math.round(abertos.reduce((s,l)=>s+l.idadeFinal,0)/abertos.length);
+
+  cont.innerHTML = `
+    <div class="card">
+      <div class="label">Lotes em andamento</div>
+      <div class="valor">${abertos.length}</div>
+      <div class="sub">idade média ${idadeMedia} dias</div>
+    </div>
+    <div class="card">
+      <div class="label">Mortalidade atual</div>
+      <div class="valor">${media.toFixed(2)}%</div>
+      <div class="sub">${metricaLabel[metricaAtiva]} · ponderada</div>
+    </div>
+    <div class="card destaque-ok">
+      <div class="label">Melhor lote</div>
+      <div class="valor">${melhor[metricaAtiva].toFixed(2)}%</div>
+      <div class="sub">${melhor.aviario} · ${nomeNucleo(melhor.nucleo)}</div>
+    </div>
+    <div class="card destaque-alerta">
+      <div class="label">Pior lote</div>
+      <div class="valor">${pior[metricaAtiva].toFixed(2)}%</div>
+      <div class="sub">${pior.aviario} · ${nomeNucleo(pior.nucleo)}</div>
+    </div>
+  `;
+}
+
+let chart = null;
+function renderGrafico(lotesAtivos){
+  const infoEl = document.getElementById('infoGrafico');
+  const wrap = document.querySelector('#graficoMortalidade')?.closest('.chart-wrap') || document.querySelectorAll('.chart-wrap')[0];
+  const legendaEl = document.getElementById('legendaCustom');
+  document.getElementById('tituloGrafico').textContent = `Curva de mortalidade ${metricaLabel[metricaAtiva].toLowerCase().replace(' (natural + eliminada)','')} por lote`;
+
+  if(lotesAtivos.length === 0){
+    infoEl.textContent = ''; legendaEl.innerHTML = '';
+    if(chart){ chart.destroy(); chart = null; }
+    wrap.innerHTML = '<div class="vazio"><strong>Nenhum lote selecionado</strong>Toque em uma linha do quadro acima para ver a curva de mortalidade acumulada dia a dia.</div>';
+    return;
+  }
+  if(!document.getElementById('graficoMortalidade')) wrap.innerHTML = '<canvas id="graficoMortalidade"></canvas>';
+
+  const acumulada = (modoLinha === 'acumulada');
+  document.getElementById('tituloGrafico').textContent = acumulada
+    ? `Curva de mortalidade ${metricaLabel[metricaAtiva].toLowerCase().replace(' (natural + eliminada)','')} acumulada por lote`
+    : `Mortalidade ${metricaLabel[metricaAtiva].toLowerCase().replace(' (natural + eliminada)','')} por período (idade)`;
+
+  infoEl.textContent = acumulada
+    ? `${lotesAtivos.length} lote(s) · % acumulada × idade · pontos = medições reais`
+    : `${lotesAtivos.length} lote(s) · % do período (não acumulada) × idade — mostra em que idade morre mais`;
+
+  const idadeMax = Math.max(...lotesAtivos.map(l => l.idadeFinal), 0);
+  const idades = []; for(let i=0;i<=idadeMax;i++) idades.push(i);
+
+  const campoOrigem = metricaAtiva === 'pctTotal' ? 'totalBaixa' : (metricaAtiva === 'pctNatural' ? 'morte' : 'elim');
+
+  const datasets = lotesAtivos.map((l, i) => {
+    const det = lotesDetalhe.get(l.loteId);
+    const porIdadeAcum = new Map();
+    const porIdadePeriodo = new Map();
+    const idadesMedidas = new Set();
+    let acum = 0;
+    det.medicoes.forEach(m => {
+      acum += m[campoOrigem];
+      porIdadeAcum.set(m.idade, +(acum/det.alojadas*100).toFixed(3));
+      porIdadePeriodo.set(m.idade, +(m[campoOrigem]/det.alojadas*100).toFixed(3));
+      idadesMedidas.add(m.idade);
+    });
+
+    let data;
+    if(acumulada){
+      let ultimo = 0;
+      data = idades.map(idade => {
+        if(porIdadeAcum.has(idade)) ultimo = porIdadeAcum.get(idade);
+        return idade <= l.idadeFinal ? ultimo : null;
+      });
+    } else {
+      data = idades.map(idade => porIdadePeriodo.has(idade) ? porIdadePeriodo.get(idade) : null);
+    }
+
+    const pointRadius = idades.map(idade => idadesMedidas.has(idade) ? 3.5 : 0);
+    const cor = corPorIndice(i);
+    return {
+      label: `${l.aviario} · ${nomeNucleo(l.nucleo)}`,
+      data, borderColor: cor, backgroundColor: cor,
+      pointRadius, pointHoverRadius: 5, pointBackgroundColor: cor, pointBorderColor:'#fff', pointBorderWidth:1,
+      borderWidth: 2.4, tension: 0.3, spanGaps: true
+    };
+  });
+
+  legendaEl.innerHTML = datasets.map(d => `<div class="legenda-item"><span class="barra" style="background:${d.borderColor}"></span>${d.label}</div>`).join('');
+
+  const ctx = document.getElementById('graficoMortalidade').getContext('2d');
+  if(chart) chart.destroy();
+  chart = new Chart(ctx, {
+    type:'line',
+    data:{ labels: idades, datasets },
+    options:{
+      responsive:true, maintainAspectRatio:false,
+      interaction:{ mode:'index', intersect:false },
+      plugins:{
+        legend:{display:false},
+        tooltip:{
+          callbacks:{
+            title: items => `Idade ${items[0].label} dias`,
+            label: c => `${c.dataset.label}: ${c.parsed.y!=null?c.parsed.y.toFixed(2)+'%':'—'}`
+          }
+        }
+      },
+      scales:{
+        x:{ title:{display:true,text:'Idade (dias)',font:{weight:600}}, grid:{color:'#EFEAE0'} },
+        y:{ title:{display:true,text: acumulada ? '% mortalidade acumulada' : '% mortalidade no período',font:{weight:600}}, grid:{color:'#EFEAE0'}, beginAtZero:true }
+      }
+    }
+  });
+}
+
+// ========================= Histórico: ranking por granja, resumo e tendência por ano =========================
+let nucleosExpandidos = new Set();
+
+// Base histórica = TODOS os ciclos fechados da base completa (todos os anos), não só os recentes.
+const lotesHistoricoAll = RESUMO_LOTES.filter(l => l.situacao === 'Fechado');
+function getLotesHistorico(){
+  const nucleoSel = selNucleo.value, aviarioSel = selAviario.value;
+  return lotesHistoricoAll.filter(l => {
+    if(nucleoSel !== 'Todos' && l.nucleo !== nucleoSel) return false;
+    if(aviarioSel !== 'Todos' && l.aviario !== aviarioSel) return false;
+    return passaSexo(l);
+  });
+}
+
+function corPorSeveridade(pct, mediaEmpresa){
+  if(pct >= mediaEmpresa * 1.15) return '#C0392B';   // bem acima da média → vermelho
+  if(pct <= mediaEmpresa * 0.85) return '#3A7D44';   // bem abaixo → verde
+  return '#C9A227';                                   // em torno da média → dourado
+}
+
+// Ranking por núcleo somando TODOS os ciclos fechados (ponderado pelo alojamento).
+function calcularRankingNucleos(){
+  const lotesHistorico = getLotesHistorico();
+  const campo = campoContagem[metricaAtiva];
+  const porNucleo = new Map();
+  lotesHistorico.forEach(l => {
+    if(!porNucleo.has(l.nucleo)) porNucleo.set(l.nucleo, []);
+    porNucleo.get(l.nucleo).push(l);
+  });
+
+  const nucleos = Array.from(porNucleo.entries()).map(([nucleo, lotes]) => {
+    const somaContagem = lotes.reduce((s,l) => s + l[campo], 0);
+    const somaAlojadas = lotes.reduce((s,l) => s + l.alojadas, 0);
+    const media = somaContagem / somaAlojadas * 100;
+
+    // agrega por aviário (somando os ciclos de cada aviário)
+    const porAv = new Map();
+    lotes.forEach(l => {
+      if(!porAv.has(l.aviario)) porAv.set(l.aviario, {contagem:0, alojadas:0, ciclos:0});
+      const a = porAv.get(l.aviario);
+      a.contagem += l[campo]; a.alojadas += l.alojadas; a.ciclos += 1;
+    });
+    const aviarios = Array.from(porAv.entries()).map(([aviario, a]) => ({
+      aviario, ciclos: a.ciclos, media: a.contagem / a.alojadas * 100
+    })).sort((x,y) => y.media - x.media);
+
+    return { nucleo, media, aviarios, ciclos: lotes.length };
+  }).sort((a,b) => b.media - a.media);
+
+  return nucleos;
+}
+
+function renderRankingNucleos(){
+  const cont = document.getElementById('rankingNucleos');
+  const infoEl = document.getElementById('infoRanking');
+  const lotesHistorico = getLotesHistorico();
+  const nucleos = calcularRankingNucleos();
+
+  if(nucleos.length === 0){
+    cont.innerHTML = `<div class="vazio">Sem ciclos fechados na base.</div>`;
+    infoEl.textContent = '';
+    return;
+  }
+
+  const totalContagem = lotesHistorico.reduce((s,l)=>s+l[campoContagem[metricaAtiva]],0);
+  const totalAlojadas = lotesHistorico.reduce((s,l)=>s+l.alojadas,0);
+  const mediaEmpresa = totalContagem/totalAlojadas*100;
+  const maiorMedia = Math.max(...nucleos.map(n => n.media), 0.01);
+
+  infoEl.textContent = `${nucleos.length} núcleos · ${metricaLabel[metricaAtiva]} · média da empresa ${mediaEmpresa.toFixed(2)}% · toque para abrir os aviários`;
+
+  cont.innerHTML = nucleos.map((n, i) => {
+    const expandido = nucleosExpandidos.has(n.nucleo);
+    const cor = corPorSeveridade(n.media, mediaEmpresa);
+    const largura = (n.media / maiorMedia * 100).toFixed(0);
+    const corPos = i===0 ? '#C0392B' : (i>=nucleos.length-1 ? '#3A7D44' : '#8A7E6F');
+
+    const filhos = expandido ? `
+      <div class="rank-filhos">
+        ${n.aviarios.map(a => `
+          <div class="rank-filho">
+            <div><span class="rf-nome">${a.aviario}</span> <span class="rf-sub">· ${a.ciclos} ciclo(s)</span></div>
+            <span class="rf-pct" style="color:${corPorSeveridade(a.media, mediaEmpresa)}">${a.media.toFixed(2)}%</span>
+          </div>`).join('')}
+      </div>` : '';
+
+    return `
+      <div class="ranking-card">
+        <div class="ranking-card-head" data-nucleo-toggle="${n.nucleo}">
+          <span class="rank-pos" style="background:${corPos}">${i+1}</span>
+          <div class="rank-info rank-barra-wrap">
+            <div class="rank-nome">${nomeNucleo(n.nucleo)}</div>
+            <div class="rank-barra-track"><div class="rank-barra-fill" style="width:${largura}%; background:${cor}"></div></div>
+            <div class="rank-sub">${n.aviarios.length} aviários · ${n.ciclos} ciclos fechados</div>
+          </div>
+          <div class="rank-valor">${n.media.toFixed(2)}<small>%</small></div>
+          <button class="rank-expandir ${expandido?'aberto':''}" type="button">${expandido?'−':'+'}</button>
+        </div>
+        ${filhos}
+      </div>`;
+  }).join('');
+
+  cont.querySelectorAll('[data-nucleo-toggle]').forEach(head => {
+    head.addEventListener('click', () => {
+      const nucleo = head.dataset.nucleoToggle;
+      if(nucleosExpandidos.has(nucleo)) nucleosExpandidos.delete(nucleo); else nucleosExpandidos.add(nucleo);
+      renderRankingNucleos();
+    });
+  });
+}
+
+// ===== Em andamento: ranking e barras por núcleo (só lotes abertos) =====
+let nucleosExpandidosAnd = new Set();
+
+function calcularNucleosAndamento(){
+  const abertos = deduplicarPorAviario(lotesExibiveis.filter(l => l.situacao === 'Aberto' && passaSexo(l)));
+  const campo = campoContagem[metricaAtiva];
+  const porNucleo = new Map();
+  abertos.forEach(l => {
+    if(!porNucleo.has(l.nucleo)) porNucleo.set(l.nucleo, []);
+    porNucleo.get(l.nucleo).push(l);
+  });
+  return Array.from(porNucleo.entries()).map(([nucleo, lotes]) => {
+    const somaContagem = lotes.reduce((s,l) => s + l[campo], 0);
+    const somaAlojadas = lotes.reduce((s,l) => s + l.alojadas, 0);
+    const media = somaContagem / somaAlojadas * 100;
+    const aviarios = lotes.map(l => ({ aviario:l.aviario, idade:l.idadeFinal, media:l[metricaAtiva] }))
+      .sort((x,y) => y.media - x.media);
+    return { nucleo, media, aviarios, nLotes: lotes.length };
+  }).sort((a,b) => b.media - a.media);
+}
+
+function renderRankingNucleosAndamento(){
+  const cont = document.getElementById('rankingNucleosAndamento');
+  const infoEl = document.getElementById('infoRankingAndamento');
+  const nucleos = calcularNucleosAndamento();
+
+  if(nucleos.length === 0){
+    cont.innerHTML = `<div class="vazio">Nenhum lote em andamento com esse filtro.</div>`;
+    infoEl.textContent = '';
+    return;
+  }
+
+  const totalC = nucleos.reduce((s,n)=>s + n.aviarios.reduce((a,av)=>a,0),0);
+  const abertos = deduplicarPorAviario(lotesExibiveis.filter(l => l.situacao === 'Aberto' && passaSexo(l)));
+  const campo = campoContagem[metricaAtiva];
+  const mediaEmpresa = abertos.reduce((s,l)=>s+l[campo],0) / abertos.reduce((s,l)=>s+l.alojadas,0) * 100;
+  const maiorMedia = Math.max(...nucleos.map(n => n.media), 0.01);
+
+  infoEl.textContent = `${nucleos.length} núcleos com lote aberto · ${metricaLabel[metricaAtiva]} · média atual ${mediaEmpresa.toFixed(2)}% · toque para abrir os aviários`;
+
+  cont.innerHTML = nucleos.map((n, i) => {
+    const expandido = nucleosExpandidosAnd.has(n.nucleo);
+    const cor = corPorSeveridade(n.media, mediaEmpresa);
+    const largura = (n.media / maiorMedia * 100).toFixed(0);
+    const corPos = i===0 ? '#C0392B' : (i>=nucleos.length-1 ? '#3A7D44' : '#8A7E6F');
+
+    const filhos = expandido ? `
+      <div class="rank-filhos">
+        ${n.aviarios.map(a => `
+          <div class="rank-filho">
+            <div><span class="rf-nome">${a.aviario}</span> <span class="rf-sub">· ${a.idade}d</span></div>
+            <span class="rf-pct" style="color:${corPorSeveridade(a.media, mediaEmpresa)}">${a.media.toFixed(2)}%</span>
+          </div>`).join('')}
+      </div>` : '';
+
+    return `
+      <div class="ranking-card">
+        <div class="ranking-card-head" data-nucleo-toggle-and="${n.nucleo}">
+          <span class="rank-pos" style="background:${corPos}">${i+1}</span>
+          <div class="rank-info rank-barra-wrap">
+            <div class="rank-nome">${nomeNucleo(n.nucleo)}</div>
+            <div class="rank-barra-track"><div class="rank-barra-fill" style="width:${largura}%; background:${cor}"></div></div>
+            <div class="rank-sub">${n.nLotes} lote(s) em andamento</div>
+          </div>
+          <div class="rank-valor">${n.media.toFixed(2)}<small>%</small></div>
+          <button class="rank-expandir ${expandido?'aberto':''}" type="button">${expandido?'−':'+'}</button>
+        </div>
+        ${filhos}
+      </div>`;
+  }).join('');
+
+  cont.querySelectorAll('[data-nucleo-toggle-and]').forEach(head => {
+    head.addEventListener('click', () => {
+      const nucleo = head.dataset.nucleoToggleAnd;
+      if(nucleosExpandidosAnd.has(nucleo)) nucleosExpandidosAnd.delete(nucleo); else nucleosExpandidosAnd.add(nucleo);
+      renderRankingNucleosAndamento();
+    });
+  });
+}
+
+let chartIdadeAndamento = null;
+function renderIdadeAndamento(){
+  const metrica = metricaAtiva;
+  const campoDia = metrica === 'pctTotal' ? 'total' : (metrica === 'pctNatural' ? 'morte' : 'elim');
+  const nucSel = selNucleo.value, aviSel = selAviario.value;
+  const sufSexo = sexoAtivo === 'Todos' ? '' : ` · ${sexoAtivo}`;
+  const sufNuc = nucSel === 'Todos' ? '' : ` · ${nomeNucleo(nucSel)}`;
+  document.getElementById('tituloIdadeAndamento').textContent =
+    `Mortalidade ${metricaLabel[metrica].toLowerCase().replace(' (natural + eliminada)','')} média por idade — em andamento${sufNuc}${sufSexo}`;
+
+  // filtra os aviários abertos (MORT_DIARIA) pelos filtros do topo
+  const lotes = MORT_DIARIA.filter(l => {
+    if(nucSel !== 'Todos' && l.nucleo !== nucSel) return false;
+    if(aviSel !== 'Todos' && l.aviario !== aviSel) return false;
+    if(sexoAtivo !== 'Todos' && l.sexo !== sexoAtivo) return false;
+    return true;
+  });
+
+  const ctx = document.getElementById('graficoIdadeAndamento').getContext('2d');
+  if(chartIdadeAndamento) chartIdadeAndamento.destroy();
+
+  if(!lotes.length){
+    document.getElementById('notaIdadeAndamento').textContent = 'Sem lotes em andamento para este filtro.';
+    return;
+  }
+
+  // curva acumulada ponderada: para cada idade, soma baixas acumuladas ÷ soma alojadas dos lotes que alcançaram a idade
+  const idadeMax = Math.max(...lotes.map(l => l.idadeAtual));
+  const idades = [], valores = [], nLotesPorIdade = [];
+  for(let t=0; t<=idadeMax; t++){
+    let somaBaixa = 0, somaAloj = 0, nLotes = 0;
+    lotes.forEach(l => {
+      if(l.idadeAtual < t) return;              // lote ainda não chegou nessa idade
+      let acc = 0;
+      for(let d=0; d<=t; d++){ const reg = l.dias[d]; if(reg) acc += reg[campoDia]; }
+      somaBaixa += acc; somaAloj += l.alojadas; nLotes++;
+    });
+    idades.push(t);
+    valores.push(somaAloj>0 ? +(somaBaixa/somaAloj*100).toFixed(3) : null);
+    nLotesPorIdade.push(nLotes);
+  }
+  const nMax = Math.max(...nLotesPorIdade);
+  const idadeMaxConf = Math.max(...idades.filter((t,i)=>nLotesPorIdade[i] >= nMax*0.5));
+
+  document.getElementById('notaIdadeAndamento').textContent =
+    `Curva média dos lotes abertos, ponderada pelo alojamento. Como os lotes têm idades diferentes, a partir de ~${idadeMaxConf} dias poucos lotes alcançaram essa idade — a ponta representa um grupo menor.`;
+
+  chartIdadeAndamento = new Chart(ctx, {
+    type:'line',
+    data:{ labels:idades, datasets:[{
+      label:'Em andamento', data:valores,
+      borderColor:'#C1272D', backgroundColor:'rgba(193,39,45,.12)', fill:'origin',
+      pointRadius:0, pointHoverRadius:4, borderWidth:2.6, tension:0.3, spanGaps:true
+    }]},
+    options:{
+      responsive:true, maintainAspectRatio:false,
+      interaction:{ mode:'index', intersect:false },
+      plugins:{ legend:{display:false}, tooltip:{ callbacks:{
+        title: items => `Idade ${items[0].label} dias`,
+        label: c => `${c.parsed.y!=null?c.parsed.y.toFixed(2):'—'}%`
+      } } },
+      scales:{
+        x:{ title:{display:true,text:'Idade (dias)',font:{weight:600}}, grid:{color:'#EFEAE0'} },
+        y:{ title:{display:true,text:'% mortalidade acumulada',font:{weight:600}}, grid:{color:'#EFEAE0'}, beginAtZero:true }
+      }
+    }
+  });
+}
+
+// ================= Matriz de mortalidade diária (lotes em andamento) =================
+let mdRecolhidos = new Set();      // núcleos com aviários ocultos
+let mdInicializado = false;
+let mdSort = { key:'tot', dir:'desc' };  // 'tot' | 'pct'
+
+function atualizarBotaoMD(nucleosAtuais){
+  const btn = document.getElementById('btnRecolherMD');
+  if(!btn) return;
+  const todosRecolhidos = nucleosAtuais.length>0 && nucleosAtuais.every(n=>mdRecolhidos.has(n));
+  btn.textContent = todosRecolhidos ? 'Expandir todos' : 'Recolher todos';
+}
+
+function renderMatrizDiaria(){
+  const campoMetrica = metricaAtiva === 'pctTotal' ? 'total' : (metricaAtiva === 'pctNatural' ? 'morte' : 'elim');
+  const nucSel = document.getElementById('fNucleo').value;
+
+  // filtra lotes abertos por núcleo e sexo do topo
+  let lotes = MORT_DIARIA.filter(l => {
+    if(nucSel !== 'Todos' && l.nucleo !== nucSel) return false;
+    if(sexoAtivo !== 'Todos' && l.sexo !== sexoAtivo) return false;
+    return true;
+  });
+
+  const tabela = document.getElementById('tabelaMatrizDiaria');
+  const info = document.getElementById('infoMatrizDiaria');
+
+  if(!lotes.length){
+    tabela.innerHTML = '';
+    info.textContent = 'Nenhum lote em andamento com esse filtro.';
+    return;
+  }
+
+  // idade atual de cada lote = hoje − data de alojamento (trabalha-se com lançamento até o dia anterior)
+  const hoje = new Date(); hoje.setHours(0,0,0,0);
+  function idadeAtualDe(l){
+    const aloj = new Date(l.dataAloj + 'T00:00:00');
+    return Math.floor((hoje - aloj) / 86400000);
+  }
+  lotes.forEach(l => { l._idadeAtual = idadeAtualDe(l); });
+
+  const idadeMax = Math.max(...lotes.map(l => l._idadeAtual));
+  const idades = []; for(let i=0;i<=idadeMax;i++) idades.push(i);
+
+  info.textContent = `${lotes.length} aviário(s) · ${metricaLabel[metricaAtiva]} · idade 0 a ${idadeMax} dias`;
+
+  const cel = (l, idade) => {
+    const d = l.dias[idade];
+    if(!d) return null;
+    return d[campoMetrica];
+  };
+  const somaLote = (l) => idades.reduce((s,i)=>{ const v=cel(l,i); return s + (v||0); }, 0);
+
+  function classeSalto(atual, anterior){
+    if(atual==null || anterior==null || anterior<=0) return '';
+    const razao = atual/anterior;
+    const delta = atual - anterior;
+    if(razao >= 2.5 && delta >= 25) return 'salto3';
+    if(razao >= 1.8 && delta >= 15) return 'salto2';
+    if(razao >= 1.4 && delta >= 8)  return 'salto1';
+    return '';
+  }
+
+  // agrupa por núcleo, já com total e % calculados (pra poder ordenar)
+  const porNucleo = new Map();
+  lotes.forEach(l => { if(!porNucleo.has(l.nucleo)) porNucleo.set(l.nucleo, []); porNucleo.get(l.nucleo).push(l); });
+
+  const nucleosInfo = Array.from(porNucleo.entries()).map(([nuc, lotesNuc]) => {
+    const lotesOrd = lotesNuc.slice().sort((a,b)=>a.aviario.localeCompare(b.aviario));
+    const alojNuc = lotesOrd.reduce((s,l)=>s+l.alojadas,0);
+    const celsNuc = idades.map(i => {
+      let soma = 0, tem = false;
+      lotesOrd.forEach(l => { const v = cel(l,i); if(v!=null){ soma += v; tem = true; } });
+      return tem ? soma : null;
+    });
+    const totNuc = celsNuc.reduce((s,v)=>s+(v||0),0);
+    const pctNuc = alojNuc ? totNuc/alojNuc*100 : 0;
+    return { nuc, lotesOrd, alojNuc, celsNuc, totNuc, pctNuc };
+  });
+
+  // inicializa "todos recolhidos"? não — a matriz diária é de acompanhamento, começa expandida
+  const nucleosAtuais = nucleosInfo.map(n=>n.nuc);
+  atualizarBotaoMD(nucleosAtuais);
+
+  // ordenação: por total morto ou % s/ alojado, tanto dos grupos quanto dos aviários dentro deles
+  function valorOrdenacao(alvo){ return mdSort.key === 'tot' ? alvo.tot : alvo.pct; }
+  const dirMul = mdSort.dir === 'asc' ? 1 : -1;
+  nucleosInfo.sort((a,b) => (valorOrdenacao({tot:a.totNuc,pct:a.pctNuc}) - valorOrdenacao({tot:b.totNuc,pct:b.pctNuc})) * dirMul);
+  nucleosInfo.forEach(n => {
+    n.lotesOrd.sort((a,b) => {
+      const va = mdSort.key==='tot' ? somaLote(a) : (somaLote(a)/a.alojadas*100);
+      const vb = mdSort.key==='tot' ? somaLote(b) : (somaLote(b)/b.alojadas*100);
+      return (va-vb)*dirMul;
+    });
+  });
+
+  const setaDe = key => mdSort.key===key ? (mdSort.dir==='asc'?' ▲':' ▼') : '';
+
+  // cabeçalho
+  let thead = '<thead><tr>';
+  thead += '<th class="rowhead">Núcleo / Aviário</th>';
+  thead += '<th class="aloj">Alojadas</th>';
+  thead += '<th class="idade-atual">Idade<br>atual</th>';
+  idades.forEach(i => thead += `<th class="col-idade">${i}</th>`);
+  thead += `<th class="tot th-sort" data-sort-md="tot" title="Ordenar por total morto">Total<br>morto${setaDe('tot')}</th>`;
+  thead += `<th class="pct th-sort" data-sort-md="pct" title="Ordenar por % sobre alojado">% s/<br>alojado${setaDe('pct')}</th>`;
+  thead += '</tr></thead>';
+
+  let corpo = '';
+  nucleosInfo.forEach(({nuc, lotesOrd, alojNuc, celsNuc, totNuc, pctNuc}) => {
+    const recolhido = mdRecolhidos.has(nuc);
+    const icone = recolhido ? '▸' : '▾';
+
+    // linha de subtotal do núcleo — no topo do grupo (como era originalmente)
+    let tdsNuc = '';
+    celsNuc.forEach((v,idx) => {
+      const cls = classeSalto(v, idx>0?celsNuc[idx-1]:null);
+      tdsNuc += `<td class="cel ${cls}">${v==null?'':v}</td>`;
+    });
+    corpo += `<tr class="linha-nuc">
+      <th class="rowhead"><span class="nuc-toggle" data-nuc-toggle-md="${nuc}" title="${recolhido?'Expandir':'Recolher'} aviários">${icone}</span> ${nomeNucleo(nuc)}</th>
+      <td class="aloj">${alojNuc.toLocaleString('pt-BR')}</td>
+      <td class="idade-atual">—</td>
+      ${tdsNuc}
+      <td class="tot">${totNuc.toLocaleString('pt-BR')}</td>
+      <td class="pct">${pctNuc.toFixed(2)}%</td>
+    </tr>`;
+
+    // linhas de aviário (se expandido)
+    if(!recolhido){
+      lotesOrd.forEach(l => {
+        const total = somaLote(l);
+        const idadeAtual = l._idadeAtual;
+        let tds = '';
+        idades.forEach((i,idx) => {
+          const v = cel(l,i);
+          const ant = idx>0 ? cel(l,i-1) : null;
+          const cls = classeSalto(v, ant);
+          tds += `<td class="cel ${cls}">${v==null?'':v}</td>`;
+        });
+        corpo += `<tr>
+          <th class="rowhead av">${l.aviario}</th>
+          <td class="aloj">${l.alojadas.toLocaleString('pt-BR')}</td>
+          <td class="idade-atual">${idadeAtual}</td>
+          ${tds}
+          <td class="tot">${total.toLocaleString('pt-BR')}</td>
+          <td class="pct">${(total/l.alojadas*100).toFixed(2)}%</td>
+        </tr>`;
+      });
+    }
+  });
+
+  tabela.innerHTML = thead + '<tbody>' + corpo + '</tbody>';
+
+  // toggle recolher/expandir por núcleo
+  tabela.querySelectorAll('[data-nuc-toggle-md]').forEach(el => {
+    el.addEventListener('click', (e) => {
+      e.stopPropagation();
+      const n = el.dataset.nucToggleMd;
+      if(mdRecolhidos.has(n)) mdRecolhidos.delete(n); else mdRecolhidos.add(n);
+      renderMatrizDiaria();
+    });
+  });
+  // ordenação clicando no cabeçalho
+  tabela.querySelectorAll('[data-sort-md]').forEach(th => {
+    th.addEventListener('click', () => {
+      const key = th.dataset.sortMd;
+      if(mdSort.key === key) mdSort.dir = mdSort.dir==='asc' ? 'desc' : 'asc';
+      else { mdSort.key = key; mdSort.dir = 'desc'; }
+      renderMatrizDiaria();
+    });
+  });
+
+
+  // legenda de salto abaixo (fora do scroll)
+  const legendaId = 'legendaSaltoDiaria';
+  let leg = document.getElementById(legendaId);
+  if(!leg){
+    leg = document.createElement('div');
+    leg.id = legendaId; leg.className = 'legenda-salto';
+    tabela.closest('.quadro').appendChild(leg);
+  }
+  leg.innerHTML = `<strong style="color:var(--texto)">Sinalização de salto:</strong>
+    <span class="ls-item"><span class="ls-cor" style="background:#FCE9C7"></span>alta moderada</span>
+    <span class="ls-item"><span class="ls-cor" style="background:#F8C98E"></span>alta forte</span>
+    <span class="ls-item"><span class="ls-cor" style="background:#EF9A6B"></span>pico (mais que dobrou vs dia anterior)</span>`;
+
+  ativarArrastar(document.getElementById('scrollMatrizDiaria'));
+}
+
+// botão geral recolher/expandir todos os núcleos da matriz diária
+(function(){
+  const btn = document.getElementById('btnRecolherMD');
+  if(!btn) return;
+  btn.addEventListener('click', () => {
+    const nucSel = document.getElementById('fNucleo').value;
+    const nucleosAtuais = Array.from(new Set(MORT_DIARIA.filter(l => nucSel==='Todos'||l.nucleo===nucSel).map(l=>l.nucleo)));
+    const todosRecolhidos = nucleosAtuais.length>0 && nucleosAtuais.every(n=>mdRecolhidos.has(n));
+    if(todosRecolhidos) mdRecolhidos.clear();
+    else nucleosAtuais.forEach(n=>mdRecolhidos.add(n));
+    renderMatrizDiaria();
+  });
+})();
+
+let chartBarrasAndamento = null;
+function renderBarrasAndamento(){
+  const nucleos = calcularNucleosAndamento();
+  document.getElementById('tituloBarrasAndamento').textContent =
+    `Mortalidade ${metricaLabel[metricaAtiva].toLowerCase().replace(' (natural + eliminada)','')} por núcleo — em andamento`;
+
+  const ctx = document.getElementById('graficoBarrasAndamento').getContext('2d');
+  if(chartBarrasAndamento) chartBarrasAndamento.destroy();
+
+  if(nucleos.length === 0){
+    if(chartBarrasAndamento){ chartBarrasAndamento.destroy(); chartBarrasAndamento=null; }
+    return;
+  }
+
+  const labels = nucleos.map(n => nomeNucleo(n.nucleo));
+  const valores = nucleos.map(n => +n.media.toFixed(2));
+  const cores = valores.map((v,i) => i===0 ? '#C0392B' : (i>=valores.length-1 ? '#3A7D44' : '#F2A900'));
+
+  chartBarrasAndamento = new Chart(ctx, {
+    type:'bar',
+    data:{ labels, datasets:[{ data:valores, backgroundColor:cores, borderRadius:6, maxBarThickness:60 }] },
+    options:{
+      responsive:true, maintainAspectRatio:false,
+      plugins:{ legend:{display:false}, tooltip:{ callbacks:{ label: c => `${c.parsed.y.toFixed(2)}%` } } },
+      scales:{
+        x:{ grid:{display:false}, ticks:{font:{size:10.5}} },
+        y:{ title:{display:true,text:'% mortalidade',font:{weight:600}}, grid:{color:'#EFEAE0'}, beginAtZero:true }
+      }
+    }
+  });
+}
+
+// Cards-resumo do histórico
+function renderResumoHistorico(){
+  const cont = document.getElementById('cardsHistorico');
+  const lotesHistorico = getLotesHistorico();
+  const campo = campoContagem[metricaAtiva];
+  const totalContagem = lotesHistorico.reduce((s,l)=>s+l[campo],0);
+  const totalAlojadas = lotesHistorico.reduce((s,l)=>s+l.alojadas,0);
+  const mediaEmpresa = totalContagem/totalAlojadas*100;
+
+  const anos = lotesHistorico.map(l => l.dataAloj.slice(0,4));
+  const anoMin = Math.min(...anos), anoMax = Math.max(...anos);
+
+  const ranking = calcularRankingNucleos();
+  const melhor = ranking[ranking.length-1];
+  const pior = ranking[0];
+
+  cont.innerHTML = `
+    <div class="card">
+      <div class="label">Ciclos fechados</div>
+      <div class="valor">${lotesHistorico.length.toLocaleString('pt-BR')}</div>
+      <div class="sub">período ${anoMin}–${anoMax}</div>
+    </div>
+    <div class="card">
+      <div class="label">Média histórica</div>
+      <div class="valor">${mediaEmpresa.toFixed(2)}%</div>
+      <div class="sub">${metricaLabel[metricaAtiva]}</div>
+    </div>
+    <div class="card destaque-ok">
+      <div class="label">Melhor granja</div>
+      <div class="valor">${melhor.media.toFixed(2)}%</div>
+      <div class="sub">${nomeNucleo(melhor.nucleo)}</div>
+    </div>
+    <div class="card destaque-alerta">
+      <div class="label">Pior granja</div>
+      <div class="valor">${pior.media.toFixed(2)}%</div>
+      <div class="sub">${nomeNucleo(pior.nucleo)}</div>
+    </div>`;
+}
+
+// Tendência por ano (todos os ciclos fechados)
+let chartAno = null;
+function renderTendenciaAno(){
+  const lotesHistorico = getLotesHistorico();
+  const campo = campoContagem[metricaAtiva];
+  const porAno = new Map();
+  lotesHistorico.forEach(l => {
+    const ano = l.dataAloj.slice(0,4);
+    if(!porAno.has(ano)) porAno.set(ano, {contagem:0, alojadas:0, ciclos:0});
+    const a = porAno.get(ano);
+    a.contagem += l[campo]; a.alojadas += l.alojadas; a.ciclos += 1;
+  });
+  const anos = Array.from(porAno.keys()).sort();
+  const valores = anos.map(ano => +(porAno.get(ano).contagem / porAno.get(ano).alojadas * 100).toFixed(2));
+  const ciclos = anos.map(ano => porAno.get(ano).ciclos);
+
+  document.getElementById('tituloTendenciaAno').textContent = `Tendência de mortalidade ${metricaLabel[metricaAtiva].toLowerCase().replace(' (natural + eliminada)','')} por ano`;
+
+  const ctx = document.getElementById('graficoAno').getContext('2d');
+  if(chartAno) chartAno.destroy();
+  chartAno = new Chart(ctx, {
+    type:'bar',
+    data:{ labels:anos, datasets:[{ data:valores, backgroundColor:'#A61C1C', borderRadius:6,
+      maxBarThickness:70 }] },
+    options:{
+      responsive:true, maintainAspectRatio:false,
+      plugins:{ legend:{display:false}, tooltip:{ callbacks:{
+        label: c => `${c.parsed.y.toFixed(2)}%`,
+        afterLabel: c => `${ciclos[c.dataIndex]} ciclos fechados`
+      } } },
+      scales:{
+        x:{ grid:{display:false} },
+        y:{ title:{display:true,text:'% mortalidade',font:{weight:600}}, grid:{color:'#EFEAE0'}, beginAtZero:true }
+      }
+    }
+  });
+}
+
+// ========================= Gráficos da empresa =========================
+let chartEmpresa=null, chartComposicao=null;
+
+const opcoesBase = (tituloX, tituloY) => ({
+  responsive:true, maintainAspectRatio:false,
+  interaction:{ mode:'index', intersect:false },
+  plugins:{ legend:{display:false}, tooltip:{ callbacks:{ label: c => `${c.dataset.label}: ${c.parsed.y!=null?c.parsed.y.toFixed(2)+'%':'—'}` } } },
+  scales:{
+    x:{ title:{display:true,text:tituloX,font:{weight:600}}, grid:{color:'#EFEAE0'} },
+    y:{ title:{display:true,text:tituloY,font:{weight:600}}, grid:{color:'#EFEAE0'}, beginAtZero:true }
+  }
+});
+
+// --- Gráfico 1: mortalidade média por idade (empresa) — andamento vs histórico ---
+function renderGraficoEmpresa(){
+  const metrica = metricaAtiva; // pctTotal | pctNatural | pctElim
+  const campoDia = metrica === 'pctTotal' ? 'total' : (metrica === 'pctNatural' ? 'morte' : 'elim');
+  const agg = AGG_IDADE[sexoAtivo] || AGG_IDADE['Todos'];
+  const nucSel = selNucleo.value, aviSel = selAviario.value;
+  const filtrando = (nucSel !== 'Todos' || aviSel !== 'Todos');
+  const sufSexo = sexoAtivo === 'Todos' ? '' : ` · ${sexoAtivo}`;
+  const alvoNome = aviSel !== 'Todos' ? aviSel : (nucSel !== 'Todos' ? nomeNucleo(nucSel) : 'empresa');
+  document.getElementById('tituloGraficoEmpresa').textContent =
+    `Mortalidade ${metricaLabel[metrica].toLowerCase().replace(' (natural + eliminada)','')} média por idade — ${alvoNome}${sufSexo}`;
+
+  // idade máxima considerando histórico e andamento
+  const idadeMaxHist = agg.Fechado.length ? agg.Fechado[agg.Fechado.length-1].idade : 0;
+  const idadeMaxAnd = agg.Aberto.length ? agg.Aberto[agg.Aberto.length-1].idade : 0;
+  const idadeMax = Math.max(idadeMaxHist, idadeMaxAnd);
+  const idades = []; for(let i=0;i<=idadeMax;i++) idades.push(i);
+
+  const serieAgg = (arr) => {
+    const porIdade = new Map(arr.map(d => [d.idade, d]));
+    return idades.map(t => { const d = porIdade.get(t); return d ? d[metrica] : null; });
+  };
+
+  // série "em andamento": se filtrando núcleo/aviário, calcula ao vivo só o que foi filtrado
+  function serieAndamentoFiltrada(){
+    const lotes = MORT_DIARIA.filter(l => {
+      if(nucSel !== 'Todos' && l.nucleo !== nucSel) return false;
+      if(aviSel !== 'Todos' && l.aviario !== aviSel) return false;
+      if(sexoAtivo !== 'Todos' && l.sexo !== sexoAtivo) return false;
+      return true;
+    });
+    return idades.map(t => {
+      let somaBaixa=0, somaAloj=0;
+      lotes.forEach(l => {
+        if(l.idadeAtual < t) return;
+        let acc=0; for(let d=0; d<=t; d++){ const r=l.dias[d]; if(r) acc+=r[campoDia]; }
+        somaBaixa+=acc; somaAloj+=l.alojadas;
+      });
+      return somaAloj>0 ? +(somaBaixa/somaAloj*100).toFixed(3) : null;
+    });
+  }
+
+  const picoFechado = Math.max(...agg.Fechado.map(d=>d.nLotes), 1);
+  const idadeConfiavel = agg.Fechado.filter(d => d.nLotes >= picoFechado*0.5).map(d=>d.idade);
+  const limiteConfiavel = idadeConfiavel.length ? Math.max(...idadeConfiavel) : idadeMax;
+
+  const dataAndamento = filtrando ? serieAndamentoFiltrada() : serieAgg(agg.Aberto);
+  const labelAndamento = filtrando ? `Em andamento (${alvoNome})` : 'Em andamento';
+  const labelHistorico = filtrando ? 'Referência empresa (histórico)' : 'Histórico';
+
+  const datasets = [
+    { label:labelHistorico, data: serieAgg(agg.Fechado), borderColor:'#9AA6B2', backgroundColor:'#9AA6B2', borderWidth:2.2, borderDash: filtrando?[6,3]:[], pointRadius:0, pointHoverRadius:4, tension:0.25, spanGaps:true },
+    { label:labelAndamento, data: dataAndamento, borderColor:'#C1272D', backgroundColor:'#C1272D', borderWidth:2.8, pointRadius:0, pointHoverRadius:4, tension:0.25, spanGaps:true }
+  ];
+
+  document.getElementById('notaEmpresa').textContent = filtrando
+    ? `Linha vermelha = ${alvoNome} (lotes em andamento). Linha cinza tracejada = média histórica de toda a empresa, como referência de comparação. Além de ~${limiteConfiavel} dias a amostra do histórico afina.`
+    : `Curva ponderada pelo alojamento (soma das baixas ÷ soma das alojadas por idade). Além de ~${limiteConfiavel} dias a amostra do histórico afina (poucos lotes vão a essa idade antes do abate), então a ponta final não é comparável.`;
+
+  const ctx = document.getElementById('graficoEmpresa').getContext('2d');
+  if(chartEmpresa) chartEmpresa.destroy();
+  chartEmpresa = new Chart(ctx, { type:'line', data:{ labels:idades, datasets }, options:{
+    ...opcoesBase('Idade (dias)','% mortalidade acumulada'),
+    plugins:{ legend:{display:true, position:'top', labels:{font:{weight:600}, usePointStyle:true, pointStyle:'line'}},
+      tooltip:{ callbacks:{ label: c => `${c.dataset.label}: ${c.parsed.y!=null?c.parsed.y.toFixed(2)+'%':'—'}` } } }
+  }});
+}
+
+// --- Composição natural × eliminada por idade (histórico, empilhado) ---
+function renderGraficoComposicao(){
+  const arr = (AGG_IDADE[sexoAtivo] || AGG_IDADE['Todos']).Fechado;
+  const idades = arr.map(d => d.idade);
+  const natural = arr.map(d => +d.pctNatural.toFixed(3));
+  const elim = arr.map(d => +d.pctElim.toFixed(3));
+
+  document.getElementById('legendaComposicao').innerHTML = `
+    <div class="legenda-item"><span class="barra" style="background:#2E6E9E"></span>Natural (morte)</div>
+    <div class="legenda-item"><span class="barra" style="background:#D97706"></span>Eliminada (descarte/eliminação)</div>`;
+
+  const ctx = document.getElementById('graficoComposicao').getContext('2d');
+  if(chartComposicao) chartComposicao.destroy();
+  chartComposicao = new Chart(ctx, {
+    type:'line',
+    data:{ labels:idades, datasets:[
+      { label:'Natural', data:natural, borderColor:'#2E6E9E', backgroundColor:'rgba(46,110,158,.35)', fill:'origin', borderWidth:2, pointRadius:0, tension:0.25 },
+      { label:'Eliminada', data:elim, borderColor:'#D97706', backgroundColor:'rgba(217,119,6,.35)', fill:'-1', borderWidth:2, pointRadius:0, tension:0.25 }
+    ]},
+    options:{
+      responsive:true, maintainAspectRatio:false,
+      interaction:{ mode:'index', intersect:false },
+      plugins:{ legend:{display:false}, tooltip:{ callbacks:{ label: c => `${c.dataset.label}: ${c.parsed.y.toFixed(2)}%` } } },
+      scales:{
+        x:{ title:{display:true,text:'Idade (dias)',font:{weight:600}}, grid:{color:'#EFEAE0'} },
+        y:{ stacked:true, title:{display:true,text:'% acumulada',font:{weight:600}}, grid:{color:'#EFEAE0'}, beginAtZero:true }
+      }
+    }
+  });
+}
+
+// --- Scatter: mortalidade × GPD (lotes fechados, idade >= 35) ---
+let chartScatter = null;
+const corSexo = { 'Machos':'#2E6E9E', 'Fêmeas':'#B33F62', 'Mistos':'#C9A227' };
+function renderScatter(){
+  const lotes = getLotesHistorico().filter(l => l.gpdFinal && l.gpdFinal >= 20 && l.gpdFinal <= 100 && l.idadeFinal >= 35);
+  const porSexo = {};
+  lotes.forEach(l => {
+    if(!porSexo[l.sexo]) porSexo[l.sexo] = [];
+    porSexo[l.sexo].push({ x: l.gpdFinal, y: l[metricaAtiva], lote:l.lote, aviario:l.aviario, nucleo:l.nucleo });
+  });
+  const datasets = Object.keys(porSexo).map(sx => ({
+    label: sx, data: porSexo[sx],
+    backgroundColor: (corSexo[sx]||'#6B615A')+'B0', borderColor: corSexo[sx]||'#6B615A',
+    pointRadius: 4, pointHoverRadius: 6
+  }));
+
+  const ctx = document.getElementById('graficoScatter').getContext('2d');
+  if(chartScatter) chartScatter.destroy();
+  chartScatter = new Chart(ctx, {
+    type:'scatter',
+    data:{ datasets },
+    options:{
+      responsive:true, maintainAspectRatio:false,
+      plugins:{
+        legend:{ display:true, position:'top', labels:{font:{weight:600}, usePointStyle:true} },
+        tooltip:{ callbacks:{
+          label: c => `${c.raw.aviario} · ${nomeNucleo(c.raw.nucleo)}`,
+          afterLabel: c => `GPD ${c.raw.x} g/dia · mortalidade ${c.raw.y.toFixed(2)}%`
+        } }
+      },
+      scales:{
+        x:{ title:{display:true,text:'GPD final (g/dia) — maior é melhor',font:{weight:600}}, grid:{color:'#EFEAE0'} },
+        y:{ title:{display:true,text:`% mortalidade ${metricaLabel[metricaAtiva].toLowerCase().replace(' (natural + eliminada)','')}`,font:{weight:600}}, grid:{color:'#EFEAE0'}, beginAtZero:true }
+      }
+    }
+  });
+}
+
+// --- Mortalidade por incubatório (origem do pinto) ---
+let chartIncub = null;
+function renderIncubatorio(){
+  const campo = campoContagem[metricaAtiva];
+  const porInc = new Map();
+  getLotesHistorico().forEach(l => {
+    const inc = l.incubatorio || '—';
+    if(!porInc.has(inc)) porInc.set(inc, {contagem:0, alojadas:0, ciclos:0});
+    const a = porInc.get(inc);
+    a.contagem += l[campo]; a.alojadas += l.alojadas; a.ciclos += 1;
+  });
+  const dados = Array.from(porInc.entries())
+    .map(([inc, a]) => ({ inc, media: a.contagem/a.alojadas*100, ciclos:a.ciclos }))
+    .sort((a,b) => b.media - a.media);
+
+  document.getElementById('tituloIncubatorio').textContent = `Mortalidade ${metricaLabel[metricaAtiva].toLowerCase().replace(' (natural + eliminada)','')} por incubatório`;
+
+  const ctx = document.getElementById('graficoIncubatorio').getContext('2d');
+  if(chartIncub) chartIncub.destroy();
+  chartIncub = new Chart(ctx, {
+    type:'bar',
+    data:{ labels: dados.map(d=>d.inc), datasets:[{
+      data: dados.map(d=>+d.media.toFixed(2)),
+      backgroundColor: dados.map((d,i)=> i===0?'#C0392B':(i>=dados.length-1?'#3A7D44':'#C9A227')),
+      borderRadius:6, maxBarThickness:80
+    }]},
+    options:{
+      indexAxis:'y', responsive:true, maintainAspectRatio:false,
+      plugins:{ legend:{display:false}, tooltip:{ callbacks:{
+        label: c => `${c.parsed.x.toFixed(2)}%`,
+        afterLabel: c => `${dados[c.dataIndex].ciclos} ciclos`
+      } } },
+      scales:{
+        x:{ title:{display:true,text:'% mortalidade',font:{weight:600}}, grid:{color:'#EFEAE0'}, beginAtZero:true },
+        y:{ grid:{display:false} }
+      }
+    }
+  });
+}
+
+// --- Curva de mortalidade por idade comparando NÚCLEOS (histórico) ---
+let chartCurvaNucleo = null;
+let nucleosCurvaSelecionados = null; // inicializa no 1º render
+
+function renderCurvaNucleo(){
+  const agg = AGG_NUCLEO[sexoAtivo] || AGG_NUCLEO['Todos'];
+  const metrica = metricaAtiva;
+  const nucleosDisp = Object.keys(agg).sort();
+
+  // seleção inicial: os 4 núcleos com maior mortalidade final
+  if(nucleosCurvaSelecionados === null){
+    const ordenados = nucleosDisp.map(n => {
+      const arr = agg[n]; const ult = arr[arr.length-1];
+      return { n, pct: ult ? ult[metrica] : 0 };
+    }).sort((a,b) => b.pct - a.pct);
+    nucleosCurvaSelecionados = new Set(ordenados.slice(0,4).map(o => o.n));
+  }
+
+  const sufSexo = sexoAtivo === 'Todos' ? '' : ` · ${sexoAtivo}`;
+  document.getElementById('tituloCurvaNucleo').textContent =
+    `Curva de mortalidade ${metricaLabel[metrica].toLowerCase().replace(' (natural + eliminada)','')} por idade — núcleos${sufSexo}`;
+
+  // chips
+  const chipsEl = document.getElementById('chipsNucleos');
+  chipsEl.innerHTML = nucleosDisp.map((n, i) => {
+    const ativo = nucleosCurvaSelecionados.has(n);
+    const cor = corPorIndice(nucleosDisp.indexOf(n));
+    return `<div class="chip-nucleo ${ativo?'ativo':''}" data-nuc="${n}" style="${ativo?`background:${cor}`:''}">
+      <span class="cbola" style="background:${cor}"></span>${nomeNucleo(n)}</div>`;
+  }).join('');
+  chipsEl.querySelectorAll('.chip-nucleo').forEach(chip => {
+    chip.addEventListener('click', () => {
+      const n = chip.dataset.nuc;
+      if(nucleosCurvaSelecionados.has(n)) nucleosCurvaSelecionados.delete(n); else nucleosCurvaSelecionados.add(n);
+      renderCurvaNucleo();
+    });
+  });
+
+  const selecionados = nucleosDisp.filter(n => nucleosCurvaSelecionados.has(n));
+  const idadeMax = Math.max(0, ...selecionados.map(n => { const a=agg[n]; return a.length?a[a.length-1].idade:0; }));
+  const idades = []; for(let i=0;i<=idadeMax;i++) idades.push(i);
+
+  const datasets = selecionados.map(n => {
+    const arr = agg[n];
+    const pico = Math.max(...arr.map(d=>d.nLotes),1);
+    const porIdade = new Map(arr.map(d => [d.idade, d]));
+    const data = idades.map(t => { const d = porIdade.get(t); return d ? d[metrica] : null; });
+    const cor = corPorIndice(nucleosDisp.indexOf(n));
+    return { label: nomeNucleo(n), data, borderColor:cor, backgroundColor:cor,
+      pointRadius:0, pointHoverRadius:4, borderWidth:2.4, tension:0.3, spanGaps:true };
+  });
+
+  document.getElementById('legendaCurvaNucleo').innerHTML = datasets.map(d =>
+    `<div class="legenda-item"><span class="barra" style="background:${d.borderColor}"></span>${d.label}</div>`).join('');
+
+  const ctx = document.getElementById('graficoCurvaNucleo').getContext('2d');
+  if(chartCurvaNucleo) chartCurvaNucleo.destroy();
+  chartCurvaNucleo = new Chart(ctx, {
+    type:'line', data:{ labels:idades, datasets },
+    options:{
+      responsive:true, maintainAspectRatio:false,
+      interaction:{ mode:'index', intersect:false },
+      plugins:{ legend:{display:false}, tooltip:{ callbacks:{
+        title: items => `Idade ${items[0].label} dias`,
+        label: c => `${c.dataset.label}: ${c.parsed.y!=null?c.parsed.y.toFixed(2)+'%':'—'}` } } },
+      scales:{
+        x:{ title:{display:true,text:'Idade (dias)',font:{weight:600}}, grid:{color:'#EFEAE0'} },
+        y:{ title:{display:true,text:'% mortalidade acumulada',font:{weight:600}}, grid:{color:'#EFEAE0'}, beginAtZero:true }
+      }
+    }
+  });
+}
+
+function render(){
+  if(abaAtiva === 'andamento'){
+    const lotes = lotesFiltrados();
+    renderQuadro(lotes);
+    const lotesAtivos = lotes.filter(l => lotesSelecionados.has(l.loteId));
+    renderCards();
+    renderMatrizDiaria();
+    renderIdadeAndamento();
+    renderBarrasAndamento();
+    renderRankingNucleosAndamento();
+    renderGrafico(lotesAtivos);
+    renderGraficoEmpresa();
+  } else {
+    renderResumoHistorico();
+    renderTendenciaAno();
+    renderRankingNucleos();
+    renderGraficoComposicao();
+    renderCurvaNucleo();
+    renderScatter();
+    renderIncubatorio();
+  }
+}
+
+selecionarPadrao();
+render();
+</script>
+
+
+<script>
+(function(){
+  const LOTES = fetchJSONSync('./data/condenas_lotes.json');
+  const TIPOS = ["ASCITE/FRANGO","MORTALIDADE PEGA/FRANGO","ASPECTO REPUG/FRANGO","CELULITE/FRANGO","AEROSACULITE/FRANGO","CONDENACOES PARCIAIS DIVERSAS","SEPTICEMIA/FRANGO","CALO PÉ/FRANGO","CAQUETICOS/FRANGO","CONTAMINAÇÃO ASA","CONTAMINAÇÃO COXA","CONTAMINAÇÃO PEITO","MIOPATIA/FRANGO","ARTRITE/FRANGO","MORTALIDADE","ESCALDAGEM EXCESSIVA","MA SANGRIA","SALPINGITE/FRANGO","ASAS HEMATOMAS AVAN/FRANGO","DERMATOSE - DERMATITE/FRANGO","EVISCERAÇÃO RETARDADA","CORAÇÃO PERICARDITE/FRANGO","ASA APANHA","ASA INDÚSTRIA","FÍGADO","ASAS HEMATOMAS","COXA APANHA","COXAS HEMATOMAS AVAN/FRANGO","COXA INDÚSTRIA","CALO PEITO/FRANGO","TUMOR LOCALIZADO/FRANGO","ABCESSO/FRANGO","ABSORÇÃO MENOR","MORTE NA POCILGA","ABSORÇÃO MAIOR"];
+
+const nomeNucleo = n => (n||'').replace('NÚCLEO ','');
+const cores = ['#C1272D','#F2A900','#2E9E6B','#2E6E9E','#8E44AD','#D97706','#0E7C7B','#B33F62','#556B2F','#5B4636','#8F1D22','#1E7A46','#B8860B'];
+
+// estado
+let abaAtiva='geral', metrica='peso';
+let matrizSort={key:'media_geral',dir:'asc'}; // condena: menor é melhor, asc por padrão
+let nucleosRecolhidos=new Set(), nucInic=false;
+
+// numerador/denominador conforme métrica
+// peso: pesoCond / pesoTotal   |   aves: qtdCond / avesAbat
+function pctDe(lotes){
+  let num=0, den=0;
+  lotes.forEach(l=>{
+    if(metrica==='peso'){ num+=l.pesoCond; den+=l.pesoTotal; }
+    else { num+=l.qtdCond; den+=l.avesAbat; }
+  });
+  return den>0 ? num/den*100 : null;
+}
+
+// filtros
+function opts(campo,label,fmt){
+  const vals=Array.from(new Set(LOTES.map(l=>l[campo]))).filter(v=>v!=null).sort((a,b)=>(''+a).localeCompare(''+b,'pt',{numeric:true}));
+  return `<option value="Todos">${label}</option>`+vals.map(v=>`<option value="${v}">${fmt?fmt(v):v}</option>`).join('');
+}
+document.getElementById('cd_fAno').innerHTML=opts('ano','Todos os anos');
+document.getElementById('cd_fNucleo').innerHTML=opts('nucleo','Todos os núcleos',nomeNucleo);
+function popularAviarios(){
+  const nuc=document.getElementById('cd_fNucleo').value;
+  const base=LOTES.filter(l=>nuc==='Todos'||l.nucleo===nuc);
+  const avs=Array.from(new Set(base.map(l=>l.aviario))).sort((a,b)=>(''+a).localeCompare(''+b,'pt',{numeric:true}));
+  document.getElementById('cd_fAviario').innerHTML='<option value="Todos">Todos os aviários</option>'+avs.map(a=>`<option value="${a}">${a}</option>`).join('');
+}
+popularAviarios();
+
+function filtrar(){
+  const ano=document.getElementById('cd_fAno').value, nuc=document.getElementById('cd_fNucleo').value, avi=document.getElementById('cd_fAviario').value;
+  return LOTES.filter(l=>{
+    if(ano!=='Todos' && String(l.ano)!==ano) return false;
+    if(nuc!=='Todos' && l.nucleo!==nuc) return false;
+    if(avi!=='Todos' && l.aviario!==avi) return false;
+    return true;
+  });
+}
+document.getElementById('cd_fNucleo').addEventListener('change',()=>{popularAviarios();render();});
+document.getElementById('cd_fAno').addEventListener('change',render);
+document.getElementById('cd_fAviario').addEventListener('change',render);
+
+// tabs
+document.querySelectorAll('#mod-condenas .tab-int').forEach(b=>b.addEventListener('click',()=>{
+  document.querySelectorAll('#mod-condenas .tab-int').forEach(x=>x.classList.remove('ativo'));
+  b.classList.add('ativo'); abaAtiva=b.dataset.aba;
+  ['geral','tipo','matriz'].forEach(a=>document.querySelector(`#mod-condenas [data-aba-view="${a}"]`).style.display=(a===abaAtiva)?'':'none');
+  render();
+}));
+document.querySelectorAll('#cd_segMetrica button').forEach(b=>b.addEventListener('click',()=>{
+  document.querySelectorAll('#cd_segMetrica button').forEach(x=>x.classList.remove('ativo'));
+  b.classList.add('ativo'); metrica=b.dataset.m; render();
+}));
+
+const sufMetrica = () => metrica==='peso' ? 'em peso' : 'em aves';
+
+// ---------- Cards ----------
+function renderCards(dados){
+  const cont=document.getElementById('cd_cards');
+  if(!dados.length){cont.innerHTML='<div class="vazio">Sem dados para o filtro.</div>';return;}
+  const pct=pctDe(dados);
+  const pesoCond=dados.reduce((s,l)=>s+l.pesoCond,0);
+  const qtdCond=dados.reduce((s,l)=>s+l.qtdCond,0);
+  const abates=dados.length;
+  // tipo campeão
+  const porTipo={};
+  dados.forEach(l=>{for(const[t,[pc,qc]] of Object.entries(l.tipos)){porTipo[t]=(porTipo[t]||0)+(metrica==='peso'?pc:qc);}});
+  const campeao=Object.entries(porTipo).sort((a,b)=>b[1]-a[1])[0];
+  cont.innerHTML=`
+    <div class="card destaque"><div class="label">% Condena ${sufMetrica()}</div><div class="valor">${pct.toFixed(3)}%</div><div class="sub">${abates} abates no filtro</div></div>
+    <div class="card"><div class="label">Peso condenado</div><div class="valor">${(pesoCond/1000).toFixed(1)}<span style="font-size:14px;color:var(--texto-suave)"> t</span></div><div class="sub">${pesoCond.toLocaleString('pt-BR',{maximumFractionDigits:0})} kg</div></div>
+    <div class="card"><div class="label">Aves condenadas</div><div class="valor">${Math.round(qtdCond).toLocaleString('pt-BR')}</div><div class="sub">aves (equiv.)</div></div>
+    <div class="card"><div class="label">Principal motivo</div><div class="valor" style="font-size:17px;line-height:1.15">${campeao?campeao[0].replace('/FRANGO',''):'—'}</div><div class="sub">${campeao?(campeao[1]/Object.values(porTipo).reduce((a,b)=>a+b,0)*100).toFixed(1)+'% do condenado':''}</div></div>`;
+}
+
+// ---------- Evolução por ano ----------
+let chartEvo=null;
+function renderEvo(dados){
+  document.getElementById('cd_tituloEvo').textContent=`Evolução da condena ${sufMetrica()} por ano`;
+  const anos=Array.from(new Set(dados.map(l=>l.ano))).sort();
+  const vals=anos.map(a=>{const m=pctDe(dados.filter(l=>l.ano===a));return m?+m.toFixed(3):null;});
+  const ctx=document.getElementById('cd_chartEvo').getContext('2d');
+  if(chartEvo)chartEvo.destroy();
+  chartEvo=new Chart(ctx,{type:'bar',data:{labels:anos,datasets:[{data:vals,backgroundColor:'#C1272D',borderRadius:6,maxBarThickness:80}]},
+    options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{callbacks:{label:c=>`${c.parsed.y.toFixed(3)}%`}}},
+    scales:{x:{grid:{display:false}},y:{title:{display:true,text:'% condena',font:{weight:600}},grid:{color:'#EFEAE0'},beginAtZero:true}}}});
+  const g=pctDe(dados);
+  document.getElementById('cd_notaEvo').textContent=g?`Média geral do filtro: ${g.toFixed(3)}%. Menor é melhor.`:'';
+}
+
+// ---------- Ranking núcleos (menor = melhor) ----------
+function renderRanking(dados){
+  const porNuc={};
+  dados.forEach(l=>{(porNuc[l.nucleo]=porNuc[l.nucleo]||[]).push(l);});
+  let grupos=Object.entries(porNuc).map(([n,ls])=>({nucleo:n,pct:pctDe(ls),n:new Set(ls.map(l=>l.aviario)).size,abates:ls.length}))
+    .filter(g=>g.pct!=null).sort((a,b)=>a.pct-b.pct); // asc: melhor primeiro
+  const cont=document.getElementById('cd_ranking');
+  if(!grupos.length){cont.innerHTML='<div class="vazio">Sem dados.</div>';return;}
+  const maxV=Math.max(...grupos.map(g=>g.pct)), minV=Math.min(...grupos.map(g=>g.pct));
+  // pódio dos 3 melhores
+  let podio='';
+  if(grupos.length>=3){
+    const p=grupos.slice(0,3); const ordem=[{...p[1],pos:2},{...p[0],pos:1},{...p[2],pos:3}];
+    const alt={1:96,2:70,3:52}, cor={1:'#F2A900',2:'#B8B2A6',3:'#C58B4B'}, med={1:'🥇',2:'🥈',3:'🥉'};
+    podio=`<div class="podio">`+ordem.map(g=>`<div class="podio-col">
+      <div class="podio-nome">${nomeNucleo(g.nucleo)}</div><div class="podio-valor">${g.pct.toFixed(3)}%</div>
+      <div class="podio-bloco" style="height:${alt[g.pos]}px;background:${cor[g.pos]}"><span class="podio-medalha">${med[g.pos]}</span><span class="podio-pos">${g.pos}º</span></div>
+      <div class="podio-sub">${g.n} aviários</div></div>`).join('')+`</div>`;
+  }
+  const resto=grupos.length>=3?grupos.slice(3):grupos, off=grupos.length>=3?3:0;
+  const lista=resto.map((g,i)=>{
+    const idx=i+off, range=maxV-minV||1, larg=(maxV-g.pct)/range*100; // menor pct = barra mais cheia
+    const cor = idx>=grupos.length-1?'#C0392B':(idx<3?'#2E9E6B':'#F2A900');
+    return `<div class="rank-card"><span class="rank-pos" style="background:${idx>=grupos.length-1?'#C0392B':'#8A7E6F'}">${idx+1}</span>
+      <div><div class="rank-nome">${nomeNucleo(g.nucleo)}</div>
+      <div class="rank-track"><div class="rank-fill" style="width:${Math.max(6,larg).toFixed(0)}%;background:${cor}"></div></div>
+      <div class="rank-sub">${g.n} aviários · ${g.abates} abates</div></div>
+      <div class="rank-valor">${g.pct.toFixed(3)}<small>%</small></div></div>`;
+  }).join('');
+  cont.innerHTML=podio+`<div class="rank-lista">${lista}</div>`;
+}
+
+// ---------- Evolução mensal (cronológica) ----------
+const ORDEM_MES = {'Janeiro':1,'Fevereiro':2,'Março':3,'Abril':4,'Maio':5,'Junho':6,'Julho':7,'Agosto':8,'Setembro':9,'Outubro':10,'Novembro':11,'Dezembro':12};
+const ABREV_MES = {'Janeiro':'Jan','Fevereiro':'Fev','Março':'Mar','Abril':'Abr','Maio':'Mai','Junho':'Jun','Julho':'Jul','Agosto':'Ago','Setembro':'Set','Outubro':'Out','Novembro':'Nov','Dezembro':'Dez'};
+let chartMensal=null;
+function renderEvoMensal(dados){
+  const chaves = Array.from(new Set(dados.filter(l=>l.mes).map(l=>`${l.anoAbate}-${String(ORDEM_MES[l.mes]).padStart(2,'0')}`))).sort();
+  const labels = chaves.map(k=>{ const [a,m]=k.split('-'); const nomeMes=Object.keys(ORDEM_MES).find(n=>ORDEM_MES[n]===+m); return `${ABREV_MES[nomeMes]}/${String(a).slice(2)}`; });
+  const vals = chaves.map(k=>{ const [a,m]=k.split('-'); const ls=dados.filter(l=>l.anoAbate===+a && ORDEM_MES[l.mes]===+m); const v=pctDe(ls); return v!=null?+v.toFixed(3):null; });
+  const ctx=document.getElementById('cd_chartMensal').getContext('2d');
+  if(chartMensal)chartMensal.destroy();
+  chartMensal=new Chart(ctx,{type:'line',data:{labels,datasets:[{data:vals,borderColor:'#C1272D',backgroundColor:'rgba(193,39,45,.1)',fill:true,tension:.3,borderWidth:2.4,pointRadius:3,pointBackgroundColor:'#C1272D'}]},
+    options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{callbacks:{label:c=>`${c.parsed.y!=null?c.parsed.y.toFixed(3)+'%':'—'}`}}},
+    scales:{x:{grid:{display:false},ticks:{maxRotation:0,autoSkip:true}},y:{title:{display:true,text:'% condena',font:{weight:600}},grid:{color:'#EFEAE0'},beginAtZero:true}}}});
+  document.getElementById('cd_notaMensal').textContent = `Evolução mês a mês (${chaves.length} meses no filtro). Ajuda a ver sazonalidade e picos pontuais que a visão anual dilui.`;
+}
+
+// ---------- Ranking por incubatório ----------
+function renderRankingIncubatorio(dados){
+  const porInc={};
+  dados.forEach(l=>{ if(!l.incubatorio) return; (porInc[l.incubatorio]=porInc[l.incubatorio]||[]).push(l); });
+  const grupos=Object.entries(porInc).map(([inc,ls])=>({inc,pct:pctDe(ls),n:new Set(ls.map(l=>l.aviario)).size,abates:ls.length}))
+    .filter(g=>g.pct!=null).sort((a,b)=>a.pct-b.pct);
+  const cont=document.getElementById('cd_rankingIncub');
+  if(!grupos.length){cont.innerHTML='<div class="vazio">Sem dados.</div>';return;}
+  const maxV=Math.max(...grupos.map(g=>g.pct)), minV=Math.min(...grupos.map(g=>g.pct)), range=maxV-minV||1;
+  cont.innerHTML = grupos.map((g,i)=>{
+    const larg=(maxV-g.pct)/range*100;
+    const cor = i===0?'#2E9E6B':(i===grupos.length-1?'#C0392B':'#F2A900');
+    return `<div class="rank-card"><span class="rank-pos" style="background:${i===0?'#2E9E6B':(i===grupos.length-1?'#C0392B':'#8A7E6F')}">${i+1}</span>
+      <div><div class="rank-nome">${g.inc}</div>
+      <div class="rank-track"><div class="rank-fill" style="width:${Math.max(6,larg).toFixed(0)}%;background:${cor}"></div></div>
+      <div class="rank-sub">${g.n} aviários · ${g.abates} abates</div></div>
+      <div class="rank-valor">${g.pct.toFixed(3)}<small>%</small></div></div>`;
+  }).join('');
+}
+
+// ---------- Por tipo ----------
+function renderTipo(dados){
+  const nuc=document.getElementById('cd_fNucleo').value, avi=document.getElementById('cd_fAviario').value;
+  const alvo = avi!=='Todos'?`Aviário ${avi}`:(nuc!=='Todos'?nomeNucleo(nuc):'toda a empresa');
+  document.getElementById('cd_tituloTipo').textContent=`Condena por tipo — ${alvo}`;
+  document.getElementById('cd_infoTipo').textContent=`${sufMetrica()} · ${dados.length} abates`;
+  const porTipo={};
+  dados.forEach(l=>{for(const[t,[pc,qc]] of Object.entries(l.tipos)){porTipo[t]=(porTipo[t]||0)+(metrica==='peso'?pc:qc);}});
+  const total=Object.values(porTipo).reduce((a,b)=>a+b,0);
+  const linhas=Object.entries(porTipo).filter(([t,v])=>v>0).sort((a,b)=>b[1]-a[1]);
+  const maxV=linhas.length?linhas[0][1]:1;
+  const cont=document.getElementById('cd_tipoLista');
+  if(!linhas.length){cont.innerHTML='<div class="vazio">Sem condenas para este filtro.</div>';return;}
+  const unidade = metrica==='peso'?'kg':'aves';
+  cont.innerHTML=linhas.map(([t,v])=>{
+    const pctPart=(v/total*100), larg=(v/maxV*100);
+    return `<div class="tipo-row">
+      <div class="tipo-nome" title="${t}">${t.replace('/FRANGO','')}</div>
+      <div class="tipo-track"><div class="tipo-fill" style="width:${Math.max(2,larg).toFixed(1)}%"></div></div>
+      <div class="tipo-val">${pctPart.toFixed(1)}%<br><span style="font-weight:500;color:var(--texto-suave);font-size:10.5px">${v.toLocaleString('pt-BR',{maximumFractionDigits:0})} ${unidade}</span></div>
+    </div>`;
+  }).join('');
+}
+
+// ---------- Matriz Ano/Rodada × Núcleo/Aviário (+ tipo) ----------
+let anosRecolhidosCd = new Set(), anosInicCd = false;
+let tiposAbertos = new Set(); // chaves "nucleo|aviario" com drill-down de tipo aberto
+
+function atualizarBotao(){
+  const btn=document.getElementById('cd_btnRecolher');
+  const nucs=Array.from(new Set(filtrar().map(l=>l.nucleo)));
+  const todosRec=nucs.length>0&&nucs.every(n=>nucleosRecolhidos.has(n));
+  btn.textContent=todosRec?'Expandir todos':'Recolher todos';
+}
+document.getElementById('cd_btnRecolher').addEventListener('click',()=>{
+  const nucs=Array.from(new Set(filtrar().map(l=>l.nucleo)));
+  const todosRec=nucs.length>0&&nucs.every(n=>nucleosRecolhidos.has(n));
+  if(todosRec) nucleosRecolhidos.clear(); else nucs.forEach(n=>nucleosRecolhidos.add(n));
+  atualizarBotao(); renderMatriz();
+});
+
+function pctDeTipo(lotes, tipoNome){
+  let num=0, den=0;
+  lotes.forEach(l=>{
+    const t=l.tipos[tipoNome];
+    if(t) num += (metrica==='peso'?t[0]:t[1]);
+    den += (metrica==='peso'?l.pesoTotal:l.avesAbat);
+  });
+  return den>0 ? num/den*100 : null;
+}
+
+function renderMatriz(){
+  const dados=filtrar();
+  const anos=Array.from(new Set(dados.map(l=>l.ano))).sort((a,b)=>a-b);
+  const rodadasPorAno={};
+  anos.forEach(a=>{ rodadasPorAno[a]=Array.from(new Set(dados.filter(l=>l.ano===a).map(l=>l.rodada).filter(v=>v!=null))).sort((x,y)=>x-y); });
+  const nucleos=Array.from(new Set(dados.map(l=>l.nucleo))).sort();
+  if(!nucInic){ nucleosRecolhidos=new Set(); nucInic=true; atualizarBotao(); }
+  if(!anosInicCd && anos.length){ anosRecolhidosCd=new Set(anos); anosInicCd=true; }
+  const fmt=v=>v==null?'–':v.toFixed(3)+'%';
+
+  if(!anos.length||!nucleos.length){document.getElementById('cd_tabelaMatriz').innerHTML='';document.getElementById('cd_notaMatriz').innerHTML='<div class="vazio">Sem dados.</div>';return;}
+
+  function valChave(filtro,key,tipoNome){
+    const ls = dados.filter(filtro);
+    if(tipoNome) return pctDeTipo(ls, tipoNome);
+    if(key==='media_geral') return pctDe(ls);
+    const mSub=key.match(/^sub_(\d+)$/); if(mSub){const a=+mSub[1];return pctDe(ls.filter(l=>l.ano===a));}
+    const mCel=key.match(/^cel_(\d+)_(\d+)$/); if(mCel){const a=+mCel[1],r=+mCel[2];return pctDe(ls.filter(l=>l.ano===a&&l.rodada===r));}
+    return null;
+  }
+  function ordenar(itens,filtroDe){
+    const dir=matrizSort.dir==='asc'?1:-1;
+    return itens.slice().sort((x,y)=>{const vx=valChave(filtroDe(x),matrizSort.key),vy=valChave(filtroDe(y),matrizSort.key);
+      if(vx==null&&vy==null)return 0; if(vx==null)return 1; if(vy==null)return -1; return (vx-vy)*dir;});
+  }
+  const seta=key=>matrizSort.key===key?(matrizSort.dir==='asc'?' ▲':' ▼'):'';
+
+  // cabeçalho: linha 1 = anos (com toggle), linha 2 = rodadas + subtotal do ano
+  let th1='<th class="rowhead" rowspan="2">Núcleo / Aviário</th>';
+  anos.forEach((a,i)=>{
+    const rec=anosRecolhidosCd.has(a);
+    const nRod = rec?0:rodadasPorAno[a].length;
+    th1+=`<th colspan="${nRod+1}" class="${i>0?'sep':''} th-ano" data-ano-cd="${a}" title="${rec?'Expandir':'Recolher'} rodadas de ${a}"><span class="ano-toggle">${rec?'▸':'▾'}</span> ${a}</th>`;
+  });
+  th1+=`<th class="media th-sort" data-key="media_geral" rowspan="2">Média<br>geral${seta('media_geral')}</th>`;
+  let th2='';
+  anos.forEach((a,i)=>{
+    const rec=anosRecolhidosCd.has(a);
+    if(!rec) rodadasPorAno[a].forEach((r,j)=>{ const key=`cel_${a}_${r}`; th2+=`<th class="th-sort ${j===0&&i>0?'sep':''}" data-key="${key}">R${r}${seta(key)}</th>`; });
+    const keySub=`sub_${a}`;
+    th2+=`<th class="subano th-sort ${rec&&i>0?'sep':''}" data-key="${keySub}">Méd ${String(a).slice(2)}${seta(keySub)}</th>`;
+  });
+
+  function montarCelulas(filtro, tipoNome){
+    let tds='';
+    anos.forEach((a,i)=>{
+      const rec=anosRecolhidosCd.has(a);
+      if(!rec) rodadasPorAno[a].forEach((r,j)=>{
+        const v = tipoNome ? pctDeTipo(dados.filter(l=>filtro(l)&&l.ano===a&&l.rodada===r), tipoNome) : pctDe(dados.filter(l=>filtro(l)&&l.ano===a&&l.rodada===r));
+        tds+=`<td class="cel ${j===0&&i>0?'sep':''}">${fmt(v)}</td>`;
+      });
+      const vSub = tipoNome ? pctDeTipo(dados.filter(l=>filtro(l)&&l.ano===a), tipoNome) : pctDe(dados.filter(l=>filtro(l)&&l.ano===a));
+      tds+=`<td class="subano ${rec&&i>0?'sep':''}">${fmt(vSub)}</td>`;
+    });
+    return tds;
+  }
+
+  const nucOrd=ordenar(nucleos,nuc=>(l=>l.nucleo===nuc));
+  let corpo='';
+  nucOrd.forEach(nuc=>{
+    const fNuc=l=>l.nucleo===nuc, rec=nucleosRecolhidos.has(nuc);
+    const mediaNuc = pctDe(dados.filter(fNuc));
+    corpo+=`<tr class="linha-nucleo"><th class="rowhead"><span class="nuc-toggle" data-nuc="${nuc}">${rec?'▸':'▾'}</span> ${nomeNucleo(nuc)}</th>${montarCelulas(fNuc)}<td class="media">${fmt(mediaNuc)}</td></tr>`;
+    if(rec) return;
+    const avs=ordenar(Array.from(new Set(dados.filter(fNuc).map(l=>l.aviario))),av=>(l=>l.nucleo===nuc&&l.aviario===av));
+    avs.forEach(av=>{
+      const fAv=l=>l.nucleo===nuc&&l.aviario===av;
+      const chaveTipo = `${nuc}|${av}`;
+      const tipoAberto = tiposAbertos.has(chaveTipo);
+      const mediaAv = pctDe(dados.filter(fAv));
+      corpo+=`<tr class="${tipoAberto?'aviario-expandido':''}"><th class="rowhead aviario"><span class="tipo-toggle" data-tipo-toggle="${chaveTipo}" title="${tipoAberto?'Ocultar':'Ver'} tipos de condena">${tipoAberto?'−':'+'}</span> Aviário ${av}</th>${montarCelulas(fAv)}<td class="media">${fmt(mediaAv)}</td></tr>`;
+      if(tipoAberto){
+        // tipos com alguma contribuição nesse aviário, ordenados pela participação (média geral do aviário)
+        const tiposComValor = TIPOS.map(t=>({t, v:pctDeTipo(dados.filter(fAv), t)})).filter(x=>x.v!=null && x.v>0).sort((a,b)=>b.v-a.v);
+        tiposComValor.forEach(({t})=>{
+          corpo+=`<tr class="linha-tipo"><th class="rowhead">${t.replace('/FRANGO','')}</th>${montarCelulas(fAv, t)}<td class="media">${fmt(pctDeTipo(dados.filter(fAv), t))}</td></tr>`;
+        });
+      }
+    });
+  });
+  document.getElementById('cd_tabelaMatriz').innerHTML=`<thead><tr>${th1}</tr><tr>${th2}</tr></thead><tbody>${corpo}</tbody>`;
+  document.getElementById('cd_tituloMatriz').textContent=`Matriz de condena ${sufMetrica()} — ano/rodada × núcleo/aviário`;
+
+  document.querySelectorAll('#cd_tabelaMatriz .nuc-toggle').forEach(el=>el.addEventListener('click',e=>{
+    e.stopPropagation(); const n=el.dataset.nuc;
+    if(nucleosRecolhidos.has(n))nucleosRecolhidos.delete(n);else nucleosRecolhidos.add(n);
+    atualizarBotao(); renderMatriz();
+  }));
+  document.querySelectorAll('#cd_tabelaMatriz .tipo-toggle').forEach(el=>el.addEventListener('click',e=>{
+    e.stopPropagation(); const k=el.dataset.tipoToggle;
+    if(tiposAbertos.has(k))tiposAbertos.delete(k);else tiposAbertos.add(k);
+    renderMatriz();
+  }));
+  document.querySelectorAll('#cd_tabelaMatriz [data-ano-cd]').forEach(th=>th.addEventListener('click',e=>{
+    e.stopPropagation(); const a=parseInt(th.dataset.anoCd);
+    if(anosRecolhidosCd.has(a))anosRecolhidosCd.delete(a);else anosRecolhidosCd.add(a);
+    renderMatriz();
+  }));
+  document.querySelectorAll('#cd_tabelaMatriz .th-sort').forEach(th=>th.addEventListener('click',()=>{
+    const k=th.dataset.key;
+    if(matrizSort.key===k)matrizSort.dir=matrizSort.dir==='asc'?'desc':'asc'; else{matrizSort.key=k;matrizSort.dir='asc';}
+    renderMatriz();
+  }));
+  document.getElementById('cd_notaMatriz').innerHTML=`Cada célula = % de condena ${sufMetrica()} (contado 1x por abate). Clique na <strong>seta ▸/▾</strong> do núcleo pra ver aviários, no <strong>ano</strong> pra recolher/expandir rodadas, no <strong>"+"</strong> do aviário pra ver a quebra por tipo de condena (% sobre o peso total daquele aviário). Clique numa coluna pra ordenar. Menor é melhor.`;
+  ativarArrastar(document.getElementById('cd_scrollMatriz'));
+}
+
+// arrastar p/ rolar
+function ativarArrastar(el){
+  if(!el||el._arr)return; el._arr=true;
+  let baixo=false,xIni=0,sIni=0,moveu=false;
+  el.addEventListener('mousedown',e=>{if(e.target.closest('button,a,select'))return;baixo=true;moveu=false;xIni=e.pageX;sIni=el.scrollLeft;el.classList.add('arrastando');});
+  window.addEventListener('mousemove',e=>{if(!baixo)return;const dx=e.pageX-xIni;if(Math.abs(dx)>3)moveu=true;el.scrollLeft=sIni-dx;});
+  window.addEventListener('mouseup',()=>{baixo=false;el.classList.remove('arrastando');});
+  el.addEventListener('click',e=>{if(moveu){e.stopPropagation();e.preventDefault();}},true);
+}
+
+function render(){
+  const dados=filtrar();
+  if(abaAtiva==='geral'){renderCards(dados);renderEvo(dados);renderRanking(dados);renderEvoMensal(dados);renderRankingIncubatorio(dados);}
+  else if(abaAtiva==='tipo'){renderTipo(dados);}
+  else if(abaAtiva==='matriz'){renderMatriz();}
+}
+render();
+
+  window.renderCondenas = render;
+})();
+</script>
+
+<script>
+const RESULTADO_LOTES = fetchJSONSync('./data/resultado_lotes.json');
+</script>
+<script>
+(function(){
+const LOTES = RESULTADO_LOTES;
+const nomeNucleo = n => (n||'').replace('NÚCLEO ','');
+const corLinhagem = {'COBB':'#C1272D','ROSS':'#2E6E9E','HUBBARD':'#F2A900'};
+
+const IND = {
+  fp:       {nome:'Fator de Produção', dec:1, sufixo:'',  melhorMaior:true},
+  gmd:      {nome:'GMD (g/dia)',       dec:1, sufixo:'',  melhorMaior:true},
+  ca:       {nome:'Conversão Alimentar',dec:3,sufixo:'',  melhorMaior:false},
+  iep:      {nome:'IEP',               dec:1, sufixo:'',  melhorMaior:true},
+  mortElim: {nome:'% Mort+Elim',       dec:2, sufixo:'%', melhorMaior:false},
+  pmAbate:  {nome:'Peso ao abate (kg)',dec:3, sufixo:'',  melhorMaior:true},
+  condenas: {nome:'% Condenas',        dec:2, sufixo:'%', melhorMaior:false},
+  idadeAbate:{nome:'Idade abate (d)',  dec:0, sufixo:'',  melhorMaior:false}
+};
+
+function media(arr, campo){
+  const vals = arr.map(l=>l[campo]).filter(v=>v!=null && !isNaN(v));
+  return vals.length ? vals.reduce((a,b)=>a+b,0)/vals.length : null;
+}
+
+let abaAtiva='geral', periodoEvo='ano', dimensao='nucleo', indicador='fp';
+let linhagensCresc = new Set(['__media__']);
+
+function opcoes(campo, label){
+  const vals = Array.from(new Set(LOTES.map(l=>l[campo]).filter(Boolean))).sort();
+  return `<option value="Todos">${label}</option>` + vals.map(v=>`<option value="${v}">${campo==='nucleo'?nomeNucleo(v):v}</option>`).join('');
+}
+document.getElementById('rz_fAno').innerHTML = opcoes('ano','Todos os anos');
+document.getElementById('rz_fNucleo').innerHTML = opcoes('nucleo','Todos os núcleos');
+document.getElementById('rz_fLinhagem').innerHTML = opcoes('linhagem','Todas as linhagens');
+document.getElementById('rz_fSexo').innerHTML = opcoes('sexo','Todos os sexos');
+
+function filtrar(){
+  const ano=document.getElementById('rz_fAno').value, nuc=document.getElementById('rz_fNucleo').value,
+        lin=document.getElementById('rz_fLinhagem').value, sx=document.getElementById('rz_fSexo').value;
+  return LOTES.filter(l=>{
+    if(ano!=='Todos' && String(l.ano)!==ano) return false;
+    if(nuc!=='Todos' && l.nucleo!==nuc) return false;
+    if(lin!=='Todos' && l.linhagem!==lin) return false;
+    if(sx!=='Todos' && l.sexo!==sx) return false;
+    return true;
+  });
+}
+['rz_fAno','rz_fNucleo','rz_fLinhagem','rz_fSexo'].forEach(id=>document.getElementById(id).addEventListener('change', render));
+
+document.querySelectorAll('#mod-resultado .tab-int').forEach(b=>b.addEventListener('click',()=>{
+  document.querySelectorAll('#mod-resultado .tab-int').forEach(x=>x.classList.remove('ativo'));
+  b.classList.add('ativo'); abaAtiva=b.dataset.aba;
+  ['geral','desempenho','matriz'].forEach(a=>{
+    document.querySelector(`#mod-resultado [data-aba-view="${a}"]`).style.display = (a===abaAtiva)?'':'none';
+  });
+  render(); window.scrollTo({top:0,behavior:'smooth'});
+}));
+
+function bindSeg(id, setter){
+  document.querySelectorAll(`#${id} button`).forEach(b=>b.addEventListener('click',()=>{
+    document.querySelectorAll(`#${id} button`).forEach(x=>x.classList.remove('ativo'));
+    b.classList.add('ativo'); setter(b.dataset); render();
+  }));
+}
+bindSeg('rz_segPeriodo', d=>periodoEvo=d.p);
+bindSeg('rz_segDimensao', d=>dimensao=d.d);
+bindSeg('rz_segIndicador', d=>indicador=d.k);
+
+// ================= Cards =================
+function renderCards(dados){
+  const cont=document.getElementById('rz_cardsKPI');
+  if(!dados.length){cont.innerHTML='<div class="vazio">Nenhum lote com esse filtro.</div>';return;}
+  const fp = media(dados,'fp');
+  const anos = Array.from(new Set(dados.map(l=>l.ano))).sort();
+  let tendHtml='';
+  if(anos.length>1){
+    const ult=anos[anos.length-1], pen=anos[anos.length-2];
+    const fpUlt=media(dados.filter(l=>l.ano===ult),'fp'), fpPen=media(dados.filter(l=>l.ano===pen),'fp');
+    if(fpUlt&&fpPen){const d=fpUlt-fpPen; tendHtml=`<div class="tend ${d>=0?'up':'down'}">${d>=0?'▲':'▼'} ${Math.abs(d).toFixed(1)} vs ${pen}</div>`;}
+  }
+  const kpis=[
+    {label:'Fator de Produção',v:fp,dec:1,principal:true,tend:tendHtml},
+    {label:'GMD (g/dia)',v:media(dados,'gmd'),dec:1},
+    {label:'Conversão alimentar',v:media(dados,'ca'),dec:3},
+    {label:'IEP',v:media(dados,'iep'),dec:1},
+    {label:'Peso ao abate',v:media(dados,'pmAbate'),dec:3,sub:'kg'},
+    {label:'Idade ao abate',v:media(dados,'idadeAbate'),dec:1,sub:'dias'},
+    {label:'% Mort+Elim',v:media(dados,'mortElim'),dec:2,sub:'%'},
+    {label:'% Condenas',v:media(dados,'condenas'),dec:2,sub:'%'}
+  ];
+  cont.innerHTML = kpis.map(k=>`
+    <div class="card ${k.principal?'principal':''}">
+      <div class="label">${k.label}</div>
+      <div class="valor">${k.v!=null?k.v.toFixed(k.dec):'—'}${k.sub?`<span style="font-size:13px;font-weight:600;color:var(--texto-suave)"> ${k.sub}</span>`:''}</div>
+      ${k.tend||`<div class="sub">${dados.length} lotes</div>`}
+    </div>`).join('');
+}
+
+// ================= Evolução =================
+let chartEvo=null;
+function renderEvolucao(dados){
+  const campo = periodoEvo==='ano' ? 'ano' : 'rodada';
+  document.getElementById('rz_tituloEvolucao').textContent = `Evolução do Fator de Produção ${periodoEvo==='ano'?'por ano':'por rodada'}`;
+  const grupos = Array.from(new Set(dados.map(l=>l[campo]).filter(v=>v!=null))).sort((a,b)=>a-b);
+  const valores = grupos.map(g=>{const m=media(dados.filter(l=>l[campo]===g),'fp'); return m?+m.toFixed(1):null;});
+  const nLotes = grupos.map(g=>dados.filter(l=>l[campo]===g).length);
+  const ctx=document.getElementById('rz_chartEvolucao').getContext('2d');
+  if(chartEvo)chartEvo.destroy();
+  chartEvo=new Chart(ctx,{
+    type: periodoEvo==='ano'?'line':'bar',
+    data:{labels:grupos.map(g=>periodoEvo==='ano'?g:`Rod. ${g}`),datasets:[{
+      label:'Fator de Produção',data:valores,
+      borderColor:'#C1272D',backgroundColor: periodoEvo==='ano'?'rgba(193,39,45,.1)':'#C1272D',
+      fill:periodoEvo==='ano',tension:.3,borderWidth:2.6,pointRadius:4,pointBackgroundColor:'#C1272D',borderRadius:6,maxBarThickness:70
+    }]},
+    options:{responsive:true,maintainAspectRatio:false,
+      plugins:{legend:{display:false},tooltip:{callbacks:{
+        label:c=>`FP ${c.parsed.y.toFixed(1)}`, afterLabel:c=>`${nLotes[c.dataIndex]} lotes`}}},
+      scales:{x:{grid:{display:false}},y:{title:{display:true,text:'Fator de Produção',font:{weight:600}},grid:{color:'#EFEAE0'}}}}
+  });
+  const tot=media(dados,'fp');
+  document.getElementById('rz_notaEvolucao').textContent = tot?`Média geral do filtro: ${tot.toFixed(1)}. Quanto maior o Fator de Produção, melhor o desempenho consolidado do lote.`:'';
+}
+
+// ================= Ranking com pódio =================
+function renderRanking(dados){
+  const cfg=IND[indicador];
+  const porGrupo=new Map();
+  dados.forEach(l=>{const g=l[dimensao]; if(g==null||g==='')return; if(!porGrupo.has(g))porGrupo.set(g,[]); porGrupo.get(g).push(l);});
+
+  let grupos=Array.from(porGrupo.entries())
+    .map(([g,ls])=>({grupo:g, valor:media(ls,indicador), n:ls.length}))
+    .filter(x=>x.valor!=null && x.n>=3)
+    .sort((a,b)=> cfg.melhorMaior ? b.valor-a.valor : a.valor-b.valor);
+
+  const nomeDim={nucleo:'núcleos',tecnico:'técnicos',granjeiro:'granjeiros',linhagem:'linhagens',nutricao:'nutrições',incubatorio:'incubatórios',rodada:'rodadas'}[dimensao];
+  document.getElementById('rz_notaRanking').textContent =
+    `${grupos.length} ${nomeDim} · ordenado por ${cfg.nome} (${cfg.melhorMaior?'maior é melhor':'menor é melhor'}) · mínimo 3 lotes por grupo`;
+
+  if(!grupos.length){document.getElementById('rz_ranking').innerHTML='<div class="vazio">Sem dados suficientes.</div>';return;}
+
+  const top=grupos.slice(0,15);
+  const valores=top.map(g=>g.valor);
+  const maxV=Math.max(...valores), minV=Math.min(...valores);
+  const label = g => dimensao==='nucleo'?nomeNucleo(g):(dimensao==='rodada'?`Rodada ${g}`:g);
+  const fmtV = v => v.toFixed(cfg.dec)+cfg.sufixo;
+
+  let podioHtml='';
+  if(top.length>=3){
+    const p = top.slice(0,3);
+    const ordem=[{...p[1],pos:2},{...p[0],pos:1},{...p[2],pos:3}];
+    const alturas={1:96,2:70,3:52};
+    const coresP={1:'#F2A900',2:'#B8B2A6',3:'#C58B4B'};
+    const medalha={1:'🥇',2:'🥈',3:'🥉'};
+    podioHtml = `<div class="podio">` + ordem.map(g=>`
+      <div class="podio-col">
+        <div class="podio-nome">${label(g.grupo)}</div>
+        <div class="podio-valor">${fmtV(g.valor)}</div>
+        <div class="podio-bloco" style="height:${alturas[g.pos]}px;background:${coresP[g.pos]}">
+          <span class="podio-medalha">${medalha[g.pos]}</span>
+          <span class="podio-pos">${g.pos}º</span>
+        </div>
+        <div class="podio-sub">${g.n} lotes</div>
+      </div>`).join('') + `</div>`;
+  }
+
+  const resto = top.length>=3 ? top.slice(3) : top;
+  const offset = top.length>=3 ? 3 : 0;
+  const listaHtml = resto.map((g,idx)=>{
+    const i = idx+offset;
+    const range=maxV-minV||1;
+    const larg = cfg.melhorMaior ? ((g.valor-minV)/range*100) : ((maxV-g.valor)/range*100);
+    return `<div class="rank-card">
+      <span class="rank-pos" style="background:#8A7E6F">${i+1}</span>
+      <div>
+        <div class="rank-nome">${label(g.grupo)}</div>
+        <div class="rank-track"><div class="rank-fill" style="width:${Math.max(6,larg).toFixed(0)}%;background:#F2A900"></div></div>
+        <div class="rank-sub">${g.n} lotes</div>
+      </div>
+      <div class="rank-valor">${g.valor.toFixed(cfg.dec)}<small>${cfg.sufixo}</small></div>
+    </div>`;
+  }).join('');
+
+  document.getElementById('rz_ranking').innerHTML = podioHtml + listaHtml;
+}
+
+// ================= Curva de crescimento =================
+let chartCresc=null;
+const idadesPeso=[7,14,21,28,35,42];
+const campoPeso={7:'pm7',14:'pm14',21:'pm21',28:'pm28',35:'pm35',42:'pm42'};
+function renderChipsLinhagem(){
+  const linhas=Array.from(new Set(LOTES.map(l=>l.linhagem).filter(Boolean))).sort();
+  const cont=document.getElementById('rz_chipsLinhagem');
+  const itens=[{k:'__media__',nome:'Média geral'}].concat(linhas.map(l=>({k:l,nome:l})));
+  cont.innerHTML=itens.map(it=>`<button data-lin="${it.k}" class="${linhagensCresc.has(it.k)?'ativo':''}">${it.nome}</button>`).join('');
+  cont.querySelectorAll('button').forEach(b=>b.addEventListener('click',()=>{
+    const k=b.dataset.lin;
+    if(linhagensCresc.has(k))linhagensCresc.delete(k); else linhagensCresc.add(k);
+    if(linhagensCresc.size===0)linhagensCresc.add('__media__');
+    renderChipsLinhagem(); renderCrescimento(filtrar());
+  }));
+}
+function renderCrescimento(dados){
+  const datasets=[];
+  if(linhagensCresc.has('__media__')){
+    datasets.push({label:'Média geral',data:idadesPeso.map(i=>{const m=media(dados,campoPeso[i]);return m?+m.toFixed(3):null;}),
+      borderColor:'#6B615A',backgroundColor:'#6B615A',borderWidth:2.6,pointRadius:3,tension:.3,borderDash:[6,3]});
+  }
+  Array.from(new Set(LOTES.map(l=>l.linhagem).filter(Boolean))).forEach(lin=>{
+    if(!linhagensCresc.has(lin))return;
+    const sub=dados.filter(l=>l.linhagem===lin);
+    datasets.push({label:lin,data:idadesPeso.map(i=>{const m=media(sub,campoPeso[i]);return m?+m.toFixed(3):null;}),
+      borderColor:corLinhagem[lin]||'#333',backgroundColor:corLinhagem[lin]||'#333',borderWidth:2.4,pointRadius:3,tension:.3});
+  });
+  const ctx=document.getElementById('rz_chartCrescimento').getContext('2d');
+  if(chartCresc)chartCresc.destroy();
+  chartCresc=new Chart(ctx,{type:'line',data:{labels:idadesPeso.map(i=>`${i}d`),datasets},
+    options:{responsive:true,maintainAspectRatio:false,interaction:{mode:'index',intersect:false},
+      plugins:{legend:{display:true,position:'top',labels:{font:{weight:600},usePointStyle:true}},
+        tooltip:{callbacks:{label:c=>`${c.dataset.label}: ${c.parsed.y!=null?c.parsed.y.toFixed(3)+' kg':'—'}`}}},
+      scales:{x:{title:{display:true,text:'Idade',font:{weight:600}},grid:{color:'#EFEAE0'}},
+        y:{title:{display:true,text:'Peso médio (kg)',font:{weight:600}},grid:{color:'#EFEAE0'},beginAtZero:true}}}});
+}
+
+// ================= Previsto x Real =================
+let chartPR=null;
+function renderPrevReal(dados){
+  const validos=dados.filter(l=>l.mediaPrev!=null&&l.mediaReal!=null);
+  const pts=validos.map(l=>({x:l.mediaPrev,y:l.mediaReal}));
+  const todos=validos.flatMap(l=>[l.mediaPrev,l.mediaReal]);
+  const mn=Math.min(...todos), mx=Math.max(...todos);
+  const difMedia=media(validos,'difMedia');
+  const acertos=validos.filter(l=>Math.abs(l.difMedia)<=0.05).length;
+  const ctx=document.getElementById('rz_chartPrevReal').getContext('2d');
+  if(chartPR)chartPR.destroy();
+  chartPR=new Chart(ctx,{
+    data:{datasets:[
+      {type:'scatter',label:'Lotes',data:pts,backgroundColor:'rgba(193,39,45,.45)',borderColor:'#C1272D',pointRadius:3,pointHoverRadius:5},
+      {type:'line',label:'Previsão perfeita',data:[{x:mn,y:mn},{x:mx,y:mx}],borderColor:'#2E6E9E',borderDash:[6,4],borderWidth:1.5,pointRadius:0,fill:false}
+    ]},
+    options:{responsive:true,maintainAspectRatio:false,
+      plugins:{legend:{display:true,position:'top',labels:{usePointStyle:true,font:{weight:600}}},
+        tooltip:{callbacks:{label:c=>c.datasetIndex===0?`Prev ${c.raw.x.toFixed(2)} → Real ${c.raw.y.toFixed(2)} kg`:''}}},
+      scales:{x:{title:{display:true,text:'Peso previsto (kg)',font:{weight:600}},grid:{color:'#EFEAE0'}},
+        y:{title:{display:true,text:'Peso real (kg)',font:{weight:600}},grid:{color:'#EFEAE0'}}}}
+  });
+  const pct=validos.length?(acertos/validos.length*100):0;
+  document.getElementById('rz_notaPrevReal').textContent =
+    `Diferença média (real − previsto): ${difMedia!=null?difMedia.toFixed(3)+' kg':'—'}. ${pct.toFixed(0)}% dos lotes fecharam a até 50g da previsão. Pontos acima da linha azul pesaram mais que o previsto; abaixo, menos.`;
+}
+
+// ================= Eficiência CA x FP =================
+let chartEf=null;
+function renderEficiencia(dados){
+  const porLin={};
+  dados.forEach(l=>{if(l.ca==null||l.fp==null)return; const k=l.linhagem||'—'; (porLin[k]=porLin[k]||[]).push({x:l.ca,y:l.fp,lote:l.lote,nucleo:l.nucleo});});
+  const datasets=Object.keys(porLin).map(k=>({label:k,data:porLin[k],
+    backgroundColor:(corLinhagem[k]||'#6B615A')+'A0',borderColor:corLinhagem[k]||'#6B615A',pointRadius:3.5,pointHoverRadius:6}));
+  const ctx=document.getElementById('rz_chartEficiencia').getContext('2d');
+  if(chartEf)chartEf.destroy();
+  chartEf=new Chart(ctx,{type:'scatter',data:{datasets},
+    options:{responsive:true,maintainAspectRatio:false,
+      plugins:{legend:{display:true,position:'top',labels:{usePointStyle:true,font:{weight:600}}},
+        tooltip:{callbacks:{label:c=>`${c.raw.lote}`,afterLabel:c=>`CA ${c.raw.x.toFixed(3)} · FP ${c.raw.y.toFixed(1)} · ${nomeNucleo(c.raw.nucleo)}`}}},
+      scales:{x:{title:{display:true,text:'Conversão alimentar (menor é melhor)',font:{weight:600}},grid:{color:'#EFEAE0'}},
+        y:{title:{display:true,text:'Fator de Produção (maior é melhor)',font:{weight:600}},grid:{color:'#EFEAE0'}}}}
+  });
+}
+
+// ================= Matriz =================
+let indicadorMatriz='fp';
+let anosRecolhidos = new Set();
+let anosInicializados = false;
+let nucleosRecolhidos = new Set();
+let nucleosInicializados = false;
+let matrizSort = { key:'media_geral', dir:'desc' };
+bindSeg('rz_segMatriz', d=>{ indicadorMatriz=d.k; renderMatriz(filtrar()); });
+
+function atualizarBotaoRecolher(){
+  const btn = document.getElementById('rz_btnRecolher');
+  if(!btn) return;
+  const nucleosAtuais = Array.from(new Set(filtrar().map(l=>l.nucleo).filter(Boolean)));
+  const todosRecolhidos = nucleosAtuais.length>0 && nucleosAtuais.every(n=>nucleosRecolhidos.has(n));
+  btn.textContent = todosRecolhidos ? 'Expandir todos' : 'Recolher todos';
+}
+(function(){
+  const btn = document.getElementById('rz_btnRecolher');
+  if(!btn) return;
+  btn.addEventListener('click', ()=>{
+    const nucleosAtuais = Array.from(new Set(filtrar().map(l=>l.nucleo).filter(Boolean)));
+    const todosRecolhidos = nucleosAtuais.length>0 && nucleosAtuais.every(n=>nucleosRecolhidos.has(n));
+    if(todosRecolhidos) nucleosRecolhidos.clear();
+    else nucleosAtuais.forEach(n=>nucleosRecolhidos.add(n));
+    atualizarBotaoRecolher();
+    renderMatriz(filtrar());
+  });
+})();
+
+function renderMatriz(dados){
+  const cfg = IND[indicadorMatriz];
+  document.getElementById('rz_tituloMatriz').textContent = `Matriz de ${cfg.nome}`;
+
+  const anos = Array.from(new Set(dados.map(l=>l.ano).filter(v=>v!=null))).sort((a,b)=>a-b);
+  const rodadasPorAno = {};
+  anos.forEach(a=>{
+    rodadasPorAno[a] = Array.from(new Set(dados.filter(l=>l.ano===a).map(l=>l.rodada).filter(v=>v!=null))).sort((x,y)=>x-y);
+  });
+
+  if(!anosInicializados && anos.length){
+    const ultimo = anos[anos.length-1];
+    anosRecolhidos = new Set(anos.filter(a=>a!==ultimo));
+    anosInicializados = true;
+  }
+
+  const nucleos = Array.from(new Set(dados.map(l=>l.nucleo).filter(Boolean))).sort();
+  const val = ls => { const m = media(ls, indicadorMatriz); return m!=null ? m : null; };
+  const dec = cfg.dec, suf = cfg.sufixo;
+  const fmt = v => v==null ? '–' : v.toFixed(dec)+suf;
+
+  if(anos.length===0 || nucleos.length===0){
+    document.getElementById('rz_tabelaMatriz').innerHTML = '';
+    document.getElementById('rz_notaMatriz').innerHTML = '<div class="vazio">Sem dados para o filtro selecionado.</div>';
+    return;
+  }
+
+  if(!nucleosInicializados){
+    nucleosRecolhidos = new Set(nucleos);
+    nucleosInicializados = true;
+    atualizarBotaoRecolher();
+  }
+
+  function valorDaChave(filtroBase, key){
+    if(key==='media_geral') return val(dados.filter(filtroBase));
+    const mSub = key.match(/^sub_(\d+)$/);
+    if(mSub){ const a=+mSub[1]; return val(dados.filter(l=>filtroBase(l) && l.ano===a)); }
+    const mCel = key.match(/^cel_(\d+)_(\d+)$/);
+    if(mCel){ const a=+mCel[1], r=+mCel[2]; return val(dados.filter(l=>filtroBase(l) && l.ano===a && l.rodada===r)); }
+    return null;
+  }
+  function ordenar(itens, filtroDe){
+    const dir = matrizSort.dir==='asc' ? 1 : -1;
+    return itens.slice().sort((x,y)=>{
+      const vx = valorDaChave(filtroDe(x), matrizSort.key);
+      const vy = valorDaChave(filtroDe(y), matrizSort.key);
+      if(vx==null && vy==null) return 0;
+      if(vx==null) return 1;
+      if(vy==null) return -1;
+      return (vx-vy)*dir;
+    });
+  }
+  const setaDe = key => matrizSort.key===key ? (matrizSort.dir==='asc'?' ▲':' ▼') : '';
+
+  let thAno = '<th class="rowhead" rowspan="2">Núcleo / Aviário</th>';
+  anos.forEach((a,idx)=>{
+    const recolhido = anosRecolhidos.has(a);
+    const nRod = recolhido ? 0 : rodadasPorAno[a].length;
+    const colspan = nRod + 1;
+    const icone = recolhido ? '▸' : '▾';
+    thAno += `<th colspan="${colspan}" class="${idx>0?'sep':''} th-ano" data-ano-toggle="${a}" title="${recolhido?'Expandir':'Recolher'} rodadas de ${a}">
+      <span class="ano-toggle">${icone}</span> ${a}</th>`;
+  });
+  thAno += `<th class="media th-sort" data-sortkey="media_geral" rowspan="2" title="Ordenar pela média geral">Média<br>geral${setaDe('media_geral')}</th>`;
+
+  let thSub = '';
+  anos.forEach((a,idx)=>{
+    const recolhido = anosRecolhidos.has(a);
+    if(!recolhido){
+      rodadasPorAno[a].forEach((r,i)=>{
+        const key=`cel_${a}_${r}`;
+        thSub += `<th class="th-sort ${i===0 && idx>0?'sep':''}" data-sortkey="${key}" title="Ordenar por R${r}/${a}">R${r}${setaDe(key)}</th>`;
+      });
+    }
+    const key=`sub_${a}`;
+    thSub += `<th class="subano th-sort ${recolhido && idx>0?'sep':''}" data-sortkey="${key}" title="Ordenar pela média de ${a}">Méd ${String(a).slice(2)}${setaDe(key)}</th>`;
+  });
+
+  function montarCelulas(filtroBase){
+    let tds = '';
+    anos.forEach((a,idx)=>{
+      const recolhido = anosRecolhidos.has(a);
+      if(!recolhido){
+        rodadasPorAno[a].forEach((r,i)=>{
+          const v = val(dados.filter(l=>filtroBase(l) && l.ano===a && l.rodada===r));
+          tds += `<td class="cel ${i===0 && idx>0?'sep':''}">${fmt(v)}</td>`;
+        });
+      }
+      const vSub = val(dados.filter(l=>filtroBase(l) && l.ano===a));
+      tds += `<td class="subano ${recolhido && idx>0?'sep':''}">${fmt(vSub)}</td>`;
+    });
+    return tds;
+  }
+
+  const nucleosOrd = ordenar(nucleos, nuc => (l=>l.nucleo===nuc));
+
+  let corpo = '';
+  nucleosOrd.forEach(nuc=>{
+    const filtroNuc = l=>l.nucleo===nuc;
+    const mediaNuc = val(dados.filter(filtroNuc));
+    const recolhido = nucleosRecolhidos.has(nuc);
+    const icone = recolhido ? '▸' : '▾';
+    corpo += `<tr class="linha-nucleo">
+      <th class="rowhead"><span class="nuc-toggle" data-nuc-toggle="${nuc}" title="${recolhido?'Expandir':'Recolher'} aviários">${icone}</span> ${nomeNucleo(nuc)}</th>
+      ${montarCelulas(filtroNuc)}
+      <td class="media">${fmt(mediaNuc)}</td>
+    </tr>`;
+
+    if(recolhido) return;
+
+    const aviarios = Array.from(new Set(dados.filter(filtroNuc).map(l=>l.aviario).filter(Boolean)));
+    const aviariosOrd = ordenar(aviarios, av => (l=>l.nucleo===nuc && l.aviario===av));
+    aviariosOrd.forEach(av=>{
+      const filtroAv = l=>l.nucleo===nuc && l.aviario===av;
+      const mediaAv = val(dados.filter(filtroAv));
+      corpo += `<tr>
+        <th class="rowhead aviario">${av}</th>
+        ${montarCelulas(filtroAv)}
+        <td class="media">${fmt(mediaAv)}</td>
+      </tr>`;
+    });
+  });
+
+  document.getElementById('rz_tabelaMatriz').innerHTML =
+    `<thead><tr>${thAno}</tr><tr>${thSub}</tr></thead><tbody>${corpo}</tbody>`;
+
+  document.querySelectorAll('#rz_tabelaMatriz [data-ano-toggle]').forEach(th=>{
+    th.addEventListener('click', (e)=>{
+      e.stopPropagation();
+      const a = parseInt(th.dataset.anoToggle);
+      if(anosRecolhidos.has(a)) anosRecolhidos.delete(a); else anosRecolhidos.add(a);
+      renderMatriz(filtrar());
+    });
+  });
+  document.querySelectorAll('#rz_tabelaMatriz [data-nuc-toggle]').forEach(el=>{
+    el.addEventListener('click', (e)=>{
+      e.stopPropagation();
+      const n = el.dataset.nucToggle;
+      if(nucleosRecolhidos.has(n)) nucleosRecolhidos.delete(n); else nucleosRecolhidos.add(n);
+      atualizarBotaoRecolher();
+      renderMatriz(filtrar());
+    });
+  });
+  document.querySelectorAll('#rz_tabelaMatriz .th-sort').forEach(th=>{
+    th.addEventListener('click', ()=>{
+      const key = th.dataset.sortkey;
+      if(matrizSort.key===key) matrizSort.dir = matrizSort.dir==='asc'?'desc':'asc';
+      else { matrizSort.key=key; matrizSort.dir = cfg.melhorMaior?'desc':'asc'; }
+      renderMatriz(filtrar());
+    });
+  });
+
+  document.getElementById('rz_notaMatriz').innerHTML =
+    `Cada célula é a média de ${cfg.nome} dos lotes daquele aviário na rodada/ano. ` +
+    `A linha destacada é a <strong>média do núcleo</strong> (clique na <strong>seta ▸/▾</strong> para ver ou ocultar os aviários). ` +
+    `"Méd [ano]" = subtotal do ano · "Média geral" = todo o período · "–" = sem lote abatido. ` +
+    `Clique no <strong>ano</strong> para recolher/expandir as rodadas; clique numa <strong>coluna</strong> para ordenar — clicar de novo inverte.`;
+
+  if(typeof ativarArrastar==='function') ativarArrastar(document.getElementById('rz_scrollMatriz'));
+}
+
+function render(){
+  const dados=filtrar();
+  if(abaAtiva==='geral'){ renderCards(dados); renderEvolucao(dados); renderRanking(dados); }
+  else if(abaAtiva==='desempenho'){ renderCrescimento(dados); renderPrevReal(dados); renderEficiencia(dados); }
+  else if(abaAtiva==='matriz'){ renderMatriz(dados); }
+}
+renderChipsLinhagem();
+window.renderResultado = render;
+})();
+</script>
+</body>
+</html>
