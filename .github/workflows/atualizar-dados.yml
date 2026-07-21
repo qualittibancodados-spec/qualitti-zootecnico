@@ -2,7 +2,8 @@ name: Atualizar dados do painel
 
 on:
   schedule:
-    - cron: '0 9 * * *'
+    - cron: '0 12 * * *'   # 09:00 (horário de Brasília)
+    - cron: '0 14 * * *'   # 11:00 (horário de Brasília)
   workflow_dispatch: {}
 
 permissions:
