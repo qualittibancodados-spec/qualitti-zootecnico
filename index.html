@@ -117,6 +117,8 @@
   .matriz-diaria thead th.rowhead{ z-index:4; background:#F1F4F7; }
   .matriz-diaria tr.linha-nuc th.rowhead{ font-weight:800; color:var(--vermelho-escuro); background:#FFF4E1; box-shadow:inset 3px 0 0 var(--dourado); }
   .matriz-diaria tr.linha-nuc td{ font-weight:700; background:#FFF4E1; }
+  .matriz-diaria td.peso-falta{ background:#FDECC8; box-shadow:inset 0 0 0 1px #F0CB7A; position:relative; }
+  .matriz-diaria td.peso-falta::after{ content:'⚠'; font-size:9px; color:#B8860B; position:absolute; top:1px; right:2px; }
   .matriz-diaria th.rowhead.av{ padding-left:20px; font-weight:500; color:var(--texto-suave); }
   .matriz-diaria td.cel{ font-variant-numeric:tabular-nums; }
   .matriz-diaria td.aloj{ font-weight:600; background:#F7F9FB; }
@@ -176,6 +178,11 @@
   .card .label{ font-size:11px; color:var(--texto-suave); font-weight:700; text-transform:uppercase; letter-spacing:.04em; margin-bottom:8px;}
   .card .valor{ font-family:'Sora',sans-serif; font-size:27px; font-weight:800; line-height:1; letter-spacing:-.02em;}
   .card .sub{ font-size:11.5px; color:var(--texto-suave); margin-top:6px; font-weight:500;}
+  .peso-mini-tabela{ display:flex; flex-direction:column; gap:3px; margin-top:4px; }
+  .peso-mini-linha{ display:flex; align-items:baseline; gap:8px; font-size:12.5px; }
+  .peso-mini-linha span:first-child{ font-weight:700; color:var(--texto-suave); width:26px; flex-shrink:0; }
+  .peso-mini-linha strong{ font-size:14px; font-weight:800; color:var(--texto); font-variant-numeric:tabular-nums; }
+  .peso-mini-n{ font-size:10.5px; color:var(--texto-suave); font-weight:500; margin-left:auto; }
   .card.destaque-ok::before{ background:var(--verde-ok);}
   .card.destaque-alerta::before{ background:var(--vermelho-alerta);}
 
@@ -364,6 +371,23 @@
   #mod-resultado .podio-pos{ font-size:14px; font-weight:800; margin-top:2px; }
   #mod-resultado .podio-sub{ font-size:11px; color:var(--texto-suave); margin-top:5px; font-weight:600; }
   @media (max-width:480px){ #mod-resultado .podio-nome{ font-size:11px; } #mod-resultado .podio-valor{ font-size:16px; } }
+  #mod-peso .podio{ display:flex; align-items:flex-end; justify-content:center; gap:10px; margin:8px 0 18px; }
+  #mod-peso .podio-col{ display:flex; flex-direction:column; align-items:center; flex:1; max-width:180px; }
+  #mod-peso .podio-nome{ font-size:12.5px; font-weight:700; text-align:center; margin-bottom:3px; line-height:1.2; min-height:30px; display:flex; align-items:flex-end; }
+  #mod-peso .podio-valor{ font-size:19px; font-weight:800; color:var(--vermelho); margin-bottom:6px; font-variant-numeric:tabular-nums; }
+  #mod-peso .podio-bloco{ width:100%; border-radius:10px 10px 0 0; display:flex; flex-direction:column; align-items:center; justify-content:flex-start; padding-top:10px; color:#fff; box-shadow:inset 0 -3px 0 rgba(0,0,0,.08); }
+  #mod-peso .podio-medalha{ font-size:22px; line-height:1; }
+  #mod-peso .podio-pos{ font-size:14px; font-weight:800; margin-top:2px; }
+  #mod-peso .podio-sub{ font-size:11px; color:var(--texto-suave); margin-top:5px; font-weight:600; }
+  #mod-peso .rank-card{border:1px solid var(--borda);border-radius:12px;background:#fff;padding:12px 14px;display:grid;grid-template-columns:32px 1fr auto;align-items:center;gap:12px;}
+  #mod-peso .rank-pos{width:30px;height:30px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:14px;color:#fff;}
+  #mod-peso .rank-nome{font-weight:700;font-size:13.5px;}
+  #mod-peso .rank-sub{font-size:11.5px;color:var(--texto-suave);margin-top:2px;}
+  #mod-peso .rank-track{height:8px;border-radius:5px;background:#EFEAE0;margin-top:7px;overflow:hidden;}
+  #mod-peso .rank-fill{height:100%;border-radius:5px;}
+  #mod-peso .rank-valor{font-weight:800;font-size:18px;font-variant-numeric:tabular-nums;text-align:right;white-space:nowrap;}
+  #mod-peso .rank-valor small{font-size:11px;font-weight:600;color:var(--texto-suave);}
+  @media (max-width:480px){ #mod-peso .podio-nome{ font-size:11px; } #mod-peso .podio-valor{ font-size:16px; } }
 #mod-resultado *{box-sizing:border-box;margin:0;padding:0;}
 #mod-resultado body{font-family:'Inter',system-ui,sans-serif;background:var(--bg);color:var(--texto);-webkit-font-smoothing:antialiased;}
 #mod-resultado header{background:linear-gradient(135deg,var(--vermelho) 0%,var(--vermelho-escuro) 100%);
@@ -636,7 +660,7 @@
         <span class="modulo-ic">🔎</span> Condenas
       </button>
       <button class="modulo" data-modulo="peso">
-        <span class="modulo-ic">⚖️</span> Acompanhamento de Peso
+        <span class="modulo-ic">⚖️</span> Evolução de Pesos
       </button>
     </div>
   </nav>
@@ -859,7 +883,7 @@
     <div id="mod-peso">
 
   <div class="pagina-head">
-    <h1 class="pagina-titulo">Acompanhamento de Peso</h1>
+    <h1 class="pagina-titulo">Evolução de Pesos</h1>
   </div>
 
   <div class="tabs-internas">
@@ -901,7 +925,7 @@
       <div class="tabela-scroll arrastavel" id="pw_scrollPesoMatriz">
         <table class="matriz-diaria" id="pw_tabelaPesoMatriz"></table>
       </div>
-      <p class="nota">"–" = o lote ainda não chegou nessa idade / ainda não foi pesado nessa checagem.</p>
+      <p class="nota">"–" = o lote ainda não chegou nessa idade / ainda não foi pesado nessa checagem. <strong style="color:#B8860B">⚠ destacado</strong> = o lote já passou 1 dia da idade da checagem e ainda não tem peso registrado (deveria ter sido pesado no dia do "aniversário").</p>
     </div>
   </div>
 
@@ -2919,13 +2943,17 @@ function renderCardsAndamento(abertos){
   if(!abertos.length){ cont.innerHTML = '<div class="vazio">Nenhum lote em andamento com esse filtro.</div>'; return; }
   const idades = abertos.map(calcularIdadeAtual).filter(v=>v!=null);
   const idadeMedia = idades.length ? Math.round(idades.reduce((s,v)=>s+v,0)/idades.length) : null;
-  const pesosRecentes = abertos.map(l=>{
-    const campos=[['pm42',42],['pm35',35],['pm28',28],['pm21',21],['pm14',14],['pm7',7]];
-    for(const [c,idadeCk] of campos){ if(l[c]!=null) return {peso:l[c], idadeCk}; }
-    return null;
-  }).filter(Boolean);
-  const pesoMedio = pesosRecentes.length ? (pesosRecentes.reduce((s,p)=>s+p.peso,0)/pesosRecentes.length) : null;
   const nucleosAbertos = new Set(abertos.map(l=>l.nucleo)).size;
+
+  // peso médio SEPARADO por checagem (aniversário) — não faz sentido misturar peso de 7d com peso de 35d numa média só
+  const checkpoints = [7,14,21,28,35,42];
+  const linhasPeso = checkpoints.map(c=>{
+    const vals = abertos.map(l=>l['pm'+c]).filter(v=>v!=null);
+    if(!vals.length) return null;
+    const m = vals.reduce((s,v)=>s+v,0)/vals.length;
+    return {c, m, n: vals.length};
+  }).filter(Boolean);
+
   cont.innerHTML = `
     <div class="card">
       <div class="label">Lotes em andamento</div>
@@ -2933,9 +2961,10 @@ function renderCardsAndamento(abertos){
       <div class="sub">${nucleosAbertos} núcleos · idade média ${idadeMedia!=null?idadeMedia:'—'} dias</div>
     </div>
     <div class="card">
-      <div class="label">Peso médio (última pesagem)</div>
-      <div class="valor">${pesoMedio!=null? pesoMedio.toFixed(3):'—'}<span style="font-size:13px;font-weight:600;color:var(--texto-suave)"> kg</span></div>
-      <div class="sub">${pesosRecentes.length} lotes já pesados</div>
+      <div class="label">Peso médio por checagem (aniversário)</div>
+      ${linhasPeso.length ? `<div class="peso-mini-tabela">
+        ${linhasPeso.map(l=>`<div class="peso-mini-linha"><span>${l.c}d</span><strong>${l.m.toFixed(3)} kg</strong><span class="peso-mini-n">${l.n} lote(s)</span></div>`).join('')}
+      </div>` : '<div class="sub">Nenhum lote pesado ainda.</div>'}
     </div>
   `;
 }
@@ -3023,7 +3052,11 @@ function renderMatrizPeso(){
       lotesNuc.forEach(l=>{
         const idade = calcularIdadeAtual(l);
         let tds='';
-        campos.forEach(c=>{ const v=l['pm'+c]; tds += `<td class="cel">${v!=null?v.toFixed(3):'–'}</td>`; });
+        campos.forEach(c=>{
+          const v=l['pm'+c];
+          const faltando = (v==null && idade!=null && idade >= c+1);
+          tds += `<td class="cel ${faltando?'peso-falta':''}" ${faltando?`title="Sem peso da checagem de ${c}d — o lote já está com ${idade} dias"`:''}>${v!=null?v.toFixed(3):'–'}</td>`;
+        });
         corpo += `<tr>
           <th class="rowhead av">${l.aviario}</th>
           <td class="aloj">${(l.alojadas||0).toLocaleString('pt-BR')}</td>
