@@ -8,7 +8,7 @@
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <link href="https://fonts.googleapis.com/css2?family=Sora:wght@500;600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 <style>
   :root{
     --vermelho: #C1272D;
@@ -524,6 +524,8 @@
 #mod-condenas /* matriz */
   .matriz-controles{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:12px;flex-wrap:wrap;}
   .btn-recolher{background:#fff;border:1.5px solid var(--borda);color:var(--texto);font-family:inherit;font-size:12.5px;font-weight:700;padding:8px 16px;border-radius:9px;cursor:pointer;transition:.15s;white-space:nowrap;}
+  .btn-whatsapp{background:#25D366;border-color:#25D366;color:#fff;}
+  .btn-whatsapp:hover{background:#1EBE59;border-color:#1EBE59;color:#fff;}
   .btn-recolher:hover{border-color:var(--vermelho);color:var(--vermelho);}
   .matriz-diaria .nuc-toggle{display:inline-block;width:16px;cursor:pointer;color:var(--vermelho);font-size:11px;user-select:none;}
   .matriz-diaria .nuc-toggle:hover{color:var(--vermelho-escuro);}
@@ -939,7 +941,10 @@
         <div class="tabela-scroll">
           <table class="matriz-diaria" id="pw_tabelaFaltantes"></table>
         </div>
-        <button class="btn-recolher" id="pw_btnExportarFaltantes" style="margin-top:10px;">⬇️ Exportar para Excel</button>
+        <button class="btn-recolher btn-whatsapp" id="pw_btnExportarFaltantes" style="margin-top:10px;">
+          <svg width="15" height="15" viewBox="0 0 24 24" style="vertical-align:-3px;margin-right:5px;"><circle cx="12" cy="12" r="12" fill="#25D366"/><path d="M12 5.5a6.5 6.5 0 00-5.6 9.8L5.5 19l3.8-1A6.5 6.5 0 1012 5.5z" fill="none" stroke="#fff" stroke-width="1.2"/><circle cx="9.3" cy="11.6" r="0.85" fill="#fff"/><circle cx="12" cy="11.6" r="0.85" fill="#fff"/><circle cx="14.7" cy="11.6" r="0.85" fill="#fff"/></svg>
+          Compartilhar no WhatsApp
+        </button>
       </div>
 
       <div class="tabela-scroll arrastavel" id="pw_scrollPesoMatriz">
@@ -1061,7 +1066,10 @@
         <div class="tabela-scroll">
           <table class="matriz-diaria" id="tabelaFaltantes"></table>
         </div>
-        <button class="btn-recolher" id="btnExportarFaltantes" style="margin-top:10px;">⬇️ Exportar para Excel</button>
+        <button class="btn-recolher btn-whatsapp" id="btnExportarFaltantes" style="margin-top:10px;">
+          <svg width="15" height="15" viewBox="0 0 24 24" style="vertical-align:-3px;margin-right:5px;"><circle cx="12" cy="12" r="12" fill="#25D366"/><path d="M12 5.5a6.5 6.5 0 00-5.6 9.8L5.5 19l3.8-1A6.5 6.5 0 1012 5.5z" fill="none" stroke="#fff" stroke-width="1.2"/><circle cx="9.3" cy="11.6" r="0.85" fill="#fff"/><circle cx="12" cy="11.6" r="0.85" fill="#fff"/><circle cx="14.7" cy="11.6" r="0.85" fill="#fff"/></svg>
+          Compartilhar no WhatsApp
+        </button>
       </div>
 
       <p class="nota-grafico" style="margin:0 0 12px;">Acompanhamento dia a dia das baixas de cada aviário em andamento, por núcleo — com o <strong>subtotal do núcleo</strong> ao final de cada grupo. A célula fica destacada quando há <strong>salto brusco</strong> de mortalidade em relação ao dia anterior. A coluna <strong>Idade atual</strong> mostra a idade de hoje (data de hoje − alojamento). <strong style="color:#B8860B">⚠ destacado</strong> = falta o lançamento de Total naquele dia (do dia 1 até o dia anterior à idade atual) — o dia 0 é isento, pois às vezes não é lançado mesmo. <span style="color:var(--texto-suave)">💡 Clique e arraste a tabela para o lado para navegar entre as idades.</span></p>
@@ -1363,15 +1371,38 @@ function popularAviarios(){
 }
 popularNucleos(); popularAviarios();
 
-// exporta uma tabela HTML (por id) para um arquivo .xlsx, pronto pra enviar por e-mail/WhatsApp
-function exportarTabelaExcel(tabelaId, nomeArquivo){
+// transforma uma tabela HTML (por id) em imagem e abre o menu nativo de compartilhamento
+// (no celular, o WhatsApp já aparece como opção — a imagem vai bonitinha, formatada, sem virar texto corrido)
+async function compartilharTabelaWhatsApp(tabelaId, nomeArquivo, btnClicado){
   const tabela = document.getElementById(tabelaId);
   if(!tabela || !tabela.innerHTML.trim()){
-    alert('Gere o relatório antes de exportar.');
+    alert('Gere o relatório antes de compartilhar.');
     return;
   }
-  const wb = XLSX.utils.table_to_book(tabela, { sheet: 'Pendências' });
-  XLSX.writeFile(wb, nomeArquivo);
+  const textoOriginal = btnClicado ? btnClicado.innerHTML : null;
+  if(btnClicado) btnClicado.innerHTML = 'Gerando imagem...';
+
+  try{
+    const canvas = await html2canvas(tabela, { backgroundColor:'#ffffff', scale:2 });
+    canvas.toBlob(async (blob) => {
+      if(btnClicado) btnClicado.innerHTML = textoOriginal;
+      const arquivo = new File([blob], nomeArquivo, { type:'image/png' });
+      if(navigator.canShare && navigator.canShare({ files:[arquivo] })){
+        try{ await navigator.share({ files:[arquivo], title:'Relatório de pendências' }); }
+        catch(e){ /* usuário cancelou o compartilhamento — tudo bem */ }
+      } else {
+        // navegador não suporta compartilhar arquivo direto (comum em desktop) — baixa a imagem
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url; a.download = nomeArquivo; a.click();
+        URL.revokeObjectURL(url);
+        alert('Esse navegador não permite compartilhar direto. A imagem foi baixada — é só anexar no WhatsApp.');
+      }
+    }, 'image/png');
+  }catch(e){
+    if(btnClicado) btnClicado.innerHTML = textoOriginal;
+    alert('Não foi possível gerar a imagem: ' + e.message);
+  }
 }
 
 // ========================= Arrastar para rolar (drag-to-scroll) =========================
@@ -2066,7 +2097,7 @@ function renderFaltantesConsolidado(){
   if(!btnExp) return;
   btnExp.addEventListener('click', () => {
     const data = new Date().toISOString().slice(0,10);
-    exportarTabelaExcel('tabelaFaltantes', `pendencias_mortalidade_${data}.xlsx`);
+    compartilharTabelaWhatsApp('tabelaFaltantes', `pendencias_mortalidade_${data}.png`, btnExp);
   });
 })();
 
@@ -3235,7 +3266,7 @@ function renderFaltantesPeso(){
   if(!btnExp) return;
   btnExp.addEventListener('click', () => {
     const data = new Date().toISOString().slice(0,10);
-    if(typeof exportarTabelaExcel==='function') exportarTabelaExcel('pw_tabelaFaltantes', `pendencias_peso_${data}.xlsx`);
+    if(typeof compartilharTabelaWhatsApp==='function') compartilharTabelaWhatsApp('pw_tabelaFaltantes', `pendencias_peso_${data}.png`, btnExp);
   });
 })();
 
