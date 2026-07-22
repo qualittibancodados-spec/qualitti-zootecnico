@@ -1031,7 +1031,10 @@
       </div>
       <div class="matriz-controles" style="margin-bottom:10px;">
         <span class="info">Clique em "Total" ou "%" para classificar · clique na seta do núcleo para recolher/expandir</span>
-        <button class="btn-recolher" id="btnRecolherMD">Recolher todos</button>
+        <div style="display:flex;gap:8px;">
+          <button class="btn-recolher" id="btnRecolherMD">Recolher todos</button>
+          <button class="btn-recolher" id="btnRelatorioPendencias">📋 Gerar relatório de pendências</button>
+        </div>
       </div>
       <p class="nota-grafico" style="margin:0 0 12px;">Acompanhamento dia a dia das baixas de cada aviário em andamento, por núcleo — com o <strong>subtotal do núcleo</strong> ao final de cada grupo. A célula fica destacada quando há <strong>salto brusco</strong> de mortalidade em relação ao dia anterior. A coluna <strong>Idade atual</strong> mostra a idade de hoje (data de hoje − alojamento). <strong style="color:#B8860B">⚠ destacado</strong> = falta o lançamento de Total naquele dia (do dia 1 até o dia anterior à idade atual) — o dia 0 é isento, pois às vezes não é lançado mesmo. <span style="color:var(--texto-suave)">💡 Clique e arraste a tabela para o lado para navegar entre as idades.</span></p>
       <div class="tabela-scroll arrastavel" id="scrollMatrizDiaria">
@@ -1039,13 +1042,14 @@
       </div>
     </div>
 
-    <div class="quadro">
+    <div class="quadro" id="painelRelatorioPendencias" style="display:none;">
       <div class="quadro-header">
-        <h2>Lançamentos faltando — consolidado por data</h2>
+        <h2>Relatório de pendências de lançamento</h2>
         <span class="info" id="infoFaltantes"></span>
       </div>
-      <p class="nota-grafico" style="margin:0 0 12px;">Lista, por aviário, quais <strong>datas do calendário</strong> ainda não têm lançamento de mortalidade — calculado a partir da data de alojamento de cada lote. Mesma regra da matriz acima (dia 0 isento).</p>
-      <div id="listaFaltantes"></div>
+      <div class="tabela-scroll">
+        <table class="matriz-diaria" id="tabelaFaltantes"></table>
+      </div>
     </div>
 
     <div class="quadro">
@@ -1950,7 +1954,7 @@ function atualizarBotaoMD(nucleosAtuais){
 const NOMES_MES = ['janeiro','fevereiro','março','abril','maio','junho','julho','agosto','setembro','outubro','novembro','dezembro'];
 
 function renderFaltantesConsolidado(){
-  const cont = document.getElementById('listaFaltantes');
+  const tabela = document.getElementById('tabelaFaltantes');
   const infoEl = document.getElementById('infoFaltantes');
   const nucSel = document.getElementById('fNucleo').value;
 
@@ -1966,7 +1970,6 @@ function renderFaltantesConsolidado(){
     const aloj = new Date(l.dataAloj + 'T00:00:00');
     const idadeAtual = Math.floor((hoje - aloj) / 86400000);
     const faltando = [];
-    // mesma regra da matriz: dias 1 até (idade atual - 1), dia 0 isento
     for(let d = 1; d <= idadeAtual - 1; d++){
       if(l.dias[d] === undefined){
         const dataReal = new Date(aloj);
@@ -1978,24 +1981,57 @@ function renderFaltantesConsolidado(){
   });
 
   if(!linhas.length){
-    cont.innerHTML = '<div class="vazio">🎉 Nenhum lançamento faltando com esse filtro.</div>';
-    infoEl.textContent = '';
+    tabela.innerHTML = '';
+    infoEl.innerHTML = '<strong style="color:var(--verde-ok)">🎉 Nenhum lançamento faltando com esse filtro.</strong>';
     return;
   }
 
-  linhas.sort((a,b) => b.faltando.length - a.faltando.length);
-  const totalDiasFaltando = linhas.reduce((s,l) => s + l.faltando.length, 0);
-  infoEl.textContent = `${linhas.length} aviário(s) com pendência · ${totalDiasFaltando} dia(s) faltando no total`;
+  const totalDias = linhas.reduce((s,l) => s + l.faltando.length, 0);
+  infoEl.textContent = `${linhas.length} aviário(s) com pendência · ${totalDias} dia(s) faltando no total`;
 
-  cont.innerHTML = linhas.map(l => `
-    <div class="rank-card" style="grid-template-columns:1fr;">
-      <div>
-        <div class="rank-nome">${l.aviario} <span style="font-weight:500;color:var(--texto-suave);font-size:11.5px">· ${nomeNucleo(l.nucleo)}</span></div>
-        <div class="rank-sub">Faltam ${l.faltando.length} dia(s): ${l.faltando.join(', ')}</div>
-      </div>
-    </div>
-  `).join('');
+  // agrupa por núcleo, ordenando cada grupo pelo aviário com mais pendência primeiro
+  const porNucleo = new Map();
+  linhas.forEach(l => { if(!porNucleo.has(l.nucleo)) porNucleo.set(l.nucleo, []); porNucleo.get(l.nucleo).push(l); });
+  const nucleosOrd = Array.from(porNucleo.keys()).sort((a,b) => porNucleo.get(b).length - porNucleo.get(a).length);
+
+  let thead = '<thead><tr><th class="rowhead">Núcleo / Aviário</th><th class="tot">Dias faltando</th><th style="text-align:left;">Datas</th></tr></thead>';
+  let corpo = '';
+  nucleosOrd.forEach(nuc => {
+    const avs = porNucleo.get(nuc).slice().sort((a,b) => b.faltando.length - a.faltando.length);
+    const totalNucleo = avs.reduce((s,a) => s + a.faltando.length, 0);
+    corpo += `<tr class="linha-nuc">
+      <th class="rowhead">${nomeNucleo(nuc)}</th>
+      <td class="tot">${totalNucleo}</td>
+      <td style="text-align:left;">${avs.length} aviário(s) com pendência</td>
+    </tr>`;
+    avs.forEach(a => {
+      corpo += `<tr>
+        <th class="rowhead av">${a.aviario}</th>
+        <td class="tot" style="color:var(--vermelho-alerta);font-weight:800;">${a.faltando.length}</td>
+        <td style="text-align:left;font-size:12px;color:var(--texto-suave);">${a.faltando.join(', ')}</td>
+      </tr>`;
+    });
+  });
+  tabela.innerHTML = thead + '<tbody>' + corpo + '</tbody>';
 }
+
+(function(){
+  const btn = document.getElementById('btnRelatorioPendencias');
+  if(!btn) return;
+  btn.addEventListener('click', () => {
+    const painel = document.getElementById('painelRelatorioPendencias');
+    const aberto = painel.style.display !== 'none';
+    if(aberto){
+      painel.style.display = 'none';
+      btn.textContent = '📋 Gerar relatório de pendências';
+    } else {
+      renderFaltantesConsolidado();
+      painel.style.display = '';
+      btn.textContent = '📋 Ocultar relatório de pendências';
+      painel.scrollIntoView({behavior:'smooth', block:'nearest'});
+    }
+  });
+})();
 
 function renderMatrizDiaria(){
   const campoMetrica = metricaAtiva === 'pctTotal' ? 'total' : (metricaAtiva === 'pctNatural' ? 'morte' : 'elim');
@@ -2573,7 +2609,6 @@ function render(){
     const lotesAtivos = lotes.filter(l => lotesSelecionados.has(l.loteId));
     renderCards();
     renderMatrizDiaria();
-    renderFaltantesConsolidado();
     renderIdadeAndamento();
     renderBarrasAndamento();
     renderRankingNucleosAndamento();
