@@ -587,6 +587,9 @@
   .auth-link{ display:block; margin:10px auto 0; background:none; border:none; color:var(--texto-suave); font-size:12px; text-decoration:underline; cursor:pointer; }
   .auth-erro{ color:var(--vermelho-alerta); font-size:12.5px; margin-top:10px; min-height:16px; }
   .auth-nota{ font-size:11.5px; color:var(--texto-suave); margin-top:14px; }
+  .auth-aviso-cadastro{ background:#FFF4E1; border:1px solid var(--dourado-claro); border-radius:9px; padding:9px 11px; font-size:11.5px; color:#7A5A00; margin-bottom:14px; text-align:left; line-height:1.4; }
+  .auth-contato{ margin-top:18px; padding-top:14px; border-top:1px solid var(--borda); font-size:11px; color:var(--texto-suave); line-height:1.5; }
+  .auth-contato strong{ color:var(--texto); }
   .logout-btn{ background:rgba(255,255,255,.12); border:1px solid rgba(255,255,255,.25); color:#fff; font-family:inherit; font-size:11.5px; font-weight:600; padding:7px 12px; border-radius:8px; cursor:pointer; margin-top:8px; width:100%; }
   .logout-btn:hover{ background:rgba(255,255,255,.22); }
 </style>
@@ -613,6 +616,7 @@
     </form>
 
     <form id="formCadastro" class="auth-form" style="display:none;">
+      <div class="auth-aviso-cadastro">⚠ Somente e-mails <strong>pré-autorizados pelo administrador</strong> conseguem criar conta. Se o seu e-mail não for reconhecido, fale com o responsável pelo painel.</div>
       <label>E-mail autorizado</label>
       <input type="email" id="cadEmail" required autocomplete="username">
       <label>Crie uma senha (mínimo 6 caracteres)</label>
@@ -624,6 +628,11 @@
     </form>
 
     <p class="auth-nota" id="notaCarregando">Verificando login...</p>
+
+    <div class="auth-contato">
+      <strong>Luiz Fernando</strong> · Analista de Dados<br>
+      Contato: avicultura05@qualitti.com.br
+    </div>
   </div>
 </div>
 
@@ -653,14 +662,14 @@
       <button class="modulo ativo" data-modulo="mortalidade">
         <span class="modulo-ic">🐔</span> Mortalidade
       </button>
-      <button class="modulo" data-modulo="resultado">
-        <span class="modulo-ic">📈</span> Resultado Zootécnico
+      <button class="modulo" data-modulo="peso">
+        <span class="modulo-ic">⚖️</span> Evolução de Pesos
       </button>
       <button class="modulo" data-modulo="condenas">
         <span class="modulo-ic">🔎</span> Condenas
       </button>
-      <button class="modulo" data-modulo="peso">
-        <span class="modulo-ic">⚖️</span> Evolução de Pesos
+      <button class="modulo" data-modulo="resultado">
+        <span class="modulo-ic">📈</span> Resultado Zootécnico
       </button>
     </div>
   </nav>
