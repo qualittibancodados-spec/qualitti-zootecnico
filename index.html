@@ -691,6 +691,7 @@
   <div class="tabs-internas">
     <button class="tab-int ativo" data-aba="geral">Visão geral</button>
     <button class="tab-int" data-aba="desempenho">Desempenho</button>
+    <button class="tab-int" data-aba="relatorio">Relatório por Núcleo</button>
     <button class="tab-int" data-aba="matriz">Matriz</button>
   </div>
 
@@ -776,6 +777,32 @@
       </div>
       <div class="chart-wrap"><canvas id="rz_chartEficiencia"></canvas></div>
       <p class="nota">Canto ideal: <strong>esquerda e no alto</strong> — baixa conversão alimentar (come menos por kg) e alto Fator de Produção. Cor por linhagem.</p>
+    </div>
+  </div>
+
+  <!-- ============ RELATÓRIO POR NÚCLEO ============ -->
+  <div data-aba-view="relatorio" style="display:none;">
+    <div class="filtros">
+      <div class="filtros-grid">
+        <div class="campo"><label>Ano</label><select id="rz_relAno"></select></div>
+        <div class="campo"><label>Rodada</label><select id="rz_relRodada"></select></div>
+        <div class="campo"><label>Núcleo</label><select id="rz_relNucleo"></select></div>
+      </div>
+    </div>
+
+    <div class="painel">
+      <div class="painel-header">
+        <h2>Relatório de resultado por núcleo</h2>
+        <span class="info" id="rz_relInfo"></span>
+      </div>
+      <p class="nota" style="margin-top:0;">Média de cada indicador por aviário — pensado pro técnico ver de forma geral o resultado do próprio núcleo, e compartilhar direto com quem precisar.</p>
+      <div class="tabela-scroll">
+        <table class="matriz-diaria" id="rz_tabelaRelatorio"></table>
+      </div>
+      <button class="btn-recolher btn-whatsapp" id="rz_btnCompartilharRelatorio" style="margin-top:12px;">
+        <svg width="15" height="15" viewBox="0 0 24 24" style="vertical-align:-3px;margin-right:5px;"><circle cx="12" cy="12" r="12" fill="#25D366"/><path d="M12 5.5a6.5 6.5 0 00-5.6 9.8L5.5 19l3.8-1A6.5 6.5 0 1012 5.5z" fill="none" stroke="#fff" stroke-width="1.2"/><circle cx="9.3" cy="11.6" r="0.85" fill="#fff"/><circle cx="12" cy="11.6" r="0.85" fill="#fff"/><circle cx="14.7" cy="11.6" r="0.85" fill="#fff"/></svg>
+        Compartilhar no WhatsApp
+      </button>
     </div>
   </div>
 
@@ -3542,7 +3569,7 @@ function filtrar(){
 document.querySelectorAll('#mod-resultado .tab-int').forEach(b=>b.addEventListener('click',()=>{
   document.querySelectorAll('#mod-resultado .tab-int').forEach(x=>x.classList.remove('ativo'));
   b.classList.add('ativo'); abaAtiva=b.dataset.aba;
-  ['geral','desempenho','matriz'].forEach(a=>{
+  ['geral','desempenho','relatorio','matriz'].forEach(a=>{
     document.querySelector(`#mod-resultado [data-aba-view="${a}"]`).style.display = (a===abaAtiva)?'':'none';
   });
   render(); window.scrollTo({top:0,behavior:'smooth'});
@@ -4108,11 +4135,95 @@ function renderAndamento(){
   renderMatrizPeso();
 }
 
+// ================= Relatório por Núcleo (pro técnico ver e compartilhar) =================
+document.getElementById('rz_relAno').innerHTML = opcoes('ano','Todos os anos');
+document.getElementById('rz_relRodada').innerHTML = opcoes('rodada','Todas as rodadas');
+document.getElementById('rz_relNucleo').innerHTML = opcoes('nucleo','Todos os núcleos');
+['rz_relAno','rz_relRodada','rz_relNucleo'].forEach(id=>document.getElementById(id).addEventListener('change', render));
+
+function filtrarRelatorioNucleo(){
+  const ano = document.getElementById('rz_relAno').value;
+  const rodada = document.getElementById('rz_relRodada').value;
+  const nuc = document.getElementById('rz_relNucleo').value;
+  return LOTES.filter(l=>{
+    if(l.situacao !== 'Fechado') return false;
+    if(ano!=='Todos' && String(l.ano)!==ano) return false;
+    if(rodada!=='Todos' && String(l.rodada)!==rodada) return false;
+    if(nuc!=='Todos' && l.nucleo!==nuc) return false;
+    return true;
+  });
+}
+
+const COLUNAS_RELATORIO = [
+  {campo:'fp', label:'FP', dec:1},
+  {campo:'gmd', label:'GMD', dec:1},
+  {campo:'ca', label:'CA', dec:3},
+  {campo:'mortElim', label:'Mort.+Elim %', dec:2},
+  {campo:'pmAbate', label:'Peso abate (kg)', dec:3},
+  {campo:'condenas', label:'Condenas %', dec:2}
+];
+
+function renderRelatorioNucleo(){
+  const dados = filtrarRelatorioNucleo();
+  const tabela = document.getElementById('rz_tabelaRelatorio');
+  const infoEl = document.getElementById('rz_relInfo');
+
+  if(!dados.length){
+    tabela.innerHTML = '';
+    infoEl.textContent = 'Nenhum lote fechado com esse filtro.';
+    return;
+  }
+
+  const porNucleo = new Map();
+  dados.forEach(l=>{ if(!porNucleo.has(l.nucleo)) porNucleo.set(l.nucleo, []); porNucleo.get(l.nucleo).push(l); });
+  infoEl.textContent = `${dados.length} lote(s) · ${porNucleo.size} núcleo(s)`;
+
+  let thead = '<thead><tr><th class="rowhead">Núcleo / Aviário</th>';
+  COLUNAS_RELATORIO.forEach(c => thead += `<th class="col-idade">${c.label}</th>`);
+  thead += '</tr></thead>';
+
+  let corpo = '';
+  Array.from(porNucleo.keys()).sort().forEach(nuc => {
+    const lotesNuc = porNucleo.get(nuc);
+    let tdsNuc = '';
+    COLUNAS_RELATORIO.forEach(c => {
+      const m = media(lotesNuc, c.campo);
+      tdsNuc += `<td class="cel">${m!=null?m.toFixed(c.dec):'–'}</td>`;
+    });
+    corpo += `<tr class="linha-nuc"><th class="rowhead">${nomeNucleo(nuc)}</th>${tdsNuc}</tr>`;
+
+    const porAviario = new Map();
+    lotesNuc.forEach(l => { if(!porAviario.has(l.aviario)) porAviario.set(l.aviario, []); porAviario.get(l.aviario).push(l); });
+    Array.from(porAviario.keys()).sort().forEach(av => {
+      const lotesAv = porAviario.get(av);
+      let tds = '';
+      COLUNAS_RELATORIO.forEach(c => {
+        const m = media(lotesAv, c.campo);
+        tds += `<td class="cel">${m!=null?m.toFixed(c.dec):'–'}</td>`;
+      });
+      corpo += `<tr><th class="rowhead av">${av}</th>${tds}</tr>`;
+    });
+  });
+  tabela.innerHTML = thead + '<tbody>' + corpo + '</tbody>';
+}
+
+(function(){
+  const btn = document.getElementById('rz_btnCompartilharRelatorio');
+  if(!btn) return;
+  btn.addEventListener('click', () => {
+    if(typeof compartilharTabelaWhatsApp==='function'){
+      const data = new Date().toISOString().slice(0,10);
+      compartilharTabelaWhatsApp('rz_tabelaRelatorio', `relatorio_nucleo_${data}.png`, btn);
+    }
+  });
+})();
+
 function render(){
   const dados=filtrar();
   if(abaAtiva==='geral'){ renderCards(dados); renderEvolucao(dados); renderRanking(dados); }
   else if(abaAtiva==='desempenho'){ renderCrescimento(dados); renderPrevReal(dados); renderEficiencia(dados); }
   else if(abaAtiva==='andamento'){ renderAndamento(); }
+  else if(abaAtiva==='relatorio'){ renderRelatorioNucleo(); }
   else if(abaAtiva==='matriz'){ renderMatriz(dados); }
 }
 renderChipsLinhagem();
