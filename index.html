@@ -653,6 +653,7 @@
   <div class="tabs-internas">
     <button class="tab-int ativo" data-aba="geral">Visão geral</button>
     <button class="tab-int" data-aba="desempenho">Desempenho</button>
+    <button class="tab-int" data-aba="andamento">Em andamento</button>
     <button class="tab-int" data-aba="matriz">Matriz</button>
   </div>
 
@@ -738,6 +739,35 @@
       </div>
       <div class="chart-wrap"><canvas id="rz_chartEficiencia"></canvas></div>
       <p class="nota">Canto ideal: <strong>esquerda e no alto</strong> — baixa conversão alimentar (come menos por kg) e alto Fator de Produção. Cor por linhagem.</p>
+    </div>
+  </div>
+
+  <!-- ============ EM ANDAMENTO (lotes abertos — evolução de peso) ============ -->
+  <div data-aba-view="andamento" style="display:none;">
+    <div class="cards" id="rz_cardsAndamento"></div>
+
+    <div class="painel">
+      <div class="painel-header">
+        <h2>Evolução de peso por idade — em andamento</h2>
+        <span class="info">Média dos lotes abertos vs média histórica (fechados)</span>
+      </div>
+      <div class="chart-wrap"><canvas id="rz_chartPesoAndamento"></canvas></div>
+      <p class="nota" id="rz_notaPesoAndamento"></p>
+    </div>
+
+    <div class="painel">
+      <div class="painel-header">
+        <h2>Matriz de peso — lotes em andamento</h2>
+        <span class="info">Núcleo › Aviário · idade atual · peso em cada checagem</span>
+      </div>
+      <div class="matriz-controles">
+        <span class="info">Clique na seta do núcleo para recolher/expandir os aviários</span>
+        <button class="btn-recolher" id="rz_btnRecolherAndamento">Recolher todos</button>
+      </div>
+      <div class="tabela-scroll arrastavel" id="rz_scrollPesoMatriz">
+        <table class="matriz-diaria" id="rz_tabelaPesoMatriz"></table>
+      </div>
+      <p class="nota">"–" = o lote ainda não chegou nessa idade / ainda não foi pesado nessa checagem.</p>
     </div>
   </div>
 
@@ -1054,12 +1084,9 @@
 </div><!-- fim appRoot -->
 
 <script>
-// Carrega os dados de arquivos separados (em vez de embutidos no HTML).
-// Isso permite que a automação do Drive atualize só os arquivos em /data,
-// sem precisar tocar neste HTML.
 function fetchJSONSync(url){
   const xhr = new XMLHttpRequest();
-  xhr.open('GET', url, false); // síncrono: garante que os dados existem antes do resto do script rodar
+  xhr.open('GET', url, false);
   xhr.send(null);
   if(xhr.status !== 200 && xhr.status !== 0) throw new Error('Falha ao carregar '+url+': HTTP '+xhr.status);
   return JSON.parse(xhr.responseText);
@@ -1387,6 +1414,17 @@ function renderQuadro(lotes){
 }
 
 // Cards do topo do "Em andamento": resumo do estado atual de TODOS os lotes abertos (não só os selecionados)
+function pctEsperadoNaIdade(idade, metrica){
+  const agg = (AGG_IDADE[sexoAtivo] || AGG_IDADE['Todos']).Fechado;
+  if(!agg || !agg.length) return null;
+  // acha o ponto da curva histórica na idade exata, ou o mais próximo disponível (o que vier antes)
+  let melhorPonto = null;
+  for(const p of agg){
+    if(p.idade <= idade) melhorPonto = p; else break;
+  }
+  return melhorPonto ? melhorPonto[metrica] : (agg[0] ? agg[0][metrica] : null);
+}
+
 function renderCards(){
   const cont = document.getElementById('cards');
   // usa os mesmos filtros do topo (núcleo, aviário, sexo) — situacaoAtiva já é 'Aberto' nesta aba
@@ -1397,9 +1435,17 @@ function renderCards(){
   const somaContagem = abertos.reduce((s,l) => s + l[campo], 0);
   const somaAlojadas = abertos.reduce((s,l) => s + l.alojadas, 0);
   const media = somaContagem / somaAlojadas * 100;
-  const melhor = abertos.reduce((a,b) => a[metricaAtiva] < b[metricaAtiva] ? a : b);
-  const pior = abertos.reduce((a,b) => a[metricaAtiva] > b[metricaAtiva] ? a : b);
   const idadeMedia = Math.round(abertos.reduce((s,l)=>s+l.idadeFinal,0)/abertos.length);
+
+  // "melhor" e "pior" comparando cada lote com a média histórica NA MESMA IDADE dele
+  // (comparar valores brutos seria injusto: um lote de 5 dias sempre "ganharia"
+  // de um lote de 30 dias só por ainda não ter tido tempo de acumular mortalidade)
+  const comDelta = abertos.map(l => {
+    const esperado = pctEsperadoNaIdade(l.idadeFinal, metricaAtiva);
+    return { lote: l, delta: esperado!=null ? (l[metricaAtiva] - esperado) : 0, esperado };
+  });
+  const melhorD = comDelta.reduce((a,b) => a.delta < b.delta ? a : b);
+  const piorD = comDelta.reduce((a,b) => a.delta > b.delta ? a : b);
 
   cont.innerHTML = `
     <div class="card">
@@ -1414,13 +1460,15 @@ function renderCards(){
     </div>
     <div class="card destaque-ok">
       <div class="label">Melhor lote</div>
-      <div class="valor">${melhor[metricaAtiva].toFixed(2)}%</div>
-      <div class="sub">${melhor.aviario} · ${nomeNucleo(melhor.nucleo)}</div>
+      <div class="valor">${melhorD.lote[metricaAtiva].toFixed(2)}%</div>
+      <div class="sub">${melhorD.lote.aviario} · ${nomeNucleo(melhorD.lote.nucleo)} · ${melhorD.lote.idadeFinal}d</div>
+      <div class="sub">${melhorD.esperado!=null ? (melhorD.delta<=0?'▼ ':'▲ ')+Math.abs(melhorD.delta).toFixed(2)+' p.p. vs média na mesma idade' : ''}</div>
     </div>
     <div class="card destaque-alerta">
       <div class="label">Pior lote</div>
-      <div class="valor">${pior[metricaAtiva].toFixed(2)}%</div>
-      <div class="sub">${pior.aviario} · ${nomeNucleo(pior.nucleo)}</div>
+      <div class="valor">${piorD.lote[metricaAtiva].toFixed(2)}%</div>
+      <div class="sub">${piorD.lote.aviario} · ${nomeNucleo(piorD.lote.nucleo)} · ${piorD.lote.idadeFinal}d</div>
+      <div class="sub">${piorD.esperado!=null ? (piorD.delta>=0?'▲ ':'▼ ')+Math.abs(piorD.delta).toFixed(2)+' p.p. vs média na mesma idade' : ''}</div>
     </div>
   `;
 }
@@ -2779,7 +2827,7 @@ function filtrar(){
 document.querySelectorAll('#mod-resultado .tab-int').forEach(b=>b.addEventListener('click',()=>{
   document.querySelectorAll('#mod-resultado .tab-int').forEach(x=>x.classList.remove('ativo'));
   b.classList.add('ativo'); abaAtiva=b.dataset.aba;
-  ['geral','desempenho','matriz'].forEach(a=>{
+  ['geral','desempenho','andamento','matriz'].forEach(a=>{
     document.querySelector(`#mod-resultado [data-aba-view="${a}"]`).style.display = (a===abaAtiva)?'':'none';
   });
   render(); window.scrollTo({top:0,behavior:'smooth'});
@@ -3186,10 +3234,170 @@ function renderMatriz(dados){
   if(typeof ativarArrastar==='function') ativarArrastar(document.getElementById('rz_scrollMatriz'));
 }
 
+// ================= Em andamento (lotes abertos — peso) =================
+function calcularIdadeAtual(l){
+  if(!l.dataAloj) return null;
+  const aloj = new Date(l.dataAloj + 'T00:00:00');
+  const hoje = new Date(); hoje.setHours(0,0,0,0);
+  return Math.floor((hoje - aloj) / 86400000);
+}
+
+function renderCardsAndamento(abertos){
+  const cont = document.getElementById('rz_cardsAndamento');
+  if(!abertos.length){ cont.innerHTML = '<div class="vazio">Nenhum lote em andamento com esse filtro.</div>'; return; }
+  const idades = abertos.map(calcularIdadeAtual).filter(v=>v!=null);
+  const idadeMedia = idades.length ? Math.round(idades.reduce((s,v)=>s+v,0)/idades.length) : null;
+
+  const pesosRecentes = abertos.map(l=>{
+    const campos=[['pm42',42],['pm35',35],['pm28',28],['pm21',21],['pm14',14],['pm7',7]];
+    for(const [c,idadeCk] of campos){ if(l[c]!=null) return {peso:l[c], idadeCk}; }
+    return null;
+  }).filter(Boolean);
+  const pesoMedio = pesosRecentes.length ? (pesosRecentes.reduce((s,p)=>s+p.peso,0)/pesosRecentes.length) : null;
+
+  const nucleosAbertos = new Set(abertos.map(l=>l.nucleo)).size;
+
+  cont.innerHTML = `
+    <div class="card">
+      <div class="label">Lotes em andamento</div>
+      <div class="valor">${abertos.length}</div>
+      <div class="sub">${nucleosAbertos} núcleos · idade média ${idadeMedia!=null?idadeMedia:'—'} dias</div>
+    </div>
+    <div class="card">
+      <div class="label">Peso médio (última pesagem)</div>
+      <div class="valor">${pesoMedio!=null? pesoMedio.toFixed(3):'—'}<span style="font-size:13px;font-weight:600;color:var(--texto-suave)"> kg</span></div>
+      <div class="sub">${pesosRecentes.length} lotes já pesados</div>
+    </div>
+  `;
+}
+
+let chartPesoAnd = null;
+function renderChartPesoAndamento(){
+  const dadosTodos = filtrar();
+  const abertos = dadosTodos.filter(l=>l.situacao==='Aberto');
+  const fechados = dadosTodos.filter(l=>l.situacao==='Fechado');
+  const idades = [7,14,21,28,35,42];
+
+  function mediaPor(lista, idade){
+    const campo = 'pm'+idade;
+    const vals = lista.map(l=>l[campo]).filter(v=>v!=null);
+    return vals.length ? +(vals.reduce((s,v)=>s+v,0)/vals.length).toFixed(3) : null;
+  }
+
+  const serieAnd = idades.map(i=>mediaPor(abertos,i));
+  const serieHist = idades.map(i=>mediaPor(fechados,i));
+
+  const ctx = document.getElementById('rz_chartPesoAndamento').getContext('2d');
+  if(chartPesoAnd) chartPesoAnd.destroy();
+  chartPesoAnd = new Chart(ctx, {
+    type:'line',
+    data:{ labels: idades.map(i=>i+'d'), datasets:[
+      {label:'Histórico (fechados)', data:serieHist, borderColor:'#9AA6B2', backgroundColor:'#9AA6B2', borderWidth:2.2, borderDash:[6,3], pointRadius:3, tension:.3, spanGaps:true},
+      {label:'Em andamento', data:serieAnd, borderColor:'#C1272D', backgroundColor:'rgba(193,39,45,.1)', fill:false, borderWidth:2.8, pointRadius:3, tension:.3, spanGaps:true}
+    ]},
+    options:{ responsive:true, maintainAspectRatio:false,
+      plugins:{ legend:{display:true, position:'top', labels:{usePointStyle:true, font:{weight:600}}},
+        tooltip:{ callbacks:{ label:c=>`${c.dataset.label}: ${c.parsed.y!=null?c.parsed.y.toFixed(3)+' kg':'—'}` } } },
+      scales:{ x:{title:{display:true,text:'Idade',font:{weight:600}}, grid:{color:'#EFEAE0'}},
+        y:{title:{display:true,text:'Peso médio (kg)',font:{weight:600}}, grid:{color:'#EFEAE0'}, beginAtZero:true} }
+    }
+  });
+  document.getElementById('rz_notaPesoAndamento').textContent =
+    `Comparando ${abertos.length} lote(s) em andamento com o histórico de ${fechados.length} lotes fechados (respeitando os filtros do topo). Ponto ausente = ainda não há dado suficiente naquela idade.`;
+}
+
+let rzMdRecolhidos = new Set();
+function atualizarBotaoRecolherAndamento(){
+  const btn = document.getElementById('rz_btnRecolherAndamento');
+  if(!btn) return;
+  const nucs = Array.from(new Set(filtrar().filter(l=>l.situacao==='Aberto').map(l=>l.nucleo)));
+  const todosRec = nucs.length>0 && nucs.every(n=>rzMdRecolhidos.has(n));
+  btn.textContent = todosRec ? 'Expandir todos' : 'Recolher todos';
+}
+(function(){
+  const btn = document.getElementById('rz_btnRecolherAndamento');
+  if(!btn) return;
+  btn.addEventListener('click', ()=>{
+    const nucs = Array.from(new Set(filtrar().filter(l=>l.situacao==='Aberto').map(l=>l.nucleo)));
+    const todosRec = nucs.length>0 && nucs.every(n=>rzMdRecolhidos.has(n));
+    if(todosRec) rzMdRecolhidos.clear(); else nucs.forEach(n=>rzMdRecolhidos.add(n));
+    renderMatrizPeso();
+  });
+})();
+
+function renderMatrizPeso(){
+  const dados = filtrar().filter(l=>l.situacao==='Aberto');
+  const tabela = document.getElementById('rz_tabelaPesoMatriz');
+  atualizarBotaoRecolherAndamento();
+  if(!dados.length){ tabela.innerHTML=''; return; }
+
+  const porNucleo = new Map();
+  dados.forEach(l=>{ if(!porNucleo.has(l.nucleo)) porNucleo.set(l.nucleo, []); porNucleo.get(l.nucleo).push(l); });
+  const campos = [7,14,21,28,35,42];
+
+  let thead = '<thead><tr><th class="rowhead">Núcleo / Aviário</th><th class="aloj">Alojadas</th><th class="idade-atual">Idade<br>atual</th>';
+  campos.forEach(c => thead += `<th class="col-idade">${c}d</th>`);
+  thead += '</tr></thead>';
+
+  let corpo='';
+  Array.from(porNucleo.keys()).sort().forEach(nuc=>{
+    const lotesNuc = porNucleo.get(nuc).slice().sort((a,b)=>String(a.aviario).localeCompare(String(b.aviario)));
+    const rec = rzMdRecolhidos.has(nuc);
+    const alojNuc = lotesNuc.reduce((s,l)=>s+(l.alojadas||0),0);
+
+    let tdsNuc = '';
+    campos.forEach(c=>{
+      const vals = lotesNuc.map(l=>l['pm'+c]).filter(v=>v!=null);
+      const med = vals.length ? (vals.reduce((s,v)=>s+v,0)/vals.length) : null;
+      tdsNuc += `<td class="cel">${med!=null?med.toFixed(3):'–'}</td>`;
+    });
+    corpo += `<tr class="linha-nuc">
+      <th class="rowhead"><span class="nuc-toggle" data-nuc-toggle-rz="${nuc}">${rec?'▸':'▾'}</span> ${nomeNucleo(nuc)}</th>
+      <td class="aloj">${alojNuc.toLocaleString('pt-BR')}</td>
+      <td class="idade-atual">—</td>
+      ${tdsNuc}
+    </tr>`;
+
+    if(!rec){
+      lotesNuc.forEach(l=>{
+        const idade = calcularIdadeAtual(l);
+        let tds='';
+        campos.forEach(c=>{ const v=l['pm'+c]; tds += `<td class="cel">${v!=null?v.toFixed(3):'–'}</td>`; });
+        corpo += `<tr>
+          <th class="rowhead av">${l.aviario}</th>
+          <td class="aloj">${(l.alojadas||0).toLocaleString('pt-BR')}</td>
+          <td class="idade-atual">${idade!=null?idade:'–'}</td>
+          ${tds}
+        </tr>`;
+      });
+    }
+  });
+  tabela.innerHTML = thead + '<tbody>'+corpo+'</tbody>';
+
+  tabela.querySelectorAll('[data-nuc-toggle-rz]').forEach(el=>{
+    el.addEventListener('click', ()=>{
+      const n = el.dataset.nucToggleRz;
+      if(rzMdRecolhidos.has(n)) rzMdRecolhidos.delete(n); else rzMdRecolhidos.add(n);
+      renderMatrizPeso();
+    });
+  });
+
+  if(typeof ativarArrastar==='function') ativarArrastar(document.getElementById('rz_scrollPesoMatriz'));
+}
+
+function renderAndamento(){
+  const dados = filtrar();
+  const abertos = dados.filter(l=>l.situacao==='Aberto');
+  renderCardsAndamento(abertos);
+  renderChartPesoAndamento();
+  renderMatrizPeso();
+}
+
 function render(){
   const dados=filtrar();
   if(abaAtiva==='geral'){ renderCards(dados); renderEvolucao(dados); renderRanking(dados); }
   else if(abaAtiva==='desempenho'){ renderCrescimento(dados); renderPrevReal(dados); renderEficiencia(dados); }
+  else if(abaAtiva==='andamento'){ renderAndamento(); }
   else if(abaAtiva==='matriz'){ renderMatriz(dados); }
 }
 renderChipsLinhagem();
@@ -3200,8 +3408,6 @@ window.renderResultado = render;
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
 <script>
-// Configuração do Firebase (não é segredo — é feita pra ficar visível no código do site;
-// a segurança de verdade vem das regras do Firestore e da lista de e-mails autorizados)
 const firebaseConfig = {
   apiKey: "AIzaSyDElIuKeO72Lif1FpofZzHOnehU0-qfU7o",
   authDomain: "qualittipainel-713b5.firebaseapp.com",
@@ -3230,7 +3436,6 @@ function mensagemErroAuth(err){
   return map[err.code] || ('Erro: ' + err.message);
 }
 
-// abas Entrar / Criar conta
 document.querySelectorAll('.auth-tab').forEach(btn=>{
   btn.addEventListener('click', ()=>{
     document.querySelectorAll('.auth-tab').forEach(b=>b.classList.remove('ativo'));
@@ -3241,7 +3446,6 @@ document.querySelectorAll('.auth-tab').forEach(btn=>{
   });
 });
 
-// login
 document.getElementById('formEntrar').addEventListener('submit', async (e)=>{
   e.preventDefault();
   const email = document.getElementById('loginEmail').value.trim();
@@ -3252,7 +3456,6 @@ document.getElementById('formEntrar').addEventListener('submit', async (e)=>{
   catch(err){ erroEl.textContent = mensagemErroAuth(err); }
 });
 
-// esqueci minha senha
 document.getElementById('btnEsqueciSenha').addEventListener('click', async ()=>{
   const email = document.getElementById('loginEmail').value.trim();
   const erroEl = document.getElementById('erroEntrar');
@@ -3264,7 +3467,6 @@ document.getElementById('btnEsqueciSenha').addEventListener('click', async ()=>{
   }catch(err){ erroEl.style.color=''; erroEl.textContent = mensagemErroAuth(err); }
 });
 
-// cadastro (só libera se o e-mail estiver na lista de autorizados)
 document.getElementById('formCadastro').addEventListener('submit', async (e)=>{
   e.preventDefault();
   const email = document.getElementById('cadEmail').value.trim().toLowerCase();
@@ -3280,13 +3482,10 @@ document.getElementById('formCadastro').addEventListener('submit', async (e)=>{
   }catch(err){ erroEl.textContent = mensagemErroAuth(err); }
 });
 
-// mostra/esconde o app conforme o estado de login
 auth.onAuthStateChanged(user => {
   if(user){
     telaLogin.style.display = 'none';
     appRoot.style.display = '';
-    // os gráficos (Chart.js) foram desenhados enquanto a tela estava oculta;
-    // um "resize" força o redesenho deles agora que ficaram visíveis
     setTimeout(()=>window.dispatchEvent(new Event('resize')), 80);
   } else {
     telaLogin.style.display = '';
@@ -3294,10 +3493,8 @@ auth.onAuthStateChanged(user => {
   }
 });
 
-// botão "Sair"
 document.addEventListener('click', (e)=>{ if(e.target.closest('#btnSairApp')) auth.signOut(); });
 
-// redesenha gráficos ao trocar de módulo/aba (mesmo motivo do resize acima)
 document.addEventListener('click', (e)=>{
   if(e.target.closest('.modulo, .tab-visao, .tab-int, .tab')){
     setTimeout(()=>window.dispatchEvent(new Event('resize')), 100);
