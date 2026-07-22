@@ -540,6 +540,66 @@
 </head>
 <body>
 
+<style>
+  .tela-auth{ position:fixed; inset:0; background:linear-gradient(135deg,var(--vermelho) 0%,var(--vermelho-escuro) 100%); display:flex; align-items:center; justify-content:center; z-index:999; padding:20px; }
+  .auth-card{ background:#fff; border-radius:20px; padding:36px 32px; max-width:380px; width:100%; box-shadow:0 20px 60px rgba(0,0,0,.3); text-align:center; }
+  .auth-logo{ margin-bottom:14px; }
+  .auth-logo img{ height:52px; }
+  .auth-titulo{ font-family:'Sora',sans-serif; font-size:20px; font-weight:800; color:var(--texto); }
+  .auth-sub{ font-size:12.5px; color:var(--texto-suave); margin-bottom:20px; }
+  .auth-tabs{ display:flex; background:var(--bg); border-radius:11px; padding:4px; margin-bottom:18px; }
+  .auth-tab{ flex:1; background:transparent; border:none; padding:9px; border-radius:8px; font-family:inherit; font-size:13px; font-weight:700; color:var(--texto-suave); cursor:pointer; }
+  .auth-tab.ativo{ background:var(--vermelho); color:#fff; }
+  .auth-form{ text-align:left; }
+  .auth-form label{ display:block; font-size:11.5px; font-weight:700; color:var(--texto-suave); text-transform:uppercase; letter-spacing:.03em; margin:12px 0 5px; }
+  .auth-form input{ width:100%; padding:10px 12px; border-radius:9px; border:1.5px solid var(--borda); font-size:14px; font-family:inherit; box-sizing:border-box; }
+  .auth-form input:focus{ outline:none; border-color:var(--dourado); box-shadow:0 0 0 3px rgba(242,169,0,.15); }
+  .auth-btn{ width:100%; margin-top:18px; padding:11px; border:none; border-radius:10px; background:var(--vermelho); color:#fff; font-family:inherit; font-size:14px; font-weight:700; cursor:pointer; }
+  .auth-btn:hover{ background:var(--vermelho-escuro); }
+  .auth-link{ display:block; margin:10px auto 0; background:none; border:none; color:var(--texto-suave); font-size:12px; text-decoration:underline; cursor:pointer; }
+  .auth-erro{ color:var(--vermelho-alerta); font-size:12.5px; margin-top:10px; min-height:16px; }
+  .auth-nota{ font-size:11.5px; color:var(--texto-suave); margin-top:14px; }
+  .logout-btn{ background:rgba(255,255,255,.12); border:1px solid rgba(255,255,255,.25); color:#fff; font-family:inherit; font-size:11.5px; font-weight:600; padding:7px 12px; border-radius:8px; cursor:pointer; margin-top:8px; width:100%; }
+  .logout-btn:hover{ background:rgba(255,255,255,.22); }
+</style>
+
+<div id="telaLogin" class="tela-auth">
+  <div class="auth-card">
+    <div class="auth-logo"><img src="logo.png" alt="Qualitti"></div>
+    <h1 class="auth-titulo">Zootécnico</h1>
+    <p class="auth-sub">Acesso restrito à equipe autorizada</p>
+
+    <div class="auth-tabs">
+      <button class="auth-tab ativo" data-auth-tab="entrar" type="button">Entrar</button>
+      <button class="auth-tab" data-auth-tab="cadastro" type="button">Criar conta</button>
+    </div>
+
+    <form id="formEntrar" class="auth-form">
+      <label>E-mail</label>
+      <input type="email" id="loginEmail" required autocomplete="username">
+      <label>Senha</label>
+      <input type="password" id="loginSenha" required autocomplete="current-password">
+      <button type="submit" class="auth-btn">Entrar</button>
+      <button type="button" class="auth-link" id="btnEsqueciSenha">Esqueci minha senha</button>
+      <div class="auth-erro" id="erroEntrar"></div>
+    </form>
+
+    <form id="formCadastro" class="auth-form" style="display:none;">
+      <label>E-mail autorizado</label>
+      <input type="email" id="cadEmail" required autocomplete="username">
+      <label>Crie uma senha (mínimo 6 caracteres)</label>
+      <input type="password" id="cadSenha" required minlength="6" autocomplete="new-password">
+      <label>Confirme a senha</label>
+      <input type="password" id="cadSenha2" required minlength="6" autocomplete="new-password">
+      <button type="submit" class="auth-btn">Criar conta</button>
+      <div class="auth-erro" id="erroCadastro"></div>
+    </form>
+
+    <p class="auth-nota" id="notaCarregando">Verificando login...</p>
+  </div>
+</div>
+
+<div id="appRoot" style="display:none;">
 <div class="topbar-mobile">
   <button class="hamburguer" id="btnMenu" aria-label="Menu">
     <span></span><span></span><span></span>
@@ -574,7 +634,10 @@
     </div>
   </nav>
 
-  <div class="sidebar-rodape">Qualitti Alimentos</div>
+  <div class="sidebar-rodape">
+    Qualitti Alimentos
+    <button class="logout-btn" id="btnSairApp" type="button">Sair</button>
+  </div>
 </aside>
 
 <main>
@@ -988,6 +1051,7 @@
   </div><!-- fim modulo-view mortalidade -->
 
 </main>
+</div><!-- fim appRoot -->
 
 <script>
 // Carrega os dados de arquivos separados (em vez de embutidos no HTML).
@@ -3132,5 +3196,114 @@ renderChipsLinhagem();
 window.renderResultado = render;
 })();
 </script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+<script>
+// Configuração do Firebase (não é segredo — é feita pra ficar visível no código do site;
+// a segurança de verdade vem das regras do Firestore e da lista de e-mails autorizados)
+const firebaseConfig = {
+  apiKey: "AIzaSyDElIuKeO72Lif1FpofZzHOnehU0-qfU7o",
+  authDomain: "qualittipainel-713b5.firebaseapp.com",
+  projectId: "qualittipainel-713b5",
+  storageBucket: "qualittipainel-713b5.firebasestorage.app",
+  messagingSenderId: "250136310940",
+  appId: "1:250136310940:web:03753fdeb3a486e2bda959"
+};
+firebase.initializeApp(firebaseConfig);
+const auth = firebase.auth();
+const db = firebase.firestore();
+
+const telaLogin = document.getElementById('telaLogin');
+const appRoot = document.getElementById('appRoot');
+
+function mensagemErroAuth(err){
+  const map = {
+    'auth/user-not-found':'E-mail ou senha incorretos.',
+    'auth/wrong-password':'E-mail ou senha incorretos.',
+    'auth/invalid-credential':'E-mail ou senha incorretos.',
+    'auth/invalid-email':'E-mail inválido.',
+    'auth/email-already-in-use':'Já existe uma conta com este e-mail. Tente entrar.',
+    'auth/weak-password':'Senha muito curta (mínimo 6 caracteres).',
+    'auth/too-many-requests':'Muitas tentativas. Aguarde um pouco e tente de novo.'
+  };
+  return map[err.code] || ('Erro: ' + err.message);
+}
+
+// abas Entrar / Criar conta
+document.querySelectorAll('.auth-tab').forEach(btn=>{
+  btn.addEventListener('click', ()=>{
+    document.querySelectorAll('.auth-tab').forEach(b=>b.classList.remove('ativo'));
+    btn.classList.add('ativo');
+    const aba = btn.dataset.authTab;
+    document.getElementById('formEntrar').style.display = aba==='entrar' ? '' : 'none';
+    document.getElementById('formCadastro').style.display = aba==='cadastro' ? '' : 'none';
+  });
+});
+
+// login
+document.getElementById('formEntrar').addEventListener('submit', async (e)=>{
+  e.preventDefault();
+  const email = document.getElementById('loginEmail').value.trim();
+  const senha = document.getElementById('loginSenha').value;
+  const erroEl = document.getElementById('erroEntrar');
+  erroEl.style.color = ''; erroEl.textContent = '';
+  try{ await auth.signInWithEmailAndPassword(email, senha); }
+  catch(err){ erroEl.textContent = mensagemErroAuth(err); }
+});
+
+// esqueci minha senha
+document.getElementById('btnEsqueciSenha').addEventListener('click', async ()=>{
+  const email = document.getElementById('loginEmail').value.trim();
+  const erroEl = document.getElementById('erroEntrar');
+  if(!email){ erroEl.style.color=''; erroEl.textContent = 'Digite seu e-mail acima primeiro.'; return; }
+  try{
+    await auth.sendPasswordResetEmail(email);
+    erroEl.style.color = 'var(--verde-ok)';
+    erroEl.textContent = 'Enviamos um link de redefinição para o seu e-mail.';
+  }catch(err){ erroEl.style.color=''; erroEl.textContent = mensagemErroAuth(err); }
+});
+
+// cadastro (só libera se o e-mail estiver na lista de autorizados)
+document.getElementById('formCadastro').addEventListener('submit', async (e)=>{
+  e.preventDefault();
+  const email = document.getElementById('cadEmail').value.trim().toLowerCase();
+  const senha = document.getElementById('cadSenha').value;
+  const senha2 = document.getElementById('cadSenha2').value;
+  const erroEl = document.getElementById('erroCadastro');
+  erroEl.textContent = '';
+  if(senha !== senha2){ erroEl.textContent = 'As senhas não coincidem.'; return; }
+  try{
+    const snap = await db.collection('emails_autorizados').where('email','==',email).limit(1).get();
+    if(snap.empty){ erroEl.textContent = 'Este e-mail não está autorizado. Fale com o administrador do painel.'; return; }
+    await auth.createUserWithEmailAndPassword(email, senha);
+  }catch(err){ erroEl.textContent = mensagemErroAuth(err); }
+});
+
+// mostra/esconde o app conforme o estado de login
+auth.onAuthStateChanged(user => {
+  if(user){
+    telaLogin.style.display = 'none';
+    appRoot.style.display = '';
+    // os gráficos (Chart.js) foram desenhados enquanto a tela estava oculta;
+    // um "resize" força o redesenho deles agora que ficaram visíveis
+    setTimeout(()=>window.dispatchEvent(new Event('resize')), 80);
+  } else {
+    telaLogin.style.display = '';
+    appRoot.style.display = 'none';
+  }
+});
+
+// botão "Sair"
+document.addEventListener('click', (e)=>{ if(e.target.closest('#btnSairApp')) auth.signOut(); });
+
+// redesenha gráficos ao trocar de módulo/aba (mesmo motivo do resize acima)
+document.addEventListener('click', (e)=>{
+  if(e.target.closest('.modulo, .tab-visao, .tab-int, .tab')){
+    setTimeout(()=>window.dispatchEvent(new Event('resize')), 100);
+  }
+});
+</script>
+
 </body>
 </html>
