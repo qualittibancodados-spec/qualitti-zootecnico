@@ -121,8 +121,8 @@
   .matriz-diaria td.peso-falta::after{ content:'⚠'; font-size:9px; color:#B8860B; position:absolute; top:1px; right:2px; }
   .matriz-diaria th.rowhead.av{ padding-left:20px; font-weight:500; color:var(--texto-suave); }
   .matriz-diaria td.cel{ font-variant-numeric:tabular-nums; }
-  .matriz-diaria .aloj{ font-weight:600; background:#F7F9FB; position:sticky; left:150px; z-index:2; width:80px; min-width:80px; }
-  .matriz-diaria .idade-atual{ font-weight:800; background:#EEF3F8; color:var(--texto); border-right:2px solid var(--borda); position:sticky; left:230px; z-index:2; width:70px; min-width:70px; }
+  .matriz-diaria .aloj{ font-weight:600; background:#F7F9FB; position:sticky; left:150px; z-index:3; width:80px; min-width:80px; }
+  .matriz-diaria .idade-atual{ font-weight:800; background:#EEF3F8; color:var(--texto); border-right:2px solid var(--borda); position:sticky; left:230px; z-index:3; width:70px; min-width:70px; }
   .matriz-diaria td.tot{ font-weight:800; background:#F4EFE6; border-left:2px solid var(--dourado); }
   .matriz-diaria td.pct{ font-weight:800; background:#F4EFE6; }
   /* destaque de salto de mortalidade */
@@ -1033,10 +1033,19 @@
         <span class="info">Clique em "Total" ou "%" para classificar · clique na seta do núcleo para recolher/expandir</span>
         <button class="btn-recolher" id="btnRecolherMD">Recolher todos</button>
       </div>
-      <p class="nota-grafico" style="margin:0 0 12px;">Acompanhamento dia a dia das baixas de cada aviário em andamento, por núcleo — com o <strong>subtotal do núcleo</strong> ao final de cada grupo. A célula fica destacada quando há <strong>salto brusco</strong> de mortalidade em relação ao dia anterior. A coluna <strong>Idade atual</strong> mostra a idade de hoje (data de hoje − alojamento). <strong style="color:#B8860B">⚠ destacado</strong> = falta o lançamento do dia anterior (nenhum registro de Total naquele dia) — verificado sempre pelo Total, já que faltar só Natural ou só Eliminada isoladamente pode ser normal. <span style="color:var(--texto-suave)">💡 Clique e arraste a tabela para o lado para navegar entre as idades.</span></p>
+      <p class="nota-grafico" style="margin:0 0 12px;">Acompanhamento dia a dia das baixas de cada aviário em andamento, por núcleo — com o <strong>subtotal do núcleo</strong> ao final de cada grupo. A célula fica destacada quando há <strong>salto brusco</strong> de mortalidade em relação ao dia anterior. A coluna <strong>Idade atual</strong> mostra a idade de hoje (data de hoje − alojamento). <strong style="color:#B8860B">⚠ destacado</strong> = falta o lançamento de Total naquele dia (do dia 1 até o dia anterior à idade atual) — o dia 0 é isento, pois às vezes não é lançado mesmo. <span style="color:var(--texto-suave)">💡 Clique e arraste a tabela para o lado para navegar entre as idades.</span></p>
       <div class="tabela-scroll arrastavel" id="scrollMatrizDiaria">
         <table class="matriz-diaria" id="tabelaMatrizDiaria"></table>
       </div>
+    </div>
+
+    <div class="quadro">
+      <div class="quadro-header">
+        <h2>Lançamentos faltando — consolidado por data</h2>
+        <span class="info" id="infoFaltantes"></span>
+      </div>
+      <p class="nota-grafico" style="margin:0 0 12px;">Lista, por aviário, quais <strong>datas do calendário</strong> ainda não têm lançamento de mortalidade — calculado a partir da data de alojamento de cada lote. Mesma regra da matriz acima (dia 0 isento).</p>
+      <div id="listaFaltantes"></div>
     </div>
 
     <div class="quadro">
@@ -1938,6 +1947,56 @@ function atualizarBotaoMD(nucleosAtuais){
   btn.textContent = todosRecolhidos ? 'Expandir todos' : 'Recolher todos';
 }
 
+const NOMES_MES = ['janeiro','fevereiro','março','abril','maio','junho','julho','agosto','setembro','outubro','novembro','dezembro'];
+
+function renderFaltantesConsolidado(){
+  const cont = document.getElementById('listaFaltantes');
+  const infoEl = document.getElementById('infoFaltantes');
+  const nucSel = document.getElementById('fNucleo').value;
+
+  let lotes = MORT_DIARIA.filter(l => {
+    if(nucSel !== 'Todos' && l.nucleo !== nucSel) return false;
+    if(sexoAtivo !== 'Todos' && l.sexo !== sexoAtivo) return false;
+    return true;
+  });
+
+  const hoje = new Date(); hoje.setHours(0,0,0,0);
+  const linhas = [];
+  lotes.forEach(l => {
+    const aloj = new Date(l.dataAloj + 'T00:00:00');
+    const idadeAtual = Math.floor((hoje - aloj) / 86400000);
+    const faltando = [];
+    // mesma regra da matriz: dias 1 até (idade atual - 1), dia 0 isento
+    for(let d = 1; d <= idadeAtual - 1; d++){
+      if(l.dias[d] === undefined){
+        const dataReal = new Date(aloj);
+        dataReal.setDate(dataReal.getDate() + d);
+        faltando.push(`${String(dataReal.getDate()).padStart(2,'0')} de ${NOMES_MES[dataReal.getMonth()]}`);
+      }
+    }
+    if(faltando.length) linhas.push({ nucleo: l.nucleo, aviario: l.aviario, faltando });
+  });
+
+  if(!linhas.length){
+    cont.innerHTML = '<div class="vazio">🎉 Nenhum lançamento faltando com esse filtro.</div>';
+    infoEl.textContent = '';
+    return;
+  }
+
+  linhas.sort((a,b) => b.faltando.length - a.faltando.length);
+  const totalDiasFaltando = linhas.reduce((s,l) => s + l.faltando.length, 0);
+  infoEl.textContent = `${linhas.length} aviário(s) com pendência · ${totalDiasFaltando} dia(s) faltando no total`;
+
+  cont.innerHTML = linhas.map(l => `
+    <div class="rank-card" style="grid-template-columns:1fr;">
+      <div>
+        <div class="rank-nome">${l.aviario} <span style="font-weight:500;color:var(--texto-suave);font-size:11.5px">· ${nomeNucleo(l.nucleo)}</span></div>
+        <div class="rank-sub">Faltam ${l.faltando.length} dia(s): ${l.faltando.join(', ')}</div>
+      </div>
+    </div>
+  `).join('');
+}
+
 function renderMatrizDiaria(){
   const campoMetrica = metricaAtiva === 'pctTotal' ? 'total' : (metricaAtiva === 'pctNatural' ? 'morte' : 'elim');
   const nucSel = document.getElementById('fNucleo').value;
@@ -2066,7 +2125,9 @@ function renderMatrizDiaria(){
           const cls = classeSalto(v, ant);
           // sinaliza só na base do TOTAL (mais confiável — um dia sem morte natural OU sem
           // eliminação isolada pode ser normal, mas sem NENHUM registro no dia anterior é suspeito)
-          const semRegistro = (i === idadeEsperada) && (l.dias[i] === undefined);
+          // sinaliza QUALQUER dia entre 1 e (idade atual - 1) sem registro de Total —
+          // não só o dia anterior. O dia 0 é isento (às vezes não lança no dia do alojamento mesmo).
+          const semRegistro = (i >= 1 && i <= idadeEsperada) && (l.dias[i] === undefined);
           tds += `<td class="cel ${cls} ${semRegistro?'peso-falta':''}" ${semRegistro?`title="Sem nenhum lançamento no dia ${i} — o lote já está com ${idadeAtual} dias"`:''}>${v==null?'':v}</td>`;
         });
         corpo += `<tr>
@@ -2512,6 +2573,7 @@ function render(){
     const lotesAtivos = lotes.filter(l => lotesSelecionados.has(l.loteId));
     renderCards();
     renderMatrizDiaria();
+    renderFaltantesConsolidado();
     renderIdadeAndamento();
     renderBarrasAndamento();
     renderRankingNucleosAndamento();
