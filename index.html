@@ -8,6 +8,7 @@
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <link href="https://fonts.googleapis.com/css2?family=Sora:wght@500;600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <style>
   :root{
     --vermelho: #C1272D;
@@ -938,6 +939,7 @@
         <div class="tabela-scroll">
           <table class="matriz-diaria" id="pw_tabelaFaltantes"></table>
         </div>
+        <button class="btn-recolher" id="pw_btnExportarFaltantes" style="margin-top:10px;">⬇️ Exportar para Excel</button>
       </div>
 
       <div class="tabela-scroll arrastavel" id="pw_scrollPesoMatriz">
@@ -1059,6 +1061,7 @@
         <div class="tabela-scroll">
           <table class="matriz-diaria" id="tabelaFaltantes"></table>
         </div>
+        <button class="btn-recolher" id="btnExportarFaltantes" style="margin-top:10px;">⬇️ Exportar para Excel</button>
       </div>
 
       <p class="nota-grafico" style="margin:0 0 12px;">Acompanhamento dia a dia das baixas de cada aviário em andamento, por núcleo — com o <strong>subtotal do núcleo</strong> ao final de cada grupo. A célula fica destacada quando há <strong>salto brusco</strong> de mortalidade em relação ao dia anterior. A coluna <strong>Idade atual</strong> mostra a idade de hoje (data de hoje − alojamento). <strong style="color:#B8860B">⚠ destacado</strong> = falta o lançamento de Total naquele dia (do dia 1 até o dia anterior à idade atual) — o dia 0 é isento, pois às vezes não é lançado mesmo. <span style="color:var(--texto-suave)">💡 Clique e arraste a tabela para o lado para navegar entre as idades.</span></p>
@@ -1359,6 +1362,17 @@ function popularAviarios(){
   selAviario.value = aviarios.includes(anterior) ? anterior : 'Todos';
 }
 popularNucleos(); popularAviarios();
+
+// exporta uma tabela HTML (por id) para um arquivo .xlsx, pronto pra enviar por e-mail/WhatsApp
+function exportarTabelaExcel(tabelaId, nomeArquivo){
+  const tabela = document.getElementById(tabelaId);
+  if(!tabela || !tabela.innerHTML.trim()){
+    alert('Gere o relatório antes de exportar.');
+    return;
+  }
+  const wb = XLSX.utils.table_to_book(tabela, { sheet: 'Pendências' });
+  XLSX.writeFile(wb, nomeArquivo);
+}
 
 // ========================= Arrastar para rolar (drag-to-scroll) =========================
 function ativarArrastar(el){
@@ -2045,6 +2059,14 @@ function renderFaltantesConsolidado(){
       btn.textContent = '📋 Ocultar relatório de pendências';
       painel.scrollIntoView({behavior:'smooth', block:'nearest'});
     }
+  });
+})();
+(function(){
+  const btnExp = document.getElementById('btnExportarFaltantes');
+  if(!btnExp) return;
+  btnExp.addEventListener('click', () => {
+    const data = new Date().toISOString().slice(0,10);
+    exportarTabelaExcel('tabelaFaltantes', `pendencias_mortalidade_${data}.xlsx`);
   });
 })();
 
@@ -3144,7 +3166,8 @@ function renderFaltantesPeso(){
   const tabela = document.getElementById('pw_tabelaFaltantes');
   const infoEl = document.getElementById('pw_infoFaltantes');
   const dados = filtrar().filter(l=>l.situacao==='Aberto');
-  const checkpoints = [7,14,21,28,35,42];
+  // 42d fica de fora do relatório de pendência: nem sempre existe (o lote pode abater antes ou alguns dias depois)
+  const checkpoints = [7,14,21,28,35];
 
   const linhas = [];
   dados.forEach(l => {
@@ -3207,6 +3230,14 @@ function renderFaltantesPeso(){
     }
   });
 })();
+(function(){
+  const btnExp = document.getElementById('pw_btnExportarFaltantes');
+  if(!btnExp) return;
+  btnExp.addEventListener('click', () => {
+    const data = new Date().toISOString().slice(0,10);
+    if(typeof exportarTabelaExcel==='function') exportarTabelaExcel('pw_tabelaFaltantes', `pendencias_peso_${data}.xlsx`);
+  });
+})();
 
 function renderMatrizPeso(){
   const dados = filtrar().filter(l=>l.situacao==='Aberto');
@@ -3242,7 +3273,8 @@ function renderMatrizPeso(){
         let tds='';
         campos.forEach(c=>{
           const v=l['pm'+c];
-          const faltando = (v==null && idade!=null && idade >= c+1);
+          // não sinaliza falta de peso aos 42d — nem sempre existe (lote pode abater antes ou alguns dias depois)
+          const faltando = (v==null && idade!=null && idade >= c+1 && c !== 42);
           tds += `<td class="cel ${faltando?'peso-falta':''}" ${faltando?`title="Sem peso da checagem de ${c}d — o lote já está com ${idade} dias"`:''}>${v!=null?v.toFixed(3):'–'}</td>`;
         });
         corpo += `<tr>
