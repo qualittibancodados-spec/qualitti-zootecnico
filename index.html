@@ -924,8 +924,22 @@
       </div>
       <div class="matriz-controles">
         <span class="info">Clique na seta do núcleo para recolher/expandir os aviários</span>
-        <button class="btn-recolher" id="pw_btnRecolherAndamento">Recolher todos</button>
+        <div style="display:flex;gap:8px;">
+          <button class="btn-recolher" id="pw_btnRecolherAndamento">Recolher todos</button>
+          <button class="btn-recolher" id="pw_btnRelatorioPendencias">📋 Gerar relatório de pendências</button>
+        </div>
       </div>
+
+      <div class="quadro" id="pw_painelRelatorioPendencias" style="display:none;margin-bottom:14px;box-shadow:none;border:1.5px solid var(--dourado);">
+        <div class="quadro-header">
+          <h2>Relatório de pesagens pendentes</h2>
+          <span class="info" id="pw_infoFaltantes"></span>
+        </div>
+        <div class="tabela-scroll">
+          <table class="matriz-diaria" id="pw_tabelaFaltantes"></table>
+        </div>
+      </div>
+
       <div class="tabela-scroll arrastavel" id="pw_scrollPesoMatriz">
         <table class="matriz-diaria" id="pw_tabelaPesoMatriz"></table>
       </div>
@@ -1036,19 +1050,20 @@
           <button class="btn-recolher" id="btnRelatorioPendencias">📋 Gerar relatório de pendências</button>
         </div>
       </div>
+
+      <div class="quadro" id="painelRelatorioPendencias" style="display:none;margin-bottom:14px;box-shadow:none;border:1.5px solid var(--dourado);">
+        <div class="quadro-header">
+          <h2>Relatório de pendências de lançamento</h2>
+          <span class="info" id="infoFaltantes"></span>
+        </div>
+        <div class="tabela-scroll">
+          <table class="matriz-diaria" id="tabelaFaltantes"></table>
+        </div>
+      </div>
+
       <p class="nota-grafico" style="margin:0 0 12px;">Acompanhamento dia a dia das baixas de cada aviário em andamento, por núcleo — com o <strong>subtotal do núcleo</strong> ao final de cada grupo. A célula fica destacada quando há <strong>salto brusco</strong> de mortalidade em relação ao dia anterior. A coluna <strong>Idade atual</strong> mostra a idade de hoje (data de hoje − alojamento). <strong style="color:#B8860B">⚠ destacado</strong> = falta o lançamento de Total naquele dia (do dia 1 até o dia anterior à idade atual) — o dia 0 é isento, pois às vezes não é lançado mesmo. <span style="color:var(--texto-suave)">💡 Clique e arraste a tabela para o lado para navegar entre as idades.</span></p>
       <div class="tabela-scroll arrastavel" id="scrollMatrizDiaria">
         <table class="matriz-diaria" id="tabelaMatrizDiaria"></table>
-      </div>
-    </div>
-
-    <div class="quadro" id="painelRelatorioPendencias" style="display:none;">
-      <div class="quadro-header">
-        <h2>Relatório de pendências de lançamento</h2>
-        <span class="info" id="infoFaltantes"></span>
-      </div>
-      <div class="tabela-scroll">
-        <table class="matriz-diaria" id="tabelaFaltantes"></table>
       </div>
     </div>
 
@@ -3122,6 +3137,74 @@ function atualizarBotaoRecolherAndamento(){
     const todosRec = nucs.length>0 && nucs.every(n=>pwMdRecolhidos.has(n));
     if(todosRec) pwMdRecolhidos.clear(); else nucs.forEach(n=>pwMdRecolhidos.add(n));
     renderMatrizPeso();
+  });
+})();
+
+function renderFaltantesPeso(){
+  const tabela = document.getElementById('pw_tabelaFaltantes');
+  const infoEl = document.getElementById('pw_infoFaltantes');
+  const dados = filtrar().filter(l=>l.situacao==='Aberto');
+  const checkpoints = [7,14,21,28,35,42];
+
+  const linhas = [];
+  dados.forEach(l => {
+    const idade = calcularIdadeAtual(l);
+    if(idade==null) return;
+    const faltando = [];
+    checkpoints.forEach(c => {
+      if(l['pm'+c] == null && idade >= c+1) faltando.push(c+'d');
+    });
+    if(faltando.length) linhas.push({ nucleo: l.nucleo, aviario: l.aviario, faltando });
+  });
+
+  if(!linhas.length){
+    tabela.innerHTML = '';
+    infoEl.innerHTML = '<strong style="color:var(--verde-ok)">🎉 Nenhuma pesagem pendente com esse filtro.</strong>';
+    return;
+  }
+
+  const totalCheck = linhas.reduce((s,l) => s + l.faltando.length, 0);
+  infoEl.textContent = `${linhas.length} aviário(s) com pendência · ${totalCheck} checagem(ns) faltando no total`;
+
+  const porNucleo = new Map();
+  linhas.forEach(l => { if(!porNucleo.has(l.nucleo)) porNucleo.set(l.nucleo, []); porNucleo.get(l.nucleo).push(l); });
+  const nucleosOrd = Array.from(porNucleo.keys()).sort((a,b) => porNucleo.get(b).length - porNucleo.get(a).length);
+
+  let thead = '<thead><tr><th class="rowhead">Núcleo / Aviário</th><th class="tot">Checagens faltando</th><th style="text-align:left;">Quais</th></tr></thead>';
+  let corpo = '';
+  nucleosOrd.forEach(nuc => {
+    const avs = porNucleo.get(nuc).slice().sort((a,b) => b.faltando.length - a.faltando.length);
+    const totalNucleo = avs.reduce((s,a) => s + a.faltando.length, 0);
+    corpo += `<tr class="linha-nuc">
+      <th class="rowhead">${nomeNucleo(nuc)}</th>
+      <td class="tot">${totalNucleo}</td>
+      <td style="text-align:left;">${avs.length} aviário(s) com pendência</td>
+    </tr>`;
+    avs.forEach(a => {
+      corpo += `<tr>
+        <th class="rowhead av">${a.aviario}</th>
+        <td class="tot" style="color:var(--vermelho-alerta);font-weight:800;">${a.faltando.length}</td>
+        <td style="text-align:left;font-size:12px;color:var(--texto-suave);">${a.faltando.join(', ')}</td>
+      </tr>`;
+    });
+  });
+  tabela.innerHTML = thead + '<tbody>' + corpo + '</tbody>';
+}
+
+(function(){
+  const btn = document.getElementById('pw_btnRelatorioPendencias');
+  if(!btn) return;
+  btn.addEventListener('click', () => {
+    const painel = document.getElementById('pw_painelRelatorioPendencias');
+    const aberto = painel.style.display !== 'none';
+    if(aberto){
+      painel.style.display = 'none';
+      btn.textContent = '📋 Gerar relatório de pendências';
+    } else {
+      renderFaltantesPeso();
+      painel.style.display = '';
+      btn.textContent = '📋 Ocultar relatório de pendências';
+    }
   });
 })();
 
