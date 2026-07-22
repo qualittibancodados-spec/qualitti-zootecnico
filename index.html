@@ -585,8 +585,12 @@
   .auth-form label{ display:block; font-size:11.5px; font-weight:700; color:var(--texto-suave); text-transform:uppercase; letter-spacing:.03em; margin:12px 0 5px; }
   .auth-form input{ width:100%; padding:10px 12px; border-radius:9px; border:1.5px solid var(--borda); font-size:14px; font-family:inherit; box-sizing:border-box; }
   .auth-form input:focus{ outline:none; border-color:var(--dourado); box-shadow:0 0 0 3px rgba(242,169,0,.15); }
-  .auth-btn{ width:100%; margin-top:18px; padding:11px; border:none; border-radius:10px; background:var(--vermelho); color:#fff; font-family:inherit; font-size:14px; font-weight:700; cursor:pointer; }
+  .auth-btn{ width:100%; margin-top:18px; padding:11px; border:none; border-radius:10px; background:var(--vermelho); color:#fff; font-family:inherit; font-size:14px; font-weight:700; cursor:pointer; display:flex; align-items:center; justify-content:center; gap:8px; }
   .auth-btn:hover{ background:var(--vermelho-escuro); }
+  .auth-btn:disabled{ opacity:.75; cursor:not-allowed; }
+  .auth-spinner{ width:15px; height:15px; border:2.5px solid rgba(255,255,255,.4); border-top-color:#fff; border-radius:50%; animation:girar .7s linear infinite; display:none; }
+  .auth-btn.carregando .auth-spinner{ display:inline-block; }
+  @keyframes girar{ to{ transform:rotate(360deg); } }
   .auth-link{ display:block; margin:10px auto 0; background:none; border:none; color:var(--texto-suave); font-size:12px; text-decoration:underline; cursor:pointer; }
   .auth-erro{ color:var(--vermelho-alerta); font-size:12.5px; margin-top:10px; min-height:16px; }
   .auth-nota{ font-size:11.5px; color:var(--texto-suave); margin-top:14px; }
@@ -611,7 +615,7 @@
       <input type="email" id="loginEmail" required autocomplete="username">
       <label>Senha</label>
       <input type="password" id="loginSenha" required autocomplete="current-password">
-      <button type="submit" class="auth-btn">Entrar</button>
+      <button type="submit" class="auth-btn" id="btnSubmitEntrar"><span class="auth-spinner"></span><span class="auth-btn-texto">Entrar</span></button>
       <button type="button" class="auth-link" id="btnEsqueciSenha">Esqueci minha senha</button>
       <div class="auth-erro" id="erroEntrar"></div>
     </form>
@@ -623,7 +627,7 @@
       <input type="password" id="cadSenha" required minlength="6" autocomplete="new-password">
       <label>Confirme a senha</label>
       <input type="password" id="cadSenha2" required minlength="6" autocomplete="new-password">
-      <button type="submit" class="auth-btn">Criar conta</button>
+      <button type="submit" class="auth-btn" id="btnSubmitCadastro"><span class="auth-spinner"></span><span class="auth-btn-texto">Criar conta</span></button>
       <div class="auth-erro" id="erroCadastro"></div>
     </form>
     <p class="auth-nota" id="notaCarregando">Verificando login...</p>
@@ -4220,17 +4224,90 @@ const auth = firebase.auth();
 const db = firebase.firestore();
 const telaLogin = document.getElementById('telaLogin');
 const appRoot = document.getElementById('appRoot');
+
 function mensagemErroAuth(err){
   const map = {'auth/user-not-found':'E-mail ou senha incorretos.','auth/wrong-password':'E-mail ou senha incorretos.','auth/invalid-credential':'E-mail ou senha incorretos.','auth/invalid-email':'E-mail inválido.','auth/email-already-in-use':'Já existe uma conta com este e-mail. Tente entrar.','auth/weak-password':'Senha muito curta (mínimo 6 caracteres).','auth/too-many-requests':'Muitas tentativas. Aguarde um pouco e tente de novo.'};
   return map[err.code] || ('Erro: ' + err.message);
 }
-document.querySelectorAll('.auth-tab').forEach(btn=>{btn.addEventListener('click', ()=>{document.querySelectorAll('.auth-tab').forEach(b=>b.classList.remove('ativo'));btn.classList.add('ativo');const aba = btn.dataset.authTab;document.getElementById('formEntrar').style.display = aba==='entrar' ? '' : 'none';document.getElementById('formCadastro').style.display = aba==='cadastro' ? '' : 'none';});});
-document.getElementById('formEntrar').addEventListener('submit', async (e)=>{e.preventDefault();const email = document.getElementById('loginEmail').value.trim();const senha = document.getElementById('loginSenha').value;const erroEl = document.getElementById('erroEntrar');erroEl.style.color = ''; erroEl.textContent = '';try{ await auth.signInWithEmailAndPassword(email, senha); }catch(err){ erroEl.textContent = mensagemErroAuth(err); }});
-document.getElementById('btnEsqueciSenha').addEventListener('click', async ()=>{const email = document.getElementById('loginEmail').value.trim();const erroEl = document.getElementById('erroEntrar');if(!email){ erroEl.style.color=''; erroEl.textContent = 'Digite seu e-mail acima primeiro.'; return; }try{await auth.sendPasswordResetEmail(email);erroEl.style.color = 'var(--verde-ok)';erroEl.textContent = 'Enviamos um link de redefinição para o seu e-mail.';}catch(err){ erroEl.style.color=''; erroEl.textContent = mensagemErroAuth(err); }});
-document.getElementById('formCadastro').addEventListener('submit', async (e)=>{e.preventDefault();const email = document.getElementById('cadEmail').value.trim().toLowerCase();const senha = document.getElementById('cadSenha').value;const senha2 = document.getElementById('cadSenha2').value;const erroEl = document.getElementById('erroCadastro');erroEl.textContent = '';if(senha !== senha2){ erroEl.textContent = 'As senhas não coincidem.'; return; }try{const snap = await db.collection('emails_autorizados').where('email','==',email).limit(1).get();if(snap.empty){ erroEl.textContent = 'Este e-mail não está autorizado. Fale com o administrador do painel.'; return; }await auth.createUserWithEmailAndPassword(email, senha);}catch(err){ erroEl.textContent = mensagemErroAuth(err); }});
-auth.onAuthStateChanged(user => {if(user){telaLogin.style.display = 'none';appRoot.style.display = '';setTimeout(()=>window.dispatchEvent(new Event('resize')), 80);} else {telaLogin.style.display = '';appRoot.style.display = 'none';}});
+
+function setBotaoCarregando(btn, carregando, textoNormal){
+  btn.disabled = carregando;
+  btn.classList.toggle('carregando', carregando);
+  btn.querySelector('.auth-btn-texto').textContent = carregando ? 'Aguarde...' : textoNormal;
+}
+
+document.querySelectorAll('.auth-tab').forEach(btn=>{
+  btn.addEventListener('click', ()=>{
+    document.querySelectorAll('.auth-tab').forEach(b=>b.classList.remove('ativo'));
+    btn.classList.add('ativo');
+    const aba = btn.dataset.authTab;
+    document.getElementById('formEntrar').style.display = aba==='entrar' ? '' : 'none';
+    document.getElementById('formCadastro').style.display = aba==='cadastro' ? '' : 'none';
+  });
+});
+
+document.getElementById('formEntrar').addEventListener('submit', async (e)=>{
+  e.preventDefault();
+  const email = document.getElementById('loginEmail').value.trim();
+  const senha = document.getElementById('loginSenha').value;
+  const erroEl = document.getElementById('erroEntrar');
+  const btn = document.getElementById('btnSubmitEntrar');
+  erroEl.style.color = ''; erroEl.textContent = '';
+  setBotaoCarregando(btn, true, 'Entrar');
+  try{ await auth.signInWithEmailAndPassword(email, senha); }
+  catch(err){ erroEl.textContent = mensagemErroAuth(err); }
+  finally{ setBotaoCarregando(btn, false, 'Entrar'); }
+});
+
+document.getElementById('btnEsqueciSenha').addEventListener('click', async ()=>{
+  const email = document.getElementById('loginEmail').value.trim();
+  const erroEl = document.getElementById('erroEntrar');
+  if(!email){ erroEl.style.color=''; erroEl.textContent = 'Digite seu e-mail acima primeiro.'; return; }
+  try{
+    await auth.sendPasswordResetEmail(email);
+    erroEl.style.color = 'var(--verde-ok)';
+    erroEl.textContent = 'Enviamos um link de redefinição para o seu e-mail.';
+  }catch(err){ erroEl.style.color=''; erroEl.textContent = mensagemErroAuth(err); }
+});
+
+document.getElementById('formCadastro').addEventListener('submit', async (e)=>{
+  e.preventDefault();
+  const email = document.getElementById('cadEmail').value.trim().toLowerCase();
+  const senha = document.getElementById('cadSenha').value;
+  const senha2 = document.getElementById('cadSenha2').value;
+  const erroEl = document.getElementById('erroCadastro');
+  const btn = document.getElementById('btnSubmitCadastro');
+  erroEl.textContent = '';
+  if(senha !== senha2){ erroEl.textContent = 'As senhas não coincidem.'; return; }
+  setBotaoCarregando(btn, true, 'Criar conta');
+  try{
+    const snap = await db.collection('emails_autorizados').where('email','==',email).limit(1).get();
+    if(snap.empty){ erroEl.textContent = 'Este e-mail não está autorizado. Fale com o administrador do painel.'; return; }
+    await auth.createUserWithEmailAndPassword(email, senha);
+  }catch(err){ erroEl.textContent = mensagemErroAuth(err); }
+  finally{ setBotaoCarregando(btn, false, 'Criar conta'); }
+});
+
+auth.onAuthStateChanged(user => {
+  // a checagem inicial terminou — esconde o "Verificando login..." de qualquer forma
+  const nota = document.getElementById('notaCarregando');
+  if(nota) nota.style.display = 'none';
+  if(user){
+    telaLogin.style.display = 'none';
+    appRoot.style.display = '';
+    setTimeout(()=>window.dispatchEvent(new Event('resize')), 80);
+  } else {
+    telaLogin.style.display = '';
+    appRoot.style.display = 'none';
+  }
+});
+
 document.addEventListener('click', (e)=>{ if(e.target.closest('#btnSairApp')) auth.signOut(); });
-document.addEventListener('click', (e)=>{if(e.target.closest('.modulo, .tab-visao, .tab-int, .tab')){setTimeout(()=>window.dispatchEvent(new Event('resize')), 100);}});
+document.addEventListener('click', (e)=>{
+  if(e.target.closest('.modulo, .tab-visao, .tab-int, .tab')){
+    setTimeout(()=>window.dispatchEvent(new Event('resize')), 100);
+  }
+});
 </script>
 
 </body>
