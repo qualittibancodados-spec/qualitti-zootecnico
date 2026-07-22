@@ -1038,7 +1038,7 @@
         <span class="info">Clique em "Total" ou "%" para classificar · clique na seta do núcleo para recolher/expandir</span>
         <button class="btn-recolher" id="btnRecolherMD">Recolher todos</button>
       </div>
-      <p class="nota-grafico" style="margin:0 0 12px;">Acompanhamento dia a dia das baixas de cada aviário em andamento, por núcleo — com o <strong>subtotal do núcleo</strong> ao final de cada grupo. A célula fica destacada quando há <strong>salto brusco</strong> de mortalidade em relação ao dia anterior. A coluna <strong>Idade atual</strong> mostra a idade de hoje (data de hoje − alojamento). <span style="color:var(--texto-suave)">💡 Clique e arraste a tabela para o lado para navegar entre as idades.</span></p>
+      <p class="nota-grafico" style="margin:0 0 12px;">Acompanhamento dia a dia das baixas de cada aviário em andamento, por núcleo — com o <strong>subtotal do núcleo</strong> ao final de cada grupo. A célula fica destacada quando há <strong>salto brusco</strong> de mortalidade em relação ao dia anterior. A coluna <strong>Idade atual</strong> mostra a idade de hoje (data de hoje − alojamento). <strong style="color:#B8860B">⚠ destacado</strong> = falta o lançamento do dia anterior (nenhum registro de Total naquele dia) — verificado sempre pelo Total, já que faltar só Natural ou só Eliminada isoladamente pode ser normal. <span style="color:var(--texto-suave)">💡 Clique e arraste a tabela para o lado para navegar entre as idades.</span></p>
       <div class="tabela-scroll arrastavel" id="scrollMatrizDiaria">
         <table class="matriz-diaria" id="tabelaMatrizDiaria"></table>
       </div>
@@ -2063,12 +2063,16 @@ function renderMatrizDiaria(){
       lotesOrd.forEach(l => {
         const total = somaLote(l);
         const idadeAtual = l._idadeAtual;
+        const idadeEsperada = idadeAtual - 1; // dia anterior — deve ter algum registro de Total até aqui
         let tds = '';
         idades.forEach((i,idx) => {
           const v = cel(l,i);
           const ant = idx>0 ? cel(l,i-1) : null;
           const cls = classeSalto(v, ant);
-          tds += `<td class="cel ${cls}">${v==null?'':v}</td>`;
+          // sinaliza só na base do TOTAL (mais confiável — um dia sem morte natural OU sem
+          // eliminação isolada pode ser normal, mas sem NENHUM registro no dia anterior é suspeito)
+          const semRegistro = (i === idadeEsperada) && (l.dias[i] === undefined);
+          tds += `<td class="cel ${cls} ${semRegistro?'peso-falta':''}" ${semRegistro?`title="Sem nenhum lançamento no dia ${i} — o lote já está com ${idadeAtual} dias"`:''}>${v==null?'':v}</td>`;
         });
         corpo += `<tr>
           <th class="rowhead av">${l.aviario}</th>
@@ -3892,10 +3896,8 @@ const firebaseConfig = {
 firebase.initializeApp(firebaseConfig);
 const auth = firebase.auth();
 const db = firebase.firestore();
-
 const telaLogin = document.getElementById('telaLogin');
 const appRoot = document.getElementById('appRoot');
-
 function mensagemErroAuth(err){
   const map = {
     'auth/user-not-found':'E-mail ou senha incorretos.',
@@ -3908,7 +3910,6 @@ function mensagemErroAuth(err){
   };
   return map[err.code] || ('Erro: ' + err.message);
 }
-
 document.querySelectorAll('.auth-tab').forEach(btn=>{
   btn.addEventListener('click', ()=>{
     document.querySelectorAll('.auth-tab').forEach(b=>b.classList.remove('ativo'));
@@ -3918,7 +3919,6 @@ document.querySelectorAll('.auth-tab').forEach(btn=>{
     document.getElementById('formCadastro').style.display = aba==='cadastro' ? '' : 'none';
   });
 });
-
 document.getElementById('formEntrar').addEventListener('submit', async (e)=>{
   e.preventDefault();
   const email = document.getElementById('loginEmail').value.trim();
@@ -3928,7 +3928,6 @@ document.getElementById('formEntrar').addEventListener('submit', async (e)=>{
   try{ await auth.signInWithEmailAndPassword(email, senha); }
   catch(err){ erroEl.textContent = mensagemErroAuth(err); }
 });
-
 document.getElementById('btnEsqueciSenha').addEventListener('click', async ()=>{
   const email = document.getElementById('loginEmail').value.trim();
   const erroEl = document.getElementById('erroEntrar');
@@ -3939,7 +3938,6 @@ document.getElementById('btnEsqueciSenha').addEventListener('click', async ()=>{
     erroEl.textContent = 'Enviamos um link de redefinição para o seu e-mail.';
   }catch(err){ erroEl.style.color=''; erroEl.textContent = mensagemErroAuth(err); }
 });
-
 document.getElementById('formCadastro').addEventListener('submit', async (e)=>{
   e.preventDefault();
   const email = document.getElementById('cadEmail').value.trim().toLowerCase();
@@ -3954,7 +3952,6 @@ document.getElementById('formCadastro').addEventListener('submit', async (e)=>{
     await auth.createUserWithEmailAndPassword(email, senha);
   }catch(err){ erroEl.textContent = mensagemErroAuth(err); }
 });
-
 auth.onAuthStateChanged(user => {
   if(user){
     telaLogin.style.display = 'none';
@@ -3965,9 +3962,7 @@ auth.onAuthStateChanged(user => {
     appRoot.style.display = 'none';
   }
 });
-
 document.addEventListener('click', (e)=>{ if(e.target.closest('#btnSairApp')) auth.signOut(); });
-
 document.addEventListener('click', (e)=>{
   if(e.target.closest('.modulo, .tab-visao, .tab-int, .tab')){
     setTimeout(()=>window.dispatchEvent(new Event('resize')), 100);
