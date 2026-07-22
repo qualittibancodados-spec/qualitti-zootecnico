@@ -113,7 +113,7 @@
   .matriz-diaria{ border-collapse:collapse; font-size:11.5px; width:auto; min-width:100%; }
   .matriz-diaria th, .matriz-diaria td{ border:1px solid var(--borda); padding:5px 7px; text-align:center; white-space:nowrap; }
   .matriz-diaria thead th{ background:#F1F4F7; font-weight:700; font-size:10px; color:var(--texto-suave); position:sticky; top:0; z-index:2; }
-  .matriz-diaria th.rowhead{ text-align:left; position:sticky; left:0; z-index:3; background:#fff; min-width:150px; }
+  .matriz-diaria th.rowhead{ text-align:left; position:sticky; left:0; z-index:3; background:#fff; width:150px; min-width:150px; }
   .matriz-diaria thead th.rowhead{ z-index:4; background:#F1F4F7; }
   .matriz-diaria tr.linha-nuc th.rowhead{ font-weight:800; color:var(--vermelho-escuro); background:#FFF4E1; box-shadow:inset 3px 0 0 var(--dourado); }
   .matriz-diaria tr.linha-nuc td{ font-weight:700; background:#FFF4E1; }
@@ -121,8 +121,8 @@
   .matriz-diaria td.peso-falta::after{ content:'⚠'; font-size:9px; color:#B8860B; position:absolute; top:1px; right:2px; }
   .matriz-diaria th.rowhead.av{ padding-left:20px; font-weight:500; color:var(--texto-suave); }
   .matriz-diaria td.cel{ font-variant-numeric:tabular-nums; }
-  .matriz-diaria td.aloj{ font-weight:600; background:#F7F9FB; }
-  .matriz-diaria .idade-atual{ font-weight:800; background:#EEF3F8; color:var(--texto); border-right:2px solid var(--borda); }
+  .matriz-diaria .aloj{ font-weight:600; background:#F7F9FB; position:sticky; left:150px; z-index:2; width:80px; min-width:80px; }
+  .matriz-diaria .idade-atual{ font-weight:800; background:#EEF3F8; color:var(--texto); border-right:2px solid var(--borda); position:sticky; left:230px; z-index:2; width:70px; min-width:70px; }
   .matriz-diaria td.tot{ font-weight:800; background:#F4EFE6; border-left:2px solid var(--dourado); }
   .matriz-diaria td.pct{ font-weight:800; background:#F4EFE6; }
   /* destaque de salto de mortalidade */
@@ -599,12 +599,10 @@
     <div class="auth-logo"><img src="logo.png" alt="Qualitti"></div>
     <h1 class="auth-titulo">Zootécnico</h1>
     <p class="auth-sub">Acesso restrito à equipe autorizada</p>
-
     <div class="auth-tabs">
       <button class="auth-tab ativo" data-auth-tab="entrar" type="button">Entrar</button>
       <button class="auth-tab" data-auth-tab="cadastro" type="button">Criar conta</button>
     </div>
-
     <form id="formEntrar" class="auth-form">
       <label>E-mail</label>
       <input type="email" id="loginEmail" required autocomplete="username">
@@ -614,7 +612,6 @@
       <button type="button" class="auth-link" id="btnEsqueciSenha">Esqueci minha senha</button>
       <div class="auth-erro" id="erroEntrar"></div>
     </form>
-
     <form id="formCadastro" class="auth-form" style="display:none;">
       <div class="auth-aviso-cadastro">⚠ Somente e-mails <strong>pré-autorizados pelo administrador</strong> conseguem criar conta. Se o seu e-mail não for reconhecido, fale com o responsável pelo painel.</div>
       <label>E-mail autorizado</label>
@@ -626,9 +623,7 @@
       <button type="submit" class="auth-btn">Criar conta</button>
       <div class="auth-erro" id="erroCadastro"></div>
     </form>
-
     <p class="auth-nota" id="notaCarregando">Verificando login...</p>
-
     <div class="auth-contato">
       <strong>Luiz Fernando</strong> · Analista de Dados<br>
       Contato: avicultura05@qualitti.com.br
@@ -3885,89 +3880,23 @@ window.renderResultado = render;
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
 <script>
-const firebaseConfig = {
-  apiKey: "AIzaSyDElIuKeO72Lif1FpofZzHOnehU0-qfU7o",
-  authDomain: "qualittipainel-713b5.firebaseapp.com",
-  projectId: "qualittipainel-713b5",
-  storageBucket: "qualittipainel-713b5.firebasestorage.app",
-  messagingSenderId: "250136310940",
-  appId: "1:250136310940:web:03753fdeb3a486e2bda959"
-};
+const firebaseConfig = {apiKey:"AIzaSyDElIuKeO72Lif1FpofZzHOnehU0-qfU7o",authDomain:"qualittipainel-713b5.firebaseapp.com",projectId:"qualittipainel-713b5",storageBucket:"qualittipainel-713b5.firebasestorage.app",messagingSenderId:"250136310940",appId:"1:250136310940:web:03753fdeb3a486e2bda959"};
 firebase.initializeApp(firebaseConfig);
 const auth = firebase.auth();
 const db = firebase.firestore();
 const telaLogin = document.getElementById('telaLogin');
 const appRoot = document.getElementById('appRoot');
 function mensagemErroAuth(err){
-  const map = {
-    'auth/user-not-found':'E-mail ou senha incorretos.',
-    'auth/wrong-password':'E-mail ou senha incorretos.',
-    'auth/invalid-credential':'E-mail ou senha incorretos.',
-    'auth/invalid-email':'E-mail inválido.',
-    'auth/email-already-in-use':'Já existe uma conta com este e-mail. Tente entrar.',
-    'auth/weak-password':'Senha muito curta (mínimo 6 caracteres).',
-    'auth/too-many-requests':'Muitas tentativas. Aguarde um pouco e tente de novo.'
-  };
+  const map = {'auth/user-not-found':'E-mail ou senha incorretos.','auth/wrong-password':'E-mail ou senha incorretos.','auth/invalid-credential':'E-mail ou senha incorretos.','auth/invalid-email':'E-mail inválido.','auth/email-already-in-use':'Já existe uma conta com este e-mail. Tente entrar.','auth/weak-password':'Senha muito curta (mínimo 6 caracteres).','auth/too-many-requests':'Muitas tentativas. Aguarde um pouco e tente de novo.'};
   return map[err.code] || ('Erro: ' + err.message);
 }
-document.querySelectorAll('.auth-tab').forEach(btn=>{
-  btn.addEventListener('click', ()=>{
-    document.querySelectorAll('.auth-tab').forEach(b=>b.classList.remove('ativo'));
-    btn.classList.add('ativo');
-    const aba = btn.dataset.authTab;
-    document.getElementById('formEntrar').style.display = aba==='entrar' ? '' : 'none';
-    document.getElementById('formCadastro').style.display = aba==='cadastro' ? '' : 'none';
-  });
-});
-document.getElementById('formEntrar').addEventListener('submit', async (e)=>{
-  e.preventDefault();
-  const email = document.getElementById('loginEmail').value.trim();
-  const senha = document.getElementById('loginSenha').value;
-  const erroEl = document.getElementById('erroEntrar');
-  erroEl.style.color = ''; erroEl.textContent = '';
-  try{ await auth.signInWithEmailAndPassword(email, senha); }
-  catch(err){ erroEl.textContent = mensagemErroAuth(err); }
-});
-document.getElementById('btnEsqueciSenha').addEventListener('click', async ()=>{
-  const email = document.getElementById('loginEmail').value.trim();
-  const erroEl = document.getElementById('erroEntrar');
-  if(!email){ erroEl.style.color=''; erroEl.textContent = 'Digite seu e-mail acima primeiro.'; return; }
-  try{
-    await auth.sendPasswordResetEmail(email);
-    erroEl.style.color = 'var(--verde-ok)';
-    erroEl.textContent = 'Enviamos um link de redefinição para o seu e-mail.';
-  }catch(err){ erroEl.style.color=''; erroEl.textContent = mensagemErroAuth(err); }
-});
-document.getElementById('formCadastro').addEventListener('submit', async (e)=>{
-  e.preventDefault();
-  const email = document.getElementById('cadEmail').value.trim().toLowerCase();
-  const senha = document.getElementById('cadSenha').value;
-  const senha2 = document.getElementById('cadSenha2').value;
-  const erroEl = document.getElementById('erroCadastro');
-  erroEl.textContent = '';
-  if(senha !== senha2){ erroEl.textContent = 'As senhas não coincidem.'; return; }
-  try{
-    const snap = await db.collection('emails_autorizados').where('email','==',email).limit(1).get();
-    if(snap.empty){ erroEl.textContent = 'Este e-mail não está autorizado. Fale com o administrador do painel.'; return; }
-    await auth.createUserWithEmailAndPassword(email, senha);
-  }catch(err){ erroEl.textContent = mensagemErroAuth(err); }
-});
-auth.onAuthStateChanged(user => {
-  if(user){
-    telaLogin.style.display = 'none';
-    appRoot.style.display = '';
-    setTimeout(()=>window.dispatchEvent(new Event('resize')), 80);
-  } else {
-    telaLogin.style.display = '';
-    appRoot.style.display = 'none';
-  }
-});
+document.querySelectorAll('.auth-tab').forEach(btn=>{btn.addEventListener('click', ()=>{document.querySelectorAll('.auth-tab').forEach(b=>b.classList.remove('ativo'));btn.classList.add('ativo');const aba = btn.dataset.authTab;document.getElementById('formEntrar').style.display = aba==='entrar' ? '' : 'none';document.getElementById('formCadastro').style.display = aba==='cadastro' ? '' : 'none';});});
+document.getElementById('formEntrar').addEventListener('submit', async (e)=>{e.preventDefault();const email = document.getElementById('loginEmail').value.trim();const senha = document.getElementById('loginSenha').value;const erroEl = document.getElementById('erroEntrar');erroEl.style.color = ''; erroEl.textContent = '';try{ await auth.signInWithEmailAndPassword(email, senha); }catch(err){ erroEl.textContent = mensagemErroAuth(err); }});
+document.getElementById('btnEsqueciSenha').addEventListener('click', async ()=>{const email = document.getElementById('loginEmail').value.trim();const erroEl = document.getElementById('erroEntrar');if(!email){ erroEl.style.color=''; erroEl.textContent = 'Digite seu e-mail acima primeiro.'; return; }try{await auth.sendPasswordResetEmail(email);erroEl.style.color = 'var(--verde-ok)';erroEl.textContent = 'Enviamos um link de redefinição para o seu e-mail.';}catch(err){ erroEl.style.color=''; erroEl.textContent = mensagemErroAuth(err); }});
+document.getElementById('formCadastro').addEventListener('submit', async (e)=>{e.preventDefault();const email = document.getElementById('cadEmail').value.trim().toLowerCase();const senha = document.getElementById('cadSenha').value;const senha2 = document.getElementById('cadSenha2').value;const erroEl = document.getElementById('erroCadastro');erroEl.textContent = '';if(senha !== senha2){ erroEl.textContent = 'As senhas não coincidem.'; return; }try{const snap = await db.collection('emails_autorizados').where('email','==',email).limit(1).get();if(snap.empty){ erroEl.textContent = 'Este e-mail não está autorizado. Fale com o administrador do painel.'; return; }await auth.createUserWithEmailAndPassword(email, senha);}catch(err){ erroEl.textContent = mensagemErroAuth(err); }});
+auth.onAuthStateChanged(user => {if(user){telaLogin.style.display = 'none';appRoot.style.display = '';setTimeout(()=>window.dispatchEvent(new Event('resize')), 80);} else {telaLogin.style.display = '';appRoot.style.display = 'none';}});
 document.addEventListener('click', (e)=>{ if(e.target.closest('#btnSairApp')) auth.signOut(); });
-document.addEventListener('click', (e)=>{
-  if(e.target.closest('.modulo, .tab-visao, .tab-int, .tab')){
-    setTimeout(()=>window.dispatchEvent(new Event('resize')), 100);
-  }
-});
+document.addEventListener('click', (e)=>{if(e.target.closest('.modulo, .tab-visao, .tab-int, .tab')){setTimeout(()=>window.dispatchEvent(new Event('resize')), 100);}});
 </script>
 
 </body>
