@@ -698,6 +698,7 @@
   <div class="filtros">
     <div class="filtros-grid">
       <div class="campo"><label>Ano</label><select id="rz_fAno"></select></div>
+      <div class="campo"><label>Rodada</label><select id="rz_fRodada"></select></div>
       <div class="campo"><label>Núcleo</label><select id="rz_fNucleo"></select></div>
       <div class="campo"><label>Linhagem</label><select id="rz_fLinhagem"></select></div>
       <div class="campo"><label>Sexo</label><select id="rz_fSexo"></select></div>
@@ -782,20 +783,12 @@
 
   <!-- ============ RELATÓRIO POR NÚCLEO ============ -->
   <div data-aba-view="relatorio" style="display:none;">
-    <div class="filtros">
-      <div class="filtros-grid">
-        <div class="campo"><label>Ano</label><select id="rz_relAno"></select></div>
-        <div class="campo"><label>Rodada</label><select id="rz_relRodada"></select></div>
-        <div class="campo"><label>Núcleo</label><select id="rz_relNucleo"></select></div>
-      </div>
-    </div>
-
     <div class="painel">
       <div class="painel-header">
         <h2>Relatório de resultado por núcleo</h2>
         <span class="info" id="rz_relInfo"></span>
       </div>
-      <p class="nota" style="margin-top:0;">Média de cada indicador por aviário — pensado pro técnico ver de forma geral o resultado do próprio núcleo, e compartilhar direto com quem precisar.</p>
+      <p class="nota" style="margin-top:0;">Média de cada indicador por aviário — pensado pro técnico ver de forma geral o resultado do próprio núcleo, e compartilhar direto com quem precisar. Use os filtros do topo da página (Ano, Rodada, Núcleo...) pra ajustar.</p>
       <div class="tabela-scroll">
         <table class="matriz-diaria" id="rz_tabelaRelatorio"></table>
       </div>
@@ -3549,22 +3542,25 @@ function opcoes(campo, label){
   return `<option value="Todos">${label}</option>` + vals.map(v=>`<option value="${v}">${campo==='nucleo'?nomeNucleo(v):v}</option>`).join('');
 }
 document.getElementById('rz_fAno').innerHTML = opcoes('ano','Todos os anos');
+document.getElementById('rz_fRodada').innerHTML = opcoes('rodada','Todas as rodadas');
 document.getElementById('rz_fNucleo').innerHTML = opcoes('nucleo','Todos os núcleos');
 document.getElementById('rz_fLinhagem').innerHTML = opcoes('linhagem','Todas as linhagens');
 document.getElementById('rz_fSexo').innerHTML = opcoes('sexo','Todos os sexos');
 
 function filtrar(){
-  const ano=document.getElementById('rz_fAno').value, nuc=document.getElementById('rz_fNucleo').value,
+  const ano=document.getElementById('rz_fAno').value, rodada=document.getElementById('rz_fRodada').value,
+        nuc=document.getElementById('rz_fNucleo').value,
         lin=document.getElementById('rz_fLinhagem').value, sx=document.getElementById('rz_fSexo').value;
   return LOTES.filter(l=>{
     if(ano!=='Todos' && String(l.ano)!==ano) return false;
+    if(rodada!=='Todos' && String(l.rodada)!==rodada) return false;
     if(nuc!=='Todos' && l.nucleo!==nuc) return false;
     if(lin!=='Todos' && l.linhagem!==lin) return false;
     if(sx!=='Todos' && l.sexo!==sx) return false;
     return true;
   });
 }
-['rz_fAno','rz_fNucleo','rz_fLinhagem','rz_fSexo'].forEach(id=>document.getElementById(id).addEventListener('change', render));
+['rz_fAno','rz_fRodada','rz_fNucleo','rz_fLinhagem','rz_fSexo'].forEach(id=>document.getElementById(id).addEventListener('change', render));
 
 document.querySelectorAll('#mod-resultado .tab-int').forEach(b=>b.addEventListener('click',()=>{
   document.querySelectorAll('#mod-resultado .tab-int').forEach(x=>x.classList.remove('ativo'));
@@ -4136,23 +4132,7 @@ function renderAndamento(){
 }
 
 // ================= Relatório por Núcleo (pro técnico ver e compartilhar) =================
-document.getElementById('rz_relAno').innerHTML = opcoes('ano','Todos os anos');
-document.getElementById('rz_relRodada').innerHTML = opcoes('rodada','Todas as rodadas');
-document.getElementById('rz_relNucleo').innerHTML = opcoes('nucleo','Todos os núcleos');
-['rz_relAno','rz_relRodada','rz_relNucleo'].forEach(id=>document.getElementById(id).addEventListener('change', render));
-
-function filtrarRelatorioNucleo(){
-  const ano = document.getElementById('rz_relAno').value;
-  const rodada = document.getElementById('rz_relRodada').value;
-  const nuc = document.getElementById('rz_relNucleo').value;
-  return LOTES.filter(l=>{
-    if(l.situacao !== 'Fechado') return false;
-    if(ano!=='Todos' && String(l.ano)!==ano) return false;
-    if(rodada!=='Todos' && String(l.rodada)!==rodada) return false;
-    if(nuc!=='Todos' && l.nucleo!==nuc) return false;
-    return true;
-  });
-}
+// usa o mesmo filtro do topo da página (Ano, Rodada, Núcleo, Linhagem, Sexo) — sem filtro próprio duplicado
 
 const COLUNAS_RELATORIO = [
   {campo:'fp', label:'FP', dec:1},
@@ -4164,7 +4144,7 @@ const COLUNAS_RELATORIO = [
 ];
 
 function renderRelatorioNucleo(){
-  const dados = filtrarRelatorioNucleo();
+  const dados = filtrar().filter(l=>l.situacao==='Fechado'); // relatório de resultado só faz sentido com lote já fechado
   const tabela = document.getElementById('rz_tabelaRelatorio');
   const infoEl = document.getElementById('rz_relInfo');
 
