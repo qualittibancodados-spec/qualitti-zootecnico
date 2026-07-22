@@ -440,6 +440,10 @@
 #mod-condenas .wrap{max-width:1200px;margin:0 auto;}
 #mod-condenas .pagina-titulo{font-size:24px;font-weight:800;letter-spacing:-.02em;margin-bottom:16px;}
 #mod-condenas .tabs-internas{display:flex;gap:8px;margin-bottom:18px;flex-wrap:wrap;background:var(--card);padding:6px;border-radius:14px;border:1px solid var(--borda);box-shadow:var(--sombra);width:fit-content;}
+#mod-peso .tabs-internas{display:flex;gap:8px;margin-bottom:18px;flex-wrap:wrap;background:var(--card);padding:6px;border-radius:14px;border:1px solid var(--borda);box-shadow:var(--sombra);width:fit-content;}
+#mod-peso .tab-int{background:transparent;border:none;color:var(--texto-suave);font-family:inherit;font-size:13.5px;font-weight:600;padding:9px 20px;border-radius:10px;cursor:pointer;transition:.16s;}
+#mod-peso .tab-int:hover{color:var(--texto);background:var(--bg);}
+#mod-peso .tab-int.ativo{background:var(--vermelho);color:#fff;box-shadow:0 2px 10px rgba(193,39,45,.3);}
 #mod-condenas .tab-int{background:transparent;border:none;color:var(--texto-suave);font-family:inherit;font-size:13.5px;font-weight:600;padding:9px 20px;border-radius:10px;cursor:pointer;transition:.16s;}
 #mod-condenas .tab-int:hover{color:var(--texto);background:var(--bg);}
 #mod-condenas .tab-int.ativo{background:var(--vermelho);color:#fff;box-shadow:0 2px 10px rgba(193,39,45,.3);}
@@ -631,6 +635,9 @@
       <button class="modulo" data-modulo="condenas">
         <span class="modulo-ic">🔎</span> Condenas
       </button>
+      <button class="modulo" data-modulo="peso">
+        <span class="modulo-ic">⚖️</span> Acompanhamento de Peso
+      </button>
     </div>
   </nav>
 
@@ -653,7 +660,6 @@
   <div class="tabs-internas">
     <button class="tab-int ativo" data-aba="geral">Visão geral</button>
     <button class="tab-int" data-aba="desempenho">Desempenho</button>
-    <button class="tab-int" data-aba="andamento">Em andamento</button>
     <button class="tab-int" data-aba="matriz">Matriz</button>
   </div>
 
@@ -739,35 +745,6 @@
       </div>
       <div class="chart-wrap"><canvas id="rz_chartEficiencia"></canvas></div>
       <p class="nota">Canto ideal: <strong>esquerda e no alto</strong> — baixa conversão alimentar (come menos por kg) e alto Fator de Produção. Cor por linhagem.</p>
-    </div>
-  </div>
-
-  <!-- ============ EM ANDAMENTO (lotes abertos — evolução de peso) ============ -->
-  <div data-aba-view="andamento" style="display:none;">
-    <div class="cards" id="rz_cardsAndamento"></div>
-
-    <div class="painel">
-      <div class="painel-header">
-        <h2>Evolução de peso por idade — em andamento</h2>
-        <span class="info">Média dos lotes abertos vs média histórica (fechados)</span>
-      </div>
-      <div class="chart-wrap"><canvas id="rz_chartPesoAndamento"></canvas></div>
-      <p class="nota" id="rz_notaPesoAndamento"></p>
-    </div>
-
-    <div class="painel">
-      <div class="painel-header">
-        <h2>Matriz de peso — lotes em andamento</h2>
-        <span class="info">Núcleo › Aviário · idade atual · peso em cada checagem</span>
-      </div>
-      <div class="matriz-controles">
-        <span class="info">Clique na seta do núcleo para recolher/expandir os aviários</span>
-        <button class="btn-recolher" id="rz_btnRecolherAndamento">Recolher todos</button>
-      </div>
-      <div class="tabela-scroll arrastavel" id="rz_scrollPesoMatriz">
-        <table class="matriz-diaria" id="rz_tabelaPesoMatriz"></table>
-      </div>
-      <p class="nota">"–" = o lote ainda não chegou nessa idade / ainda não foi pesado nessa checagem.</p>
     </div>
   </div>
 
@@ -871,6 +848,102 @@
       </div>
       <div class="tabela-scroll arrastavel" id="cd_scrollMatriz"><table class="matriz" id="cd_tabelaMatriz"></table></div>
       <p class="nota" id="cd_notaMatriz"></p>
+    </div>
+  </div>
+
+    </div>
+  </div>
+
+  <!-- ============ MÓDULO: ACOMPANHAMENTO DE PESO ============ -->
+  <div data-modulo-view="peso" style="display:none;">
+    <div id="mod-peso">
+
+  <div class="pagina-head">
+    <h1 class="pagina-titulo">Acompanhamento de Peso</h1>
+  </div>
+
+  <div class="tabs-internas">
+    <button class="tab-int ativo" data-aba="andamento">Em andamento</button>
+    <button class="tab-int" data-aba="historico">Histórico</button>
+  </div>
+
+  <div class="filtros">
+    <div class="filtros-grid">
+      <div class="campo"><label>Ano</label><select id="pw_fAno"></select></div>
+      <div class="campo"><label>Núcleo</label><select id="pw_fNucleo"></select></div>
+      <div class="campo"><label>Linhagem</label><select id="pw_fLinhagem"></select></div>
+      <div class="campo"><label>Sexo</label><select id="pw_fSexo"></select></div>
+    </div>
+  </div>
+
+  <!-- ============ EM ANDAMENTO ============ -->
+  <div data-aba-view="andamento">
+    <div class="cards" id="pw_cardsAndamento"></div>
+
+    <div class="painel">
+      <div class="painel-header">
+        <h2>Evolução de peso por idade — em andamento</h2>
+        <span class="info">Média dos lotes abertos vs média histórica (fechados)</span>
+      </div>
+      <div class="chart-wrap"><canvas id="pw_chartPesoAndamento"></canvas></div>
+      <p class="nota" id="pw_notaPesoAndamento"></p>
+    </div>
+
+    <div class="painel">
+      <div class="painel-header">
+        <h2>Matriz de peso — lotes em andamento</h2>
+        <span class="info">Núcleo › Aviário · idade atual · peso em cada checagem</span>
+      </div>
+      <div class="matriz-controles">
+        <span class="info">Clique na seta do núcleo para recolher/expandir os aviários</span>
+        <button class="btn-recolher" id="pw_btnRecolherAndamento">Recolher todos</button>
+      </div>
+      <div class="tabela-scroll arrastavel" id="pw_scrollPesoMatriz">
+        <table class="matriz-diaria" id="pw_tabelaPesoMatriz"></table>
+      </div>
+      <p class="nota">"–" = o lote ainda não chegou nessa idade / ainda não foi pesado nessa checagem.</p>
+    </div>
+  </div>
+
+  <!-- ============ HISTÓRICO ============ -->
+  <div data-aba-view="historico" style="display:none;">
+    <div class="painel">
+      <div class="painel-header">
+        <h2>Evolução do peso ao abate por ano</h2>
+        <span class="info">Média ponderada dos lotes fechados</span>
+      </div>
+      <div class="chart-wrap" style="height:280px;"><canvas id="pw_chartEvoAno"></canvas></div>
+      <p class="nota" id="pw_notaEvoAno"></p>
+    </div>
+
+    <div class="painel">
+      <div class="painel-header">
+        <h2>Ranking de peso</h2>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:10px;margin-bottom:14px;">
+        <div class="segmented" id="pw_segDimensao">
+          <button data-d="nucleo" class="ativo">Núcleo</button>
+          <button data-d="aviario">Aviário</button>
+          <button data-d="linhagem">Linhagem</button>
+        </div>
+        <div class="segmented" id="pw_segIndicador">
+          <button data-k="pmAbate" class="ativo">Peso ao abate</button>
+          <button data-k="gmd">GMD</button>
+          <button data-k="idadeAbate">Idade ao abate</button>
+        </div>
+      </div>
+      <div id="pw_ranking" class="ranking-lista"></div>
+      <p class="nota" id="pw_notaRanking"></p>
+    </div>
+
+    <div class="painel">
+      <div class="painel-header">
+        <h2>Curva de crescimento — comparar núcleos</h2>
+        <span class="info">Histórico · peso médio por idade</span>
+      </div>
+      <div id="pw_chipsNucleos" class="chips-nucleos"></div>
+      <div class="chart-wrap"><canvas id="pw_chartCurvaNucleo"></canvas></div>
+      <div class="legenda-custom" id="pw_legendaCurvaNucleo"></div>
     </div>
   </div>
 
@@ -1277,12 +1350,14 @@ document.querySelectorAll('.modulo').forEach(btn => {
     document.querySelector('[data-modulo-view="mortalidade"]').style.display = (mod==='mortalidade') ? '' : 'none';
     document.querySelector('[data-modulo-view="resultado"]').style.display = (mod==='resultado') ? '' : 'none';
     document.querySelector('[data-modulo-view="condenas"]').style.display = (mod==='condenas') ? '' : 'none';
+    document.querySelector('[data-modulo-view="peso"]').style.display = (mod==='peso') ? '' : 'none';
     document.getElementById('tabsMortalidade').style.display = (mod==='mortalidade') ? '' : 'none';
     // os filtros do topo pertencem ao módulo mortalidade (Resultado e Condenas têm os seus próprios dentro deles)
     document.getElementById('filtrosMortalidade').style.display = (mod==='mortalidade') ? '' : 'none';
     // dispara o render dos módulos na 1ª vez que abrem
     if(mod==='resultado' && window.renderResultado) window.renderResultado();
     if(mod==='condenas' && window.renderCondenas) window.renderCondenas();
+    if(mod==='peso' && window.renderPeso) window.renderPeso();
     window.scrollTo({top:0, behavior:'smooth'});
   });
 });
@@ -2775,6 +2850,362 @@ render();
 </script>
 
 <script>
+(function(){
+const PESO_LOTES = fetchJSONSync('./data/resultado_lotes.json');
+const nomeNucleo = n => (n||'').replace('NÚCLEO ','');
+const corPorIndice = i => ['#C1272D','#F2A900','#3A7D44','#2E6E9E','#8E44AD','#D97706','#0E7C7B','#B33F62'][i % 8];
+
+const IND_PW = {
+  pmAbate:   {nome:'Peso ao abate (kg)', dec:3, sufixo:'', melhorMaior:true},
+  gmd:       {nome:'GMD (g/dia)',        dec:1, sufixo:'', melhorMaior:true},
+  idadeAbate:{nome:'Idade ao abate (d)', dec:0, sufixo:'', melhorMaior:false}
+};
+
+function media(arr, campo){
+  const vals = arr.map(l=>l[campo]).filter(v=>v!=null && !isNaN(v));
+  return vals.length ? vals.reduce((a,b)=>a+b,0)/vals.length : null;
+}
+
+let abaAtiva='andamento';
+
+function opcoes(campo, label){
+  const vals = Array.from(new Set(PESO_LOTES.map(l=>l[campo]).filter(Boolean))).sort();
+  return `<option value="Todos">${label}</option>` + vals.map(v=>`<option value="${v}">${campo==='nucleo'?nomeNucleo(v):v}</option>`).join('');
+}
+document.getElementById('pw_fAno').innerHTML = opcoes('ano','Todos os anos');
+document.getElementById('pw_fNucleo').innerHTML = opcoes('nucleo','Todos os núcleos');
+document.getElementById('pw_fLinhagem').innerHTML = opcoes('linhagem','Todas as linhagens');
+document.getElementById('pw_fSexo').innerHTML = opcoes('sexo','Todos os sexos');
+
+function filtrar(){
+  const ano=document.getElementById('pw_fAno').value, nuc=document.getElementById('pw_fNucleo').value,
+        lin=document.getElementById('pw_fLinhagem').value, sx=document.getElementById('pw_fSexo').value;
+  return PESO_LOTES.filter(l=>{
+    if(ano!=='Todos' && String(l.ano)!==ano) return false;
+    if(nuc!=='Todos' && l.nucleo!==nuc) return false;
+    if(lin!=='Todos' && l.linhagem!==lin) return false;
+    if(sx!=='Todos' && l.sexo!==sx) return false;
+    return true;
+  });
+}
+['pw_fAno','pw_fNucleo','pw_fLinhagem','pw_fSexo'].forEach(id=>document.getElementById(id).addEventListener('change', render));
+
+document.querySelectorAll('#mod-peso .tab-int').forEach(b=>b.addEventListener('click',()=>{
+  document.querySelectorAll('#mod-peso .tab-int').forEach(x=>x.classList.remove('ativo'));
+  b.classList.add('ativo'); abaAtiva=b.dataset.aba;
+  ['andamento','historico'].forEach(a=>{
+    document.querySelector(`#mod-peso [data-aba-view="${a}"]`).style.display = (a===abaAtiva)?'':'none';
+  });
+  render(); window.scrollTo({top:0,behavior:'smooth'});
+}));
+
+function bindSeg(id, setter){
+  document.querySelectorAll(`#${id} button`).forEach(b=>b.addEventListener('click',()=>{
+    document.querySelectorAll(`#${id} button`).forEach(x=>x.classList.remove('ativo'));
+    b.classList.add('ativo'); setter(b.dataset); render();
+  }));
+}
+
+// ================= Em andamento (lotes abertos — peso) =================
+function calcularIdadeAtual(l){
+  if(!l.dataAloj) return null;
+  const aloj = new Date(l.dataAloj + 'T00:00:00');
+  const hoje = new Date(); hoje.setHours(0,0,0,0);
+  return Math.floor((hoje - aloj) / 86400000);
+}
+
+function renderCardsAndamento(abertos){
+  const cont = document.getElementById('pw_cardsAndamento');
+  if(!abertos.length){ cont.innerHTML = '<div class="vazio">Nenhum lote em andamento com esse filtro.</div>'; return; }
+  const idades = abertos.map(calcularIdadeAtual).filter(v=>v!=null);
+  const idadeMedia = idades.length ? Math.round(idades.reduce((s,v)=>s+v,0)/idades.length) : null;
+  const pesosRecentes = abertos.map(l=>{
+    const campos=[['pm42',42],['pm35',35],['pm28',28],['pm21',21],['pm14',14],['pm7',7]];
+    for(const [c,idadeCk] of campos){ if(l[c]!=null) return {peso:l[c], idadeCk}; }
+    return null;
+  }).filter(Boolean);
+  const pesoMedio = pesosRecentes.length ? (pesosRecentes.reduce((s,p)=>s+p.peso,0)/pesosRecentes.length) : null;
+  const nucleosAbertos = new Set(abertos.map(l=>l.nucleo)).size;
+  cont.innerHTML = `
+    <div class="card">
+      <div class="label">Lotes em andamento</div>
+      <div class="valor">${abertos.length}</div>
+      <div class="sub">${nucleosAbertos} núcleos · idade média ${idadeMedia!=null?idadeMedia:'—'} dias</div>
+    </div>
+    <div class="card">
+      <div class="label">Peso médio (última pesagem)</div>
+      <div class="valor">${pesoMedio!=null? pesoMedio.toFixed(3):'—'}<span style="font-size:13px;font-weight:600;color:var(--texto-suave)"> kg</span></div>
+      <div class="sub">${pesosRecentes.length} lotes já pesados</div>
+    </div>
+  `;
+}
+
+let chartPesoAnd = null;
+function renderChartPesoAndamento(){
+  const dadosTodos = filtrar();
+  const abertos = dadosTodos.filter(l=>l.situacao==='Aberto');
+  const fechados = dadosTodos.filter(l=>l.situacao==='Fechado');
+  const idades = [7,14,21,28,35,42];
+  function mediaPor(lista, idade){
+    const campo = 'pm'+idade;
+    const vals = lista.map(l=>l[campo]).filter(v=>v!=null);
+    return vals.length ? +(vals.reduce((s,v)=>s+v,0)/vals.length).toFixed(3) : null;
+  }
+  const serieAnd = idades.map(i=>mediaPor(abertos,i));
+  const serieHist = idades.map(i=>mediaPor(fechados,i));
+  const ctx = document.getElementById('pw_chartPesoAndamento').getContext('2d');
+  if(chartPesoAnd) chartPesoAnd.destroy();
+  chartPesoAnd = new Chart(ctx, {
+    type:'line',
+    data:{ labels: idades.map(i=>i+'d'), datasets:[
+      {label:'Histórico (fechados)', data:serieHist, borderColor:'#9AA6B2', backgroundColor:'#9AA6B2', borderWidth:2.2, borderDash:[6,3], pointRadius:3, tension:.3, spanGaps:true},
+      {label:'Em andamento', data:serieAnd, borderColor:'#C1272D', backgroundColor:'rgba(193,39,45,.1)', fill:false, borderWidth:2.8, pointRadius:3, tension:.3, spanGaps:true}
+    ]},
+    options:{ responsive:true, maintainAspectRatio:false,
+      plugins:{ legend:{display:true, position:'top', labels:{usePointStyle:true, font:{weight:600}}},
+        tooltip:{ callbacks:{ label:c=>`${c.dataset.label}: ${c.parsed.y!=null?c.parsed.y.toFixed(3)+' kg':'—'}` } } },
+      scales:{ x:{title:{display:true,text:'Idade',font:{weight:600}}, grid:{color:'#EFEAE0'}},
+        y:{title:{display:true,text:'Peso médio (kg)',font:{weight:600}}, grid:{color:'#EFEAE0'}, beginAtZero:true} }
+    }
+  });
+  document.getElementById('pw_notaPesoAndamento').textContent =
+    `Comparando ${abertos.length} lote(s) em andamento com o histórico de ${fechados.length} lotes fechados (respeitando os filtros do topo). Ponto ausente = ainda não há dado suficiente naquela idade.`;
+}
+
+let pwMdRecolhidos = new Set();
+function atualizarBotaoRecolherAndamento(){
+  const btn = document.getElementById('pw_btnRecolherAndamento');
+  if(!btn) return;
+  const nucs = Array.from(new Set(filtrar().filter(l=>l.situacao==='Aberto').map(l=>l.nucleo)));
+  const todosRec = nucs.length>0 && nucs.every(n=>pwMdRecolhidos.has(n));
+  btn.textContent = todosRec ? 'Expandir todos' : 'Recolher todos';
+}
+(function(){
+  const btn = document.getElementById('pw_btnRecolherAndamento');
+  if(!btn) return;
+  btn.addEventListener('click', ()=>{
+    const nucs = Array.from(new Set(filtrar().filter(l=>l.situacao==='Aberto').map(l=>l.nucleo)));
+    const todosRec = nucs.length>0 && nucs.every(n=>pwMdRecolhidos.has(n));
+    if(todosRec) pwMdRecolhidos.clear(); else nucs.forEach(n=>pwMdRecolhidos.add(n));
+    renderMatrizPeso();
+  });
+})();
+
+function renderMatrizPeso(){
+  const dados = filtrar().filter(l=>l.situacao==='Aberto');
+  const tabela = document.getElementById('pw_tabelaPesoMatriz');
+  atualizarBotaoRecolherAndamento();
+  if(!dados.length){ tabela.innerHTML=''; return; }
+  const porNucleo = new Map();
+  dados.forEach(l=>{ if(!porNucleo.has(l.nucleo)) porNucleo.set(l.nucleo, []); porNucleo.get(l.nucleo).push(l); });
+  const campos = [7,14,21,28,35,42];
+  let thead = '<thead><tr><th class="rowhead">Núcleo / Aviário</th><th class="aloj">Alojadas</th><th class="idade-atual">Idade<br>atual</th>';
+  campos.forEach(c => thead += `<th class="col-idade">${c}d</th>`);
+  thead += '</tr></thead>';
+  let corpo='';
+  Array.from(porNucleo.keys()).sort().forEach(nuc=>{
+    const lotesNuc = porNucleo.get(nuc).slice().sort((a,b)=>String(a.aviario).localeCompare(String(b.aviario)));
+    const rec = pwMdRecolhidos.has(nuc);
+    const alojNuc = lotesNuc.reduce((s,l)=>s+(l.alojadas||0),0);
+    let tdsNuc = '';
+    campos.forEach(c=>{
+      const vals = lotesNuc.map(l=>l['pm'+c]).filter(v=>v!=null);
+      const med = vals.length ? (vals.reduce((s,v)=>s+v,0)/vals.length) : null;
+      tdsNuc += `<td class="cel">${med!=null?med.toFixed(3):'–'}</td>`;
+    });
+    corpo += `<tr class="linha-nuc">
+      <th class="rowhead"><span class="nuc-toggle" data-nuc-toggle-pw="${nuc}">${rec?'▸':'▾'}</span> ${nomeNucleo(nuc)}</th>
+      <td class="aloj">${alojNuc.toLocaleString('pt-BR')}</td>
+      <td class="idade-atual">—</td>
+      ${tdsNuc}
+    </tr>`;
+    if(!rec){
+      lotesNuc.forEach(l=>{
+        const idade = calcularIdadeAtual(l);
+        let tds='';
+        campos.forEach(c=>{ const v=l['pm'+c]; tds += `<td class="cel">${v!=null?v.toFixed(3):'–'}</td>`; });
+        corpo += `<tr>
+          <th class="rowhead av">${l.aviario}</th>
+          <td class="aloj">${(l.alojadas||0).toLocaleString('pt-BR')}</td>
+          <td class="idade-atual">${idade!=null?idade:'–'}</td>
+          ${tds}
+        </tr>`;
+      });
+    }
+  });
+  tabela.innerHTML = thead + '<tbody>'+corpo+'</tbody>';
+  tabela.querySelectorAll('[data-nuc-toggle-pw]').forEach(el=>{
+    el.addEventListener('click', ()=>{
+      const n = el.dataset.nucTogglePw;
+      if(pwMdRecolhidos.has(n)) pwMdRecolhidos.delete(n); else pwMdRecolhidos.add(n);
+      renderMatrizPeso();
+    });
+  });
+  if(typeof ativarArrastar==='function') ativarArrastar(document.getElementById('pw_scrollPesoMatriz'));
+}
+
+function renderAndamento(){
+  const dados = filtrar();
+  const abertos = dados.filter(l=>l.situacao==='Aberto');
+  renderCardsAndamento(abertos);
+  renderChartPesoAndamento();
+  renderMatrizPeso();
+}
+
+// ================= Histórico =================
+let chartEvoAno = null;
+function renderEvoAno(dados){
+  const fechados = dados.filter(l=>l.situacao==='Fechado');
+  const anos = Array.from(new Set(fechados.map(l=>l.ano).filter(v=>v!=null))).sort((a,b)=>a-b);
+  const vals = anos.map(a=>{ const m=media(fechados.filter(l=>l.ano===a),'pmAbate'); return m?+m.toFixed(3):null; });
+  const ctx = document.getElementById('pw_chartEvoAno').getContext('2d');
+  if(chartEvoAno) chartEvoAno.destroy();
+  chartEvoAno = new Chart(ctx,{ type:'line', data:{ labels:anos, datasets:[{
+    label:'Peso ao abate', data:vals, borderColor:'#C1272D', backgroundColor:'rgba(193,39,45,.1)',
+    fill:true, tension:.3, borderWidth:2.6, pointRadius:4, pointBackgroundColor:'#C1272D'
+  }]}, options:{ responsive:true, maintainAspectRatio:false,
+    plugins:{ legend:{display:false}, tooltip:{ callbacks:{ label:c=>`${c.parsed.y!=null?c.parsed.y.toFixed(3)+' kg':'—'}` } } },
+    scales:{ x:{grid:{display:false}}, y:{title:{display:true,text:'Peso ao abate (kg)',font:{weight:600}}, grid:{color:'#EFEAE0'}} }
+  }});
+  const geral = media(fechados,'pmAbate');
+  document.getElementById('pw_notaEvoAno').textContent = geral!=null ? `Média geral do filtro: ${geral.toFixed(3)} kg.` : '';
+}
+
+let dimensaoPw='nucleo', indicadorPw='pmAbate';
+bindSeg('pw_segDimensao', d=>dimensaoPw=d.d);
+bindSeg('pw_segIndicador', d=>indicadorPw=d.k);
+
+function renderRankingPeso(dados){
+  const fechados = dados.filter(l=>l.situacao==='Fechado');
+  const cfg = IND_PW[indicadorPw];
+  const porGrupo = new Map();
+  fechados.forEach(l=>{ const g=l[dimensaoPw]; if(g==null||g==='') return; if(!porGrupo.has(g)) porGrupo.set(g,[]); porGrupo.get(g).push(l); });
+  let grupos = Array.from(porGrupo.entries())
+    .map(([g,ls])=>({grupo:g, valor:media(ls,indicadorPw), n:ls.length}))
+    .filter(x=>x.valor!=null && x.n>=3)
+    .sort((a,b)=> cfg.melhorMaior ? b.valor-a.valor : a.valor-b.valor);
+
+  const cont = document.getElementById('pw_ranking');
+  const nomeDim = {nucleo:'núcleos', aviario:'aviários', linhagem:'linhagens'}[dimensaoPw];
+  document.getElementById('pw_notaRanking').textContent =
+    `${grupos.length} ${nomeDim} · ordenado por ${cfg.nome} (${cfg.melhorMaior?'maior é melhor':'menor é melhor'}) · mínimo 3 lotes por grupo`;
+  if(!grupos.length){ cont.innerHTML = '<div class="vazio">Sem dados suficientes.</div>'; return; }
+
+  const top = grupos.slice(0,15);
+  const valores = top.map(g=>g.valor);
+  const maxV=Math.max(...valores), minV=Math.min(...valores);
+  const label = g => dimensaoPw==='nucleo' ? nomeNucleo(g) : g;
+  const fmtV = v => v.toFixed(cfg.dec)+cfg.sufixo;
+
+  let podioHtml='';
+  if(top.length>=3){
+    const p = top.slice(0,3);
+    const ordem=[{...p[1],pos:2},{...p[0],pos:1},{...p[2],pos:3}];
+    const alturas={1:96,2:70,3:52};
+    const coresP={1:'#F2A900',2:'#B8B2A6',3:'#C58B4B'};
+    const medalha={1:'🥇',2:'🥈',3:'🥉'};
+    podioHtml = `<div class="podio">` + ordem.map(g=>`
+      <div class="podio-col">
+        <div class="podio-nome">${label(g.grupo)}</div>
+        <div class="podio-valor">${fmtV(g.valor)}</div>
+        <div class="podio-bloco" style="height:${alturas[g.pos]}px;background:${coresP[g.pos]}">
+          <span class="podio-medalha">${medalha[g.pos]}</span>
+          <span class="podio-pos">${g.pos}º</span>
+        </div>
+        <div class="podio-sub">${g.n} lotes</div>
+      </div>`).join('') + `</div>`;
+  }
+  const resto = top.length>=3 ? top.slice(3) : top;
+  const offset = top.length>=3 ? 3 : 0;
+  const listaHtml = resto.map((g,idx)=>{
+    const i = idx+offset;
+    const range=maxV-minV||1;
+    const larg = cfg.melhorMaior ? ((g.valor-minV)/range*100) : ((maxV-g.valor)/range*100);
+    return `<div class="rank-card">
+      <span class="rank-pos" style="background:#8A7E6F">${i+1}</span>
+      <div>
+        <div class="rank-nome">${label(g.grupo)}</div>
+        <div class="rank-track"><div class="rank-fill" style="width:${Math.max(6,larg).toFixed(0)}%;background:#F2A900"></div></div>
+        <div class="rank-sub">${g.n} lotes</div>
+      </div>
+      <div class="rank-valor">${g.valor.toFixed(cfg.dec)}<small>${cfg.sufixo}</small></div>
+    </div>`;
+  }).join('');
+  cont.innerHTML = podioHtml + listaHtml;
+}
+
+let nucleosCurvaSelecionadosPw = null;
+let chartCurvaNucleoPw = null;
+const idadesPesoPw=[7,14,21,28,35,42];
+const campoPesoPw={7:'pm7',14:'pm14',21:'pm21',28:'pm28',35:'pm35',42:'pm42'};
+
+function renderCurvaNucleo(dados){
+  const fechados = dados.filter(l=>l.situacao==='Fechado');
+  const nucleosDisp = Array.from(new Set(fechados.map(l=>l.nucleo).filter(Boolean))).sort();
+
+  if(nucleosCurvaSelecionadosPw === null){
+    const ordenados = nucleosDisp.map(n=>{
+      const m = media(fechados.filter(l=>l.nucleo===n),'pmAbate');
+      return {n, valor: m||0};
+    }).sort((a,b)=>b.valor-a.valor);
+    nucleosCurvaSelecionadosPw = new Set(ordenados.slice(0,4).map(o=>o.n));
+  }
+
+  const chipsEl = document.getElementById('pw_chipsNucleos');
+  chipsEl.innerHTML = nucleosDisp.map((n,i)=>{
+    const ativo = nucleosCurvaSelecionadosPw.has(n);
+    const cor = corPorIndice(nucleosDisp.indexOf(n));
+    return `<div class="chip-nucleo ${ativo?'ativo':''}" data-nuc="${n}" style="${ativo?`background:${cor}`:''}">
+      <span class="cbola" style="background:${cor}"></span>${nomeNucleo(n)}</div>`;
+  }).join('');
+  chipsEl.querySelectorAll('.chip-nucleo').forEach(chip=>{
+    chip.addEventListener('click', ()=>{
+      const n = chip.dataset.nuc;
+      if(nucleosCurvaSelecionadosPw.has(n)) nucleosCurvaSelecionadosPw.delete(n); else nucleosCurvaSelecionadosPw.add(n);
+      renderCurvaNucleo(filtrar());
+    });
+  });
+
+  const selecionados = nucleosDisp.filter(n=>nucleosCurvaSelecionadosPw.has(n));
+  const datasets = selecionados.map(n=>{
+    const sub = fechados.filter(l=>l.nucleo===n);
+    const cor = corPorIndice(nucleosDisp.indexOf(n));
+    return { label: nomeNucleo(n), data: idadesPesoPw.map(i=>{ const m=media(sub,campoPesoPw[i]); return m?+m.toFixed(3):null; }),
+      borderColor:cor, backgroundColor:cor, pointRadius:0, pointHoverRadius:4, borderWidth:2.4, tension:.3, spanGaps:true };
+  });
+
+  document.getElementById('pw_legendaCurvaNucleo').innerHTML = datasets.map(d=>
+    `<div class="legenda-item"><span class="barra" style="background:${d.borderColor}"></span>${d.label}</div>`).join('');
+
+  const ctx = document.getElementById('pw_chartCurvaNucleo').getContext('2d');
+  if(chartCurvaNucleoPw) chartCurvaNucleoPw.destroy();
+  chartCurvaNucleoPw = new Chart(ctx, { type:'line', data:{ labels:idadesPesoPw.map(i=>i+'d'), datasets },
+    options:{ responsive:true, maintainAspectRatio:false, interaction:{mode:'index',intersect:false},
+      plugins:{ legend:{display:false}, tooltip:{ callbacks:{
+        title: items=>`Idade ${items[0].label}`,
+        label: c=>`${c.dataset.label}: ${c.parsed.y!=null?c.parsed.y.toFixed(3)+' kg':'—'}` } } },
+      scales:{ x:{title:{display:true,text:'Idade',font:{weight:600}}, grid:{color:'#EFEAE0'}},
+        y:{title:{display:true,text:'Peso médio (kg)',font:{weight:600}}, grid:{color:'#EFEAE0'}, beginAtZero:true} }
+    }});
+}
+
+function renderHistorico(){
+  const dados = filtrar();
+  renderEvoAno(dados);
+  renderRankingPeso(dados);
+  renderCurvaNucleo(dados);
+}
+
+function render(){
+  const dados = filtrar();
+  if(abaAtiva==='andamento'){ renderAndamento(); }
+  else if(abaAtiva==='historico'){ renderHistorico(); }
+}
+window.renderPeso = render;
+})();
+</script>
+
+<script>
 const RESULTADO_LOTES = fetchJSONSync('./data/resultado_lotes.json');
 </script>
 <script>
@@ -2827,7 +3258,7 @@ function filtrar(){
 document.querySelectorAll('#mod-resultado .tab-int').forEach(b=>b.addEventListener('click',()=>{
   document.querySelectorAll('#mod-resultado .tab-int').forEach(x=>x.classList.remove('ativo'));
   b.classList.add('ativo'); abaAtiva=b.dataset.aba;
-  ['geral','desempenho','andamento','matriz'].forEach(a=>{
+  ['geral','desempenho','matriz'].forEach(a=>{
     document.querySelector(`#mod-resultado [data-aba-view="${a}"]`).style.display = (a===abaAtiva)?'':'none';
   });
   render(); window.scrollTo({top:0,behavior:'smooth'});
