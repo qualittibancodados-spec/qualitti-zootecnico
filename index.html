@@ -706,6 +706,9 @@
       <div class="campo"><label>Núcleo</label><select id="rz_fNucleo"></select></div>
       <div class="campo"><label>Linhagem</label><select id="rz_fLinhagem"></select></div>
       <div class="campo"><label>Sexo</label><select id="rz_fSexo"></select></div>
+      <div class="campo" style="display:flex;justify-content:flex-end;">
+        <button class="btn-recolher" id="btnLimparFiltrosRz" style="border-color:var(--vermelho);color:var(--vermelho);">✕ Limpar filtros</button>
+      </div>
     </div>
   </div>
 
@@ -849,6 +852,9 @@
       <div class="campo"><label>Ano</label><select id="cd_fAno"></select></div>
       <div class="campo"><label>Núcleo</label><select id="cd_fNucleo"></select></div>
       <div class="campo"><label>Aviário</label><select id="cd_fAviario"></select></div>
+      <div class="campo" style="display:flex;justify-content:flex-end;">
+        <button class="btn-recolher" id="btnLimparFiltrosCd" style="border-color:var(--vermelho);color:var(--vermelho);">✕ Limpar filtros</button>
+      </div>
     </div>
     <div class="metrica-row">
       <span>Base do percentual:</span>
@@ -928,6 +934,9 @@
       <div class="campo"><label>Núcleo</label><select id="pw_fNucleo"></select></div>
       <div class="campo"><label>Linhagem</label><select id="pw_fLinhagem"></select></div>
       <div class="campo"><label>Sexo</label><select id="pw_fSexo"></select></div>
+      <div class="campo" style="display:flex;justify-content:flex-end;">
+        <button class="btn-recolher" id="btnLimparFiltrosPw" style="border-color:var(--vermelho);color:var(--vermelho);">✕ Limpar filtros</button>
+      </div>
     </div>
   </div>
 
@@ -1052,6 +1061,9 @@
           <option value="Fêmeas">Fêmeas</option>
           <option value="Mistos">Mistos</option>
         </select>
+      </div>
+      <div class="campo" style="display:flex;justify-content:flex-end;">
+        <button class="btn-recolher" id="btnLimparFiltrosMort" style="border-color:var(--vermelho);color:var(--vermelho);">✕ Limpar filtros</button>
       </div>
     </div>
     <div class="metrica-row">
@@ -1520,6 +1532,16 @@ selAviario.addEventListener('change', () => { selecionarPadrao(); render(); });
 // filtro de sexo (afeta tudo)
 document.getElementById('fSexo').addEventListener('change', (e) => {
   sexoAtivo = e.target.value;
+  if(abaAtiva==='andamento') selecionarPadrao();
+  render();
+});
+
+document.getElementById('btnLimparFiltrosMort').addEventListener('click', () => {
+  document.getElementById('fNucleo').value = 'Todos';
+  document.getElementById('fAviario').value = 'Todos';
+  document.getElementById('fSexo').value = 'Todos';
+  sexoAtivo = 'Todos';
+  popularAviarios();
   if(abaAtiva==='andamento') selecionarPadrao();
   render();
 });
@@ -2773,6 +2795,13 @@ function filtrar(){
 document.getElementById('cd_fNucleo').addEventListener('change',()=>{popularAviarios();render();});
 document.getElementById('cd_fAno').addEventListener('change',render);
 document.getElementById('cd_fAviario').addEventListener('change',render);
+document.getElementById('btnLimparFiltrosCd').addEventListener('click', () => {
+  document.getElementById('cd_fAno').value = 'Todos';
+  document.getElementById('cd_fNucleo').value = 'Todos';
+  popularAviarios();
+  document.getElementById('cd_fAviario').value = 'Todos';
+  render();
+});
 
 // tabs
 document.querySelectorAll('#mod-condenas .tab-int').forEach(b=>b.addEventListener('click',()=>{
@@ -3110,6 +3139,10 @@ function filtrar(){
   });
 }
 ['pw_fAno','pw_fNucleo','pw_fLinhagem','pw_fSexo'].forEach(id=>document.getElementById(id).addEventListener('change', render));
+document.getElementById('btnLimparFiltrosPw').addEventListener('click', () => {
+  ['pw_fAno','pw_fNucleo','pw_fLinhagem','pw_fSexo'].forEach(id=>document.getElementById(id).value = 'Todos');
+  render();
+});
 
 document.querySelectorAll('#mod-peso .tab-int').forEach(b=>b.addEventListener('click',()=>{
   document.querySelectorAll('#mod-peso .tab-int').forEach(x=>x.classList.remove('ativo'));
@@ -3565,6 +3598,10 @@ function filtrar(){
   });
 }
 ['rz_fAno','rz_fRodada','rz_fNucleo','rz_fLinhagem','rz_fSexo'].forEach(id=>document.getElementById(id).addEventListener('change', render));
+document.getElementById('btnLimparFiltrosRz').addEventListener('click', () => {
+  ['rz_fAno','rz_fRodada','rz_fNucleo','rz_fLinhagem','rz_fSexo'].forEach(id=>document.getElementById(id).value = 'Todos');
+  render();
+});
 
 document.querySelectorAll('#mod-resultado .tab-int').forEach(b=>b.addEventListener('click',()=>{
   document.querySelectorAll('#mod-resultado .tab-int').forEach(x=>x.classList.remove('ativo'));
