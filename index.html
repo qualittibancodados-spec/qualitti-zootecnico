@@ -118,8 +118,8 @@
   .matriz-diaria thead th.rowhead{ z-index:4; background:#F1F4F7; }
   .matriz-diaria tr.linha-nuc th.rowhead{ font-weight:800; color:var(--vermelho-escuro); background:#FFF4E1; box-shadow:inset 3px 0 0 var(--dourado); }
   .matriz-diaria tr.linha-nuc td{ font-weight:700; background:#FFF4E1; }
-  .matriz-diaria td.peso-falta{ background:#FDECC8; box-shadow:inset 0 0 0 1px #F0CB7A; position:relative; }
-  .matriz-diaria td.peso-falta::after{ content:'⚠'; font-size:9px; color:#B8860B; position:absolute; top:1px; right:2px; }
+  .matriz-diaria td.peso-falta{ background:#FBE3E1; box-shadow:inset 0 0 0 1px #E8A29C; position:relative; }
+  .matriz-diaria td.peso-falta::after{ content:'✕'; font-size:9px; font-weight:800; color:#C0392B; position:absolute; top:1px; right:2px; }
   .matriz-diaria th.rowhead.av{ padding-left:20px; font-weight:500; color:var(--texto-suave); }
   .matriz-diaria td.cel{ font-variant-numeric:tabular-nums; }
   .matriz-diaria .aloj{ font-weight:600; background:#F7F9FB; position:sticky; left:150px; z-index:3; width:80px; min-width:80px; }
@@ -974,7 +974,7 @@
       <div class="tabela-scroll arrastavel" id="pw_scrollPesoMatriz">
         <table class="matriz-diaria" id="pw_tabelaPesoMatriz"></table>
       </div>
-      <p class="nota">"–" = o lote ainda não chegou nessa idade / ainda não foi pesado nessa checagem. <strong style="color:#B8860B">⚠ destacado</strong> = o lote já passou 1 dia da idade da checagem e ainda não tem peso registrado (deveria ter sido pesado no dia do "aniversário").</p>
+      <p class="nota">"–" = o lote ainda não chegou nessa idade / ainda não foi pesado nessa checagem. <strong style="color:#C0392B">✕ destacado</strong> = o lote já passou 1 dia da idade da checagem e ainda não tem peso registrado (deveria ter sido pesado no dia do "aniversário").</p>
     </div>
   </div>
 
@@ -1096,7 +1096,7 @@
         </button>
       </div>
 
-      <p class="nota-grafico" style="margin:0 0 12px;">Acompanhamento dia a dia das baixas de cada aviário em andamento, por núcleo — com o <strong>subtotal do núcleo</strong> ao final de cada grupo. A célula fica destacada quando há <strong>salto brusco</strong> de mortalidade em relação ao dia anterior. A coluna <strong>Idade atual</strong> mostra a idade de hoje (data de hoje − alojamento). <strong style="color:#B8860B">⚠ destacado</strong> = falta o lançamento de Total naquele dia (do dia 1 até o dia anterior à idade atual) — o dia 0 é isento, pois às vezes não é lançado mesmo. <span style="color:var(--texto-suave)">💡 Clique e arraste a tabela para o lado para navegar entre as idades.</span></p>
+      <p class="nota-grafico" style="margin:0 0 12px;">Acompanhamento dia a dia das baixas de cada aviário em andamento, por núcleo — com o <strong>subtotal do núcleo</strong> ao final de cada grupo. A célula fica destacada quando há <strong>salto brusco</strong> de mortalidade em relação ao dia anterior. A coluna <strong>Idade atual</strong> mostra a idade de hoje (data de hoje − alojamento). <strong style="color:#C0392B">✕ destacado</strong> = falta o lançamento de Total naquele dia (do dia 1 até o dia anterior à idade atual) — o dia 0 é isento, pois às vezes não é lançado mesmo. <span style="color:var(--texto-suave)">💡 Clique e arraste a tabela para o lado para navegar entre as idades.</span></p>
       <div class="tabela-scroll arrastavel" id="scrollMatrizDiaria">
         <table class="matriz-diaria" id="tabelaMatrizDiaria"></table>
       </div>
