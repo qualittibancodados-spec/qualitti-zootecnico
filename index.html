@@ -123,7 +123,7 @@
   .matriz-diaria th.rowhead.av{ padding-left:20px; font-weight:500; color:var(--texto-suave); }
   .matriz-diaria td.cel{ font-variant-numeric:tabular-nums; }
   .matriz-diaria .aloj{ font-weight:600; background:#F7F9FB; position:sticky; left:150px; z-index:3; width:80px; min-width:80px; }
-  .matriz-diaria .idade-atual{ font-weight:800; background:#EEF3F8; color:var(--texto); border-right:2px solid var(--borda); position:sticky; left:230px; z-index:3; width:70px; min-width:70px; }
+  .matriz-diaria .idade-atual{ font-weight:800; background:#EEF3F8; color:var(--texto); border-right:2px solid var(--borda); position:sticky; left:230px; z-index:3; width:70px; min-width:70px; box-shadow:4px 0 8px -3px rgba(0,0,0,.18); }
   .matriz-diaria td.tot{ font-weight:800; background:#F4EFE6; border-left:2px solid var(--dourado); }
   .matriz-diaria td.pct{ font-weight:800; background:#F4EFE6; }
   /* destaque de salto de mortalidade */
@@ -4289,7 +4289,6 @@ document.getElementById('formCadastro').addEventListener('submit', async (e)=>{
 });
 
 auth.onAuthStateChanged(user => {
-  // a checagem inicial terminou — esconde o "Verificando login..." de qualquer forma
   const nota = document.getElementById('notaCarregando');
   if(nota) nota.style.display = 'none';
   if(user){
