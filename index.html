@@ -1082,7 +1082,7 @@
           <div class="painel-header"><h2>Promover administrador</h2></div>
           <p class="nota" style="margin-top:0;">Dá acesso parcial ao painel de Administração pra outra pessoa — só o que você marcar abaixo.</p>
           <form id="formPromoverAdmin" style="display:flex;gap:16px;flex-wrap:wrap;align-items:flex-end;">
-            <div class="campo" style="flex:1;min-width:220px;"><label>E-mail</label><input type="email" id="emailPromover" required style="width:100%;padding:10px 12px;border-radius:9px;border:1.5px solid var(--borda);font-size:14px;font-family:inherit;box-sizing:border-box;"></div>
+            <div class="campo" style="flex:1;min-width:220px;"><label>E-mail (já cadastrado em "E-mails autorizados")</label><select id="emailPromover" required style="width:100%;padding:10px 12px;border-radius:9px;border:1.5px solid var(--borda);font-size:14px;font-family:inherit;box-sizing:border-box;"><option value="">Selecione...</option></select></div>
             <label style="display:flex;align-items:center;gap:6px;font-size:13px;font-weight:600;"><input type="checkbox" id="permMetas" style="width:16px;height:16px;"> Pode gerenciar metas</label>
             <label style="display:flex;align-items:center;gap:6px;font-size:13px;font-weight:600;"><input type="checkbox" id="permUsuarios" style="width:16px;height:16px;"> Pode gerenciar usuários</label>
             <button type="submit" class="btn-recolher" style="background:var(--vermelho);color:#fff;border-color:var(--vermelho);">Promover / Atualizar</button>
@@ -1582,6 +1582,7 @@ document.querySelectorAll('.modulo').forEach(btn => {
       if(window.souAdminPrincipal){
         if(window.carregarAcessos) window.carregarAcessos();
         if(window.carregarListaAdmins) window.carregarListaAdmins();
+        if(window.popularSelectEmailPromover) window.popularSelectEmailPromover();
       }
     }
     if(window.registrarModulo) window.registrarModulo(mod);
@@ -3499,6 +3500,7 @@ function renderMatrizPeso(){
   });
   if(typeof ativarArrastar==='function') ativarArrastar(document.getElementById('pw_scrollPesoMatriz'));
 }
+window.renderMatrizPeso = renderMatrizPeso; // permite chamar de fora do módulo (ex: depois de salvar meta em Administração)
 
 function renderAndamento(){
   const dados = filtrar();
@@ -4488,8 +4490,8 @@ auth.onAuthStateChanged(user => {
     if(window.souAdminPrincipal){
       window.minhasPermissoes = {metas:true, usuarios:true};
       if(btnAdmin) btnAdmin.style.display = '';
+      atualizarVisibilidadeSecoesAdmin();
     } else {
-      // checa se esse e-mail foi promovido a admin parcial
       db.collection('admins').doc(emailLower).get().then(doc=>{
         if(doc.exists){
           const perm = doc.data().permissoes || {};
@@ -4502,7 +4504,6 @@ auth.onAuthStateChanged(user => {
         atualizarVisibilidadeSecoesAdmin();
       }).catch(()=>{ if(btnAdmin) btnAdmin.style.display = 'none'; });
     }
-    atualizarVisibilidadeSecoesAdmin();
     registrarAcesso(user);
     setTimeout(()=>window.dispatchEvent(new Event('resize')), 80);
   } else {
@@ -4630,12 +4631,17 @@ if(formMetasPeso){
     btn.disabled = true; btn.textContent = 'Salvando...';
     const novasMetas = {};
     [7,14,21,28,35].forEach(c=>{
-      const v = parseFloat(document.getElementById('meta'+c).value);
-      if(!isNaN(v)) novasMetas[c] = v;
+      const el = document.getElementById('meta'+c);
+      const v = parseFloat(el.value);
+      novasMetas[c] = isNaN(v) ? null : v;
     });
     try{
-      await db.collection('configuracoes').doc('metas_peso').set(novasMetas, {merge:true});
+      await db.collection('configuracoes').doc('metas_peso').set(novasMetas);
       window.METAS_PESO = novasMetas;
+      [7,14,21,28,35].forEach(c=>{
+        const el = document.getElementById('meta'+c);
+        if(el) el.value = (novasMetas[c]!=null) ? novasMetas[c] : '';
+      });
       erroEl.style.color = 'var(--verde-ok)';
       erroEl.textContent = 'Metas salvas com sucesso!';
       if(typeof window.renderMatrizPeso === 'function') window.renderMatrizPeso();
@@ -4648,6 +4654,19 @@ if(formMetasPeso){
 }
 
 // ================= Promover administradores =================
+async function popularSelectEmailPromover(){
+  const sel = document.getElementById('emailPromover');
+  if(!sel) return;
+  try{
+    const snap = await db.collection('emails_autorizados').get();
+    const emails = [];
+    snap.forEach(doc => { const em=(doc.data().email||'').toLowerCase(); if(em && em!==ADMIN_EMAIL) emails.push(em); });
+    emails.sort();
+    sel.innerHTML = '<option value="">Selecione...</option>' + emails.map(em=>`<option value="${em}">${em}</option>`).join('');
+  }catch(e){ /* deixa só a opção padrão se falhar */ }
+}
+window.popularSelectEmailPromover = popularSelectEmailPromover;
+
 async function carregarListaAdmins(){
   const cont = document.getElementById('listaAdminsPromovidos');
   const info = document.getElementById('infoAdminsPromovidos');
@@ -4691,6 +4710,7 @@ if(formPromoverAdmin){
     const email = document.getElementById('emailPromover').value.trim().toLowerCase();
     const permMetas = document.getElementById('permMetas').checked;
     const permUsuarios = document.getElementById('permUsuarios').checked;
+    if(!email){ erroEl.textContent = 'Selecione um e-mail.'; return; }
     if(email === ADMIN_EMAIL){ erroEl.textContent = 'Esse já é o e-mail do administrador principal.'; return; }
     if(!permMetas && !permUsuarios){ erroEl.textContent = 'Marque ao menos uma permissão.'; return; }
     const btn = formPromoverAdmin.querySelector('button[type="submit"]');
