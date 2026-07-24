@@ -90,6 +90,7 @@ def identificar_planilha(xls_bytes):
 def processar_mortalidade(xl):
     df = pd.read_excel(xl, sheet_name='bd_mort')
     df = df.dropna(subset=['Núcleo', 'Aviário']).copy()
+    df = df[df['Ano'] >= 2023].copy()  # mantém só a partir de 2023 (dado mais antigo não é mais publicado no painel)
 
     # ---- RAW_DATA (enxuto: abertos + últimos 3 fechados por aviário) ----
     raw_cols = ['Núcleo', 'Aviário', 'Lote', 'Situação', 'Data Aloj', 'Ano', 'Rodada',
@@ -234,6 +235,7 @@ def processar_mortalidade(xl):
 # ============================================================
 def processar_resultado(xl):
     df = pd.read_excel(xl, sheet_name='bd_lotes')
+    df = df[df['Ano'] >= 2023].copy()  # mantém só a partir de 2023
     ren = {
         'Lote': 'lote', 'Data Abate': 'dataAbate', 'Ano': 'ano', 'Rodada': 'rodada',
         'Sexo': 'sexo', 'Núcleo': 'nucleo', 'Incubatório': 'incubatorio', 'Aviário': 'aviario',
@@ -272,6 +274,7 @@ def processar_resultado(xl):
 # ============================================================
 def processar_condenas(xl):
     df = pd.read_excel(xl, sheet_name='Bd_Condenas')
+    df = df[df['Ano Abate'] >= 2023].copy()  # mantém só a partir de 2023 (calendário real do abate)
     lotes = []
     for (nuc, num, abate), g in df.groupby(['Núcleo', 'Número', 'Abate']):
         peso_total = float(g['Peso Total Kg'].iloc[0])
