@@ -1468,6 +1468,13 @@ async function compartilharTabelaWhatsApp(tabelaId, nomeArquivo, btnClicado){
   }
 }
 
+// cache simples: Resultado e Peso usam o mesmo arquivo — evita baixar 2x se a pessoa abrir os dois
+let _resultadoLotesCache = null;
+function fetchResultadoLotesCache(){
+  if(!_resultadoLotesCache) _resultadoLotesCache = fetchJSONSync('./data/resultado_lotes.json');
+  return _resultadoLotesCache;
+}
+
 // ========================= Arrastar para rolar (drag-to-scroll) =========================
 function ativarArrastar(el){
   if(!el || el._arrastarAtivo) return;
@@ -3137,7 +3144,7 @@ render();
 (function(){
   let pesoIniciado = false;
   function iniciarPeso(){
-const PESO_LOTES = fetchJSONSync('./data/resultado_lotes.json');
+const PESO_LOTES = fetchResultadoLotesCache();
 const nomeNucleo = n => (n||'').replace('NÚCLEO ','');
 const corPorIndice = i => ['#C1272D','#F2A900','#3A7D44','#2E6E9E','#8E44AD','#D97706','#0E7C7B','#B33F62'][i % 8];
 
@@ -3588,7 +3595,7 @@ window.renderPeso = render;
 (function(){
   let resultadoIniciado = false;
   function iniciarResultado(){
-const LOTES = fetchJSONSync('./data/resultado_lotes.json');
+const LOTES = fetchResultadoLotesCache();
 const nomeNucleo = n => (n||'').replace('NÚCLEO ','');
 const corLinhagem = {'COBB':'#C1272D','ROSS':'#2E6E9E','HUBBARD':'#F2A900'};
 
