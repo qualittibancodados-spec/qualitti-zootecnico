@@ -122,6 +122,10 @@
   .matriz-diaria td.peso-falta::after{ content:'✕'; font-size:9px; font-weight:800; color:#C0392B; position:absolute; top:1px; right:2px; }
   .cel-relacao{ font-size:9.5px; color:var(--texto-suave); font-weight:700; }
   .matriz-diaria td.cel-relacao-col{ background:#F7F5F0; color:var(--texto-suave); font-weight:700; font-size:11px; }
+  .matriz-diaria td.peso-acima-meta{ background:#E3F3E7; box-shadow:inset 0 0 0 1px #A8D5B3; }
+  .matriz-diaria td.peso-acima-meta::after{ content:'▲'; font-size:8px; color:#2E7D46; margin-left:3px; }
+  .matriz-diaria td.peso-abaixo-meta{ background:#FDF1DC; box-shadow:inset 0 0 0 1px #F0CB7A; }
+  .matriz-diaria td.peso-abaixo-meta::after{ content:'▼'; font-size:8px; color:#A9720A; margin-left:3px; }
   .matriz-diaria th.rowhead.av{ padding-left:20px; font-weight:500; color:var(--texto-suave); }
   .matriz-diaria td.cel{ font-variant-numeric:tabular-nums; }
   .matriz-diaria .aloj{ font-weight:600; background:#F7F9FB; position:sticky; left:150px; z-index:3; width:80px; min-width:80px; }
@@ -988,7 +992,7 @@
       <div class="tabela-scroll arrastavel" id="pw_scrollPesoMatriz">
         <table class="matriz-diaria" id="pw_tabelaPesoMatriz"></table>
       </div>
-      <p class="nota">"–" = o lote ainda não chegou nessa idade / ainda não foi pesado nessa checagem. <strong style="color:#C0392B">✕ destacado</strong> = o lote já passou 1 dia da idade da checagem e ainda não tem peso registrado (deveria ter sido pesado no dia do "aniversário"). A coluna <strong>"relação"</strong> ao lado de cada idade (ex: <strong>3,07x</strong>) mostra quantas vezes o frango já ganhou de peso naquela idade, em relação ao peso do alojamento.</p>
+      <p class="nota">"–" = o lote ainda não chegou nessa idade / ainda não foi pesado nessa checagem. <strong style="color:#C0392B">✕ destacado</strong> = o lote já passou 1 dia da idade da checagem e ainda não tem peso registrado (deveria ter sido pesado no dia do "aniversário"). A coluna <strong>"relação"</strong> ao lado de cada idade (ex: <strong>3,07x</strong>) mostra quantas vezes o frango já ganhou de peso naquela idade, em relação ao peso do alojamento. <strong style="color:#2E7D46">▲ verde</strong> = dentro ou acima da meta definida em Administração. <strong style="color:#A9720A">▼ âmbar</strong> = abaixo da meta.</p>
     </div>
   </div>
 
@@ -1041,22 +1045,62 @@
   <div data-modulo-view="admin" style="display:none;">
     <div id="mod-admin">
       <div class="pagina-head"><h1 class="pagina-titulo">Administração</h1></div>
-      <div class="painel">
-        <div class="painel-header"><h2>Adicionar e-mail autorizado</h2></div>
-        <form id="formAddEmail" style="display:flex;gap:10px;align-items:flex-end;flex-wrap:wrap;">
-          <div class="campo" style="flex:1;min-width:220px;"><label>E-mail</label><input type="email" id="novoEmailAdmin" required style="width:100%;padding:10px 12px;border-radius:9px;border:1.5px solid var(--borda);font-size:14px;font-family:inherit;box-sizing:border-box;"></div>
-          <button type="submit" class="btn-recolher" style="background:var(--vermelho);color:#fff;border-color:var(--vermelho);">+ Adicionar</button>
-        </form>
-        <p class="nota" id="erroAddEmail" style="min-height:16px;margin-top:8px;"></p>
+
+      <div id="admin-secao-usuarios" style="display:none;">
+        <div class="painel">
+          <div class="painel-header"><h2>Adicionar e-mail autorizado</h2></div>
+          <form id="formAddEmail" style="display:flex;gap:10px;align-items:flex-end;flex-wrap:wrap;">
+            <div class="campo" style="flex:1;min-width:220px;"><label>E-mail</label><input type="email" id="novoEmailAdmin" required style="width:100%;padding:10px 12px;border-radius:9px;border:1.5px solid var(--borda);font-size:14px;font-family:inherit;box-sizing:border-box;"></div>
+            <button type="submit" class="btn-recolher" style="background:var(--vermelho);color:#fff;border-color:var(--vermelho);">+ Adicionar</button>
+          </form>
+          <p class="nota" id="erroAddEmail" style="min-height:16px;margin-top:8px;"></p>
+        </div>
+        <div class="painel">
+          <div class="painel-header"><h2>E-mails autorizados</h2><span class="info" id="infoListaEmails"></span></div>
+          <div id="listaEmailsAdmin"></div>
+        </div>
       </div>
-      <div class="painel">
-        <div class="painel-header"><h2>E-mails autorizados</h2><span class="info" id="infoListaEmails"></span></div>
-        <div id="listaEmailsAdmin"></div>
+
+      <div id="admin-secao-metas" style="display:none;">
+        <div class="painel">
+          <div class="painel-header"><h2>Metas de peso por idade</h2></div>
+          <p class="nota" style="margin-top:0;">Defina o peso esperado (kg) em cada idade. A matriz de peso em "Evolução de Pesos → Em andamento" passa a sinalizar quem está acima ou abaixo dessas metas.</p>
+          <form id="formMetasPeso" style="display:flex;gap:12px;flex-wrap:wrap;align-items:flex-end;">
+            <div class="campo"><label>7 dias (kg)</label><input type="number" step="0.001" id="meta7" style="width:100px;padding:10px;border-radius:9px;border:1.5px solid var(--borda);font-size:14px;font-family:inherit;"></div>
+            <div class="campo"><label>14 dias (kg)</label><input type="number" step="0.001" id="meta14" style="width:100px;padding:10px;border-radius:9px;border:1.5px solid var(--borda);font-size:14px;font-family:inherit;"></div>
+            <div class="campo"><label>21 dias (kg)</label><input type="number" step="0.001" id="meta21" style="width:100px;padding:10px;border-radius:9px;border:1.5px solid var(--borda);font-size:14px;font-family:inherit;"></div>
+            <div class="campo"><label>28 dias (kg)</label><input type="number" step="0.001" id="meta28" style="width:100px;padding:10px;border-radius:9px;border:1.5px solid var(--borda);font-size:14px;font-family:inherit;"></div>
+            <div class="campo"><label>35 dias (kg)</label><input type="number" step="0.001" id="meta35" style="width:100px;padding:10px;border-radius:9px;border:1.5px solid var(--borda);font-size:14px;font-family:inherit;"></div>
+            <button type="submit" class="btn-recolher" style="background:var(--vermelho);color:#fff;border-color:var(--vermelho);">Salvar metas</button>
+          </form>
+          <p class="nota" id="erroMetasPeso" style="min-height:16px;margin-top:8px;"></p>
+        </div>
       </div>
-      <div class="painel">
-        <div class="painel-header"><h2>Acessos e uso do painel</h2><span class="info" id="infoAcessos"></span></div>
-        <p class="nota" style="margin-top:0;">Quem está usando o painel de verdade — ordenado por acesso mais recente. Atualiza sozinho conforme as pessoas usam o site.</p>
-        <div class="tabela-scroll"><table class="matriz-diaria" id="tabelaAcessos"></table></div>
+
+      <div id="admin-secao-promover" style="display:none;">
+        <div class="painel">
+          <div class="painel-header"><h2>Promover administrador</h2></div>
+          <p class="nota" style="margin-top:0;">Dá acesso parcial ao painel de Administração pra outra pessoa — só o que você marcar abaixo.</p>
+          <form id="formPromoverAdmin" style="display:flex;gap:16px;flex-wrap:wrap;align-items:flex-end;">
+            <div class="campo" style="flex:1;min-width:220px;"><label>E-mail</label><input type="email" id="emailPromover" required style="width:100%;padding:10px 12px;border-radius:9px;border:1.5px solid var(--borda);font-size:14px;font-family:inherit;box-sizing:border-box;"></div>
+            <label style="display:flex;align-items:center;gap:6px;font-size:13px;font-weight:600;"><input type="checkbox" id="permMetas" style="width:16px;height:16px;"> Pode gerenciar metas</label>
+            <label style="display:flex;align-items:center;gap:6px;font-size:13px;font-weight:600;"><input type="checkbox" id="permUsuarios" style="width:16px;height:16px;"> Pode gerenciar usuários</label>
+            <button type="submit" class="btn-recolher" style="background:var(--vermelho);color:#fff;border-color:var(--vermelho);">Promover / Atualizar</button>
+          </form>
+          <p class="nota" id="erroPromoverAdmin" style="min-height:16px;margin-top:8px;"></p>
+        </div>
+        <div class="painel">
+          <div class="painel-header"><h2>Administradores promovidos</h2><span class="info" id="infoAdminsPromovidos"></span></div>
+          <div id="listaAdminsPromovidos"></div>
+        </div>
+      </div>
+
+      <div id="admin-secao-acessos" style="display:none;">
+        <div class="painel">
+          <div class="painel-header"><h2>Acessos e uso do painel</h2><span class="info" id="infoAcessos"></span></div>
+          <p class="nota" style="margin-top:0;">Quem está usando o painel de verdade — ordenado por acesso mais recente. Atualiza sozinho conforme as pessoas usam o site.</p>
+          <div class="tabela-scroll"><table class="matriz-diaria" id="tabelaAcessos"></table></div>
+        </div>
       </div>
     </div>
   </div>
@@ -1532,7 +1576,14 @@ document.querySelectorAll('.modulo').forEach(btn => {
     if(mod==='resultado' && window.renderResultado) window.renderResultado();
     if(mod==='condenas' && window.renderCondenas) window.renderCondenas();
     if(mod==='peso' && window.renderPeso) window.renderPeso();
-    if(mod==='admin' && window.carregarListaEmails){ window.carregarListaEmails(); if(window.carregarAcessos) window.carregarAcessos(); }
+    if(mod==='admin'){
+      if(window.souAdminPrincipal || window.minhasPermissoes.usuarios){ if(window.carregarListaEmails) window.carregarListaEmails(); }
+      if(window.souAdminPrincipal || window.minhasPermissoes.metas){ if(window.carregarFormMetasPeso) window.carregarFormMetasPeso(); }
+      if(window.souAdminPrincipal){
+        if(window.carregarAcessos) window.carregarAcessos();
+        if(window.carregarListaAdmins) window.carregarListaAdmins();
+      }
+    }
     if(window.registrarModulo) window.registrarModulo(mod);
     window.scrollTo({top:0, behavior:'smooth'});
   });
@@ -3150,6 +3201,14 @@ const PESO_LOTES = fetchResultadoLotesCache();
 const nomeNucleo = n => (n||'').replace('NÚCLEO ','');
 const corPorIndice = i => ['#C1272D','#F2A900','#3A7D44','#2E6E9E','#8E44AD','#D97706','#0E7C7B','#B33F62'][i % 8];
 
+// busca as metas de peso definidas em Administração (assíncrono — quando chegar, redesenha a matriz)
+if(typeof db !== 'undefined' && !window.METAS_PESO){
+  db.collection('configuracoes').doc('metas_peso').get().then(doc=>{
+    window.METAS_PESO = doc.exists ? doc.data() : {};
+    if(typeof renderMatrizPeso === 'function') renderMatrizPeso();
+  }).catch(()=>{ window.METAS_PESO = {}; });
+}
+
 const IND_PW = {
   pmAbate:   {nome:'Peso ao abate (kg)', dec:3, sufixo:'', melhorMaior:true},
   gmd:       {nome:'GMD (g/dia)',        dec:1, sufixo:'', melhorMaior:true},
@@ -3394,7 +3453,10 @@ function renderMatrizPeso(){
       const med = vals.length ? (vals.reduce((s,v)=>s+v,0)/vals.length) : null;
       const valsR = lotesNuc.map(l=>l['r'+c]).filter(v=>v!=null);
       const medR = valsR.length ? (valsR.reduce((s,v)=>s+v,0)/valsR.length) : null;
-      tdsNuc += `<td class="cel">${med!=null?med.toFixed(3):'–'}</td><td class="cel cel-relacao-col">${medR!=null?medR.toFixed(2)+'x':'–'}</td>`;
+      const meta = (window.METAS_PESO && window.METAS_PESO[c]!=null) ? window.METAS_PESO[c] : null;
+      let classeMeta = '';
+      if(med!=null && meta!=null) classeMeta = med >= meta ? 'peso-acima-meta' : 'peso-abaixo-meta';
+      tdsNuc += `<td class="cel ${classeMeta}">${med!=null?med.toFixed(3):'–'}</td><td class="cel cel-relacao-col">${medR!=null?medR.toFixed(2)+'x':'–'}</td>`;
     });
     corpo += `<tr class="linha-nuc">
       <th class="rowhead"><span class="nuc-toggle" data-nuc-toggle-pw="${nuc}">${rec?'▸':'▾'}</span> ${nomeNucleo(nuc)}</th>
@@ -3411,7 +3473,11 @@ function renderMatrizPeso(){
           const r=l['r'+c];
           // não sinaliza falta de peso aos 42d — nem sempre existe (lote pode abater antes ou alguns dias depois)
           const faltando = (v==null && idade!=null && idade >= c+1 && c !== 42);
-          tds += `<td class="cel ${faltando?'peso-falta':''}" ${faltando?`title="Sem peso da checagem de ${c}d — o lote já está com ${idade} dias"`:''}>${v!=null?v.toFixed(3):'–'}</td>`;
+          const meta = (window.METAS_PESO && window.METAS_PESO[c]!=null) ? window.METAS_PESO[c] : null;
+          let classeMeta = '';
+          if(v!=null && meta!=null) classeMeta = v >= meta ? 'peso-acima-meta' : 'peso-abaixo-meta';
+          const tituloMeta = (v!=null && meta!=null) ? `title="Meta ${c}d: ${meta.toFixed(3)}kg — ${v>=meta?'dentro da meta':'abaixo da meta'}"` : '';
+          tds += `<td class="cel ${faltando?'peso-falta':''} ${classeMeta}" ${faltando?`title="Sem peso da checagem de ${c}d — o lote já está com ${idade} dias"`:tituloMeta}>${v!=null?v.toFixed(3):'–'}</td>`;
           tds += `<td class="cel cel-relacao-col">${(v!=null && r!=null)?r.toFixed(2)+'x':'–'}</td>`;
         });
         corpo += `<tr>
@@ -4314,6 +4380,8 @@ const db = firebase.firestore();
 const telaLogin = document.getElementById('telaLogin');
 const appRoot = document.getElementById('appRoot');
 const ADMIN_EMAIL = 'avicultura05@qualitti.com.br';
+window.souAdminPrincipal = false;
+window.minhasPermissoes = {metas:false, usuarios:false};
 
 function mensagemErroAuth(err){
   const map = {'auth/user-not-found':'E-mail ou senha incorretos.','auth/wrong-password':'E-mail ou senha incorretos.','auth/invalid-credential':'E-mail ou senha incorretos.','auth/invalid-email':'E-mail inválido.','auth/email-already-in-use':'Já existe uma conta com este e-mail. Tente entrar.','auth/weak-password':'Senha muito curta (mínimo 6 caracteres).','auth/too-many-requests':'Muitas tentativas. Aguarde um pouco e tente de novo.'};
@@ -4396,14 +4464,45 @@ window.registrarModulo = function(mod){
   db.collection('acessos').doc(user.uid).set(upd, {merge:true}).catch(()=>{});
 };
 
+function atualizarVisibilidadeSecoesAdmin(){
+  const secUsuarios = document.getElementById('admin-secao-usuarios');
+  const secMetas = document.getElementById('admin-secao-metas');
+  const secPromover = document.getElementById('admin-secao-promover');
+  const secAcessos = document.getElementById('admin-secao-acessos');
+  if(secUsuarios) secUsuarios.style.display = (window.souAdminPrincipal || window.minhasPermissoes.usuarios) ? '' : 'none';
+  if(secMetas) secMetas.style.display = (window.souAdminPrincipal || window.minhasPermissoes.metas) ? '' : 'none';
+  if(secPromover) secPromover.style.display = window.souAdminPrincipal ? '' : 'none';
+  if(secAcessos) secAcessos.style.display = window.souAdminPrincipal ? '' : 'none';
+}
+
 auth.onAuthStateChanged(user => {
   const nota = document.getElementById('notaCarregando');
   if(nota) nota.style.display = 'none';
   if(user){
     telaLogin.style.display = 'none';
     appRoot.style.display = '';
+    const emailLower = (user.email||'').toLowerCase();
+    window.souAdminPrincipal = (emailLower === ADMIN_EMAIL);
     const btnAdmin = document.getElementById('btnModuloAdmin');
-    if(btnAdmin) btnAdmin.style.display = (user.email && user.email.toLowerCase()===ADMIN_EMAIL) ? '' : 'none';
+
+    if(window.souAdminPrincipal){
+      window.minhasPermissoes = {metas:true, usuarios:true};
+      if(btnAdmin) btnAdmin.style.display = '';
+    } else {
+      // checa se esse e-mail foi promovido a admin parcial
+      db.collection('admins').doc(emailLower).get().then(doc=>{
+        if(doc.exists){
+          const perm = doc.data().permissoes || {};
+          window.minhasPermissoes = {metas: !!perm.metas, usuarios: !!perm.usuarios};
+          if(btnAdmin) btnAdmin.style.display = (perm.metas || perm.usuarios) ? '' : 'none';
+        } else {
+          window.minhasPermissoes = {metas:false, usuarios:false};
+          if(btnAdmin) btnAdmin.style.display = 'none';
+        }
+        atualizarVisibilidadeSecoesAdmin();
+      }).catch(()=>{ if(btnAdmin) btnAdmin.style.display = 'none'; });
+    }
+    atualizarVisibilidadeSecoesAdmin();
     registrarAcesso(user);
     setTimeout(()=>window.dispatchEvent(new Event('resize')), 80);
   } else {
@@ -4504,6 +4603,110 @@ if(formAddEmail){
       erroEl.textContent = 'Erro ao adicionar: ' + e.message;
     }finally{
       btn.disabled = false; btn.textContent = '+ Adicionar';
+    }
+  });
+}
+
+// ================= Metas de peso =================
+async function carregarFormMetasPeso(){
+  try{
+    const doc = await db.collection('configuracoes').doc('metas_peso').get();
+    const dados = doc.exists ? doc.data() : {};
+    [7,14,21,28,35].forEach(c=>{
+      const el = document.getElementById('meta'+c);
+      if(el) el.value = (dados[c]!=null) ? dados[c] : '';
+    });
+  }catch(e){ /* silencioso — formulário fica vazio */ }
+}
+window.carregarFormMetasPeso = carregarFormMetasPeso;
+
+const formMetasPeso = document.getElementById('formMetasPeso');
+if(formMetasPeso){
+  formMetasPeso.addEventListener('submit', async (e)=>{
+    e.preventDefault();
+    const erroEl = document.getElementById('erroMetasPeso');
+    erroEl.style.color=''; erroEl.textContent='';
+    const btn = formMetasPeso.querySelector('button[type="submit"]');
+    btn.disabled = true; btn.textContent = 'Salvando...';
+    const novasMetas = {};
+    [7,14,21,28,35].forEach(c=>{
+      const v = parseFloat(document.getElementById('meta'+c).value);
+      if(!isNaN(v)) novasMetas[c] = v;
+    });
+    try{
+      await db.collection('configuracoes').doc('metas_peso').set(novasMetas, {merge:true});
+      window.METAS_PESO = novasMetas;
+      erroEl.style.color = 'var(--verde-ok)';
+      erroEl.textContent = 'Metas salvas com sucesso!';
+      if(typeof window.renderMatrizPeso === 'function') window.renderMatrizPeso();
+    }catch(e){
+      erroEl.textContent = 'Erro ao salvar: ' + e.message;
+    }finally{
+      btn.disabled = false; btn.textContent = 'Salvar metas';
+    }
+  });
+}
+
+// ================= Promover administradores =================
+async function carregarListaAdmins(){
+  const cont = document.getElementById('listaAdminsPromovidos');
+  const info = document.getElementById('infoAdminsPromovidos');
+  if(!cont) return;
+  cont.innerHTML = '<p class="nota">Carregando...</p>';
+  try{
+    const snap = await db.collection('admins').get();
+    const docs = [];
+    snap.forEach(doc => docs.push({id: doc.id, ...doc.data()}));
+    docs.sort((a,b) => (a.email||'').localeCompare(b.email||''));
+    info.textContent = `${docs.length} administrador(es) promovido(s)`;
+    if(!docs.length){ cont.innerHTML = '<p class="nota">Nenhum admin promovido ainda.</p>'; return; }
+    cont.innerHTML = docs.map(d => {
+      const perm = d.permissoes||{};
+      const permTxt = [perm.metas?'Metas':null, perm.usuarios?'Usuários':null].filter(Boolean).join(' + ') || 'nenhuma permissão';
+      return `<div class="rank-card" style="grid-template-columns:1fr auto;align-items:center;">
+        <div><div class="rank-nome">${d.email}</div><div class="rank-sub">${permTxt}</div></div>
+        <button class="btn-recolher" data-remover-admin="${d.id}" style="border-color:var(--vermelho-alerta);color:var(--vermelho-alerta);">Remover</button>
+      </div>`;
+    }).join('');
+    cont.querySelectorAll('[data-remover-admin]').forEach(btn=>{
+      btn.addEventListener('click', async ()=>{
+        if(!confirm('Remover as permissões de administrador dessa pessoa?')) return;
+        btn.textContent='Removendo...'; btn.disabled=true;
+        try{ await db.collection('admins').doc(btn.dataset.removerAdmin).delete(); carregarListaAdmins(); }
+        catch(e){ alert('Erro ao remover: '+e.message); btn.textContent='Remover'; btn.disabled=false; }
+      });
+    });
+  }catch(e){
+    cont.innerHTML = `<p class="nota" style="color:var(--vermelho-alerta);">Erro ao carregar: ${e.message}</p>`;
+  }
+}
+window.carregarListaAdmins = carregarListaAdmins;
+
+const formPromoverAdmin = document.getElementById('formPromoverAdmin');
+if(formPromoverAdmin){
+  formPromoverAdmin.addEventListener('submit', async (e)=>{
+    e.preventDefault();
+    const erroEl = document.getElementById('erroPromoverAdmin');
+    erroEl.style.color=''; erroEl.textContent='';
+    const email = document.getElementById('emailPromover').value.trim().toLowerCase();
+    const permMetas = document.getElementById('permMetas').checked;
+    const permUsuarios = document.getElementById('permUsuarios').checked;
+    if(email === ADMIN_EMAIL){ erroEl.textContent = 'Esse já é o e-mail do administrador principal.'; return; }
+    if(!permMetas && !permUsuarios){ erroEl.textContent = 'Marque ao menos uma permissão.'; return; }
+    const btn = formPromoverAdmin.querySelector('button[type="submit"]');
+    btn.disabled = true; btn.textContent = 'Salvando...';
+    try{
+      await db.collection('admins').doc(email).set({ email, permissoes: {metas: permMetas, usuarios: permUsuarios} });
+      erroEl.style.color = 'var(--verde-ok)';
+      erroEl.textContent = 'Permissões salvas com sucesso!';
+      document.getElementById('emailPromover').value='';
+      document.getElementById('permMetas').checked=false;
+      document.getElementById('permUsuarios').checked=false;
+      carregarListaAdmins();
+    }catch(e){
+      erroEl.textContent = 'Erro ao salvar: ' + e.message;
+    }finally{
+      btn.disabled = false; btn.textContent = 'Promover / Atualizar';
     }
   });
 }
