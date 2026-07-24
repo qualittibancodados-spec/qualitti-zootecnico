@@ -700,7 +700,6 @@
     <button class="tab-int" data-aba="desempenho">Desempenho</button>
     <button class="tab-int" data-aba="relatorio">Relatório por Núcleo</button>
     <button class="tab-int" data-aba="matriz">Matriz</button>
-    <button class="tab-int" data-aba="checagem">Checagem de Dados</button>
   </div>
 
   <div class="filtros">
@@ -833,26 +832,6 @@
         <table class="matriz" id="rz_tabelaMatriz"></table>
       </div>
       <p class="nota" id="rz_notaMatriz"></p>
-    </div>
-  </div>
-
-  <!-- ============ CHECAGEM DE DADOS (cruzamento Mortalidade × Resultado) ============ -->
-  <div data-aba-view="checagem" style="display:none;">
-    <div class="painel">
-      <div class="painel-header">
-        <h2>Lotes fechados sem resultado registrado</h2>
-        <span class="info" id="rz_infoCheckA"></span>
-      </div>
-      <p class="nota" style="margin-top:0;">Lote que já apareceu como <strong>fechado</strong> na Mortalidade, mas não tem registro correspondente na base de Resultado — pode ser um lançamento faltando na origem.</p>
-      <div class="tabela-scroll"><table class="matriz-diaria" id="rz_tabelaCheckA"></table></div>
-    </div>
-    <div class="painel">
-      <div class="painel-header">
-        <h2>Lotes no Resultado sem histórico de mortalidade</h2>
-        <span class="info" id="rz_infoCheckB"></span>
-      </div>
-      <p class="nota" style="margin-top:0;">O caminho contrário: lote com resultado de abate registrado, mas sem nenhum lançamento de mortalidade correspondente.</p>
-      <div class="tabela-scroll"><table class="matriz-diaria" id="rz_tabelaCheckB"></table></div>
     </div>
   </div>
 
@@ -1071,6 +1050,11 @@
       <div class="painel">
         <div class="painel-header"><h2>E-mails autorizados</h2><span class="info" id="infoListaEmails"></span></div>
         <div id="listaEmailsAdmin"></div>
+      </div>
+      <div class="painel">
+        <div class="painel-header"><h2>Acessos e uso do painel</h2><span class="info" id="infoAcessos"></span></div>
+        <p class="nota" style="margin-top:0;">Quem está usando o painel de verdade — ordenado por acesso mais recente. Atualiza sozinho conforme as pessoas usam o site.</p>
+        <div class="tabela-scroll"><table class="matriz-diaria" id="tabelaAcessos"></table></div>
       </div>
     </div>
   </div>
@@ -1539,7 +1523,8 @@ document.querySelectorAll('.modulo').forEach(btn => {
     if(mod==='resultado' && window.renderResultado) window.renderResultado();
     if(mod==='condenas' && window.renderCondenas) window.renderCondenas();
     if(mod==='peso' && window.renderPeso) window.renderPeso();
-    if(mod==='admin' && window.carregarListaEmails) window.carregarListaEmails();
+    if(mod==='admin' && window.carregarListaEmails){ window.carregarListaEmails(); if(window.carregarAcessos) window.carregarAcessos(); }
+    if(window.registrarModulo) window.registrarModulo(mod);
     window.scrollTo({top:0, behavior:'smooth'});
   });
 });
@@ -2791,6 +2776,8 @@ render();
 
 <script>
 (function(){
+  let condenasIniciado = false;
+  function iniciarCondenas(){
   const LOTES = fetchJSONSync('./data/condenas_lotes.json');
   const TIPOS = ["ASCITE/FRANGO","MORTALIDADE PEGA/FRANGO","ASPECTO REPUG/FRANGO","CELULITE/FRANGO","AEROSACULITE/FRANGO","CONDENACOES PARCIAIS DIVERSAS","SEPTICEMIA/FRANGO","CALO PÉ/FRANGO","CAQUETICOS/FRANGO","CONTAMINAÇÃO ASA","CONTAMINAÇÃO COXA","CONTAMINAÇÃO PEITO","MIOPATIA/FRANGO","ARTRITE/FRANGO","MORTALIDADE","ESCALDAGEM EXCESSIVA","MA SANGRIA","SALPINGITE/FRANGO","ASAS HEMATOMAS AVAN/FRANGO","DERMATOSE - DERMATITE/FRANGO","EVISCERAÇÃO RETARDADA","CORAÇÃO PERICARDITE/FRANGO","ASA APANHA","ASA INDÚSTRIA","FÍGADO","ASAS HEMATOMAS","COXA APANHA","COXAS HEMATOMAS AVAN/FRANGO","COXA INDÚSTRIA","CALO PEITO/FRANGO","TUMOR LOCALIZADO/FRANGO","ABCESSO/FRANGO","ABSORÇÃO MENOR","MORTE NA POCILGA","ABSORÇÃO MAIOR"];
 
@@ -3141,11 +3128,15 @@ function render(){
 render();
 
   window.renderCondenas = render;
+  } // fim iniciarCondenas
+  window.renderCondenas = function(){ if(!condenasIniciado){ condenasIniciado = true; iniciarCondenas(); } };
 })();
 </script>
 
 <script>
 (function(){
+  let pesoIniciado = false;
+  function iniciarPeso(){
 const PESO_LOTES = fetchJSONSync('./data/resultado_lotes.json');
 const nomeNucleo = n => (n||'').replace('NÚCLEO ','');
 const corPorIndice = i => ['#C1272D','#F2A900','#3A7D44','#2E6E9E','#8E44AD','#D97706','#0E7C7B','#B33F62'][i % 8];
@@ -3588,15 +3579,16 @@ function render(){
   else if(abaAtiva==='historico'){ renderHistorico(); }
 }
 window.renderPeso = render;
+  } // fim iniciarPeso
+  window.renderPeso = function(){ if(!pesoIniciado){ pesoIniciado = true; iniciarPeso(); window.renderPeso(); } };
 })();
 </script>
 
 <script>
-const RESULTADO_LOTES = fetchJSONSync('./data/resultado_lotes.json');
-</script>
-<script>
 (function(){
-const LOTES = RESULTADO_LOTES;
+  let resultadoIniciado = false;
+  function iniciarResultado(){
+const LOTES = fetchJSONSync('./data/resultado_lotes.json');
 const nomeNucleo = n => (n||'').replace('NÚCLEO ','');
 const corLinhagem = {'COBB':'#C1272D','ROSS':'#2E6E9E','HUBBARD':'#F2A900'};
 
@@ -3651,7 +3643,7 @@ document.getElementById('btnLimparFiltrosRz').addEventListener('click', () => {
 document.querySelectorAll('#mod-resultado .tab-int').forEach(b=>b.addEventListener('click',()=>{
   document.querySelectorAll('#mod-resultado .tab-int').forEach(x=>x.classList.remove('ativo'));
   b.classList.add('ativo'); abaAtiva=b.dataset.aba;
-  ['geral','desempenho','relatorio','matriz','checagem'].forEach(a=>{
+  ['geral','desempenho','relatorio','matriz'].forEach(a=>{
     document.querySelector(`#mod-resultado [data-aba-view="${a}"]`).style.display = (a===abaAtiva)?'':'none';
   });
   render(); window.scrollTo({top:0,behavior:'smooth'});
@@ -4284,40 +4276,6 @@ function renderRelatorioNucleo(){
   });
 })();
 
-function limparPrefixoLote(loteId){
-  return String(loteId).replace(/^\d+\s*-\s*/, '');
-}
-
-function renderChecagemDados(){
-  const idsResultadoLimpos = new Set(LOTES.map(l => limparPrefixoLote(l.lote)));
-  const idsMortalidade = new Set(RESUMO_LOTES.map(r => String(r.loteId)));
-
-  const semResultado = RESUMO_LOTES.filter(r => r.situacao === 'Fechado' && !idsResultadoLimpos.has(String(r.loteId)));
-  const semMortalidade = LOTES.filter(l => !idsMortalidade.has(limparPrefixoLote(l.lote)));
-
-  const infoA = document.getElementById('rz_infoCheckA');
-  const tabA = document.getElementById('rz_tabelaCheckA');
-  infoA.textContent = `${semResultado.length} lote(s) encontrado(s)`;
-  if(!semResultado.length){
-    tabA.innerHTML = '<tbody><tr><td style="padding:14px;color:var(--verde-ok);font-weight:700;">🎉 Nenhuma pendência encontrada.</td></tr></tbody>';
-  } else {
-    const thead = '<thead><tr><th class="rowhead">Lote</th><th>Núcleo</th><th>Aviário</th><th>Data alojamento</th></tr></thead>';
-    const corpo = semResultado.map(r=>`<tr><th class="rowhead">${r.loteId}</th><td>${nomeNucleo(r.nucleo)}</td><td>${r.aviario}</td><td>${r.dataAloj||'–'}</td></tr>`).join('');
-    tabA.innerHTML = thead + '<tbody>'+corpo+'</tbody>';
-  }
-
-  const infoB = document.getElementById('rz_infoCheckB');
-  const tabB = document.getElementById('rz_tabelaCheckB');
-  infoB.textContent = `${semMortalidade.length} lote(s) encontrado(s)`;
-  if(!semMortalidade.length){
-    tabB.innerHTML = '<tbody><tr><td style="padding:14px;color:var(--verde-ok);font-weight:700;">🎉 Nenhuma pendência encontrada.</td></tr></tbody>';
-  } else {
-    const thead = '<thead><tr><th class="rowhead">Lote</th><th>Núcleo</th><th>Aviário</th><th>Data abate</th></tr></thead>';
-    const corpo = semMortalidade.map(l=>`<tr><th class="rowhead">${l.lote}</th><td>${nomeNucleo(l.nucleo)}</td><td>${l.aviario}</td><td>${l.dataAbate||'–'}</td></tr>`).join('');
-    tabB.innerHTML = thead + '<tbody>'+corpo+'</tbody>';
-  }
-}
-
 function render(){
   const dados=filtrar();
   if(abaAtiva==='geral'){ renderCards(dados); renderEvolucao(dados); renderRanking(dados); }
@@ -4325,10 +4283,11 @@ function render(){
   else if(abaAtiva==='andamento'){ renderAndamento(); }
   else if(abaAtiva==='relatorio'){ renderRelatorioNucleo(); }
   else if(abaAtiva==='matriz'){ renderMatriz(dados); }
-  else if(abaAtiva==='checagem'){ renderChecagemDados(); }
 }
 renderChipsLinhagem();
 window.renderResultado = render;
+  } // fim iniciarResultado
+  window.renderResultado = function(){ if(!resultadoIniciado){ resultadoIniciado = true; iniciarResultado(); window.renderResultado(); } };
 })();
 </script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
@@ -4406,6 +4365,24 @@ document.getElementById('formCadastro').addEventListener('submit', async (e)=>{
   finally{ setBotaoCarregando(btn, false, 'Criar conta'); }
 });
 
+function registrarAcesso(user){
+  if(!user) return;
+  db.collection('acessos').doc(user.uid).set({
+    email: user.email,
+    ultimoAcesso: firebase.firestore.FieldValue.serverTimestamp(),
+    totalLogins: firebase.firestore.FieldValue.increment(1)
+  }, {merge:true}).catch(()=>{});
+}
+
+window.registrarModulo = function(mod){
+  const user = auth.currentUser;
+  if(!user || !mod) return;
+  const campo = 'modulos.' + mod;
+  const upd = {};
+  upd[campo] = firebase.firestore.FieldValue.increment(1);
+  db.collection('acessos').doc(user.uid).set(upd, {merge:true}).catch(()=>{});
+};
+
 auth.onAuthStateChanged(user => {
   const nota = document.getElementById('notaCarregando');
   if(nota) nota.style.display = 'none';
@@ -4414,6 +4391,7 @@ auth.onAuthStateChanged(user => {
     appRoot.style.display = '';
     const btnAdmin = document.getElementById('btnModuloAdmin');
     if(btnAdmin) btnAdmin.style.display = (user.email && user.email.toLowerCase()===ADMIN_EMAIL) ? '' : 'none';
+    registrarAcesso(user);
     setTimeout(()=>window.dispatchEvent(new Event('resize')), 80);
   } else {
     telaLogin.style.display = '';
@@ -4428,7 +4406,6 @@ document.addEventListener('click', (e)=>{
   }
 });
 
-// ================= Administração de e-mails autorizados =================
 async function carregarListaEmails(){
   const cont = document.getElementById('listaEmailsAdmin');
   const info = document.getElementById('infoListaEmails');
@@ -4460,6 +4437,38 @@ async function carregarListaEmails(){
   }
 }
 window.carregarListaEmails = carregarListaEmails;
+
+const NOMES_MODULOS_ADMIN = {mortalidade:'Mortalidade', resultado:'Resultado Zootécnico', condenas:'Condenas', peso:'Evolução de Pesos', admin:'Administração'};
+
+async function carregarAcessos(){
+  const tabela = document.getElementById('tabelaAcessos');
+  const info = document.getElementById('infoAcessos');
+  if(!tabela) return;
+  tabela.innerHTML = '<tbody><tr><td style="padding:14px;">Carregando...</td></tr></tbody>';
+  try{
+    const snap = await db.collection('acessos').get();
+    const docs = [];
+    snap.forEach(doc => docs.push(doc.data()));
+    docs.sort((a,b) => {
+      const ta = (a.ultimoAcesso && a.ultimoAcesso.toMillis) ? a.ultimoAcesso.toMillis() : 0;
+      const tb = (b.ultimoAcesso && b.ultimoAcesso.toMillis) ? b.ultimoAcesso.toMillis() : 0;
+      return tb - ta;
+    });
+    info.textContent = `${docs.length} usuário(s) com registro de acesso`;
+    if(!docs.length){ tabela.innerHTML = '<tbody><tr><td style="padding:14px;">Nenhum acesso registrado ainda.</td></tr></tbody>'; return; }
+    const thead = '<thead><tr><th class="rowhead">E-mail</th><th>Último acesso</th><th>Logins</th><th style="text-align:left;">Módulos mais usados</th></tr></thead>';
+    const corpo = docs.map(d => {
+      const dataStr = (d.ultimoAcesso && d.ultimoAcesso.toDate) ? d.ultimoAcesso.toDate().toLocaleString('pt-BR') : '—';
+      const mods = d.modulos || {};
+      const modsOrd = Object.entries(mods).sort((a,b)=>b[1]-a[1]).map(([k,v]) => `${NOMES_MODULOS_ADMIN[k]||k} (${v})`).join(', ') || '—';
+      return `<tr><th class="rowhead">${d.email||'—'}</th><td>${dataStr}</td><td style="text-align:center;font-weight:800;">${d.totalLogins||0}</td><td style="text-align:left;font-size:12px;">${modsOrd}</td></tr>`;
+    }).join('');
+    tabela.innerHTML = thead + '<tbody>'+corpo+'</tbody>';
+  }catch(e){
+    tabela.innerHTML = `<tbody><tr><td style="padding:14px;color:var(--vermelho-alerta);">Erro ao carregar: ${e.message}</td></tr></tbody>`;
+  }
+}
+window.carregarAcessos = carregarAcessos;
 
 const formAddEmail = document.getElementById('formAddEmail');
 if(formAddEmail){
