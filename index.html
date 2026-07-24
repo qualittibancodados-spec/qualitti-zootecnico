@@ -77,6 +77,9 @@
   .tab .count{ display:inline-block; padding:1px 8px; border-radius:10px; background:rgba(255,255,255,.14); font-size:11px; font-weight:700; }
   .tab.ativo .count{ background:var(--dourado); color:#20160a; }
 
+  .sidebar-atualizacao{ color:#EBB8B0; font-size:10px; text-align:center; padding-top:14px; margin-top:auto; border-top:1px solid rgba(255,255,255,.18); line-height:1.5; }
+  .sidebar-atualizacao-linha{ opacity:.92; }
+  .sidebar-atualizacao strong{ color:#fff; font-weight:700; }
   .sidebar-rodape{ color:#EBB8B0; font-size:10.5px; font-weight:600; text-align:center; padding-top:14px; border-top:1px solid rgba(255,255,255,.18); letter-spacing:.03em; }
 
   /* topbar mobile + overlay (escondidos no desktop) */
@@ -120,6 +123,7 @@
   .matriz-diaria tr.linha-nuc td{ font-weight:700; background:#FFF4E1; }
   .matriz-diaria td.peso-falta{ background:#FBE3E1; box-shadow:inset 0 0 0 1px #E8A29C; position:relative; }
   .matriz-diaria td.peso-falta::after{ content:'✕'; font-size:9px; font-weight:800; color:#C0392B; position:absolute; top:1px; right:2px; }
+  .cel-relacao{ font-size:9.5px; color:var(--texto-suave); font-weight:700; }
   .matriz-diaria th.rowhead.av{ padding-left:20px; font-weight:500; color:var(--texto-suave); }
   .matriz-diaria td.cel{ font-variant-numeric:tabular-nums; }
   .matriz-diaria .aloj{ font-weight:600; background:#F7F9FB; position:sticky; left:150px; z-index:3; width:80px; min-width:80px; }
@@ -679,6 +683,10 @@
     </div>
   </nav>
 
+  <div class="sidebar-atualizacao" id="infoUltimaAtualizacao">
+    <div class="sidebar-atualizacao-linha">🕒 Última atualização:<br><strong id="txtUltimaAtualizacao">carregando...</strong></div>
+    <div class="sidebar-atualizacao-linha" style="margin-top:6px;">Atualiza automaticamente às <strong>9h e 11h</strong></div>
+  </div>
   <div class="sidebar-rodape">
     Qualitti Alimentos
     <button class="logout-btn" id="btnSairApp" type="button">Sair</button>
@@ -986,7 +994,7 @@
       <div class="tabela-scroll arrastavel" id="pw_scrollPesoMatriz">
         <table class="matriz-diaria" id="pw_tabelaPesoMatriz"></table>
       </div>
-      <p class="nota">"–" = o lote ainda não chegou nessa idade / ainda não foi pesado nessa checagem. <strong style="color:#C0392B">✕ destacado</strong> = o lote já passou 1 dia da idade da checagem e ainda não tem peso registrado (deveria ter sido pesado no dia do "aniversário").</p>
+      <p class="nota">"–" = o lote ainda não chegou nessa idade / ainda não foi pesado nessa checagem. <strong style="color:#C0392B">✕ destacado</strong> = o lote já passou 1 dia da idade da checagem e ainda não tem peso registrado (deveria ter sido pesado no dia do "aniversário"). O número pequeno abaixo do peso (ex: <strong>3,07x</strong>) mostra quantas vezes o frango já ganhou de peso naquela idade, em relação ao peso do alojamento.</p>
     </div>
   </div>
 
@@ -1299,6 +1307,14 @@ const RESUMO_LOTES = fetchJSONSync('./data/resumo_lotes.json');
 const AGG_IDADE = fetchJSONSync('./data/agg_idade.json');
 const AGG_NUCLEO = fetchJSONSync('./data/agg_nucleo_idade.json');
 const MORT_DIARIA = fetchJSONSync('./data/mort_diaria_abertos.json');
+try{
+  const ultimaAtt = fetchJSONSync('./data/ultima_atualizacao.json');
+  const elUlt = document.getElementById('txtUltimaAtualizacao');
+  if(elUlt) elUlt.textContent = ultimaAtt.texto;
+}catch(e){
+  const elUlt = document.getElementById('txtUltimaAtualizacao');
+  if(elUlt) elUlt.textContent = 'indisponível';
+}
 </script>
 <script>
 // ========================= Preparação =========================
@@ -3390,7 +3406,9 @@ function renderMatrizPeso(){
     campos.forEach(c=>{
       const vals = lotesNuc.map(l=>l['pm'+c]).filter(v=>v!=null);
       const med = vals.length ? (vals.reduce((s,v)=>s+v,0)/vals.length) : null;
-      tdsNuc += `<td class="cel">${med!=null?med.toFixed(3):'–'}</td>`;
+      const valsR = lotesNuc.map(l=>l['r'+c]).filter(v=>v!=null);
+      const medR = valsR.length ? (valsR.reduce((s,v)=>s+v,0)/valsR.length) : null;
+      tdsNuc += `<td class="cel">${med!=null?med.toFixed(3):'–'}${medR!=null?`<br><span class="cel-relacao">${medR.toFixed(2)}x</span>`:''}</td>`;
     });
     corpo += `<tr class="linha-nuc">
       <th class="rowhead"><span class="nuc-toggle" data-nuc-toggle-pw="${nuc}">${rec?'▸':'▾'}</span> ${nomeNucleo(nuc)}</th>
@@ -3404,9 +3422,11 @@ function renderMatrizPeso(){
         let tds='';
         campos.forEach(c=>{
           const v=l['pm'+c];
+          const r=l['r'+c];
           // não sinaliza falta de peso aos 42d — nem sempre existe (lote pode abater antes ou alguns dias depois)
           const faltando = (v==null && idade!=null && idade >= c+1 && c !== 42);
-          tds += `<td class="cel ${faltando?'peso-falta':''}" ${faltando?`title="Sem peso da checagem de ${c}d — o lote já está com ${idade} dias"`:''}>${v!=null?v.toFixed(3):'–'}</td>`;
+          const relacaoHtml = (v!=null && r!=null) ? `<br><span class="cel-relacao">${r.toFixed(2)}x</span>` : '';
+          tds += `<td class="cel ${faltando?'peso-falta':''}" ${faltando?`title="Sem peso da checagem de ${c}d — o lote já está com ${idade} dias"`:''}>${v!=null?v.toFixed(3):'–'}${relacaoHtml}</td>`;
         });
         corpo += `<tr>
           <th class="rowhead av">${l.aviario}</th>
