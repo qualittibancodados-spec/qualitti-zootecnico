@@ -345,13 +345,6 @@ def main():
         print(f"\nAVISO: não encontrei base(s) de: {', '.join(faltando)}. "
               f"Os dados dessas áreas no site ficam com a última versão válida.")
 
-    # grava quando essa atualização rodou, pra mostrar no site (horário de Brasília, UTC-3 fixo)
-    from datetime import datetime, timezone, timedelta
-    agora_brasilia = datetime.now(timezone.utc) - timedelta(hours=3)
-    meses = ['janeiro','fevereiro','março','abril','maio','junho','julho','agosto','setembro','outubro','novembro','dezembro']
-    texto = f"{agora_brasilia.day:02d} de {meses[agora_brasilia.month-1]} de {agora_brasilia.year} às {agora_brasilia.hour:02d}:{agora_brasilia.minute:02d}"
-    salvar('ultima_atualizacao.json', {'texto': texto, 'iso': agora_brasilia.isoformat()})
-
     print("\nAtualização concluída.")
 
 
