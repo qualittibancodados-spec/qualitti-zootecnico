@@ -673,6 +673,9 @@
       <button class="modulo" data-modulo="resultado">
         <span class="modulo-ic">📈</span> Resultado Zootécnico
       </button>
+      <button class="modulo" data-modulo="admin" id="btnModuloAdmin" style="display:none;">
+        <span class="modulo-ic">⚙️</span> Administração
+      </button>
     </div>
   </nav>
 
@@ -697,6 +700,7 @@
     <button class="tab-int" data-aba="desempenho">Desempenho</button>
     <button class="tab-int" data-aba="relatorio">Relatório por Núcleo</button>
     <button class="tab-int" data-aba="matriz">Matriz</button>
+    <button class="tab-int" data-aba="checagem">Checagem de Dados</button>
   </div>
 
   <div class="filtros">
@@ -829,6 +833,26 @@
         <table class="matriz" id="rz_tabelaMatriz"></table>
       </div>
       <p class="nota" id="rz_notaMatriz"></p>
+    </div>
+  </div>
+
+  <!-- ============ CHECAGEM DE DADOS (cruzamento Mortalidade × Resultado) ============ -->
+  <div data-aba-view="checagem" style="display:none;">
+    <div class="painel">
+      <div class="painel-header">
+        <h2>Lotes fechados sem resultado registrado</h2>
+        <span class="info" id="rz_infoCheckA"></span>
+      </div>
+      <p class="nota" style="margin-top:0;">Lote que já apareceu como <strong>fechado</strong> na Mortalidade, mas não tem registro correspondente na base de Resultado — pode ser um lançamento faltando na origem.</p>
+      <div class="tabela-scroll"><table class="matriz-diaria" id="rz_tabelaCheckA"></table></div>
+    </div>
+    <div class="painel">
+      <div class="painel-header">
+        <h2>Lotes no Resultado sem histórico de mortalidade</h2>
+        <span class="info" id="rz_infoCheckB"></span>
+      </div>
+      <p class="nota" style="margin-top:0;">O caminho contrário: lote com resultado de abate registrado, mas sem nenhum lançamento de mortalidade correspondente.</p>
+      <div class="tabela-scroll"><table class="matriz-diaria" id="rz_tabelaCheckB"></table></div>
     </div>
   </div>
 
@@ -1029,6 +1053,25 @@
     </div>
   </div>
 
+    </div>
+  </div>
+
+  <!-- ============ MÓDULO: ADMINISTRAÇÃO ============ -->
+  <div data-modulo-view="admin" style="display:none;">
+    <div id="mod-admin">
+      <div class="pagina-head"><h1 class="pagina-titulo">Administração</h1></div>
+      <div class="painel">
+        <div class="painel-header"><h2>Adicionar e-mail autorizado</h2></div>
+        <form id="formAddEmail" style="display:flex;gap:10px;align-items:flex-end;flex-wrap:wrap;">
+          <div class="campo" style="flex:1;min-width:220px;"><label>E-mail</label><input type="email" id="novoEmailAdmin" required style="width:100%;padding:10px 12px;border-radius:9px;border:1.5px solid var(--borda);font-size:14px;font-family:inherit;box-sizing:border-box;"></div>
+          <button type="submit" class="btn-recolher" style="background:var(--vermelho);color:#fff;border-color:var(--vermelho);">+ Adicionar</button>
+        </form>
+        <p class="nota" id="erroAddEmail" style="min-height:16px;margin-top:8px;"></p>
+      </div>
+      <div class="painel">
+        <div class="painel-header"><h2>E-mails autorizados</h2><span class="info" id="infoListaEmails"></span></div>
+        <div id="listaEmailsAdmin"></div>
+      </div>
     </div>
   </div>
 
@@ -1488,6 +1531,7 @@ document.querySelectorAll('.modulo').forEach(btn => {
     document.querySelector('[data-modulo-view="resultado"]').style.display = (mod==='resultado') ? '' : 'none';
     document.querySelector('[data-modulo-view="condenas"]').style.display = (mod==='condenas') ? '' : 'none';
     document.querySelector('[data-modulo-view="peso"]').style.display = (mod==='peso') ? '' : 'none';
+    document.querySelector('[data-modulo-view="admin"]').style.display = (mod==='admin') ? '' : 'none';
     document.getElementById('tabsMortalidade').style.display = (mod==='mortalidade') ? '' : 'none';
     // os filtros do topo pertencem ao módulo mortalidade (Resultado e Condenas têm os seus próprios dentro deles)
     document.getElementById('filtrosMortalidade').style.display = (mod==='mortalidade') ? '' : 'none';
@@ -1495,6 +1539,7 @@ document.querySelectorAll('.modulo').forEach(btn => {
     if(mod==='resultado' && window.renderResultado) window.renderResultado();
     if(mod==='condenas' && window.renderCondenas) window.renderCondenas();
     if(mod==='peso' && window.renderPeso) window.renderPeso();
+    if(mod==='admin' && window.carregarListaEmails) window.carregarListaEmails();
     window.scrollTo({top:0, behavior:'smooth'});
   });
 });
@@ -3606,7 +3651,7 @@ document.getElementById('btnLimparFiltrosRz').addEventListener('click', () => {
 document.querySelectorAll('#mod-resultado .tab-int').forEach(b=>b.addEventListener('click',()=>{
   document.querySelectorAll('#mod-resultado .tab-int').forEach(x=>x.classList.remove('ativo'));
   b.classList.add('ativo'); abaAtiva=b.dataset.aba;
-  ['geral','desempenho','relatorio','matriz'].forEach(a=>{
+  ['geral','desempenho','relatorio','matriz','checagem'].forEach(a=>{
     document.querySelector(`#mod-resultado [data-aba-view="${a}"]`).style.display = (a===abaAtiva)?'':'none';
   });
   render(); window.scrollTo({top:0,behavior:'smooth'});
@@ -4239,6 +4284,40 @@ function renderRelatorioNucleo(){
   });
 })();
 
+function limparPrefixoLote(loteId){
+  return String(loteId).replace(/^\d+\s*-\s*/, '');
+}
+
+function renderChecagemDados(){
+  const idsResultadoLimpos = new Set(LOTES.map(l => limparPrefixoLote(l.lote)));
+  const idsMortalidade = new Set(RESUMO_LOTES.map(r => String(r.loteId)));
+
+  const semResultado = RESUMO_LOTES.filter(r => r.situacao === 'Fechado' && !idsResultadoLimpos.has(String(r.loteId)));
+  const semMortalidade = LOTES.filter(l => !idsMortalidade.has(limparPrefixoLote(l.lote)));
+
+  const infoA = document.getElementById('rz_infoCheckA');
+  const tabA = document.getElementById('rz_tabelaCheckA');
+  infoA.textContent = `${semResultado.length} lote(s) encontrado(s)`;
+  if(!semResultado.length){
+    tabA.innerHTML = '<tbody><tr><td style="padding:14px;color:var(--verde-ok);font-weight:700;">🎉 Nenhuma pendência encontrada.</td></tr></tbody>';
+  } else {
+    const thead = '<thead><tr><th class="rowhead">Lote</th><th>Núcleo</th><th>Aviário</th><th>Data alojamento</th></tr></thead>';
+    const corpo = semResultado.map(r=>`<tr><th class="rowhead">${r.loteId}</th><td>${nomeNucleo(r.nucleo)}</td><td>${r.aviario}</td><td>${r.dataAloj||'–'}</td></tr>`).join('');
+    tabA.innerHTML = thead + '<tbody>'+corpo+'</tbody>';
+  }
+
+  const infoB = document.getElementById('rz_infoCheckB');
+  const tabB = document.getElementById('rz_tabelaCheckB');
+  infoB.textContent = `${semMortalidade.length} lote(s) encontrado(s)`;
+  if(!semMortalidade.length){
+    tabB.innerHTML = '<tbody><tr><td style="padding:14px;color:var(--verde-ok);font-weight:700;">🎉 Nenhuma pendência encontrada.</td></tr></tbody>';
+  } else {
+    const thead = '<thead><tr><th class="rowhead">Lote</th><th>Núcleo</th><th>Aviário</th><th>Data abate</th></tr></thead>';
+    const corpo = semMortalidade.map(l=>`<tr><th class="rowhead">${l.lote}</th><td>${nomeNucleo(l.nucleo)}</td><td>${l.aviario}</td><td>${l.dataAbate||'–'}</td></tr>`).join('');
+    tabB.innerHTML = thead + '<tbody>'+corpo+'</tbody>';
+  }
+}
+
 function render(){
   const dados=filtrar();
   if(abaAtiva==='geral'){ renderCards(dados); renderEvolucao(dados); renderRanking(dados); }
@@ -4246,6 +4325,7 @@ function render(){
   else if(abaAtiva==='andamento'){ renderAndamento(); }
   else if(abaAtiva==='relatorio'){ renderRelatorioNucleo(); }
   else if(abaAtiva==='matriz'){ renderMatriz(dados); }
+  else if(abaAtiva==='checagem'){ renderChecagemDados(); }
 }
 renderChipsLinhagem();
 window.renderResultado = render;
@@ -4261,6 +4341,7 @@ const auth = firebase.auth();
 const db = firebase.firestore();
 const telaLogin = document.getElementById('telaLogin');
 const appRoot = document.getElementById('appRoot');
+const ADMIN_EMAIL = 'avicultura05@qualitti.com.br';
 
 function mensagemErroAuth(err){
   const map = {'auth/user-not-found':'E-mail ou senha incorretos.','auth/wrong-password':'E-mail ou senha incorretos.','auth/invalid-credential':'E-mail ou senha incorretos.','auth/invalid-email':'E-mail inválido.','auth/email-already-in-use':'Já existe uma conta com este e-mail. Tente entrar.','auth/weak-password':'Senha muito curta (mínimo 6 caracteres).','auth/too-many-requests':'Muitas tentativas. Aguarde um pouco e tente de novo.'};
@@ -4331,6 +4412,8 @@ auth.onAuthStateChanged(user => {
   if(user){
     telaLogin.style.display = 'none';
     appRoot.style.display = '';
+    const btnAdmin = document.getElementById('btnModuloAdmin');
+    if(btnAdmin) btnAdmin.style.display = (user.email && user.email.toLowerCase()===ADMIN_EMAIL) ? '' : 'none';
     setTimeout(()=>window.dispatchEvent(new Event('resize')), 80);
   } else {
     telaLogin.style.display = '';
@@ -4344,6 +4427,64 @@ document.addEventListener('click', (e)=>{
     setTimeout(()=>window.dispatchEvent(new Event('resize')), 100);
   }
 });
+
+// ================= Administração de e-mails autorizados =================
+async function carregarListaEmails(){
+  const cont = document.getElementById('listaEmailsAdmin');
+  const info = document.getElementById('infoListaEmails');
+  if(!cont) return;
+  cont.innerHTML = '<p class="nota">Carregando...</p>';
+  try{
+    const snap = await db.collection('emails_autorizados').get();
+    const docs = [];
+    snap.forEach(doc => docs.push({id: doc.id, email: (doc.data().email||'').toLowerCase()}));
+    docs.sort((a,b) => a.email.localeCompare(b.email));
+    info.textContent = `${docs.length} e-mail(s) autorizado(s)`;
+    if(!docs.length){ cont.innerHTML = '<p class="nota">Nenhum e-mail cadastrado ainda.</p>'; return; }
+    cont.innerHTML = docs.map(d => `
+      <div class="rank-card" style="grid-template-columns:1fr auto;align-items:center;">
+        <div class="rank-nome">${d.email}</div>
+        <button class="btn-recolher" data-remover="${d.id}" data-email="${d.email}" style="border-color:var(--vermelho-alerta);color:var(--vermelho-alerta);">Remover</button>
+      </div>`).join('');
+    cont.querySelectorAll('[data-remover]').forEach(btn => {
+      btn.addEventListener('click', async () => {
+        if(btn.dataset.email === ADMIN_EMAIL){ alert('Esse é o seu próprio e-mail de administrador — não é possível remover.'); return; }
+        if(!confirm(`Remover "${btn.dataset.email}" da lista de autorizados?`)) return;
+        btn.textContent = 'Removendo...'; btn.disabled = true;
+        try{ await db.collection('emails_autorizados').doc(btn.dataset.remover).delete(); carregarListaEmails(); }
+        catch(e){ alert('Erro ao remover: ' + e.message); btn.textContent='Remover'; btn.disabled=false; }
+      });
+    });
+  }catch(e){
+    cont.innerHTML = `<p class="nota" style="color:var(--vermelho-alerta);">Erro ao carregar a lista: ${e.message}</p>`;
+  }
+}
+window.carregarListaEmails = carregarListaEmails;
+
+const formAddEmail = document.getElementById('formAddEmail');
+if(formAddEmail){
+  formAddEmail.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const input = document.getElementById('novoEmailAdmin');
+    const erroEl = document.getElementById('erroAddEmail');
+    const email = input.value.trim().toLowerCase();
+    erroEl.style.color=''; erroEl.textContent = '';
+    const btn = formAddEmail.querySelector('button[type="submit"]');
+    btn.disabled = true; btn.textContent = 'Adicionando...';
+    try{
+      const existente = await db.collection('emails_autorizados').where('email','==',email).limit(1).get();
+      if(!existente.empty){ erroEl.textContent = 'Esse e-mail já está na lista.'; return; }
+      await db.collection('emails_autorizados').add({ email });
+      input.value = '';
+      erroEl.style.color='var(--verde-ok)'; erroEl.textContent = 'E-mail adicionado com sucesso!';
+      carregarListaEmails();
+    }catch(e){
+      erroEl.textContent = 'Erro ao adicionar: ' + e.message;
+    }finally{
+      btn.disabled = false; btn.textContent = '+ Adicionar';
+    }
+  });
+}
 </script>
 
 </body>
