@@ -157,7 +157,7 @@
   .qf-legenda-cor{ width:14px; height:14px; border-radius:4px; display:inline-block; }
   .qf-nucleo-toggle{ cursor:pointer; user-select:none; }
   .qf-nucleo-toggle:hover{ text-decoration:underline; }
-  .qf-linha-aviario-detalhe td{ background:#FAFAF8; font-size:11.5px; padding:5px 8px; border-bottom:1px solid var(--borda); word-break:break-word; text-align:center; }
+  .qf-linha-aviario-detalhe td{ background:#FAFAF8; font-size:11.5px; padding:5px 8px; border-bottom:1px solid var(--borda); white-space:normal; word-break:break-word; text-align:center; }
   .qf-linha-aviario-detalhe td:first-child{ text-align:left; padding-left:24px; color:var(--texto-suave); font-weight:600; }
   .qf-nome-saindo-detalhe{ text-decoration:line-through; color:var(--vermelho-alerta); }
   .qf-linha-aviario-detalhe .qf-nome-vago{ color:var(--vermelho-alerta); font-style:italic; }
@@ -616,19 +616,23 @@
 
 #qf-print-header{ display:none; }
 @media print{
+  * { print-color-adjust:exact !important; -webkit-print-color-adjust:exact !important; }
   body *{ visibility:hidden; }
   #mod-quadro [data-aba-qf-view="consolidado"] *,
   #mod-quadro [data-aba-qf-view="consolidado"]{ visibility:visible; }
   .sidebar, .topbar-mobile, .tabs-internas,
   #qf-btnExpandirTodos, #qf-btnImprimir,
-  #mod-quadro [data-aba-qf-view="consolidado"] > p.nota,
-  .qf-legenda-atual-futuro{ display:none !important; }
-  #qf-print-header{ display:flex !important; visibility:visible; align-items:center; gap:14px; margin-bottom:18px; border-bottom:2px solid #C1272D; padding-bottom:12px; }
+  #mod-quadro [data-aba-qf-view="consolidado"] > p.nota{ display:none !important; }
+  .qf-legenda-atual-futuro{ display:flex !important; visibility:visible; margin-bottom:10px; }
+  #qf-print-header{ display:flex !important; visibility:visible; align-items:center; gap:14px; margin-bottom:14px; border-bottom:2px solid #C1272D; padding-bottom:12px; }
   #qf-print-header img{ height:48px; }
   #qf-print-header .qf-print-titulos h1{ font-size:18px; margin:0; font-family:'Sora',sans-serif; }
   #qf-print-header .qf-print-titulos p{ font-size:11px; margin:2px 0 0; color:#666; }
   #qf-tabelaConsolidada{ font-size:10px; }
   .qf-nucleo-toggle::before{ content:''; }
+  /* reforço estrutural (funciona mesmo se a impressora não reproduzir cor) */
+  .qf-linha-nucleo-resumo th, .qf-linha-nucleo-resumo td{ border-top:2px solid #333 !important; font-weight:800 !important; }
+  .qf-linha-aviario-detalhe td{ font-style:italic; }
 }
 </style>
 </head>
@@ -1130,7 +1134,7 @@
               <p id="qf-print-data"></p>
             </div>
           </div>
-          <div class="tabela-scroll"><table class="matriz-diaria" id="qf-tabelaConsolidada"></table></div>
+          <div class="tabela-scroll arrastavel" id="qf-scrollConsolidada"><table class="matriz-diaria" id="qf-tabelaConsolidada"></table></div>
         </div>
       </div>
 
@@ -5008,7 +5012,7 @@ function renderQuadroConsolidado(){
     const faltaAtual = Math.max(0,r.necessidade-r.atualGranj) + Math.max(0,r.necessidade-r.atualAjud);
     const faltaFuturo = Math.max(0,r.necessidade-r.futuroGranj) + Math.max(0,r.necessidade-r.futuroAjud);
     const expandido = window.qfConsolidadoExpandido.has(nuc);
-    const linhaPrincipal = `<tr>
+    const linhaPrincipal = `<tr class="qf-linha-nucleo-resumo">
       <th class="rowhead qf-nucleo-toggle" data-toggle-nucleo-cons="${nuc}">${expandido?'▾':'▸'} ${nuc}</th>
       <td style="text-align:center;">${r.necessidade}</td>
       <td class="qf-grupo-atual-td ${r.atualGranj>=r.necessidade?'qf-cons-ok':'qf-cons-falta'}" style="text-align:center;">${r.atualGranj}/${r.necessidade}</td>
@@ -5046,7 +5050,7 @@ function renderQuadroConsolidado(){
   }).join('');
   const faltaAtualTotal = Math.max(0,totNecessidade-totAtualG) + Math.max(0,totNecessidade-totAtualA);
   const faltaFuturoTotal = Math.max(0,totNecessidade-totFutG) + Math.max(0,totNecessidade-totFutA);
-  const linhaTotal = `<tr style="border-top:2.5px solid var(--borda);">
+  const linhaTotal = `<tr class="qf-linha-nucleo-resumo" style="border-top:2.5px solid var(--borda);">
     <th class="rowhead">TOTAL</th>
     <td style="text-align:center;font-weight:800;">${totNecessidade}</td>
     <td class="qf-grupo-atual-td" style="text-align:center;font-weight:800;">${totAtualG}/${totNecessidade}</td>
@@ -5072,6 +5076,7 @@ function renderQuadroConsolidado(){
   }
   const dataEl = document.getElementById('qf-print-data');
   if(dataEl) dataEl.textContent = 'Gerado em ' + new Date().toLocaleString('pt-BR');
+  if(typeof ativarArrastar==='function') ativarArrastar(document.getElementById('qf-scrollConsolidada'));
 }
 window.renderQuadroConsolidado = renderQuadroConsolidado;
 
