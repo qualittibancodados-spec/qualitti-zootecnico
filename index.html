@@ -1107,7 +1107,7 @@
       </div>
 
       <div data-aba-qf-view="atualizar" style="display:none;">
-        <p class="nota" style="margin:0 0 8px;">Cada aviário é coberto em dupla (granjeiro + ajudante). A <strong>necessidade</strong> de cada núcleo é calculada a partir do total de aviários dividido pela razão definida ali.</p>
+        <p class="nota" style="margin:0 0 8px;">Cada aviário é coberto em dupla (granjeiro + ajudante). Casais de tamanhos diferentes convivem no mesmo núcleo sem problema (um cobrindo 2 aviários, outro 3, por exemplo). A <strong>necessidade</strong> de cada núcleo é definida diretamente por você — não é mais calculada automaticamente por uma razão fixa.</p>
         <p class="nota" style="margin:0 0 16px;color:var(--texto-suave);">🛈 Você só edita os núcleos para os quais tem autorização — os demais não aparecem aqui. Marque quem está <strong>saindo/em aviso</strong> assim que o desligamento for confirmado: isso não altera o quadro Atual, só atualiza a projeção <strong>Futuro</strong> na Visão Consolidada, que os gestores usam pra planejar reposição.</p>
         <button class="btn-recolher" id="btnImportarQuadroInicial" style="display:none;margin-bottom:16px;">Importar lista inicial (uma vez)</button>
         <div id="quadroNucleosContainer"></div>
@@ -4911,20 +4911,23 @@ function contarAviarios(str){
 
 function calcularResumoNucleo(nuc, postos){
   const totalAviarios = postos.reduce((s,p)=>s+contarAviarios(p.aviarios),0);
-  const razao = (window.RAZAO_NUCLEOS && window.RAZAO_NUCLEOS[nuc]!=null) ? window.RAZAO_NUCLEOS[nuc] : 2;
-  const necessidade = razao>0 ? Math.round(totalAviarios/razao) : 0;
+  // necessidade agora é definida diretamente por núcleo (nº de postos/casais) — não é mais calculada por razão,
+  // porque um mesmo núcleo pode ter casais cobrindo quantidades diferentes de aviários entre si.
+  // Se ainda não foi configurada, usa como ponto de partida o nº de postos já cadastrados.
+  const necessidadeDefinida = (window.NECESSIDADE_NUCLEOS && window.NECESSIDADE_NUCLEOS[nuc]!=null) ? window.NECESSIDADE_NUCLEOS[nuc] : null;
+  const necessidade = necessidadeDefinida!=null ? necessidadeDefinida : postos.length;
   const atualGranj = postos.filter(p=>p.granjeiro && p.granjeiro.trim()).length;
   const atualAjud = postos.filter(p=>p.ajudante && p.ajudante.trim()).length;
   const futuroGranj = postos.filter(p=>p.granjeiro && p.granjeiro.trim() && !p.granjeiroSaindo).length;
   const futuroAjud = postos.filter(p=>p.ajudante && p.ajudante.trim() && !p.ajudanteSaindo).length;
-  return {totalAviarios, razao, necessidade, atualGranj, atualAjud, futuroGranj, futuroAjud};
+  return {totalAviarios, necessidade, atualGranj, atualAjud, futuroGranj, futuroAjud};
 }
 
 async function iniciarQuadroFuncionarios(){
   try{
-    const docRazao = await db.collection('configuracoes').doc('razao_nucleos').get();
-    window.RAZAO_NUCLEOS = docRazao.exists ? docRazao.data() : {};
-  }catch(e){ window.RAZAO_NUCLEOS = {}; }
+    const docNec = await db.collection('configuracoes').doc('necessidade_nucleos').get();
+    window.NECESSIDADE_NUCLEOS = docNec.exists ? docNec.data() : {};
+  }catch(e){ window.NECESSIDADE_NUCLEOS = {}; }
   try{
     const snap = await db.collection('funcionarios').get();
     window.POSTOS_QUADRO = [];
@@ -5073,7 +5076,7 @@ function renderQuadroFuncionarios(){
     return `<div class="quadro-nucleo-card" data-nucleo-card="${nuc}">
       <div class="quadro-nucleo-titulo">
         ${nuc}
-        <span class="quadro-razao-campo">Razão (aviários/pessoa): <input type="number" min="1" step="1" class="qf-input-razao" data-nucleo-razao="${nuc}" value="${r.razao}" ${window.souAdminPrincipal?'':'disabled'}></span>
+        <span class="quadro-razao-campo">Necessidade (nº de postos): <input type="number" min="0" step="1" class="qf-input-razao" data-nucleo-razao="${nuc}" value="${r.necessidade}" ${window.souAdminPrincipal?'':'disabled'}></span>
       </div>
       <div class="quadro-stats">
         <div class="quadro-stat-bloco"><div class="quadro-stat-label">Total de aviários</div><div class="quadro-stat-valor">${r.totalAviarios}</div></div>
@@ -5124,10 +5127,10 @@ function renderQuadroFuncionarios(){
     el.addEventListener('change', async ()=>{
       if(!window.souAdminPrincipal) return;
       const nuc = el.dataset.nucleoRazao;
-      const v = parseFloat(el.value);
-      if(isNaN(v) || v<=0) return;
-      window.RAZAO_NUCLEOS[nuc] = v;
-      try{ await db.collection('configuracoes').doc('razao_nucleos').set({[nuc]: v}, {merge:true}); }catch(e){}
+      const v = parseInt(el.value, 10);
+      if(isNaN(v) || v<0) return;
+      window.NECESSIDADE_NUCLEOS[nuc] = v;
+      try{ await db.collection('configuracoes').doc('necessidade_nucleos').set({[nuc]: v}, {merge:true}); }catch(e){}
       renderQuadroFuncionarios();
       renderQuadroConsolidado();
     });
