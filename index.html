@@ -126,6 +126,28 @@
   .matriz-diaria td.peso-acima-meta::after{ content:'▲'; font-size:8px; color:#2E7D46; margin-left:3px; }
   .matriz-diaria td.peso-abaixo-meta{ background:#FDF1DC; box-shadow:inset 0 0 0 1px #F0CB7A; }
   .matriz-diaria td.peso-abaixo-meta::after{ content:'▼'; font-size:8px; color:#A9720A; margin-left:3px; }
+  .quadro-nucleo-card{ background:var(--card); border:1px solid var(--borda); border-radius:16px; padding:20px; margin-bottom:18px; box-shadow:var(--sombra); }
+  .quadro-nucleo-titulo{ font-family:'Sora',sans-serif; font-weight:800; font-size:16px; color:var(--vermelho); margin-bottom:12px; display:flex; align-items:center; gap:10px; flex-wrap:wrap; }
+  .quadro-razao-campo{ display:flex; align-items:center; gap:6px; font-size:11.5px; font-weight:600; color:var(--texto-suave); }
+  .quadro-razao-campo input{ width:56px; padding:5px 7px; border-radius:7px; border:1.5px solid var(--borda); font-size:13px; font-family:inherit; text-align:center; }
+  .quadro-stats{ display:flex; gap:24px; flex-wrap:wrap; margin-bottom:14px; }
+  .quadro-stat-bloco{ min-width:150px; }
+  .quadro-stat-label{ font-size:10.5px; color:var(--texto-suave); font-weight:700; text-transform:uppercase; letter-spacing:.03em; }
+  .quadro-stat-valor{ font-size:15px; font-weight:800; color:var(--texto); margin-top:2px; }
+  .quadro-stat-valor.ok{ color:var(--verde-ok); }
+  .quadro-stat-valor.falta{ color:var(--vermelho-alerta); }
+  .quadro-tabela-wrap{ overflow-x:auto; }
+  .quadro-tabela{ width:100%; border-collapse:collapse; font-size:12.5px; }
+  .quadro-tabela th{ text-align:left; font-size:10.5px; color:var(--texto-suave); font-weight:700; text-transform:uppercase; letter-spacing:.02em; padding:6px 8px; border-bottom:2px solid var(--borda); }
+  .quadro-tabela td{ padding:6px 8px; border-bottom:1px solid var(--borda); vertical-align:middle; }
+  .quadro-tabela input[type="text"]{ width:100%; padding:6px 8px; border-radius:7px; border:1.5px solid var(--borda); font-size:12.5px; font-family:inherit; box-sizing:border-box; }
+  .quadro-tabela input[type="text"]:disabled{ background:var(--bg); color:var(--texto-suave); border-color:transparent; }
+  .quadro-vago{ color:var(--vermelho-alerta); font-weight:700; font-size:11px; }
+  .quadro-saindo-label{ display:flex; align-items:center; gap:4px; font-size:10.5px; color:var(--texto-suave); white-space:nowrap; margin-top:3px; }
+  .quadro-linha-saindo td:nth-child(2), .quadro-linha-saindo td:nth-child(3){ background:#FDECEC; }
+  .quadro-tabela td.qf-cel-saindo{ background:#FDECEC; }
+  .quadro-nome-saindo{ text-decoration:line-through; color:var(--vermelho-alerta); }
+  .quadro-btn-remover-posto{ background:none; border:none; color:var(--vermelho-alerta); cursor:pointer; font-size:16px; padding:2px 6px; }
   .matriz-diaria th.rowhead.av{ padding-left:20px; font-weight:500; color:var(--texto-suave); }
   .matriz-diaria td.cel{ font-variant-numeric:tabular-nums; }
   .matriz-diaria .aloj{ font-weight:600; background:#F7F9FB; position:sticky; left:150px; z-index:3; width:80px; min-width:80px; }
@@ -679,6 +701,9 @@
       <button class="modulo" data-modulo="resultado">
         <span class="modulo-ic">📈</span> Resultado Zootécnico
       </button>
+      <button class="modulo" data-modulo="quadro" id="btnModuloQuadro" style="display:none;">
+        <span class="modulo-ic">👥</span> Quadro de Funcionários
+      </button>
       <button class="modulo" data-modulo="admin" id="btnModuloAdmin" style="display:none;">
         <span class="modulo-ic">⚙️</span> Administração
       </button>
@@ -1041,6 +1066,16 @@
     </div>
   </div>
 
+  <!-- ============ MÓDULO: QUADRO DE FUNCIONÁRIOS ============ -->
+  <div data-modulo-view="quadro" style="display:none;">
+    <div id="mod-quadro">
+      <div class="pagina-head"><h1 class="pagina-titulo">Quadro de Funcionários</h1></div>
+      <p class="nota" style="margin:0 0 16px;">Cada aviário é coberto em dupla (granjeiro + ajudante). A <strong>necessidade</strong> de cada núcleo é calculada a partir do total de aviários dividido pela razão definida ali. Marque quem está <strong>saindo/em aviso</strong> pra ver o "Futuro" — isso não altera o quadro Atual.</p>
+      <button class="btn-recolher" id="btnImportarQuadroInicial" style="display:none;margin-bottom:16px;">Importar lista inicial (uma vez)</button>
+      <div id="quadroNucleosContainer"></div>
+    </div>
+  </div>
+
   <!-- ============ MÓDULO: ADMINISTRAÇÃO ============ -->
   <div data-modulo-view="admin" style="display:none;">
     <div id="mod-admin">
@@ -1085,6 +1120,10 @@
             <div class="campo" style="flex:1;min-width:220px;"><label>E-mail (já cadastrado em "E-mails autorizados")</label><select id="emailPromover" required style="width:100%;padding:10px 12px;border-radius:9px;border:1.5px solid var(--borda);font-size:14px;font-family:inherit;box-sizing:border-box;"><option value="">Selecione...</option></select></div>
             <label style="display:flex;align-items:center;gap:6px;font-size:13px;font-weight:600;"><input type="checkbox" id="permMetas" style="width:16px;height:16px;"> Pode gerenciar metas</label>
             <label style="display:flex;align-items:center;gap:6px;font-size:13px;font-weight:600;"><input type="checkbox" id="permUsuarios" style="width:16px;height:16px;"> Pode gerenciar usuários</label>
+            <div style="width:100%;">
+              <label style="display:block;font-size:11.5px;font-weight:700;color:var(--texto-suave);text-transform:uppercase;letter-spacing:.03em;margin-bottom:6px;">Pode editar o Quadro de Funcionários destes núcleos:</label>
+              <div id="permNucleosQuadro" style="display:flex;flex-wrap:wrap;gap:10px;"></div>
+            </div>
             <button type="submit" class="btn-recolher" style="background:var(--vermelho);color:#fff;border-color:var(--vermelho);">Promover / Atualizar</button>
           </form>
           <p class="nota" id="erroPromoverAdmin" style="min-height:16px;margin-top:8px;"></p>
@@ -1568,6 +1607,7 @@ document.querySelectorAll('.modulo').forEach(btn => {
     document.querySelector('[data-modulo-view="resultado"]').style.display = (mod==='resultado') ? '' : 'none';
     document.querySelector('[data-modulo-view="condenas"]').style.display = (mod==='condenas') ? '' : 'none';
     document.querySelector('[data-modulo-view="peso"]').style.display = (mod==='peso') ? '' : 'none';
+    document.querySelector('[data-modulo-view="quadro"]').style.display = (mod==='quadro') ? '' : 'none';
     document.querySelector('[data-modulo-view="admin"]').style.display = (mod==='admin') ? '' : 'none';
     document.getElementById('tabsMortalidade').style.display = (mod==='mortalidade') ? '' : 'none';
     // os filtros do topo pertencem ao módulo mortalidade (Resultado e Condenas têm os seus próprios dentro deles)
@@ -1576,6 +1616,9 @@ document.querySelectorAll('.modulo').forEach(btn => {
     if(mod==='resultado' && window.renderResultado) window.renderResultado();
     if(mod==='condenas' && window.renderCondenas) window.renderCondenas();
     if(mod==='peso' && window.renderPeso) window.renderPeso();
+    if(mod==='quadro' && window.iniciarQuadroFuncionarios){
+      if(!window.quadroFuncionariosCarregado){ window.quadroFuncionariosCarregado = true; window.iniciarQuadroFuncionarios(); }
+    }
     if(mod==='admin'){
       if(window.souAdminPrincipal || window.minhasPermissoes.usuarios){ if(window.carregarListaEmails) window.carregarListaEmails(); }
       if(window.souAdminPrincipal || window.minhasPermissoes.metas){ if(window.carregarFormMetasPeso) window.carregarFormMetasPeso(); }
@@ -1583,6 +1626,7 @@ document.querySelectorAll('.modulo').forEach(btn => {
         if(window.carregarAcessos) window.carregarAcessos();
         if(window.carregarListaAdmins) window.carregarListaAdmins();
         if(window.popularSelectEmailPromover) window.popularSelectEmailPromover();
+        if(window.popularCheckboxesNucleosQuadro) window.popularCheckboxesNucleosQuadro();
       }
     }
     if(window.registrarModulo) window.registrarModulo(mod);
@@ -4382,8 +4426,9 @@ const db = firebase.firestore();
 const telaLogin = document.getElementById('telaLogin');
 const appRoot = document.getElementById('appRoot');
 const ADMIN_EMAIL = 'avicultura05@qualitti.com.br';
+const NUCLEOS_QUADRO = ['Aeroporto','Aroeira','Engopa','Flamboyant','Paraiso 01','Paraiso 02','Paraiso 03','Paraiso 04','Santa Rosa','Valzinho','Vinagre 01','Vinagre 02','Vinagre 03'];
 window.souAdminPrincipal = false;
-window.minhasPermissoes = {metas:false, usuarios:false};
+window.minhasPermissoes = {metas:false, usuarios:false, funcionariosNucleos:[]};
 
 function mensagemErroAuth(err){
   const map = {'auth/user-not-found':'E-mail ou senha incorretos.','auth/wrong-password':'E-mail ou senha incorretos.','auth/invalid-credential':'E-mail ou senha incorretos.','auth/invalid-email':'E-mail inválido.','auth/email-already-in-use':'Já existe uma conta com este e-mail. Tente entrar.','auth/weak-password':'Senha muito curta (mínimo 6 caracteres).','auth/too-many-requests':'Muitas tentativas. Aguarde um pouco e tente de novo.'};
@@ -4477,6 +4522,13 @@ function atualizarVisibilidadeSecoesAdmin(){
   if(secAcessos) secAcessos.style.display = window.souAdminPrincipal ? '' : 'none';
 }
 
+function atualizarBotoesModulosPermissao(){
+  const btnAdmin = document.getElementById('btnModuloAdmin');
+  const btnQuadro = document.getElementById('btnModuloQuadro');
+  if(btnAdmin) btnAdmin.style.display = (window.souAdminPrincipal || window.minhasPermissoes.metas || window.minhasPermissoes.usuarios) ? '' : 'none';
+  if(btnQuadro) btnQuadro.style.display = (window.souAdminPrincipal || (window.minhasPermissoes.funcionariosNucleos||[]).length>0) ? '' : 'none';
+}
+
 auth.onAuthStateChanged(user => {
   const nota = document.getElementById('notaCarregando');
   if(nota) nota.style.display = 'none';
@@ -4485,24 +4537,22 @@ auth.onAuthStateChanged(user => {
     appRoot.style.display = '';
     const emailLower = (user.email||'').toLowerCase();
     window.souAdminPrincipal = (emailLower === ADMIN_EMAIL);
-    const btnAdmin = document.getElementById('btnModuloAdmin');
 
     if(window.souAdminPrincipal){
-      window.minhasPermissoes = {metas:true, usuarios:true};
-      if(btnAdmin) btnAdmin.style.display = '';
+      window.minhasPermissoes = {metas:true, usuarios:true, funcionariosNucleos: NUCLEOS_QUADRO.slice()};
+      atualizarBotoesModulosPermissao();
       atualizarVisibilidadeSecoesAdmin();
     } else {
       db.collection('admins').doc(emailLower).get().then(doc=>{
         if(doc.exists){
           const perm = doc.data().permissoes || {};
-          window.minhasPermissoes = {metas: !!perm.metas, usuarios: !!perm.usuarios};
-          if(btnAdmin) btnAdmin.style.display = (perm.metas || perm.usuarios) ? '' : 'none';
+          window.minhasPermissoes = {metas: !!perm.metas, usuarios: !!perm.usuarios, funcionariosNucleos: perm.funcionariosNucleos || []};
         } else {
-          window.minhasPermissoes = {metas:false, usuarios:false};
-          if(btnAdmin) btnAdmin.style.display = 'none';
+          window.minhasPermissoes = {metas:false, usuarios:false, funcionariosNucleos:[]};
         }
+        atualizarBotoesModulosPermissao();
         atualizarVisibilidadeSecoesAdmin();
-      }).catch(()=>{ if(btnAdmin) btnAdmin.style.display = 'none'; });
+      }).catch(()=>{ atualizarBotoesModulosPermissao(); });
     }
     registrarAcesso(user);
     setTimeout(()=>window.dispatchEvent(new Event('resize')), 80);
@@ -4551,7 +4601,7 @@ async function carregarListaEmails(){
 }
 window.carregarListaEmails = carregarListaEmails;
 
-const NOMES_MODULOS_ADMIN = {mortalidade:'Mortalidade', resultado:'Resultado Zootécnico', condenas:'Condenas', peso:'Evolução de Pesos', admin:'Administração'};
+const NOMES_MODULOS_ADMIN = {mortalidade:'Mortalidade', resultado:'Resultado Zootécnico', condenas:'Condenas', peso:'Evolução de Pesos', admin:'Administração', quadro:'Quadro de Funcionários'};
 
 async function carregarAcessos(){
   const tabela = document.getElementById('tabelaAcessos');
@@ -4667,6 +4717,16 @@ async function popularSelectEmailPromover(){
 }
 window.popularSelectEmailPromover = popularSelectEmailPromover;
 
+function popularCheckboxesNucleosQuadro(){
+  const cont = document.getElementById('permNucleosQuadro');
+  if(!cont) return;
+  cont.innerHTML = NUCLEOS_QUADRO.map(n => `
+    <label style="display:flex;align-items:center;gap:5px;font-size:12.5px;font-weight:600;">
+      <input type="checkbox" class="qf-perm-nucleo-check" value="${n}" style="width:15px;height:15px;"> ${n}
+    </label>`).join('');
+}
+window.popularCheckboxesNucleosQuadro = popularCheckboxesNucleosQuadro;
+
 async function carregarListaAdmins(){
   const cont = document.getElementById('listaAdminsPromovidos');
   const info = document.getElementById('infoAdminsPromovidos');
@@ -4681,7 +4741,11 @@ async function carregarListaAdmins(){
     if(!docs.length){ cont.innerHTML = '<p class="nota">Nenhum admin promovido ainda.</p>'; return; }
     cont.innerHTML = docs.map(d => {
       const perm = d.permissoes||{};
-      const permTxt = [perm.metas?'Metas':null, perm.usuarios?'Usuários':null].filter(Boolean).join(' + ') || 'nenhuma permissão';
+      const partes = [];
+      if(perm.metas) partes.push('Metas');
+      if(perm.usuarios) partes.push('Usuários');
+      if(perm.funcionariosNucleos && perm.funcionariosNucleos.length) partes.push('Quadro: '+perm.funcionariosNucleos.join(', '));
+      const permTxt = partes.join(' + ') || 'nenhuma permissão';
       return `<div class="rank-card" style="grid-template-columns:1fr auto;align-items:center;">
         <div><div class="rank-nome">${d.email}</div><div class="rank-sub">${permTxt}</div></div>
         <button class="btn-recolher" data-remover-admin="${d.id}" style="border-color:var(--vermelho-alerta);color:var(--vermelho-alerta);">Remover</button>
@@ -4710,23 +4774,265 @@ if(formPromoverAdmin){
     const email = document.getElementById('emailPromover').value.trim().toLowerCase();
     const permMetas = document.getElementById('permMetas').checked;
     const permUsuarios = document.getElementById('permUsuarios').checked;
+    const nucleosSelecionados = Array.from(document.querySelectorAll('.qf-perm-nucleo-check:checked')).map(el=>el.value);
     if(!email){ erroEl.textContent = 'Selecione um e-mail.'; return; }
     if(email === ADMIN_EMAIL){ erroEl.textContent = 'Esse já é o e-mail do administrador principal.'; return; }
-    if(!permMetas && !permUsuarios){ erroEl.textContent = 'Marque ao menos uma permissão.'; return; }
+    if(!permMetas && !permUsuarios && nucleosSelecionados.length===0){ erroEl.textContent = 'Marque ao menos uma permissão.'; return; }
     const btn = formPromoverAdmin.querySelector('button[type="submit"]');
     btn.disabled = true; btn.textContent = 'Salvando...';
     try{
-      await db.collection('admins').doc(email).set({ email, permissoes: {metas: permMetas, usuarios: permUsuarios} });
+      await db.collection('admins').doc(email).set({ email, permissoes: {metas: permMetas, usuarios: permUsuarios, funcionariosNucleos: nucleosSelecionados} });
       erroEl.style.color = 'var(--verde-ok)';
       erroEl.textContent = 'Permissões salvas com sucesso!';
       document.getElementById('emailPromover').value='';
       document.getElementById('permMetas').checked=false;
       document.getElementById('permUsuarios').checked=false;
+      document.querySelectorAll('.qf-perm-nucleo-check').forEach(el=>el.checked=false);
       carregarListaAdmins();
     }catch(e){
       erroEl.textContent = 'Erro ao salvar: ' + e.message;
     }finally{
       btn.disabled = false; btn.textContent = 'Promover / Atualizar';
+    }
+  });
+}
+
+// ================= Quadro de Funcionários =================
+const DADOS_INICIAIS_QUADRO = [
+  ["Aeroporto","11-12-13-14","Aparecido Batista Pena","Cristiane Alves da Silva"],
+  ["Aroeira","87-88","Jeferson Sousa da Silva","Samira Pereira de Oliveira"],
+  ["Aroeira","89-90","Randir Alves Ferreira","Siberde Aparecida"],
+  ["Aroeira","91-92","Uidesnes Alves Feitosa","Lidiane Ribeiro de Souza"],
+  ["Aroeira","93-94","Elizeu Santos Souza","Fabiana Batista dos Santos"],
+  ["Aroeira","95-96","Emerson dos Reis Travassos","Cristiane Ribeiro do Nascimento"],
+  ["Aroeira","97-98","Wellington Nunes de Oliveira","Dirlaine Soares Dutra"],
+  ["Aroeira","99-100","Claudio Conceição Costa",""],
+  ["Aroeira","101-102","Edivandro Batista dos Santos","Raysa Caroline Brito Cruz"],
+  ["Aroeira","103-104","Paulo Richard Martins Barbosa","Ana Clara Alves Sousa"],
+  ["Aroeira","105-106","Leandro Oliveira dos Santos","Marta Oliveira Silva"],
+  ["Engopa","27-28-29-30","Ramalho Soares de Carvalho","Ramaria do Socorro Veloso de Carvalho"],
+  ["Flamboyant","107-108","Ueder Sousa Araújo","Gisele Ferreira Soares"],
+  ["Flamboyant","109-110","",""],
+  ["Flamboyant","111-112","Edmilson Aleixo de Souza","Rosilene Maria de Oliveira"],
+  ["Flamboyant","113-114","",""],
+  ["Flamboyant","115-116","Severino Nunes dos Santos","Josefran de Jesus dos Santos"],
+  ["Flamboyant","117-118","Olivan Inácio Pereira","Maria Socorro Januário Rodrigues"],
+  ["Flamboyant","119-120","José risomar da Silva Monteiro","Maria José Alves Pereira"],
+  ["Flamboyant","121-122","João Marcos Santos Souza","Verilane Sousa Rodrigues"],
+  ["Flamboyant","123-124","",""],
+  ["Flamboyant","125-126","Magno Fernandes de Sousa","Adriele Rodrigues de Oliveira"],
+  ["Paraiso 01","15-16-17","Luiz Carlos Mendes","Cleidisonia da Silva Mendes"],
+  ["Paraiso 01","18-19-20","Ediney Rodrigues","Ana Célia"],
+  ["Paraiso 02","21-22-23","Demar Marques","Lucilene Evangelista Lima"],
+  ["Paraiso 02","24-25-26","Valtenilton Galdino dos Santos","Carmen Zulma Fernandes"],
+  ["Paraiso 03","31-32-33","José dos Santos de Souza","Claudia da Silva Pereira"],
+  ["Paraiso 03","34-35-36","Lucas Vicente Peres de Sousa","Camila Costa Silva"],
+  ["Paraiso 04","37-38-39","Darlys Santos da Silva","Adriana Evangelista Sales"],
+  ["Paraiso 04","40-41-42","Josivaldo de Lima","Erisvaldo Lima Santos"],
+  ["Santa Rosa","59-60-61-62","David Viana Campos","Jessica Vieira da Silva"],
+  ["Valzinho","71-72","Edivanio Nogueira Lino","Eslaine Leite dos Reis Lino"],
+  ["Valzinho","73-74","Carlos Willian Alves","Luana Martins Batista"],
+  ["Valzinho","75-76","Dionathan Deivide Santos Nogueira","Gabriel Lopes Belarmino"],
+  ["Valzinho","77-78","Rogério Duarte Ajala","Cleonice Gregório"],
+  ["Valzinho","79-80","Giovani Carlos da Silva pontes","José André dos Santos"],
+  ["Valzinho","81-82","Francisco Pedro da Silva","Leonete Teixeira Ferreira"],
+  ["Valzinho","83-84","Daniel Nogueira","Rosilania da Silva Santos"],
+  ["Valzinho","85-86","Juraci Ferreira Santos","Fabiana de lima Carvalho"],
+  ["Vinagre 01","43-44","Ademar Almeida da Silva","Maria Carolina Silva"],
+  ["Vinagre 01","45-46","Francisco José Pereira Sousa","Rosilene Rodrigues Da Silva Sousa"],
+  ["Vinagre 01","47-48","Fábio cordeiro dos Santos","Antonia Katiane dos Santos Cruz"],
+  ["Vinagre 01","49-50","João Bosco de Oliveira","Nelsilene da Silva"],
+  ["Vinagre 02","67-68","Antônio André de Oliveira","Flávia de Lima"],
+  ["Vinagre 02","63-64","",""],
+  ["Vinagre 02","64-65","Marcos Antônio Pereira","Wilka Soares Lopes"],
+  ["Vinagre 02","69-70","Daniel Barbosa de Sousa","Nádia kaline das Neves pinto"],
+  ["Vinagre 03","51-52","Maurício Leite de Lima","Tatiane Moreira dos Santos Lima"],
+  ["Vinagre 03","53-54","Daniel marque de Oliveira","Karina Vieira Alves de Oliveira"],
+  ["Vinagre 03","55-56","Iziel Vagner Rodrigues dos Santos","Maria do socorro Bezerra do Nascimento"],
+  ["Vinagre 03","57-58","Jucelino dias Siqueira","Edilaine cristina da cruz Dias"]
+];
+
+function nucleosQueEditoPodeQuadro(){
+  if(window.souAdminPrincipal) return NUCLEOS_QUADRO.slice();
+  return (window.minhasPermissoes.funcionariosNucleos || []);
+}
+
+function contarAviarios(str){
+  return String(str||'').split('-').map(s=>s.trim()).filter(Boolean).length;
+}
+
+async function iniciarQuadroFuncionarios(){
+  try{
+    const docRazao = await db.collection('configuracoes').doc('razao_nucleos').get();
+    window.RAZAO_NUCLEOS = docRazao.exists ? docRazao.data() : {};
+  }catch(e){ window.RAZAO_NUCLEOS = {}; }
+  try{
+    const snap = await db.collection('funcionarios').get();
+    window.POSTOS_QUADRO = [];
+    snap.forEach(doc => window.POSTOS_QUADRO.push({id: doc.id, ...doc.data()}));
+  }catch(e){ window.POSTOS_QUADRO = []; }
+  const btnImportar = document.getElementById('btnImportarQuadroInicial');
+  if(btnImportar){
+    btnImportar.style.display = (window.souAdminPrincipal && window.POSTOS_QUADRO.length===0) ? '' : 'none';
+  }
+  renderQuadroFuncionarios();
+}
+window.iniciarQuadroFuncionarios = iniciarQuadroFuncionarios;
+
+function renderQuadroFuncionarios(){
+  const cont = document.getElementById('quadroNucleosContainer');
+  if(!cont) return;
+  const podeEditarLista = nucleosQueEditoPodeQuadro();
+  const porNucleo = new Map();
+  (window.POSTOS_QUADRO||[]).forEach(p=>{
+    if(!porNucleo.has(p.nucleo)) porNucleo.set(p.nucleo, []);
+    porNucleo.get(p.nucleo).push(p);
+  });
+  const nucleosOrdenados = Array.from(porNucleo.keys()).sort();
+  if(!nucleosOrdenados.length){
+    cont.innerHTML = '<p class="nota">Nenhum posto cadastrado ainda.</p>';
+    return;
+  }
+  cont.innerHTML = nucleosOrdenados.map(nuc=>{
+    const postos = porNucleo.get(nuc).slice().sort((a,b)=>String(a.aviarios).localeCompare(String(b.aviarios), undefined, {numeric:true}));
+    const totalAviarios = postos.reduce((s,p)=>s+contarAviarios(p.aviarios),0);
+    const razao = (window.RAZAO_NUCLEOS && window.RAZAO_NUCLEOS[nuc]!=null) ? window.RAZAO_NUCLEOS[nuc] : 2;
+    const necessidade = razao>0 ? Math.round(totalAviarios/razao) : 0;
+    const atualGranj = postos.filter(p=>p.granjeiro && p.granjeiro.trim()).length;
+    const atualAjud = postos.filter(p=>p.ajudante && p.ajudante.trim()).length;
+    const futuroGranj = postos.filter(p=>p.granjeiro && p.granjeiro.trim() && !p.granjeiroSaindo).length;
+    const futuroAjud = postos.filter(p=>p.ajudante && p.ajudante.trim() && !p.ajudanteSaindo).length;
+    const editavel = podeEditarLista.includes(nuc);
+
+    const linhas = postos.map(p=>{
+      const gSai = !!p.granjeiroSaindo, aSai = !!p.ajudanteSaindo;
+      return `<tr data-posto-id="${p.id}">
+        <td>${p.aviarios}</td>
+        <td class="${gSai?'qf-cel-saindo':''}"><input type="text" class="qf-input-granjeiro ${gSai?'quadro-nome-saindo':''}" value="${(p.granjeiro||'').replace(/"/g,'&quot;')}" placeholder="Vago" ${editavel?'':'disabled'}></td>
+        <td class="${gSai?'qf-cel-saindo':''}"><label class="quadro-saindo-label"><input type="checkbox" class="qf-check-granjeiro-sai" ${gSai?'checked':''} ${editavel?'':'disabled'}> sai</label></td>
+        <td class="${aSai?'qf-cel-saindo':''}"><input type="text" class="qf-input-ajudante ${aSai?'quadro-nome-saindo':''}" value="${(p.ajudante||'').replace(/"/g,'&quot;')}" placeholder="Vago" ${editavel?'':'disabled'}></td>
+        <td class="${aSai?'qf-cel-saindo':''}"><label class="quadro-saindo-label"><input type="checkbox" class="qf-check-ajudante-sai" ${aSai?'checked':''} ${editavel?'':'disabled'}> sai</label></td>
+        <td>${editavel?`<button class="quadro-btn-remover-posto" data-remover-posto="${p.id}" title="Remover posto">✕</button>`:''}</td>
+      </tr>`;
+    }).join('');
+
+    return `<div class="quadro-nucleo-card" data-nucleo-card="${nuc}">
+      <div class="quadro-nucleo-titulo">
+        ${nuc}
+        <span class="quadro-razao-campo">Razão (aviários/pessoa): <input type="number" min="1" step="1" class="qf-input-razao" data-nucleo-razao="${nuc}" value="${razao}" ${window.souAdminPrincipal?'':'disabled'}></span>
+      </div>
+      <div class="quadro-stats">
+        <div class="quadro-stat-bloco"><div class="quadro-stat-label">Total de aviários</div><div class="quadro-stat-valor">${totalAviarios}</div></div>
+        <div class="quadro-stat-bloco"><div class="quadro-stat-label">Necessidade (cada papel)</div><div class="quadro-stat-valor">${necessidade}</div></div>
+        <div class="quadro-stat-bloco"><div class="quadro-stat-label">Atual — Granjeiros</div><div class="quadro-stat-valor ${atualGranj>=necessidade?'ok':'falta'}">${atualGranj}/${necessidade}</div></div>
+        <div class="quadro-stat-bloco"><div class="quadro-stat-label">Atual — Ajudantes</div><div class="quadro-stat-valor ${atualAjud>=necessidade?'ok':'falta'}">${atualAjud}/${necessidade}</div></div>
+        <div class="quadro-stat-bloco"><div class="quadro-stat-label">Futuro — Granjeiros</div><div class="quadro-stat-valor ${futuroGranj>=necessidade?'ok':'falta'}">${futuroGranj}/${necessidade}</div></div>
+        <div class="quadro-stat-bloco"><div class="quadro-stat-label">Futuro — Ajudantes</div><div class="quadro-stat-valor ${futuroAjud>=necessidade?'ok':'falta'}">${futuroAjud}/${necessidade}</div></div>
+      </div>
+      <div class="quadro-tabela-wrap">
+        <table class="quadro-tabela">
+          <thead><tr><th>Aviários</th><th>Granjeiro</th><th></th><th>Ajudante</th><th></th><th></th></tr></thead>
+          <tbody>${linhas}</tbody>
+        </table>
+      </div>
+      ${editavel?`<div style="margin-top:12px;display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
+        <input type="text" class="qf-novo-aviarios" data-nucleo-novo="${nuc}" placeholder="ex: 127-128" style="width:130px;padding:8px;border-radius:8px;border:1.5px solid var(--borda);font-size:13px;font-family:inherit;">
+        <button class="btn-recolher" data-add-posto="${nuc}" type="button">+ Adicionar posto</button>
+      </div>`:''}
+    </div>`;
+  }).join('');
+
+  cont.querySelectorAll('.qf-input-granjeiro').forEach(el=>{
+    el.addEventListener('change', ()=>{
+      const id = el.closest('tr').dataset.postoId;
+      salvarCampoPosto(id, {granjeiro: el.value.trim()});
+    });
+  });
+  cont.querySelectorAll('.qf-input-ajudante').forEach(el=>{
+    el.addEventListener('change', ()=>{
+      const id = el.closest('tr').dataset.postoId;
+      salvarCampoPosto(id, {ajudante: el.value.trim()});
+    });
+  });
+  cont.querySelectorAll('.qf-check-granjeiro-sai').forEach(el=>{
+    el.addEventListener('change', ()=>{
+      const id = el.closest('tr').dataset.postoId;
+      salvarCampoPosto(id, {granjeiroSaindo: el.checked});
+    });
+  });
+  cont.querySelectorAll('.qf-check-ajudante-sai').forEach(el=>{
+    el.addEventListener('change', ()=>{
+      const id = el.closest('tr').dataset.postoId;
+      salvarCampoPosto(id, {ajudanteSaindo: el.checked});
+    });
+  });
+  cont.querySelectorAll('.qf-input-razao').forEach(el=>{
+    el.addEventListener('change', async ()=>{
+      if(!window.souAdminPrincipal) return;
+      const nuc = el.dataset.nucleoRazao;
+      const v = parseFloat(el.value);
+      if(isNaN(v) || v<=0) return;
+      window.RAZAO_NUCLEOS[nuc] = v;
+      try{ await db.collection('configuracoes').doc('razao_nucleos').set({[nuc]: v}, {merge:true}); }catch(e){}
+      renderQuadroFuncionarios();
+    });
+  });
+  cont.querySelectorAll('[data-remover-posto]').forEach(btn=>{
+    btn.addEventListener('click', async ()=>{
+      if(!confirm('Remover esse posto (grupo de aviários) do quadro?')) return;
+      const id = btn.dataset.removerPosto;
+      try{
+        await db.collection('funcionarios').doc(id).delete();
+        window.POSTOS_QUADRO = window.POSTOS_QUADRO.filter(p=>p.id!==id);
+        renderQuadroFuncionarios();
+      }catch(e){ alert('Erro ao remover: '+e.message); }
+    });
+  });
+  cont.querySelectorAll('[data-add-posto]').forEach(btn=>{
+    btn.addEventListener('click', async ()=>{
+      const nuc = btn.dataset.addPosto;
+      const input = cont.querySelector(`.qf-novo-aviarios[data-nucleo-novo="${nuc}"]`);
+      const aviarios = input.value.trim();
+      if(!aviarios){ alert('Digite os aviários (ex: 127-128)'); return; }
+      const novo = { nucleo: nuc, aviarios, granjeiro:'', ajudante:'', granjeiroSaindo:false, ajudanteSaindo:false };
+      try{
+        const ref = await db.collection('funcionarios').add(novo);
+        window.POSTOS_QUADRO.push({id: ref.id, ...novo});
+        renderQuadroFuncionarios();
+      }catch(e){ alert('Erro ao adicionar: '+e.message); }
+    });
+  });
+}
+window.renderQuadroFuncionarios = renderQuadroFuncionarios;
+
+async function salvarCampoPosto(id, campos){
+  try{
+    await db.collection('funcionarios').doc(id).set(campos, {merge:true});
+    const posto = (window.POSTOS_QUADRO||[]).find(p=>p.id===id);
+    if(posto) Object.assign(posto, campos);
+    renderQuadroFuncionarios();
+  }catch(e){
+    alert('Erro ao salvar: ' + e.message);
+  }
+}
+
+const btnImportarQuadroInicial = document.getElementById('btnImportarQuadroInicial');
+if(btnImportarQuadroInicial){
+  btnImportarQuadroInicial.addEventListener('click', async ()=>{
+    if(!confirm('Importar a lista inicial de funcionários? Isso só deve ser feito uma vez (na primeira configuração).')) return;
+    btnImportarQuadroInicial.disabled = true;
+    btnImportarQuadroInicial.textContent = 'Importando...';
+    try{
+      for(const [nucleo, aviarios, granjeiro, ajudante] of DADOS_INICIAIS_QUADRO){
+        await db.collection('funcionarios').add({ nucleo, aviarios, granjeiro, ajudante, granjeiroSaindo:false, ajudanteSaindo:false });
+      }
+      alert('Importação concluída!');
+      await iniciarQuadroFuncionarios();
+    }catch(e){
+      alert('Erro na importação: ' + e.message);
+    }finally{
+      btnImportarQuadroInicial.disabled = false;
+      btnImportarQuadroInicial.textContent = 'Importar lista inicial (uma vez)';
     }
   });
 }
