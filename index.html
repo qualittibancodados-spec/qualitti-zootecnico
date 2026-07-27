@@ -4270,7 +4270,7 @@ function renderMapeamentoLotes(){
     const matriz = `${idadeAtual}.${ref.lote}.${ref.alojadas!=null?ref.alojadas:'–'}`;
     const loteLimpo = mapl_limparPrefixoLote(ref.lote);
     const porIdade = mortPorLote.get(loteLimpo) || mortPorLote.get(ref.lote) || {};
-    linhas.push({ nucleo: ref.nucleo, aviario: ref.aviario, incubatorio: ref.incubatorio||'–', dataAloj: ref.dataAloj, matriz, porIdade });
+    linhas.push({ nucleo: ref.nucleo, aviario: ref.aviario, incubatorio: ref.incubatorio||'–', dataAloj: ref.dataAloj, matriz, porIdade, totalGeral: ref.mortElim!=null?ref.mortElim:null });
   });
 
   if(mapl_ordem.chave){
@@ -4280,6 +4280,7 @@ function renderMapeamentoLotes(){
       if(mapl_ordem.chave==='aviario'){ va=String(a.aviario); vb=String(b.aviario); return dir*va.localeCompare(vb, undefined, {numeric:true}); }
       if(mapl_ordem.chave==='incubatorio'){ va=a.incubatorio; vb=b.incubatorio; return dir*String(va).localeCompare(String(vb)); }
       if(mapl_ordem.chave==='dataAloj'){ va=new Date(a.dataAloj||0); vb=new Date(b.dataAloj||0); return dir*(va-vb); }
+      if(mapl_ordem.chave==='totalGeral'){ va=a.totalGeral??-1; vb=b.totalGeral??-1; return dir*(va-vb); }
       if(mapl_ordem.chave.startsWith('i_')){ const idd=mapl_ordem.chave.slice(2); va=a.porIdade[idd]??-1; vb=b.porIdade[idd]??-1; return dir*(va-vb); }
       return 0;
     });
@@ -4295,7 +4296,7 @@ function renderMapeamentoLotes(){
     <th class="th-sort" data-sort-mapl="dataAloj" title="Ordenar">Data<br>Alojamento${seta('dataAloj')}</th>
     <th>Matriz</th>`;
   idadesVisiveis.forEach(idd => thead += `<th class="th-sort" data-sort-mapl="i_${idd}" title="Ordenar">Mort. até<br>${idd}d${seta('i_'+idd)}</th>`);
-  thead += `</tr></thead>`;
+  thead += `<th class="th-sort" data-sort-mapl="totalGeral" title="Ordenar">Total${seta('totalGeral')}</th></tr></thead>`;
 
   let corpo = '';
   Array.from(porNucleo.keys()).sort().forEach(nuc=>{
@@ -4304,21 +4305,25 @@ function renderMapeamentoLotes(){
 
     const somaPorIdade = {}, contPorIdade = {};
     idadesVisiveis.forEach(idd=>{ somaPorIdade[idd]=0; contPorIdade[idd]=0; });
+    let somaTotal=0, contTotal=0;
     linhasNuc.forEach(l=>{
       idadesVisiveis.forEach(idd=>{
         const v = l.porIdade[idd];
         if(v!=null){ somaPorIdade[idd]+=v; contPorIdade[idd]++; }
       });
+      if(l.totalGeral!=null){ somaTotal+=l.totalGeral; contTotal++; }
     });
     let celulasSub = '';
     idadesVisiveis.forEach(idd=>{
       celulasSub += contPorIdade[idd]>0 ? `<td>${(somaPorIdade[idd]/contPorIdade[idd]).toFixed(2).replace('.',',')}%</td>` : '<td></td>';
     });
+    const totalNucleo = contTotal ? (somaTotal/contTotal) : null;
 
     corpo += `<tr class="linha-nucleo">
       <th class="rowhead"><span class="nuc-toggle" data-toggle-mapl-nucleo="${nuc}" style="cursor:pointer;">${rec?'▸':'▾'}</span> ${nomeNucleo(nuc)} (${linhasNuc.length})</th>
       <td></td><td></td><td></td>
       ${celulasSub}
+      <td style="font-weight:800;">${totalNucleo!=null?totalNucleo.toFixed(2).replace('.',',')+'%':''}</td>
     </tr>`;
 
     if(!rec){
@@ -4334,13 +4339,14 @@ function renderMapeamentoLotes(){
           <td>${mapl_formatarDataBR(l.dataAloj)}</td>
           <td style="font-size:10.5px;" title="${l.matriz}">${l.matriz}</td>
           ${celulas}
+          <td style="font-weight:700;">${l.totalGeral!=null ? l.totalGeral.toFixed(2).replace('.',',')+'%' : '–'}</td>
         </tr>`;
       });
     }
   });
 
   tabela.innerHTML = thead + '<tbody>'+corpo+'</tbody>';
-  nota.innerHTML = `${linhas.length} aviário(s) exibido(s). <strong>Mort. até Xd</strong> = mortalidade acumulada (natural + eliminação) desde o alojamento até aquela idade. <strong>Matriz</strong> = Idade.Lote.AvesAlojadas.`;
+  nota.innerHTML = `${linhas.length} aviário(s) exibido(s). <strong>Mort. até Xd</strong> = mortalidade acumulada (natural + eliminação) desde o alojamento até aquela idade. <strong>Total</strong> = mortalidade final do ciclo (até a idade de abate). <strong>Matriz</strong> = Idade.Lote.AvesAlojadas.`;
   mapl_atualizarBotaoRecolher();
 
   tabela.querySelectorAll('[data-toggle-mapl-nucleo]').forEach(el=>{
@@ -5265,9 +5271,9 @@ function calcularResumoNucleo(nuc, postos){
   const necessidadeDefinida = (window.NECESSIDADE_NUCLEOS && window.NECESSIDADE_NUCLEOS[nuc]!=null) ? window.NECESSIDADE_NUCLEOS[nuc] : null;
   const necessidade = necessidadeDefinida!=null ? necessidadeDefinida : postos.length;
   const atualGranj = postos.filter(p=>p.granjeiro && p.granjeiro.trim()).length;
-  const atualAjud = postos.filter(p=>p.ajudante && p.ajudante.trim()).length;
+  const atualAjud = postos.reduce((s,p)=> s + (p.ajudante&&p.ajudante.trim()?1:0) + (p.ajudante2&&p.ajudante2.trim()?1:0), 0);
   const futuroGranj = postos.filter(p=>p.granjeiro && p.granjeiro.trim() && !p.granjeiroSaindo).length;
-  const futuroAjud = postos.filter(p=>p.ajudante && p.ajudante.trim() && !p.ajudanteSaindo).length;
+  const futuroAjud = postos.reduce((s,p)=> s + (p.ajudante&&p.ajudante.trim()&&!p.ajudanteSaindo?1:0) + (p.ajudante2&&p.ajudante2.trim()&&!p.ajudante2Saindo?1:0), 0);
   let ultimaAtualizacao = null, ultimoAutor = '';
   postos.forEach(p=>{
     if(p.atualizadoEm && p.atualizadoEm.toDate){
@@ -5446,12 +5452,15 @@ function renderQuadroFuncionarios(){
 
     const linhas = postos.map(p=>{
       const gSai = !!p.granjeiroSaindo, aSai = !!p.ajudanteSaindo, folguista = !!p.folguista;
+      const a2Sai = !!p.ajudante2Saindo;
       return `<tr data-posto-id="${p.id}" class="${folguista?'qf-linha-folguista':''}">
         <td><input type="text" class="qf-input-aviarios" value="${(p.aviarios||'').replace(/"/g,'&quot;')}" placeholder="ex: 87-88" ${editavel?'':'disabled'} style="width:90px;text-align:center;"></td>
         <td class="${gSai?'qf-cel-saindo':''}"><input type="text" class="qf-input-granjeiro ${gSai?'quadro-nome-saindo':''}" value="${(p.granjeiro||'').replace(/"/g,'&quot;')}" placeholder="Vago" ${editavel?'':'disabled'}></td>
         <td class="${gSai?'qf-cel-saindo':''}"><label class="quadro-saindo-label"><input type="checkbox" class="qf-check-granjeiro-sai" ${gSai?'checked':''} ${editavel?'':'disabled'}> sai</label></td>
         <td class="${aSai?'qf-cel-saindo':''}"><input type="text" class="qf-input-ajudante ${aSai?'quadro-nome-saindo':''}" value="${(p.ajudante||'').replace(/"/g,'&quot;')}" placeholder="Vago" ${editavel?'':'disabled'}></td>
         <td class="${aSai?'qf-cel-saindo':''}"><label class="quadro-saindo-label"><input type="checkbox" class="qf-check-ajudante-sai" ${aSai?'checked':''} ${editavel?'':'disabled'}> sai</label></td>
+        <td class="${a2Sai?'qf-cel-saindo':''}" title="Use só quando esse posto tiver um ajudante a mais que o normal (ex: núcleo com carga maior)."><input type="text" class="qf-input-ajudante2 ${a2Sai?'quadro-nome-saindo':''}" value="${(p.ajudante2||'').replace(/"/g,'&quot;')}" placeholder="2º ajudante (opcional)" ${editavel?'':'disabled'} style="font-size:11.5px;"></td>
+        <td class="${a2Sai?'qf-cel-saindo':''}"><label class="quadro-saindo-label"><input type="checkbox" class="qf-check-ajudante2-sai" ${a2Sai?'checked':''} ${editavel?'':'disabled'}> sai</label></td>
         <td><label class="quadro-saindo-label" title="A dupla está temporariamente coberta por folguista(s), mas continua contando normal no quadro."><input type="checkbox" class="qf-check-folguista" ${folguista?'checked':''} ${editavel?'':'disabled'}> folguista</label></td>
         <td>${editavel?`<button class="quadro-btn-remover-posto" data-remover-posto="${p.id}" title="Remover posto">✕</button>`:''}</td>
       </tr>`;
@@ -5476,7 +5485,7 @@ function renderQuadroFuncionarios(){
       </div>
       <div class="quadro-tabela-wrap">
         <table class="quadro-tabela">
-          <thead><tr><th>Aviários</th><th>Granjeiro</th><th></th><th>Ajudante</th><th></th><th>Folguista</th><th></th></tr></thead>
+          <thead><tr><th>Aviários</th><th>Granjeiro</th><th></th><th>Ajudante</th><th></th><th>2º Ajudante</th><th></th><th>Folguista</th><th></th></tr></thead>
           <tbody>${linhas}</tbody>
         </table>
       </div>
@@ -5517,6 +5526,18 @@ function renderQuadroFuncionarios(){
     el.addEventListener('change', ()=>{
       const id = el.closest('tr').dataset.postoId;
       salvarCampoPosto(id, {ajudanteSaindo: el.checked});
+    });
+  });
+  cont.querySelectorAll('.qf-input-ajudante2').forEach(el=>{
+    el.addEventListener('change', ()=>{
+      const id = el.closest('tr').dataset.postoId;
+      salvarCampoPosto(id, {ajudante2: el.value.trim()});
+    });
+  });
+  cont.querySelectorAll('.qf-check-ajudante2-sai').forEach(el=>{
+    el.addEventListener('change', ()=>{
+      const id = el.closest('tr').dataset.postoId;
+      salvarCampoPosto(id, {ajudante2Saindo: el.checked});
     });
   });
   cont.querySelectorAll('.qf-check-folguista').forEach(el=>{
