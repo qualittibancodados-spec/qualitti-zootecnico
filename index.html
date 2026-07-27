@@ -157,7 +157,7 @@
   .qf-legenda-cor{ width:14px; height:14px; border-radius:4px; display:inline-block; }
   .qf-nucleo-toggle{ cursor:pointer; user-select:none; }
   .qf-nucleo-toggle:hover{ text-decoration:underline; }
-  .qf-linha-aviario-detalhe td{ background:#FAFAF8; font-size:11.5px; padding:5px 8px; border-bottom:1px solid var(--borda); white-space:normal; word-break:break-word; text-align:center; }
+  .qf-linha-aviario-detalhe td{ background:#FAFAF8; font-size:11.5px; padding:5px 8px; border-bottom:1px solid var(--borda); word-break:break-word; text-align:center; }
   .qf-linha-aviario-detalhe td:first-child{ text-align:left; padding-left:24px; color:var(--texto-suave); font-weight:600; }
   .qf-nome-saindo-detalhe{ text-decoration:line-through; color:var(--vermelho-alerta); }
   .qf-linha-aviario-detalhe .qf-nome-vago{ color:var(--vermelho-alerta); font-style:italic; }
@@ -613,34 +613,6 @@
 #mod-condenas ::-webkit-scrollbar{height:7px;width:7px;}
 #mod-condenas ::-webkit-scrollbar-thumb{background:var(--borda);border-radius:4px;}
 @media(max-width:560px){#mod-condenas .tipo-row{grid-template-columns:130px 1fr 70px;font-size:11.5px;}}
-
-#qf-print-header{ display:none; }
-@media print{
-  @page{ size: landscape; margin: 10mm; }
-  * { print-color-adjust:exact !important; -webkit-print-color-adjust:exact !important; }
-  body *{ visibility:hidden; }
-  #mod-quadro [data-aba-qf-view="consolidado"] *,
-  #mod-quadro [data-aba-qf-view="consolidado"]{ visibility:visible; }
-  .sidebar, .topbar-mobile, .tabs-internas,
-  #qf-btnExpandirTodos, #qf-btnImprimir,
-  #mod-quadro [data-aba-qf-view="consolidado"] > p.nota{ display:none !important; }
-  .qf-legenda-atual-futuro{ display:flex !important; visibility:visible; margin-bottom:10px; }
-  #qf-print-header{ display:flex !important; visibility:visible; align-items:center; gap:14px; margin-bottom:14px; border-bottom:2px solid #C1272D; padding-bottom:12px; }
-  #qf-print-header img{ height:44px; }
-  #qf-print-header .qf-print-titulos h1{ font-size:16px; margin:0; font-family:'Sora',sans-serif; }
-  #qf-print-header .qf-print-titulos p{ font-size:10px; margin:2px 0 0; color:#666; }
-  /* a tabela deixa de rolar e passa a se ajustar à largura da página inteira */
-  #qf-scrollConsolidada{ overflow:visible !important; width:100% !important; }
-  #qf-tabelaConsolidada{ width:100% !important; table-layout:fixed; font-size:8.5px; }
-  #qf-tabelaConsolidada th, #qf-tabelaConsolidada td{ padding:3px 4px !important; overflow-wrap:break-word; }
-  .qf-nucleo-toggle::before{ content:''; }
-  /* evita que uma linha (núcleo ou detalhe) fique cortada entre duas páginas */
-  #qf-tabelaConsolidada tr{ page-break-inside:avoid; }
-  thead{ display:table-header-group; } /* repete o cabeçalho em cada página nova */
-  /* reforço estrutural (funciona mesmo se a impressora não reproduzir cor) */
-  .qf-linha-nucleo-resumo th, .qf-linha-nucleo-resumo td{ border-top:2px solid #333 !important; font-weight:800 !important; }
-  .qf-linha-aviario-detalhe td{ font-style:italic; }
-}
 </style>
 </head>
 <body>
@@ -777,6 +749,7 @@
     <button class="tab-int" data-aba="desempenho">Desempenho</button>
     <button class="tab-int" data-aba="relatorio">Relatório por Núcleo</button>
     <button class="tab-int" data-aba="matriz">Matriz</button>
+    <button class="tab-int" data-aba="mapeamento">Mapeamento dos Lotes</button>
   </div>
 
   <div class="filtros">
@@ -909,6 +882,25 @@
         <table class="matriz" id="rz_tabelaMatriz"></table>
       </div>
       <p class="nota" id="rz_notaMatriz"></p>
+    </div>
+  </div>
+
+  <div data-aba-view="mapeamento" style="display:none;">
+    <div class="painel">
+      <p class="nota" style="margin-top:0;">Uma linha por aviário, com o histórico completo de rodadas ao lado (rola pra direita). <strong>Matriz</strong> = código de rastreio do lote (Idade.Lote.AvesAlojadas).</p>
+      <div class="filtros-grid" style="margin-bottom:14px;">
+        <div class="campo"><label>Núcleo</label><select id="mapl_fNucleo"></select></div>
+        <div class="campo"><label>Ano Alojamento</label><select id="mapl_fAno"></select></div>
+        <div class="campo"><label>Situação</label><select id="mapl_fSituacao">
+          <option value="Aberto">Aberto</option>
+          <option value="Fechado">Fechado</option>
+          <option value="Todos">Todos</option>
+        </select></div>
+      </div>
+      <div class="tabela-scroll arrastavel" id="mapl_scroll">
+        <table class="matriz" id="mapl_tabela"></table>
+      </div>
+      <p class="nota" id="mapl_nota"></p>
     </div>
   </div>
 
@@ -1129,24 +1121,13 @@
           <div class="qf-legenda-item"><span class="qf-legenda-cor" style="background:#EAF4FF;border:1px solid #1D5A96;"></span> <strong style="color:#1D5A96;">Quadro Atual</strong> — o time real de hoje</div>
           <div class="qf-legenda-item"><span class="qf-legenda-cor" style="background:#FFF4E1;border:1px solid #8A6200;"></span> <strong style="color:#8A6200;">Quadro Futuro</strong> — projeção depois das saídas marcadas</div>
         </div>
-        <div style="display:flex;gap:10px;margin-bottom:12px;flex-wrap:wrap;">
-          <button class="btn-recolher" id="qf-btnExpandirTodos" type="button">Expandir todos</button>
-          <button class="btn-recolher" id="qf-btnImprimir" type="button">🖨️ Imprimir</button>
-        </div>
         <div class="painel">
-          <div id="qf-print-header">
-            <img src="logo.png" alt="Qualitti">
-            <div class="qf-print-titulos">
-              <h1>Quadro de Funcionários — Visão Consolidada</h1>
-              <p id="qf-print-data"></p>
-            </div>
-          </div>
-          <div class="tabela-scroll arrastavel" id="qf-scrollConsolidada"><table class="matriz-diaria" id="qf-tabelaConsolidada"></table></div>
+          <div class="tabela-scroll"><table class="matriz-diaria" id="qf-tabelaConsolidada"></table></div>
         </div>
       </div>
 
       <div data-aba-qf-view="atualizar" style="display:none;">
-        <p class="nota" style="margin:0 0 8px;">Cada aviário é coberto em dupla (granjeiro + ajudante). Casais de tamanhos diferentes convivem no mesmo núcleo sem problema (um cobrindo 2 aviários, outro 3, por exemplo). A <strong>necessidade</strong> de cada núcleo é definida diretamente por você — não é mais calculada automaticamente por uma razão fixa.</p>
+        <p class="nota" style="margin:0 0 8px;">Cada aviário é coberto em dupla (granjeiro + ajudante). A <strong>necessidade</strong> de cada núcleo é calculada a partir do total de aviários dividido pela razão definida ali.</p>
         <p class="nota" style="margin:0 0 16px;color:var(--texto-suave);">🛈 Você só edita os núcleos para os quais tem autorização — os demais não aparecem aqui. Marque quem está <strong>saindo/em aviso</strong> assim que o desligamento for confirmado: isso não altera o quadro Atual, só atualiza a projeção <strong>Futuro</strong> na Visão Consolidada, que os gestores usam pra planejar reposição.</p>
         <button class="btn-recolher" id="btnImportarQuadroInicial" style="display:none;margin-bottom:16px;">Importar lista inicial (uma vez)</button>
         <div id="quadroNucleosContainer"></div>
@@ -1452,8 +1433,7 @@
 <script>
 function fetchJSONSync(url){
   const xhr = new XMLHttpRequest();
-  const semCache = url + (url.includes('?') ? '&' : '?') + '_cb=' + Date.now();
-  xhr.open('GET', semCache, false);
+  xhr.open('GET', url, false);
   xhr.send(null);
   if(xhr.status !== 200 && xhr.status !== 0) throw new Error('Falha ao carregar '+url+': HTTP '+xhr.status);
   return JSON.parse(xhr.responseText);
@@ -3847,7 +3827,7 @@ document.getElementById('btnLimparFiltrosRz').addEventListener('click', () => {
 document.querySelectorAll('#mod-resultado .tab-int').forEach(b=>b.addEventListener('click',()=>{
   document.querySelectorAll('#mod-resultado .tab-int').forEach(x=>x.classList.remove('ativo'));
   b.classList.add('ativo'); abaAtiva=b.dataset.aba;
-  ['geral','desempenho','relatorio','matriz'].forEach(a=>{
+  ['geral','desempenho','relatorio','matriz','mapeamento'].forEach(a=>{
     document.querySelector(`#mod-resultado [data-aba-view="${a}"]`).style.display = (a===abaAtiva)?'':'none';
   });
   render(); window.scrollTo({top:0,behavior:'smooth'});
@@ -4092,6 +4072,104 @@ function atualizarBotaoRecolher(){
     renderMatriz(filtrar());
   });
 })();
+
+let mapl_filtrosPopulados = false;
+function popularFiltrosMapeamento(){
+  if(mapl_filtrosPopulados) return;
+  mapl_filtrosPopulados = true;
+  const nucleos = Array.from(new Set(LOTES.map(l=>l.nucleo))).sort();
+  const anos = Array.from(new Set(LOTES.map(l=>l.ano))).sort();
+  document.getElementById('mapl_fNucleo').innerHTML = '<option value="Todos">Todos os núcleos</option>' + nucleos.map(n=>`<option value="${n}">${nomeNucleo(n)}</option>`).join('');
+  document.getElementById('mapl_fAno').innerHTML = '<option value="Todos">Todos os anos</option>' + anos.map(a=>`<option value="${a}">${a}</option>`).join('');
+  ['mapl_fNucleo','mapl_fAno','mapl_fSituacao'].forEach(id=>{
+    document.getElementById(id).addEventListener('change', renderMapeamentoLotes);
+  });
+}
+
+function renderMapeamentoLotes(){
+  popularFiltrosMapeamento();
+  const fNuc = document.getElementById('mapl_fNucleo').value;
+  const fAno = document.getElementById('mapl_fAno').value;
+  const fSit = document.getElementById('mapl_fSituacao').value;
+
+  // agrupa TODO o histórico por aviário (independe do filtro — é usado pra montar a grade de rodadas)
+  const porAviario = new Map();
+  LOTES.forEach(l=>{
+    const chave = l.nucleo + '|' + l.aviario;
+    if(!porAviario.has(chave)) porAviario.set(chave, []);
+    porAviario.get(chave).push(l);
+  });
+
+  // define quais aviários (linhas) aparecem: o lote de referência precisa bater com os filtros
+  const linhasRef = LOTES.filter(l=>{
+    if(fNuc!=='Todos' && l.nucleo!==fNuc) return false;
+    if(fAno!=='Todos' && String(l.ano)!==String(fAno)) return false;
+    if(fSit!=='Todos' && l.situacao!==fSit) return false;
+    return true;
+  });
+  const refPorAviario = new Map();
+  linhasRef.forEach(l=>{
+    const chave = l.nucleo + '|' + l.aviario;
+    const atual = refPorAviario.get(chave);
+    if(!atual || new Date(l.dataAloj) > new Date(atual.dataAloj)) refPorAviario.set(chave, l);
+  });
+
+  const tabela = document.getElementById('mapl_tabela');
+  const nota = document.getElementById('mapl_nota');
+  const chavesOrdenadas = Array.from(refPorAviario.keys()).sort();
+  if(!chavesOrdenadas.length){
+    tabela.innerHTML = '';
+    nota.innerHTML = '<div class="vazio">Sem dados para o filtro selecionado.</div>';
+    return;
+  }
+
+  const maxRodadas = Math.max(...chavesOrdenadas.map(k => porAviario.get(k).length));
+  let thead = '<thead><tr><th class="rowhead" rowspan="2">Núcleo / Aviário</th><th rowspan="2">Incubatório</th><th rowspan="2">Data<br>Alojamento</th>';
+  for(let i=1;i<=maxRodadas;i++) thead += `<th colspan="2">Rodada ${i}</th>`;
+  thead += '</tr><tr>';
+  for(let i=1;i<=maxRodadas;i++) thead += '<th>Matriz</th><th>Mort.%</th>';
+  thead += '</tr></thead>';
+
+  const porNucleo = new Map();
+  chavesOrdenadas.forEach(k=>{
+    const ref = refPorAviario.get(k);
+    if(!porNucleo.has(ref.nucleo)) porNucleo.set(ref.nucleo, []);
+    porNucleo.get(ref.nucleo).push(k);
+  });
+
+  let corpo = '';
+  Array.from(porNucleo.keys()).sort().forEach(nuc=>{
+    const chavesNuc = porNucleo.get(nuc);
+    corpo += `<tr class="linha-nuc"><th class="rowhead" colspan="${3+maxRodadas*2}">${nomeNucleo(nuc)} — ${chavesNuc.length} aviário(s)</th></tr>`;
+    chavesNuc.sort((a,b)=>String(refPorAviario.get(a).aviario).localeCompare(String(refPorAviario.get(b).aviario), undefined, {numeric:true}));
+    chavesNuc.forEach(k=>{
+      const ref = refPorAviario.get(k);
+      const historico = porAviario.get(k).slice().sort((a,b)=> new Date(a.dataAloj) - new Date(b.dataAloj));
+      let celulas = '';
+      for(let i=0;i<maxRodadas;i++){
+        const l = historico[i];
+        if(l){
+          const idade = l.idadeAbate!=null ? l.idadeAbate : '–';
+          const matriz = `${idade}.${l.lote}.${l.alojadas!=null?l.alojadas:'–'}`;
+          const mort = l.mortElim!=null ? l.mortElim.toFixed(2)+'%' : '–';
+          celulas += `<td style="font-size:10px;" title="${matriz}">${matriz}</td><td>${mort}</td>`;
+        } else {
+          celulas += '<td>–</td><td>–</td>';
+        }
+      }
+      corpo += `<tr>
+        <th class="rowhead">${ref.aviario}</th>
+        <td>${ref.incubatorio||'–'}</td>
+        <td>${ref.dataAloj||'–'}</td>
+        ${celulas}
+      </tr>`;
+    });
+  });
+
+  tabela.innerHTML = thead + '<tbody>'+corpo+'</tbody>';
+  nota.innerHTML = `${chavesOrdenadas.length} aviário(s) exibido(s) — até ${maxRodadas} rodada(s) de histórico. <strong>Matriz</strong> = Idade.Lote.AvesAlojadas.`;
+  if(typeof ativarArrastar==='function') ativarArrastar(document.getElementById('mapl_scroll'));
+}
 
 function renderMatriz(dados){
   const cfg = IND[indicadorMatriz];
@@ -4487,6 +4565,7 @@ function render(){
   else if(abaAtiva==='andamento'){ renderAndamento(); }
   else if(abaAtiva==='relatorio'){ renderRelatorioNucleo(); }
   else if(abaAtiva==='matriz'){ renderMatriz(dados); }
+  else if(abaAtiva==='mapeamento'){ renderMapeamentoLotes(); }
 }
 renderChipsLinhagem();
 window.renderResultado = render;
@@ -4960,7 +5039,14 @@ function calcularResumoNucleo(nuc, postos){
   const atualAjud = postos.filter(p=>p.ajudante && p.ajudante.trim()).length;
   const futuroGranj = postos.filter(p=>p.granjeiro && p.granjeiro.trim() && !p.granjeiroSaindo).length;
   const futuroAjud = postos.filter(p=>p.ajudante && p.ajudante.trim() && !p.ajudanteSaindo).length;
-  return {totalAviarios, necessidade, atualGranj, atualAjud, futuroGranj, futuroAjud};
+  let ultimaAtualizacao = null, ultimoAutor = '';
+  postos.forEach(p=>{
+    if(p.atualizadoEm && p.atualizadoEm.toDate){
+      const t = p.atualizadoEm.toDate();
+      if(!ultimaAtualizacao || t > ultimaAtualizacao){ ultimaAtualizacao = t; ultimoAutor = p.atualizadoPor || ''; }
+    }
+  });
+  return {totalAviarios, necessidade, atualGranj, atualAjud, futuroGranj, futuroAjud, ultimaAtualizacao, ultimoAutor};
 }
 
 async function iniciarQuadroFuncionarios(){
@@ -5141,11 +5227,15 @@ function renderQuadroFuncionarios(){
       </tr>`;
     }).join('');
 
+    const textoUltimaAtt = r.ultimaAtualizacao
+      ? `🕒 Última atualização: <strong>${r.ultimaAtualizacao.toLocaleString('pt-BR')}</strong>${r.ultimoAutor?' por <strong>'+r.ultimoAutor+'</strong>':''}`
+      : '🕒 Ainda sem nenhuma atualização registrada';
     return `<div class="quadro-nucleo-card" data-nucleo-card="${nuc}">
       <div class="quadro-nucleo-titulo">
         ${nuc}
         <span class="quadro-razao-campo">Necessidade (nº de postos): <input type="number" min="0" step="1" class="qf-input-razao" data-nucleo-razao="${nuc}" value="${r.necessidade}" ${window.souAdminPrincipal?'':'disabled'}></span>
       </div>
+      <p class="nota" style="margin:2px 0 12px;font-size:11.5px;">${textoUltimaAtt}</p>
       <div class="quadro-stats">
         <div class="quadro-stat-bloco"><div class="quadro-stat-label">Total de aviários</div><div class="quadro-stat-valor">${r.totalAviarios}</div></div>
         <div class="quadro-stat-bloco"><div class="quadro-stat-label">Necessidade (cada papel)</div><div class="quadro-stat-valor">${r.necessidade}</div></div>
@@ -5229,10 +5319,11 @@ function renderQuadroFuncionarios(){
       const input = cont.querySelector(`.qf-novo-aviarios[data-nucleo-novo="${nuc}"]`);
       const aviarios = input.value.trim();
       if(!aviarios){ alert('Digite os aviários (ex: 127-128)'); return; }
-      const novo = { nucleo: nuc, aviarios, granjeiro:'', ajudante:'', granjeiroSaindo:false, ajudanteSaindo:false };
+      const emailAtual = (auth.currentUser && auth.currentUser.email) || '';
+      const novo = { nucleo: nuc, aviarios, granjeiro:'', ajudante:'', granjeiroSaindo:false, ajudanteSaindo:false, atualizadoEm: firebase.firestore.FieldValue.serverTimestamp(), atualizadoPor: emailAtual };
       try{
         const ref = await db.collection('funcionarios').add(novo);
-        window.POSTOS_QUADRO.push({id: ref.id, ...novo});
+        window.POSTOS_QUADRO.push({id: ref.id, nucleo: nuc, aviarios, granjeiro:'', ajudante:'', granjeiroSaindo:false, ajudanteSaindo:false, atualizadoEm: { toDate: () => new Date() }, atualizadoPor: emailAtual });
         renderQuadroFuncionarios();
         renderQuadroConsolidado();
       }catch(e){ alert('Erro ao adicionar: '+e.message); }
@@ -5243,9 +5334,18 @@ window.renderQuadroFuncionarios = renderQuadroFuncionarios;
 
 async function salvarCampoPosto(id, campos){
   try{
-    await db.collection('funcionarios').doc(id).set(campos, {merge:true});
+    const emailAtual = (auth.currentUser && auth.currentUser.email) || '';
+    const camposComData = Object.assign({}, campos, {
+      atualizadoEm: firebase.firestore.FieldValue.serverTimestamp(),
+      atualizadoPor: emailAtual
+    });
+    await db.collection('funcionarios').doc(id).set(camposComData, {merge:true});
     const posto = (window.POSTOS_QUADRO||[]).find(p=>p.id===id);
-    if(posto) Object.assign(posto, campos);
+    if(posto){
+      Object.assign(posto, campos);
+      posto.atualizadoEm = { toDate: () => new Date() }; // valor aproximado local até recarregar a página
+      posto.atualizadoPor = emailAtual;
+    }
     renderQuadroFuncionarios();
     renderQuadroConsolidado();
   }catch(e){
