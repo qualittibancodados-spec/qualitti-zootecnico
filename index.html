@@ -748,8 +748,8 @@
     <button class="tab-int ativo" data-aba="geral">Visão geral</button>
     <button class="tab-int" data-aba="desempenho">Desempenho</button>
     <button class="tab-int" data-aba="relatorio">Relatório por Núcleo</button>
-    <button class="tab-int" data-aba="matriz">Matriz</button>
     <button class="tab-int" data-aba="mapeamento">Mapeamento dos Lotes</button>
+    <button class="tab-int" data-aba="matriz">Matriz</button>
   </div>
 
   <div class="filtros">
@@ -4073,9 +4073,18 @@ function atualizarBotaoRecolher(){
 
 document.getElementById('mapl_fSituacao').addEventListener('change', renderMapeamentoLotes);
 
+let mapl_recolhidos = new Set();
+let mapl_ordem = { chave: null, asc: true };
+
+function mapl_formatarDataBR(iso){
+  if(!iso) return '–';
+  const m = String(iso).match(/^(\d{4})-(\d{2})-(\d{2})/);
+  if(!m) return iso;
+  return `${m[3]}/${m[2]}/${m[1]}`;
+}
+
 function renderMapeamentoLotes(){
   const fSit = document.getElementById('mapl_fSituacao').value;
-  // usa a mesma base já filtrada por Ano/Rodada/Núcleo/Linhagem/Sexo (filtros do topo), só acrescenta Situação
   const dadosBase = filtrar().filter(l => fSit==='Todos' || l.situacao===fSit);
 
   const tabela = document.getElementById('mapl_tabela');
@@ -4086,10 +4095,8 @@ function renderMapeamentoLotes(){
     return;
   }
 
-  // rodadas realmente presentes no conjunto filtrado (campo real "rodada", não uma contagem inventada)
   const rodadasPresentes = Array.from(new Set(dadosBase.map(l=>l.rodada).filter(r=>r!=null))).sort((a,b)=>a-b);
 
-  // agrupa por aviário: cada aviário pode ter mais de um lote no filtro (ex: Situação="Todos"), um por rodada
   const porAviario = new Map();
   dadosBase.forEach(l=>{
     const chave = l.nucleo + '|' + l.aviario;
@@ -4097,82 +4104,121 @@ function renderMapeamentoLotes(){
     porAviario.get(chave).push(l);
   });
 
-  const porNucleo = new Map();
-  Array.from(porAviario.keys()).forEach(k=>{
-    const nuc = porAviario.get(k)[0].nucleo;
-    if(!porNucleo.has(nuc)) porNucleo.set(nuc, []);
-    porNucleo.get(nuc).push(k);
+  // monta uma "linha resumida" por aviário, já com tudo calculado (facilita ordenar depois)
+  const linhas = [];
+  porAviario.forEach((lotesAviario, chave)=>{
+    const ref = lotesAviario.slice().sort((a,b)=> new Date(b.dataAloj) - new Date(a.dataAloj))[0];
+    const idade = ref.idadeAbate!=null ? ref.idadeAbate : '–';
+    const matriz = `${idade}.${ref.lote}.${ref.alojadas!=null?ref.alojadas:'–'}`;
+    const porRodadaDoAviario = {};
+    lotesAviario.forEach(l=>{ if(l.rodada!=null && l.mortElim!=null) porRodadaDoAviario[l.rodada] = l.mortElim; });
+    let somaLinha=0, contLinha=0;
+    rodadasPresentes.forEach(r=>{ const v=porRodadaDoAviario[r]; if(v!=null){ somaLinha+=v; contLinha++; } });
+    const totalLinha = contLinha ? (somaLinha/contLinha) : null;
+    linhas.push({ nucleo: ref.nucleo, aviario: ref.aviario, incubatorio: ref.incubatorio||'–', dataAloj: ref.dataAloj, matriz, porRodada: porRodadaDoAviario, totalLinha });
   });
 
-  const nCols = 4 + rodadasPresentes.length + 1; // Núcleo/Aviário + Incubatório + Data + Matriz + (rodadas) + Total Geral
-  let thead = '<thead><tr><th class="rowhead">Núcleo / Aviário</th><th>Incubatório</th><th>Data<br>Alojamento</th><th>Matriz</th>';
-  rodadasPresentes.forEach(r => thead += `<th>Rodada ${r}</th>`);
-  thead += '<th>Total Geral</th></tr></thead>';
+  // ordenação (se o usuário clicou num cabeçalho)
+  if(mapl_ordem.chave){
+    const dir = mapl_ordem.asc ? 1 : -1;
+    linhas.sort((a,b)=>{
+      let va, vb;
+      if(mapl_ordem.chave==='aviario'){ va=String(a.aviario); vb=String(b.aviario); return dir*va.localeCompare(vb, undefined, {numeric:true}); }
+      if(mapl_ordem.chave==='incubatorio'){ va=a.incubatorio; vb=b.incubatorio; return dir*String(va).localeCompare(String(vb)); }
+      if(mapl_ordem.chave==='dataAloj'){ va=new Date(a.dataAloj||0); vb=new Date(b.dataAloj||0); return dir*(va-vb); }
+      if(mapl_ordem.chave==='total'){ va=a.totalLinha??-1; vb=b.totalLinha??-1; return dir*(va-vb); }
+      if(mapl_ordem.chave.startsWith('r_')){ const r=mapl_ordem.chave.slice(2); va=a.porRodada[r]??-1; vb=b.porRodada[r]??-1; return dir*(va-vb); }
+      return 0;
+    });
+  }
 
+  const porNucleo = new Map();
+  linhas.forEach(l=>{ if(!porNucleo.has(l.nucleo)) porNucleo.set(l.nucleo, []); porNucleo.get(l.nucleo).push(l); });
+
+  const seta = (chave) => mapl_ordem.chave===chave ? (mapl_ordem.asc?' ▲':' ▼') : '';
+  let thead = `<thead><tr>
+    <th class="rowhead">Núcleo</th>
+    <th class="th-sort" data-sort-mapl="aviario" title="Ordenar">Aviário${seta('aviario')}</th>
+    <th class="th-sort" data-sort-mapl="incubatorio" title="Ordenar">Incubatório${seta('incubatorio')}</th>
+    <th class="th-sort" data-sort-mapl="dataAloj" title="Ordenar">Data<br>Alojamento${seta('dataAloj')}</th>
+    <th>Matriz</th>`;
+  rodadasPresentes.forEach(r => thead += `<th class="th-sort" data-sort-mapl="r_${r}" title="Ordenar">Rodada ${r}${seta('r_'+r)}</th>`);
+  thead += `<th class="th-sort" data-sort-mapl="total" title="Ordenar">Total Geral${seta('total')}</th></tr></thead>`;
+
+  const nCols = 5 + rodadasPresentes.length + 1;
   let corpo = '';
   Array.from(porNucleo.keys()).sort().forEach(nuc=>{
-    const chavesNuc = porNucleo.get(nuc).sort((a,b)=>{
-      const av1 = porAviario.get(a)[0].aviario, av2 = porAviario.get(b)[0].aviario;
-      return String(av1).localeCompare(String(av2), undefined, {numeric:true});
-    });
+    const linhasNuc = porNucleo.get(nuc);
+    const rec = mapl_recolhidos.has(nuc);
 
-    // acumula pra fazer a média por rodada no subtotal do núcleo
     const somaPorRodada = {}, contPorRodada = {};
     rodadasPresentes.forEach(r=>{ somaPorRodada[r]=0; contPorRodada[r]=0; });
-
-    let linhasAviarios = '';
-    chavesNuc.forEach(k=>{
-      const lotesAviario = porAviario.get(k);
-      // referência (incubatório/data/matriz) = o lote mais recente daquele aviário no filtro
-      const ref = lotesAviario.slice().sort((a,b)=> new Date(b.dataAloj) - new Date(a.dataAloj))[0];
-      const idade = ref.idadeAbate!=null ? ref.idadeAbate : '–';
-      const matriz = `${idade}.${ref.lote}.${ref.alojadas!=null?ref.alojadas:'–'}`;
-
-      const porRodadaDoAviario = {};
-      lotesAviario.forEach(l=>{ if(l.rodada!=null && l.mortElim!=null) porRodadaDoAviario[l.rodada] = l.mortElim; });
-
-      let celulas = '', somaLinha=0, contLinha=0;
+    let somaGeral=0, contGeral=0;
+    linhasNuc.forEach(l=>{
       rodadasPresentes.forEach(r=>{
-        const v = porRodadaDoAviario[r];
-        if(v!=null){
-          celulas += `<td>${v.toFixed(2).replace('.',',')}%</td>`;
-          somaLinha += v; contLinha++;
-          somaPorRodada[r] += v; contPorRodada[r]++;
-        } else {
-          celulas += '<td></td>';
-        }
+        const v = l.porRodada[r];
+        if(v!=null){ somaPorRodada[r]+=v; contPorRodada[r]++; somaGeral+=v; contGeral++; }
       });
-      const totalLinha = contLinha ? (somaLinha/contLinha) : null;
-
-      linhasAviarios += `<tr>
-        <th class="rowhead">${ref.aviario}</th>
-        <td>${ref.incubatorio||'–'}</td>
-        <td>${ref.dataAloj||'–'}</td>
-        <td style="font-size:10.5px;" title="${matriz}">${matriz}</td>
-        ${celulas}
-        <td style="font-weight:700;">${totalLinha!=null ? totalLinha.toFixed(2).replace('.',',')+'%' : ''}</td>
-      </tr>`;
     });
 
-    // subtotal do núcleo: média (não soma) dos valores de cada coluna de rodada, entre os aviários que têm valor
-    let celulasSub = '', somaGeral=0, contGeral=0;
+    let linhasHtml = '';
+    if(!rec){
+      linhasNuc.forEach(l=>{
+        let celulas = '';
+        rodadasPresentes.forEach(r=>{
+          const v = l.porRodada[r];
+          celulas += v!=null ? `<td>${v.toFixed(2).replace('.',',')}%</td>` : '<td></td>';
+        });
+        linhasHtml += `<tr>
+          <td></td>
+          <th class="rowhead">${l.aviario}</th>
+          <td>${l.incubatorio}</td>
+          <td>${mapl_formatarDataBR(l.dataAloj)}</td>
+          <td style="font-size:10.5px;" title="${l.matriz}">${l.matriz}</td>
+          ${celulas}
+          <td style="font-weight:700;">${l.totalLinha!=null ? l.totalLinha.toFixed(2).replace('.',',')+'%' : ''}</td>
+        </tr>`;
+      });
+    }
+
+    let celulasSub = '';
     rodadasPresentes.forEach(r=>{
-      if(contPorRodada[r]>0){
-        const media = somaPorRodada[r]/contPorRodada[r];
-        celulasSub += `<td>${media.toFixed(2).replace('.',',')}%</td>`;
-        somaGeral += somaPorRodada[r]; contGeral += contPorRodada[r];
-      } else {
-        celulasSub += '<td></td>';
-      }
+      celulasSub += contPorRodada[r]>0 ? `<td>${(somaPorRodada[r]/contPorRodada[r]).toFixed(2).replace('.',',')}%</td>` : '<td></td>';
     });
     const totalGeralNucleo = contGeral ? (somaGeral/contGeral) : null;
 
-    corpo += `<tr class="linha-nuc qf-linha-nucleo-resumo"><th class="rowhead" colspan="4">${nomeNucleo(nuc)} — ${chavesNuc.length} aviário(s)</th>${celulasSub}<td style="font-weight:800;">${totalGeralNucleo!=null?totalGeralNucleo.toFixed(2).replace('.',',')+'%':''}</td></tr>`;
-    corpo += linhasAviarios;
+    // linha de cabeçalho do núcleo (com toggle) vem ANTES, mas o subtotal numérico fica na linha de TOTAL, no final do grupo
+    corpo += `<tr class="linha-nucleo">
+      <th class="rowhead" colspan="5"><span class="nuc-toggle" data-toggle-mapl-nucleo="${nuc}" style="cursor:pointer;">${rec?'▸':'▾'}</span> ${nomeNucleo(nuc)} — ${linhasNuc.length} aviário(s)</th>
+      ${rodadasPresentes.map(()=>'<td></td>').join('')}
+      <td></td>
+    </tr>`;
+    corpo += linhasHtml;
+    corpo += `<tr class="linha-nucleo">
+      <th class="rowhead" colspan="5">${nomeNucleo(nuc)} Total</th>
+      ${celulasSub}
+      <td style="font-weight:800;">${totalGeralNucleo!=null?totalGeralNucleo.toFixed(2).replace('.',',')+'%':''}</td>
+    </tr>`;
   });
 
   tabela.innerHTML = thead + '<tbody>'+corpo+'</tbody>';
-  nota.innerHTML = `${porAviario.size} aviário(s) exibido(s) — rodadas ${rodadasPresentes.join(', ')||'—'}. <strong>Matriz</strong> = Idade.Lote.AvesAlojadas. <strong>Total Geral</strong> = média das rodadas de cada linha.`;
+  nota.innerHTML = `${linhas.length} aviário(s) exibido(s) — rodadas ${rodadasPresentes.join(', ')||'—'}. <strong>Matriz</strong> = Idade.Lote.AvesAlojadas. <strong>Total Geral</strong> = média das rodadas de cada linha. Clique no núcleo pra recolher/expandir, ou no cabeçalho da coluna pra ordenar.`;
+
+  tabela.querySelectorAll('[data-toggle-mapl-nucleo]').forEach(el=>{
+    el.addEventListener('click', ()=>{
+      const n = el.dataset.toggleMaplNucleo;
+      if(mapl_recolhidos.has(n)) mapl_recolhidos.delete(n); else mapl_recolhidos.add(n);
+      renderMapeamentoLotes();
+    });
+  });
+  tabela.querySelectorAll('[data-sort-mapl]').forEach(th=>{
+    th.addEventListener('click', ()=>{
+      const chave = th.dataset.sortMapl;
+      if(mapl_ordem.chave===chave) mapl_ordem.asc = !mapl_ordem.asc;
+      else { mapl_ordem.chave = chave; mapl_ordem.asc = true; }
+      renderMapeamentoLotes();
+    });
+  });
   if(typeof ativarArrastar==='function') ativarArrastar(document.getElementById('mapl_scroll'));
 }
 
