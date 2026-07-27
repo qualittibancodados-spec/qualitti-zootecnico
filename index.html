@@ -9,6 +9,7 @@
 <link href="https://fonts.googleapis.com/css2?family=Sora:wght@500;600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <style>
   :root{
     --vermelho: #C1272D;
@@ -615,6 +616,56 @@
 #mod-condenas ::-webkit-scrollbar{height:7px;width:7px;}
 #mod-condenas ::-webkit-scrollbar-thumb{background:var(--borda);border-radius:4px;}
 @media(max-width:560px){#mod-condenas .tipo-row{grid-template-columns:130px 1fr 70px;font-size:11.5px;}}
+
+#qf-print-header{ display:none; }
+@media print{
+  @page{ size: landscape; margin: 10mm; }
+  * { print-color-adjust:exact !important; -webkit-print-color-adjust:exact !important; }
+  body *{ visibility:hidden; }
+  #mod-quadro [data-aba-qf-view="consolidado"] *,
+  #mod-quadro [data-aba-qf-view="consolidado"]{ visibility:visible; }
+  .sidebar, .topbar-mobile, .tabs-internas,
+  #qf-btnExpandirTodos, #qf-btnImprimir,
+  #mod-quadro [data-aba-qf-view="consolidado"] > p.nota{ display:none !important; }
+  .qf-legenda-atual-futuro{ display:flex !important; visibility:visible; margin-bottom:10px; }
+  #qf-print-header{ display:flex !important; visibility:visible; align-items:center; gap:14px; margin-bottom:14px; border-bottom:2px solid #C1272D; padding-bottom:12px; }
+  #qf-print-header img{ height:44px; }
+  #qf-print-header .qf-print-titulos h1{ font-size:16px; margin:0; font-family:'Sora',sans-serif; }
+  #qf-print-header .qf-print-titulos p{ font-size:10px; margin:2px 0 0; color:#666; }
+  /* a tabela deixa de rolar e passa a se ajustar à largura da página inteira */
+  #qf-scrollConsolidada{ overflow:visible !important; width:100% !important; }
+  #qf-tabelaConsolidada{ width:100% !important; table-layout:fixed; font-size:8.5px; }
+  #qf-tabelaConsolidada th, #qf-tabelaConsolidada td{ padding:3px 4px !important; overflow-wrap:break-word; }
+  .qf-nucleo-toggle::before{ content:''; }
+  /* evita que uma linha (núcleo ou detalhe) fique cortada entre duas páginas */
+  #qf-tabelaConsolidada tr{ page-break-inside:avoid; }
+  thead{ display:table-header-group; } /* repete o cabeçalho em cada página nova */
+  /* reforço estrutural (funciona mesmo se a impressora não reproduzir cor) */
+  .qf-linha-nucleo-resumo th, .qf-linha-nucleo-resumo td{ border-top:2px solid #333 !important; font-weight:800 !important; }
+  .qf-linha-aviario-detalhe td{ font-style:italic; }
+}
+
+#mapl_print_header{ display:none; }
+@media print{
+  body *{ visibility:hidden; }
+  #mod-resultado [data-aba-view="mapeamento"] *,
+  #mod-resultado [data-aba-view="mapeamento"]{ visibility:visible; }
+  .sidebar, .topbar-mobile, .tabs-internas,
+  #mapl_btnRecolher, #mapl_btnImprimir, #mapl_btnExcel,
+  #mod-resultado .filtros,
+  #mod-resultado [data-aba-view="mapeamento"] > p.nota{ display:none !important; }
+  #mapl_print_header{ display:flex !important; visibility:visible; align-items:center; gap:14px; margin-bottom:14px; border-bottom:2px solid #C1272D; padding-bottom:12px; }
+  #mapl_print_header img{ height:44px; }
+  #mapl_print_header .qf-print-titulos h1{ font-size:16px; margin:0; font-family:'Sora',sans-serif; }
+  #mapl_print_header .qf-print-titulos p{ font-size:10px; margin:2px 0 0; color:#666; }
+  #mapl_scroll{ overflow:visible !important; width:100% !important; }
+  #mapl_tabela{ width:100% !important; table-layout:fixed; font-size:8.5px; }
+  #mapl_tabela th, #mapl_tabela td{ padding:3px 4px !important; overflow-wrap:break-word; }
+  .nuc-toggle::before{ content:''; }
+  #mapl_tabela tr{ page-break-inside:avoid; }
+  thead{ display:table-header-group; }
+  .linha-nucleo th, .linha-nucleo td{ border-top:2px solid #333 !important; }
+}
 </style>
 </head>
 <body>
@@ -767,6 +818,15 @@
         <option value="Fechado">Fechado</option>
         <option value="Todos">Todos</option>
       </select></div>
+      <div class="campo" id="campoMaplIdade" style="display:none;"><label>Idade</label><select id="mapl_fIdade">
+        <option value="Todos">Todas (7 a 42)</option>
+        <option value="7">7 dias</option>
+        <option value="14">14 dias</option>
+        <option value="21">21 dias</option>
+        <option value="28">28 dias</option>
+        <option value="35">35 dias</option>
+        <option value="42">42 dias</option>
+      </select></div>
     </div>
     <div style="display:flex;justify-content:flex-end;margin-top:10px;">
       <button class="btn-recolher" id="btnLimparFiltrosRz" style="border-color:var(--vermelho);color:var(--vermelho);display:inline-flex;align-items:center;gap:5px;width:fit-content;"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round"><path d="M3 6h18M8 6V4a1 1 0 011-1h6a1 1 0 011 1v2m3 0l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6"/></svg>Limpar</button>
@@ -896,7 +956,18 @@
   <div data-aba-view="mapeamento" style="display:none;">
     <div class="painel">
       <p class="nota" style="margin-top:0;">Uma linha por aviário — usa o filtro ali em cima (Incubatório e Situação aparecem no lugar de Linhagem/Sexo nessa aba). <strong>Matriz</strong> = código de rastreio do lote (Idade.Lote.AvesAlojadas). As colunas de mortalidade são organizadas por <strong>Rodada</strong> real do lote.</p>
-      <button class="btn-recolher" id="mapl_btnRecolher" style="margin-bottom:12px;">Recolher todos</button>
+      <div style="display:flex;gap:10px;margin-bottom:12px;flex-wrap:wrap;">
+        <button class="btn-recolher" id="mapl_btnRecolher">Recolher todos</button>
+        <button class="btn-recolher" id="mapl_btnImprimir" type="button">🖨️ Imprimir / PDF</button>
+        <button class="btn-recolher" id="mapl_btnExcel" type="button">📊 Exportar Excel</button>
+      </div>
+      <div id="mapl_print_header" style="display:none;">
+        <img src="logo.png" alt="Qualitti">
+        <div class="qf-print-titulos">
+          <h1>Mapeamento dos Lotes</h1>
+          <p id="mapl_print_data"></p>
+        </div>
+      </div>
       <div class="tabela-scroll arrastavel" id="mapl_scroll">
         <table class="matriz" id="mapl_tabela"></table>
       </div>
@@ -1121,8 +1192,19 @@
           <div class="qf-legenda-item"><span class="qf-legenda-cor" style="background:#EAF4FF;border:1px solid #1D5A96;"></span> <strong style="color:#1D5A96;">Quadro Atual</strong> — o time real de hoje</div>
           <div class="qf-legenda-item"><span class="qf-legenda-cor" style="background:#FFF4E1;border:1px solid #8A6200;"></span> <strong style="color:#8A6200;">Quadro Futuro</strong> — projeção depois das saídas marcadas</div>
         </div>
+        <div style="display:flex;gap:10px;margin-bottom:12px;flex-wrap:wrap;">
+          <button class="btn-recolher" id="qf-btnExpandirTodos" type="button">Expandir todos</button>
+          <button class="btn-recolher" id="qf-btnImprimir" type="button">🖨️ Imprimir</button>
+        </div>
         <div class="painel">
-          <div class="tabela-scroll"><table class="matriz-diaria" id="qf-tabelaConsolidada"></table></div>
+          <div id="qf-print-header">
+            <img src="logo.png" alt="Qualitti">
+            <div class="qf-print-titulos">
+              <h1>Quadro de Funcionários — Visão Consolidada</h1>
+              <p id="qf-print-data"></p>
+            </div>
+          </div>
+          <div class="tabela-scroll arrastavel" id="qf-scrollConsolidada"><table class="matriz-diaria" id="qf-tabelaConsolidada"></table></div>
         </div>
       </div>
 
@@ -3836,6 +3918,7 @@ document.querySelectorAll('#mod-resultado .tab-int').forEach(b=>b.addEventListen
   document.getElementById('campoRzSexo').style.display = ehMapeamento ? 'none' : '';
   document.getElementById('campoMaplIncubatorio').style.display = ehMapeamento ? '' : 'none';
   document.getElementById('campoMaplSituacao').style.display = ehMapeamento ? '' : 'none';
+  document.getElementById('campoMaplIdade').style.display = ehMapeamento ? '' : 'none';
   render(); window.scrollTo({top:0,behavior:'smooth'});
 }));
 
@@ -4079,6 +4162,40 @@ function atualizarBotaoRecolher(){
   });
 })();
 
+function mapl_limparPrefixoLote(loteId){
+  return String(loteId).replace(/^\d+\s*-\s*/, '');
+}
+
+const MAPL_IDADES_CHECKPOINT = [7,14,21,28,35,42];
+let mapl_mortalidadePorLote = null;
+function mapl_construirMortalidadePorIdade(){
+  if(mapl_mortalidadePorLote) return mapl_mortalidadePorLote;
+  const porLote = new Map();
+  RAW_DATA.forEach(r=>{
+    const lote = r['Lote'];
+    if(!lote) return;
+    if(!porLote.has(lote)) porLote.set(lote, []);
+    porLote.get(lote).push(r);
+  });
+  mapl_mortalidadePorLote = new Map();
+  porLote.forEach((regs, lote)=>{
+    regs.sort((a,b)=>a['Idade']-b['Idade']);
+    const alojadas = regs[0]['Alojadas'];
+    if(!alojadas) return;
+    let acumulado = 0, idx = 0;
+    const resultado = {};
+    regs.forEach(r=>{
+      acumulado += (r['Morte']||0) + (r['Elim']||0);
+      while(idx < MAPL_IDADES_CHECKPOINT.length && r['Idade'] >= MAPL_IDADES_CHECKPOINT[idx]){
+        resultado[MAPL_IDADES_CHECKPOINT[idx]] = acumulado/alojadas*100;
+        idx++;
+      }
+    });
+    mapl_mortalidadePorLote.set(lote, resultado);
+  });
+  return mapl_mortalidadePorLote;
+}
+
 let mapl_recolhidos = new Set();
 let mapl_ordem = { chave: null, asc: true };
 let mapl_incubatoriosPopulados = false;
@@ -4126,6 +4243,9 @@ function mapl_atualizarBotaoRecolher(){
 function renderMapeamentoLotes(){
   mapl_popularIncubatorios();
   const dadosBase = mapl_filtrar();
+  const mortPorLote = mapl_construirMortalidadePorIdade();
+  const fIdade = document.getElementById('mapl_fIdade').value;
+  const idadesVisiveis = fIdade==='Todos' ? MAPL_IDADES_CHECKPOINT : [parseInt(fIdade,10)];
 
   const tabela = document.getElementById('mapl_tabela');
   const nota = document.getElementById('mapl_nota');
@@ -4136,26 +4256,21 @@ function renderMapeamentoLotes(){
     return;
   }
 
-  const rodadasPresentes = Array.from(new Set(dadosBase.map(l=>l.rodada).filter(r=>r!=null))).sort((a,b)=>a-b);
-
+  // uma linha por aviário — usa o lote de referência (mais recente que bate no filtro) pra puxar a mortalidade por idade
   const porAviario = new Map();
   dadosBase.forEach(l=>{
     const chave = l.nucleo + '|' + l.aviario;
-    if(!porAviario.has(chave)) porAviario.set(chave, []);
-    porAviario.get(chave).push(l);
+    const atual = porAviario.get(chave);
+    if(!atual || new Date(l.dataAloj) > new Date(atual.dataAloj)) porAviario.set(chave, l);
   });
 
   const linhas = [];
-  porAviario.forEach((lotesAviario, chave)=>{
-    const ref = lotesAviario.slice().sort((a,b)=> new Date(b.dataAloj) - new Date(a.dataAloj))[0];
-    const idade = ref.idadeAbate!=null ? ref.idadeAbate : '–';
-    const matriz = `${idade}.${ref.lote}.${ref.alojadas!=null?ref.alojadas:'–'}`;
-    const porRodadaDoAviario = {};
-    lotesAviario.forEach(l=>{ if(l.rodada!=null && l.mortElim!=null) porRodadaDoAviario[l.rodada] = l.mortElim; });
-    let somaLinha=0, contLinha=0;
-    rodadasPresentes.forEach(r=>{ const v=porRodadaDoAviario[r]; if(v!=null){ somaLinha+=v; contLinha++; } });
-    const totalLinha = contLinha ? (somaLinha/contLinha) : null;
-    linhas.push({ nucleo: ref.nucleo, aviario: ref.aviario, incubatorio: ref.incubatorio||'–', dataAloj: ref.dataAloj, matriz, porRodada: porRodadaDoAviario, totalLinha });
+  porAviario.forEach(ref=>{
+    const idadeAtual = ref.idadeAbate!=null ? ref.idadeAbate : '–';
+    const matriz = `${idadeAtual}.${ref.lote}.${ref.alojadas!=null?ref.alojadas:'–'}`;
+    const loteLimpo = mapl_limparPrefixoLote(ref.lote);
+    const porIdade = mortPorLote.get(loteLimpo) || mortPorLote.get(ref.lote) || {};
+    linhas.push({ nucleo: ref.nucleo, aviario: ref.aviario, incubatorio: ref.incubatorio||'–', dataAloj: ref.dataAloj, matriz, porIdade });
   });
 
   if(mapl_ordem.chave){
@@ -4165,8 +4280,7 @@ function renderMapeamentoLotes(){
       if(mapl_ordem.chave==='aviario'){ va=String(a.aviario); vb=String(b.aviario); return dir*va.localeCompare(vb, undefined, {numeric:true}); }
       if(mapl_ordem.chave==='incubatorio'){ va=a.incubatorio; vb=b.incubatorio; return dir*String(va).localeCompare(String(vb)); }
       if(mapl_ordem.chave==='dataAloj'){ va=new Date(a.dataAloj||0); vb=new Date(b.dataAloj||0); return dir*(va-vb); }
-      if(mapl_ordem.chave==='total'){ va=a.totalLinha??-1; vb=b.totalLinha??-1; return dir*(va-vb); }
-      if(mapl_ordem.chave.startsWith('r_')){ const r=mapl_ordem.chave.slice(2); va=a.porRodada[r]??-1; vb=b.porRodada[r]??-1; return dir*(va-vb); }
+      if(mapl_ordem.chave.startsWith('i_')){ const idd=mapl_ordem.chave.slice(2); va=a.porIdade[idd]??-1; vb=b.porIdade[idd]??-1; return dir*(va-vb); }
       return 0;
     });
   }
@@ -4180,43 +4294,39 @@ function renderMapeamentoLotes(){
     <th class="th-sort" data-sort-mapl="incubatorio" title="Ordenar">Incubatório${seta('incubatorio')}</th>
     <th class="th-sort" data-sort-mapl="dataAloj" title="Ordenar">Data<br>Alojamento${seta('dataAloj')}</th>
     <th>Matriz</th>`;
-  rodadasPresentes.forEach(r => thead += `<th class="th-sort" data-sort-mapl="r_${r}" title="Ordenar">Rodada ${r}${seta('r_'+r)}</th>`);
-  thead += `<th class="th-sort" data-sort-mapl="total" title="Ordenar">Total Geral${seta('total')}</th></tr></thead>`;
+  idadesVisiveis.forEach(idd => thead += `<th class="th-sort" data-sort-mapl="i_${idd}" title="Ordenar">Mort. até<br>${idd}d${seta('i_'+idd)}</th>`);
+  thead += `</tr></thead>`;
 
   let corpo = '';
   Array.from(porNucleo.keys()).sort().forEach(nuc=>{
     const linhasNuc = porNucleo.get(nuc).sort((a,b)=>String(a.aviario).localeCompare(String(b.aviario), undefined, {numeric:true}));
     const rec = mapl_recolhidos.has(nuc);
 
-    const somaPorRodada = {}, contPorRodada = {};
-    rodadasPresentes.forEach(r=>{ somaPorRodada[r]=0; contPorRodada[r]=0; });
-    let somaGeral=0, contGeral=0;
+    const somaPorIdade = {}, contPorIdade = {};
+    idadesVisiveis.forEach(idd=>{ somaPorIdade[idd]=0; contPorIdade[idd]=0; });
     linhasNuc.forEach(l=>{
-      rodadasPresentes.forEach(r=>{
-        const v = l.porRodada[r];
-        if(v!=null){ somaPorRodada[r]+=v; contPorRodada[r]++; somaGeral+=v; contGeral++; }
+      idadesVisiveis.forEach(idd=>{
+        const v = l.porIdade[idd];
+        if(v!=null){ somaPorIdade[idd]+=v; contPorIdade[idd]++; }
       });
     });
     let celulasSub = '';
-    rodadasPresentes.forEach(r=>{
-      celulasSub += contPorRodada[r]>0 ? `<td>${(somaPorRodada[r]/contPorRodada[r]).toFixed(2).replace('.',',')}%</td>` : '<td></td>';
+    idadesVisiveis.forEach(idd=>{
+      celulasSub += contPorIdade[idd]>0 ? `<td>${(somaPorIdade[idd]/contPorIdade[idd]).toFixed(2).replace('.',',')}%</td>` : '<td></td>';
     });
-    const totalGeralNucleo = contGeral ? (somaGeral/contGeral) : null;
 
-    // padrão igual às outras matrizes: uma única linha de núcleo (toggle + valores), no topo do grupo
     corpo += `<tr class="linha-nucleo">
       <th class="rowhead"><span class="nuc-toggle" data-toggle-mapl-nucleo="${nuc}" style="cursor:pointer;">${rec?'▸':'▾'}</span> ${nomeNucleo(nuc)} (${linhasNuc.length})</th>
       <td></td><td></td><td></td>
       ${celulasSub}
-      <td style="font-weight:800;">${totalGeralNucleo!=null?totalGeralNucleo.toFixed(2).replace('.',',')+'%':''}</td>
     </tr>`;
 
     if(!rec){
       linhasNuc.forEach(l=>{
         let celulas = '';
-        rodadasPresentes.forEach(r=>{
-          const v = l.porRodada[r];
-          celulas += v!=null ? `<td>${v.toFixed(2).replace('.',',')}%</td>` : '<td></td>';
+        idadesVisiveis.forEach(idd=>{
+          const v = l.porIdade[idd];
+          celulas += v!=null ? `<td>${v.toFixed(2).replace('.',',')}%</td>` : '<td>–</td>';
         });
         corpo += `<tr>
           <th class="rowhead av">${l.aviario}</th>
@@ -4224,14 +4334,13 @@ function renderMapeamentoLotes(){
           <td>${mapl_formatarDataBR(l.dataAloj)}</td>
           <td style="font-size:10.5px;" title="${l.matriz}">${l.matriz}</td>
           ${celulas}
-          <td style="font-weight:700;">${l.totalLinha!=null ? l.totalLinha.toFixed(2).replace('.',',')+'%' : ''}</td>
         </tr>`;
       });
     }
   });
 
   tabela.innerHTML = thead + '<tbody>'+corpo+'</tbody>';
-  nota.innerHTML = `${linhas.length} aviário(s) exibido(s) — rodadas ${rodadasPresentes.join(', ')||'—'}. <strong>Matriz</strong> = Idade.Lote.AvesAlojadas. <strong>Total Geral</strong> = média das rodadas de cada linha.`;
+  nota.innerHTML = `${linhas.length} aviário(s) exibido(s). <strong>Mort. até Xd</strong> = mortalidade acumulada (natural + eliminação) desde o alojamento até aquela idade. <strong>Matriz</strong> = Idade.Lote.AvesAlojadas.`;
   mapl_atualizarBotaoRecolher();
 
   tabela.querySelectorAll('[data-toggle-mapl-nucleo]').forEach(el=>{
@@ -4254,12 +4363,37 @@ function renderMapeamentoLotes(){
 
 document.getElementById('mapl_fSituacao').addEventListener('change', renderMapeamentoLotes);
 document.getElementById('mapl_fIncubatorio').addEventListener('change', renderMapeamentoLotes);
+document.getElementById('mapl_fIdade').addEventListener('change', renderMapeamentoLotes);
 document.getElementById('mapl_btnRecolher').addEventListener('click', ()=>{
   const nucleosAtuais = Array.from(new Set(mapl_filtrar().map(l=>l.nucleo).filter(Boolean)));
   const todosRecolhidos = nucleosAtuais.length>0 && nucleosAtuais.every(n=>mapl_recolhidos.has(n));
   if(todosRecolhidos) mapl_recolhidos.clear();
   else nucleosAtuais.forEach(n=>mapl_recolhidos.add(n));
   renderMapeamentoLotes();
+});
+
+document.getElementById('mapl_btnImprimir').addEventListener('click', ()=>{
+  const nucleosAtuais = Array.from(new Set(mapl_filtrar().map(l=>l.nucleo).filter(Boolean)));
+  nucleosAtuais.forEach(n=>mapl_recolhidos.delete(n)); // expande tudo pro relatório sair completo
+  renderMapeamentoLotes();
+  document.getElementById('mapl_print_data').textContent = 'Gerado em ' + new Date().toLocaleString('pt-BR');
+  setTimeout(()=>window.print(), 150);
+});
+
+document.getElementById('mapl_btnExcel').addEventListener('click', ()=>{
+  if(typeof XLSX === 'undefined'){ alert('Não foi possível carregar o gerador de Excel. Verifique sua conexão e tente de novo.'); return; }
+  const linhas = [];
+  document.querySelectorAll('#mapl_tabela thead th').forEach(th=>{}); // apenas garante que a tabela existe
+  const cabecalhos = Array.from(document.querySelectorAll('#mapl_tabela thead th')).map(th=>th.textContent.replace(/[▲▼]/g,'').trim());
+  linhas.push(cabecalhos);
+  document.querySelectorAll('#mapl_tabela tbody tr').forEach(tr=>{
+    const linha = Array.from(tr.children).map(td=>td.textContent.trim());
+    linhas.push(linha);
+  });
+  const ws = XLSX.utils.aoa_to_sheet(linhas);
+  const wb = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb, ws, 'Mapeamento dos Lotes');
+  XLSX.writeFile(wb, `mapeamento_lotes_${new Date().toISOString().slice(0,10)}.xlsx`);
 });
 
 function renderMatriz(dados){
@@ -4745,20 +4879,24 @@ document.getElementById('formCadastro').addEventListener('submit', async (e)=>{
 
 function registrarAcesso(user){
   if(!user) return;
-  db.collection('acessos').doc(user.uid).set({
-    email: user.email,
-    ultimoAcesso: firebase.firestore.FieldValue.serverTimestamp(),
-    totalLogins: firebase.firestore.FieldValue.increment(1)
-  }, {merge:true}).catch(()=>{});
+  try{
+    db.collection('acessos').doc(user.uid).set({
+      email: user.email,
+      ultimoAcesso: firebase.firestore.FieldValue.serverTimestamp(),
+      totalLogins: firebase.firestore.FieldValue.increment(1)
+    }, {merge:true}).catch(()=>{});
+  }catch(e){ /* nunca deixa isso travar o resto do carregamento da página */ }
 }
 
 window.registrarModulo = function(mod){
   const user = auth.currentUser;
   if(!user || !mod) return;
-  const campo = 'modulos.' + mod;
-  const upd = {};
-  upd[campo] = firebase.firestore.FieldValue.increment(1);
-  db.collection('acessos').doc(user.uid).set(upd, {merge:true}).catch(()=>{});
+  try{
+    const campo = 'modulos.' + mod;
+    const upd = {};
+    upd[campo] = firebase.firestore.FieldValue.increment(1);
+    db.collection('acessos').doc(user.uid).set(upd, {merge:true}).catch(()=>{});
+  }catch(e){ /* nunca deixa isso travar o resto da página */ }
 };
 
 function atualizarVisibilidadeSecoesAdmin(){
