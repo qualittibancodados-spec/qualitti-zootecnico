@@ -1070,9 +1070,24 @@
   <div data-modulo-view="quadro" style="display:none;">
     <div id="mod-quadro">
       <div class="pagina-head"><h1 class="pagina-titulo">Quadro de Funcionários</h1></div>
-      <p class="nota" style="margin:0 0 16px;">Cada aviário é coberto em dupla (granjeiro + ajudante). A <strong>necessidade</strong> de cada núcleo é calculada a partir do total de aviários dividido pela razão definida ali. Marque quem está <strong>saindo/em aviso</strong> pra ver o "Futuro" — isso não altera o quadro Atual.</p>
-      <button class="btn-recolher" id="btnImportarQuadroInicial" style="display:none;margin-bottom:16px;">Importar lista inicial (uma vez)</button>
-      <div id="quadroNucleosContainer"></div>
+
+      <div class="tabs-internas">
+        <button class="tab-int ativo" data-aba-qf="consolidado">Visão Consolidada</button>
+        <button class="tab-int" data-aba-qf="atualizar">Atualizar Funcionários</button>
+      </div>
+
+      <div data-aba-qf-view="consolidado">
+        <p class="nota" style="margin:0 0 16px;">Resumo de todos os núcleos — quanto falta pra completar o quadro, hoje e depois das saídas previstas.</p>
+        <div class="painel">
+          <div class="tabela-scroll"><table class="matriz-diaria" id="qf-tabelaConsolidada"></table></div>
+        </div>
+      </div>
+
+      <div data-aba-qf-view="atualizar" style="display:none;">
+        <p class="nota" style="margin:0 0 16px;">Cada aviário é coberto em dupla (granjeiro + ajudante). A <strong>necessidade</strong> de cada núcleo é calculada a partir do total de aviários dividido pela razão definida ali. Marque quem está <strong>saindo/em aviso</strong> pra ver o "Futuro" — isso não altera o quadro Atual.</p>
+        <button class="btn-recolher" id="btnImportarQuadroInicial" style="display:none;margin-bottom:16px;">Importar lista inicial (uma vez)</button>
+        <div id="quadroNucleosContainer"></div>
+      </div>
     </div>
   </div>
 
@@ -4569,6 +4584,15 @@ document.addEventListener('click', (e)=>{
   }
 });
 
+// abas internas do Quadro de Funcionários
+document.querySelectorAll('#mod-quadro .tab-int').forEach(b=>b.addEventListener('click',()=>{
+  document.querySelectorAll('#mod-quadro .tab-int').forEach(x=>x.classList.remove('ativo'));
+  b.classList.add('ativo');
+  const aba = b.dataset.abaQf;
+  document.querySelector('#mod-quadro [data-aba-qf-view="consolidado"]').style.display = (aba==='consolidado') ? '' : 'none';
+  document.querySelector('#mod-quadro [data-aba-qf-view="atualizar"]').style.display = (aba==='atualizar') ? '' : 'none';
+}));
+
 async function carregarListaEmails(){
   const cont = document.getElementById('listaEmailsAdmin');
   const info = document.getElementById('infoListaEmails');
@@ -4861,6 +4885,17 @@ function contarAviarios(str){
   return String(str||'').split('-').map(s=>s.trim()).filter(Boolean).length;
 }
 
+function calcularResumoNucleo(nuc, postos){
+  const totalAviarios = postos.reduce((s,p)=>s+contarAviarios(p.aviarios),0);
+  const razao = (window.RAZAO_NUCLEOS && window.RAZAO_NUCLEOS[nuc]!=null) ? window.RAZAO_NUCLEOS[nuc] : 2;
+  const necessidade = razao>0 ? Math.round(totalAviarios/razao) : 0;
+  const atualGranj = postos.filter(p=>p.granjeiro && p.granjeiro.trim()).length;
+  const atualAjud = postos.filter(p=>p.ajudante && p.ajudante.trim()).length;
+  const futuroGranj = postos.filter(p=>p.granjeiro && p.granjeiro.trim() && !p.granjeiroSaindo).length;
+  const futuroAjud = postos.filter(p=>p.ajudante && p.ajudante.trim() && !p.ajudanteSaindo).length;
+  return {totalAviarios, razao, necessidade, atualGranj, atualAjud, futuroGranj, futuroAjud};
+}
+
 async function iniciarQuadroFuncionarios(){
   try{
     const docRazao = await db.collection('configuracoes').doc('razao_nucleos').get();
@@ -4876,8 +4911,65 @@ async function iniciarQuadroFuncionarios(){
     btnImportar.style.display = (window.souAdminPrincipal && window.POSTOS_QUADRO.length===0) ? '' : 'none';
   }
   renderQuadroFuncionarios();
+  renderQuadroConsolidado();
 }
 window.iniciarQuadroFuncionarios = iniciarQuadroFuncionarios;
+
+function renderQuadroConsolidado(){
+  const tabela = document.getElementById('qf-tabelaConsolidada');
+  if(!tabela) return;
+  const porNucleo = new Map();
+  (window.POSTOS_QUADRO||[]).forEach(p=>{
+    if(!porNucleo.has(p.nucleo)) porNucleo.set(p.nucleo, []);
+    porNucleo.get(p.nucleo).push(p);
+  });
+  const nucleosOrdenados = Array.from(porNucleo.keys()).sort();
+  if(!nucleosOrdenados.length){
+    tabela.innerHTML = '<tbody><tr><td style="padding:14px;">Nenhum posto cadastrado ainda.</td></tr></tbody>';
+    return;
+  }
+  let totNecessidade=0, totAtualG=0, totAtualA=0, totFutG=0, totFutA=0;
+  const thead = `<thead><tr>
+    <th class="rowhead">Núcleo</th>
+    <th>Necessidade<br>(cada papel)</th>
+    <th>Atual<br>Granjeiros</th>
+    <th>Atual<br>Ajudantes</th>
+    <th>Falta hoje<br>(G+A)</th>
+    <th>Futuro<br>Granjeiros</th>
+    <th>Futuro<br>Ajudantes</th>
+    <th>Falta futuro<br>(G+A)</th>
+  </tr></thead>`;
+  const linhas = nucleosOrdenados.map(nuc=>{
+    const r = calcularResumoNucleo(nuc, porNucleo.get(nuc));
+    totNecessidade += r.necessidade; totAtualG += r.atualGranj; totAtualA += r.atualAjud; totFutG += r.futuroGranj; totFutA += r.futuroAjud;
+    const faltaAtual = Math.max(0,r.necessidade-r.atualGranj) + Math.max(0,r.necessidade-r.atualAjud);
+    const faltaFuturo = Math.max(0,r.necessidade-r.futuroGranj) + Math.max(0,r.necessidade-r.futuroAjud);
+    return `<tr>
+      <th class="rowhead">${nuc}</th>
+      <td style="text-align:center;">${r.necessidade}</td>
+      <td style="text-align:center;" class="${r.atualGranj>=r.necessidade?'':'peso-abaixo-meta'}">${r.atualGranj}/${r.necessidade}</td>
+      <td style="text-align:center;" class="${r.atualAjud>=r.necessidade?'':'peso-abaixo-meta'}">${r.atualAjud}/${r.necessidade}</td>
+      <td style="text-align:center;font-weight:800;color:${faltaAtual>0?'var(--vermelho-alerta)':'var(--verde-ok)'};">${faltaAtual}</td>
+      <td style="text-align:center;" class="${r.futuroGranj>=r.necessidade?'':'peso-abaixo-meta'}">${r.futuroGranj}/${r.necessidade}</td>
+      <td style="text-align:center;" class="${r.futuroAjud>=r.necessidade?'':'peso-abaixo-meta'}">${r.futuroAjud}/${r.necessidade}</td>
+      <td style="text-align:center;font-weight:800;color:${faltaFuturo>0?'var(--vermelho-alerta)':'var(--verde-ok)'};">${faltaFuturo}</td>
+    </tr>`;
+  }).join('');
+  const faltaAtualTotal = Math.max(0,totNecessidade-totAtualG) + Math.max(0,totNecessidade-totAtualA);
+  const faltaFuturoTotal = Math.max(0,totNecessidade-totFutG) + Math.max(0,totNecessidade-totFutA);
+  const linhaTotal = `<tr style="border-top:2.5px solid var(--borda);">
+    <th class="rowhead">TOTAL</th>
+    <td style="text-align:center;font-weight:800;">${totNecessidade}</td>
+    <td style="text-align:center;font-weight:800;">${totAtualG}/${totNecessidade}</td>
+    <td style="text-align:center;font-weight:800;">${totAtualA}/${totNecessidade}</td>
+    <td style="text-align:center;font-weight:800;color:${faltaAtualTotal>0?'var(--vermelho-alerta)':'var(--verde-ok)'};">${faltaAtualTotal}</td>
+    <td style="text-align:center;font-weight:800;">${totFutG}/${totNecessidade}</td>
+    <td style="text-align:center;font-weight:800;">${totFutA}/${totNecessidade}</td>
+    <td style="text-align:center;font-weight:800;color:${faltaFuturoTotal>0?'var(--vermelho-alerta)':'var(--verde-ok)'};">${faltaFuturoTotal}</td>
+  </tr>`;
+  tabela.innerHTML = thead + '<tbody>'+linhas+linhaTotal+'</tbody>';
+}
+window.renderQuadroConsolidado = renderQuadroConsolidado;
 
 function renderQuadroFuncionarios(){
   const cont = document.getElementById('quadroNucleosContainer');
@@ -4895,13 +4987,7 @@ function renderQuadroFuncionarios(){
   }
   cont.innerHTML = nucleosOrdenados.map(nuc=>{
     const postos = porNucleo.get(nuc).slice().sort((a,b)=>String(a.aviarios).localeCompare(String(b.aviarios), undefined, {numeric:true}));
-    const totalAviarios = postos.reduce((s,p)=>s+contarAviarios(p.aviarios),0);
-    const razao = (window.RAZAO_NUCLEOS && window.RAZAO_NUCLEOS[nuc]!=null) ? window.RAZAO_NUCLEOS[nuc] : 2;
-    const necessidade = razao>0 ? Math.round(totalAviarios/razao) : 0;
-    const atualGranj = postos.filter(p=>p.granjeiro && p.granjeiro.trim()).length;
-    const atualAjud = postos.filter(p=>p.ajudante && p.ajudante.trim()).length;
-    const futuroGranj = postos.filter(p=>p.granjeiro && p.granjeiro.trim() && !p.granjeiroSaindo).length;
-    const futuroAjud = postos.filter(p=>p.ajudante && p.ajudante.trim() && !p.ajudanteSaindo).length;
+    const r = calcularResumoNucleo(nuc, postos);
     const editavel = podeEditarLista.includes(nuc);
 
     const linhas = postos.map(p=>{
@@ -4919,15 +5005,15 @@ function renderQuadroFuncionarios(){
     return `<div class="quadro-nucleo-card" data-nucleo-card="${nuc}">
       <div class="quadro-nucleo-titulo">
         ${nuc}
-        <span class="quadro-razao-campo">Razão (aviários/pessoa): <input type="number" min="1" step="1" class="qf-input-razao" data-nucleo-razao="${nuc}" value="${razao}" ${window.souAdminPrincipal?'':'disabled'}></span>
+        <span class="quadro-razao-campo">Razão (aviários/pessoa): <input type="number" min="1" step="1" class="qf-input-razao" data-nucleo-razao="${nuc}" value="${r.razao}" ${window.souAdminPrincipal?'':'disabled'}></span>
       </div>
       <div class="quadro-stats">
-        <div class="quadro-stat-bloco"><div class="quadro-stat-label">Total de aviários</div><div class="quadro-stat-valor">${totalAviarios}</div></div>
-        <div class="quadro-stat-bloco"><div class="quadro-stat-label">Necessidade (cada papel)</div><div class="quadro-stat-valor">${necessidade}</div></div>
-        <div class="quadro-stat-bloco"><div class="quadro-stat-label">Atual — Granjeiros</div><div class="quadro-stat-valor ${atualGranj>=necessidade?'ok':'falta'}">${atualGranj}/${necessidade}</div></div>
-        <div class="quadro-stat-bloco"><div class="quadro-stat-label">Atual — Ajudantes</div><div class="quadro-stat-valor ${atualAjud>=necessidade?'ok':'falta'}">${atualAjud}/${necessidade}</div></div>
-        <div class="quadro-stat-bloco"><div class="quadro-stat-label">Futuro — Granjeiros</div><div class="quadro-stat-valor ${futuroGranj>=necessidade?'ok':'falta'}">${futuroGranj}/${necessidade}</div></div>
-        <div class="quadro-stat-bloco"><div class="quadro-stat-label">Futuro — Ajudantes</div><div class="quadro-stat-valor ${futuroAjud>=necessidade?'ok':'falta'}">${futuroAjud}/${necessidade}</div></div>
+        <div class="quadro-stat-bloco"><div class="quadro-stat-label">Total de aviários</div><div class="quadro-stat-valor">${r.totalAviarios}</div></div>
+        <div class="quadro-stat-bloco"><div class="quadro-stat-label">Necessidade (cada papel)</div><div class="quadro-stat-valor">${r.necessidade}</div></div>
+        <div class="quadro-stat-bloco"><div class="quadro-stat-label">Atual — Granjeiros</div><div class="quadro-stat-valor ${r.atualGranj>=r.necessidade?'ok':'falta'}">${r.atualGranj}/${r.necessidade}</div></div>
+        <div class="quadro-stat-bloco"><div class="quadro-stat-label">Atual — Ajudantes</div><div class="quadro-stat-valor ${r.atualAjud>=r.necessidade?'ok':'falta'}">${r.atualAjud}/${r.necessidade}</div></div>
+        <div class="quadro-stat-bloco"><div class="quadro-stat-label">Futuro — Granjeiros</div><div class="quadro-stat-valor ${r.futuroGranj>=r.necessidade?'ok':'falta'}">${r.futuroGranj}/${r.necessidade}</div></div>
+        <div class="quadro-stat-bloco"><div class="quadro-stat-label">Futuro — Ajudantes</div><div class="quadro-stat-valor ${r.futuroAjud>=r.necessidade?'ok':'falta'}">${r.futuroAjud}/${r.necessidade}</div></div>
       </div>
       <div class="quadro-tabela-wrap">
         <table class="quadro-tabela">
@@ -4975,6 +5061,7 @@ function renderQuadroFuncionarios(){
       window.RAZAO_NUCLEOS[nuc] = v;
       try{ await db.collection('configuracoes').doc('razao_nucleos').set({[nuc]: v}, {merge:true}); }catch(e){}
       renderQuadroFuncionarios();
+      renderQuadroConsolidado();
     });
   });
   cont.querySelectorAll('[data-remover-posto]').forEach(btn=>{
@@ -4985,6 +5072,7 @@ function renderQuadroFuncionarios(){
         await db.collection('funcionarios').doc(id).delete();
         window.POSTOS_QUADRO = window.POSTOS_QUADRO.filter(p=>p.id!==id);
         renderQuadroFuncionarios();
+        renderQuadroConsolidado();
       }catch(e){ alert('Erro ao remover: '+e.message); }
     });
   });
@@ -4999,6 +5087,7 @@ function renderQuadroFuncionarios(){
         const ref = await db.collection('funcionarios').add(novo);
         window.POSTOS_QUADRO.push({id: ref.id, ...novo});
         renderQuadroFuncionarios();
+        renderQuadroConsolidado();
       }catch(e){ alert('Erro ao adicionar: '+e.message); }
     });
   });
@@ -5011,6 +5100,7 @@ async function salvarCampoPosto(id, campos){
     const posto = (window.POSTOS_QUADRO||[]).find(p=>p.id===id);
     if(posto) Object.assign(posto, campos);
     renderQuadroFuncionarios();
+    renderQuadroConsolidado();
   }catch(e){
     alert('Erro ao salvar: ' + e.message);
   }
