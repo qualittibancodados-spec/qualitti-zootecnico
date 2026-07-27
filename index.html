@@ -157,7 +157,9 @@
   .qf-legenda-cor{ width:14px; height:14px; border-radius:4px; display:inline-block; }
   .qf-nucleo-toggle{ cursor:pointer; user-select:none; }
   .qf-nucleo-toggle:hover{ text-decoration:underline; }
-  .qf-linha-aviario-detalhe td{ background:#FAFAF8; font-size:12px; padding:5px 8px 5px 24px; border-bottom:1px solid var(--borda); }
+  .qf-linha-aviario-detalhe td{ background:#FAFAF8; font-size:11.5px; padding:5px 8px; border-bottom:1px solid var(--borda); word-break:break-word; text-align:center; }
+  .qf-linha-aviario-detalhe td:first-child{ text-align:left; padding-left:24px; color:var(--texto-suave); font-weight:600; }
+  .qf-nome-saindo-detalhe{ text-decoration:line-through; color:var(--vermelho-alerta); }
   .qf-linha-aviario-detalhe .qf-nome-vago{ color:var(--vermelho-alerta); font-style:italic; }
   .quadro-nome-saindo{ text-decoration:line-through; color:var(--vermelho-alerta); }
   .quadro-btn-remover-posto{ background:none; border:none; color:var(--vermelho-alerta); cursor:pointer; font-size:16px; padding:2px 6px; }
@@ -4988,14 +4990,22 @@ function renderQuadroConsolidado(){
     if(expandido){
       const postosOrdenados = postos.slice().sort((a,b)=>String(a.aviarios).localeCompare(String(b.aviarios), undefined, {numeric:true}));
       linhasDetalhe = postosOrdenados.map(p=>{
-        const gTxt = p.granjeiro && p.granjeiro.trim() ? p.granjeiro : '<span class="qf-nome-vago">vago</span>';
-        const aTxt = p.ajudante && p.ajudante.trim() ? p.ajudante : '<span class="qf-nome-vago">vago</span>';
-        const gSaiTxt = p.granjeiroSaindo ? ' <span style="color:var(--vermelho-alerta);font-size:10.5px;">(sai)</span>' : '';
-        const aSaiTxt = p.ajudanteSaindo ? ' <span style="color:var(--vermelho-alerta);font-size:10.5px;">(sai)</span>' : '';
+        const temG = p.granjeiro && p.granjeiro.trim();
+        const temA = p.ajudante && p.ajudante.trim();
+        // Atual: mostra o nome normalmente (a pessoa ainda está lá hoje)
+        const gAtualTxt = temG ? p.granjeiro : '<span class="qf-nome-vago">vago</span>';
+        const aAtualTxt = temA ? p.ajudante : '<span class="qf-nome-vago">vago</span>';
+        // Futuro: se marcado como saindo, mostra riscado (não vai contar na projeção)
+        const gFuturoTxt = temG ? (p.granjeiroSaindo ? `<span class="qf-nome-saindo-detalhe">${p.granjeiro}</span>` : p.granjeiro) : '<span class="qf-nome-vago">vago</span>';
+        const aFuturoTxt = temA ? (p.ajudanteSaindo ? `<span class="qf-nome-saindo-detalhe">${p.ajudante}</span>` : p.ajudante) : '<span class="qf-nome-vago">vago</span>';
         return `<tr class="qf-linha-aviario-detalhe">
-          <td colspan="3">Aviários ${p.aviarios} — Granjeiro: ${gTxt}${gSaiTxt}</td>
-          <td colspan="2"></td>
-          <td colspan="2">Ajudante: ${aTxt}${aSaiTxt}</td>
+          <td>Aviários ${p.aviarios}</td>
+          <td></td>
+          <td>${gAtualTxt}</td>
+          <td>${aAtualTxt}</td>
+          <td></td>
+          <td>${gFuturoTxt}</td>
+          <td>${aFuturoTxt}</td>
           <td></td>
         </tr>`;
       }).join('');
