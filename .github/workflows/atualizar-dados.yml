@@ -2,9 +2,11 @@ name: Atualizar dados do painel
 
 on:
   schedule:
-    - cron: '0 12 * * *'   # 09:00 (horário de Brasília)
-    - cron: '0 14 * * *'   # 11:00 (horário de Brasília)
-  workflow_dispatch: {}
+    # 09:00 Brasília = 12:00 UTC
+    - cron: '0 12 * * *'
+    # 11:00 Brasília = 14:00 UTC
+    - cron: '0 14 * * *'
+  workflow_dispatch: {}   # permite rodar manualmente pelo botão "Run workflow" no GitHub
 
 permissions:
   contents: write
