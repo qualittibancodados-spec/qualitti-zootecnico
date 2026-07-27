@@ -887,14 +887,16 @@
 
   <div data-aba-view="mapeamento" style="display:none;">
     <div class="painel">
-      <p class="nota" style="margin-top:0;">Uma linha por aviário — usa os filtros de Ano/Núcleo/Rodada/Linhagem/Sexo ali em cima. <strong>Matriz</strong> = código de rastreio do lote (Idade.Lote.AvesAlojadas). As colunas de mortalidade são organizadas por <strong>Rodada</strong> real do lote.</p>
-      <div class="filtros-grid" style="margin-bottom:14px;max-width:220px;">
+      <p class="nota" style="margin-top:0;">Uma linha por aviário — usa o Ano/Rodada/Núcleo do filtro ali em cima (Linhagem e Sexo não se aplicam aqui). <strong>Matriz</strong> = código de rastreio do lote (Idade.Lote.AvesAlojadas). As colunas de mortalidade são organizadas por <strong>Rodada</strong> real do lote.</p>
+      <div class="filtros-grid" style="margin-bottom:14px;max-width:460px;">
+        <div class="campo"><label>Incubatório</label><select id="mapl_fIncubatorio"></select></div>
         <div class="campo"><label>Situação</label><select id="mapl_fSituacao">
           <option value="Aberto">Aberto</option>
           <option value="Fechado">Fechado</option>
           <option value="Todos">Todos</option>
         </select></div>
       </div>
+      <button class="btn-recolher" id="mapl_btnRecolher" style="margin-bottom:12px;">Recolher todos</button>
       <div class="tabela-scroll arrastavel" id="mapl_scroll">
         <table class="matriz" id="mapl_tabela"></table>
       </div>
@@ -4071,10 +4073,9 @@ function atualizarBotaoRecolher(){
   });
 })();
 
-document.getElementById('mapl_fSituacao').addEventListener('change', renderMapeamentoLotes);
-
 let mapl_recolhidos = new Set();
 let mapl_ordem = { chave: null, asc: true };
+let mapl_incubatoriosPopulados = false;
 
 function mapl_formatarDataBR(iso){
   if(!iso) return '–';
@@ -4083,15 +4084,49 @@ function mapl_formatarDataBR(iso){
   return `${m[3]}/${m[2]}/${m[1]}`;
 }
 
-function renderMapeamentoLotes(){
+function mapl_popularIncubatorios(){
+  if(mapl_incubatoriosPopulados) return;
+  mapl_incubatoriosPopulados = true;
+  const incubatorios = Array.from(new Set(LOTES.map(l=>l.incubatorio).filter(Boolean))).sort();
+  document.getElementById('mapl_fIncubatorio').innerHTML = '<option value="Todos">Todos os incubatórios</option>' + incubatorios.map(i=>`<option value="${i}">${i}</option>`).join('');
+}
+
+// filtro próprio dessa aba: reaproveita Ano/Rodada/Núcleo do topo (mesmo "ano da rodada" usado no resto do Resultado),
+// mas troca Linhagem/Sexo (que não fazem sentido aqui) por Incubatório e Situação.
+function mapl_filtrar(){
+  const fAno = document.getElementById('rz_fAno').value;
+  const fRodada = document.getElementById('rz_fRodada').value;
+  const fNucleo = document.getElementById('rz_fNucleo').value;
+  const fIncub = document.getElementById('mapl_fIncubatorio').value;
   const fSit = document.getElementById('mapl_fSituacao').value;
-  const dadosBase = filtrar().filter(l => fSit==='Todos' || l.situacao===fSit);
+  return LOTES.filter(l=>{
+    if(fAno!=='Todos' && String(l.ano)!==String(fAno)) return false;
+    if(fRodada!=='Todos' && String(l.rodada)!==String(fRodada)) return false;
+    if(fNucleo!=='Todos' && l.nucleo!==fNucleo) return false;
+    if(fIncub!=='Todos' && l.incubatorio!==fIncub) return false;
+    if(fSit!=='Todos' && l.situacao!==fSit) return false;
+    return true;
+  });
+}
+
+function mapl_atualizarBotaoRecolher(){
+  const btn = document.getElementById('mapl_btnRecolher');
+  if(!btn) return;
+  const nucleosAtuais = Array.from(new Set(mapl_filtrar().map(l=>l.nucleo).filter(Boolean)));
+  const todosRecolhidos = nucleosAtuais.length>0 && nucleosAtuais.every(n=>mapl_recolhidos.has(n));
+  btn.textContent = todosRecolhidos ? 'Expandir todos' : 'Recolher todos';
+}
+
+function renderMapeamentoLotes(){
+  mapl_popularIncubatorios();
+  const dadosBase = mapl_filtrar();
 
   const tabela = document.getElementById('mapl_tabela');
   const nota = document.getElementById('mapl_nota');
   if(!dadosBase.length){
     tabela.innerHTML = '';
     nota.innerHTML = '<div class="vazio">Sem dados para o filtro selecionado.</div>';
+    mapl_atualizarBotaoRecolher();
     return;
   }
 
@@ -4104,7 +4139,6 @@ function renderMapeamentoLotes(){
     porAviario.get(chave).push(l);
   });
 
-  // monta uma "linha resumida" por aviário, já com tudo calculado (facilita ordenar depois)
   const linhas = [];
   porAviario.forEach((lotesAviario, chave)=>{
     const ref = lotesAviario.slice().sort((a,b)=> new Date(b.dataAloj) - new Date(a.dataAloj))[0];
@@ -4118,7 +4152,6 @@ function renderMapeamentoLotes(){
     linhas.push({ nucleo: ref.nucleo, aviario: ref.aviario, incubatorio: ref.incubatorio||'–', dataAloj: ref.dataAloj, matriz, porRodada: porRodadaDoAviario, totalLinha });
   });
 
-  // ordenação (se o usuário clicou num cabeçalho)
   if(mapl_ordem.chave){
     const dir = mapl_ordem.asc ? 1 : -1;
     linhas.sort((a,b)=>{
@@ -4137,18 +4170,16 @@ function renderMapeamentoLotes(){
 
   const seta = (chave) => mapl_ordem.chave===chave ? (mapl_ordem.asc?' ▲':' ▼') : '';
   let thead = `<thead><tr>
-    <th class="rowhead">Núcleo</th>
-    <th class="th-sort" data-sort-mapl="aviario" title="Ordenar">Aviário${seta('aviario')}</th>
+    <th class="rowhead">Núcleo / Aviário</th>
     <th class="th-sort" data-sort-mapl="incubatorio" title="Ordenar">Incubatório${seta('incubatorio')}</th>
     <th class="th-sort" data-sort-mapl="dataAloj" title="Ordenar">Data<br>Alojamento${seta('dataAloj')}</th>
     <th>Matriz</th>`;
   rodadasPresentes.forEach(r => thead += `<th class="th-sort" data-sort-mapl="r_${r}" title="Ordenar">Rodada ${r}${seta('r_'+r)}</th>`);
   thead += `<th class="th-sort" data-sort-mapl="total" title="Ordenar">Total Geral${seta('total')}</th></tr></thead>`;
 
-  const nCols = 5 + rodadasPresentes.length + 1;
   let corpo = '';
   Array.from(porNucleo.keys()).sort().forEach(nuc=>{
-    const linhasNuc = porNucleo.get(nuc);
+    const linhasNuc = porNucleo.get(nuc).sort((a,b)=>String(a.aviario).localeCompare(String(b.aviario), undefined, {numeric:true}));
     const rec = mapl_recolhidos.has(nuc);
 
     const somaPorRodada = {}, contPorRodada = {};
@@ -4160,8 +4191,20 @@ function renderMapeamentoLotes(){
         if(v!=null){ somaPorRodada[r]+=v; contPorRodada[r]++; somaGeral+=v; contGeral++; }
       });
     });
+    let celulasSub = '';
+    rodadasPresentes.forEach(r=>{
+      celulasSub += contPorRodada[r]>0 ? `<td>${(somaPorRodada[r]/contPorRodada[r]).toFixed(2).replace('.',',')}%</td>` : '<td></td>';
+    });
+    const totalGeralNucleo = contGeral ? (somaGeral/contGeral) : null;
 
-    let linhasHtml = '';
+    // padrão igual às outras matrizes: uma única linha de núcleo (toggle + valores), no topo do grupo
+    corpo += `<tr class="linha-nucleo">
+      <th class="rowhead"><span class="nuc-toggle" data-toggle-mapl-nucleo="${nuc}" style="cursor:pointer;">${rec?'▸':'▾'}</span> ${nomeNucleo(nuc)} (${linhasNuc.length})</th>
+      <td></td><td></td><td></td>
+      ${celulasSub}
+      <td style="font-weight:800;">${totalGeralNucleo!=null?totalGeralNucleo.toFixed(2).replace('.',',')+'%':''}</td>
+    </tr>`;
+
     if(!rec){
       linhasNuc.forEach(l=>{
         let celulas = '';
@@ -4169,9 +4212,8 @@ function renderMapeamentoLotes(){
           const v = l.porRodada[r];
           celulas += v!=null ? `<td>${v.toFixed(2).replace('.',',')}%</td>` : '<td></td>';
         });
-        linhasHtml += `<tr>
-          <td></td>
-          <th class="rowhead">${l.aviario}</th>
+        corpo += `<tr>
+          <th class="rowhead av">${l.aviario}</th>
           <td>${l.incubatorio}</td>
           <td>${mapl_formatarDataBR(l.dataAloj)}</td>
           <td style="font-size:10.5px;" title="${l.matriz}">${l.matriz}</td>
@@ -4180,29 +4222,11 @@ function renderMapeamentoLotes(){
         </tr>`;
       });
     }
-
-    let celulasSub = '';
-    rodadasPresentes.forEach(r=>{
-      celulasSub += contPorRodada[r]>0 ? `<td>${(somaPorRodada[r]/contPorRodada[r]).toFixed(2).replace('.',',')}%</td>` : '<td></td>';
-    });
-    const totalGeralNucleo = contGeral ? (somaGeral/contGeral) : null;
-
-    // linha de cabeçalho do núcleo (com toggle) vem ANTES, mas o subtotal numérico fica na linha de TOTAL, no final do grupo
-    corpo += `<tr class="linha-nucleo">
-      <th class="rowhead" colspan="5"><span class="nuc-toggle" data-toggle-mapl-nucleo="${nuc}" style="cursor:pointer;">${rec?'▸':'▾'}</span> ${nomeNucleo(nuc)} — ${linhasNuc.length} aviário(s)</th>
-      ${rodadasPresentes.map(()=>'<td></td>').join('')}
-      <td></td>
-    </tr>`;
-    corpo += linhasHtml;
-    corpo += `<tr class="linha-nucleo">
-      <th class="rowhead" colspan="5">${nomeNucleo(nuc)} Total</th>
-      ${celulasSub}
-      <td style="font-weight:800;">${totalGeralNucleo!=null?totalGeralNucleo.toFixed(2).replace('.',',')+'%':''}</td>
-    </tr>`;
   });
 
   tabela.innerHTML = thead + '<tbody>'+corpo+'</tbody>';
-  nota.innerHTML = `${linhas.length} aviário(s) exibido(s) — rodadas ${rodadasPresentes.join(', ')||'—'}. <strong>Matriz</strong> = Idade.Lote.AvesAlojadas. <strong>Total Geral</strong> = média das rodadas de cada linha. Clique no núcleo pra recolher/expandir, ou no cabeçalho da coluna pra ordenar.`;
+  nota.innerHTML = `${linhas.length} aviário(s) exibido(s) — rodadas ${rodadasPresentes.join(', ')||'—'}. <strong>Matriz</strong> = Idade.Lote.AvesAlojadas. <strong>Total Geral</strong> = média das rodadas de cada linha.`;
+  mapl_atualizarBotaoRecolher();
 
   tabela.querySelectorAll('[data-toggle-mapl-nucleo]').forEach(el=>{
     el.addEventListener('click', ()=>{
@@ -4221,6 +4245,16 @@ function renderMapeamentoLotes(){
   });
   if(typeof ativarArrastar==='function') ativarArrastar(document.getElementById('mapl_scroll'));
 }
+
+document.getElementById('mapl_fSituacao').addEventListener('change', renderMapeamentoLotes);
+document.getElementById('mapl_fIncubatorio').addEventListener('change', renderMapeamentoLotes);
+document.getElementById('mapl_btnRecolher').addEventListener('click', ()=>{
+  const nucleosAtuais = Array.from(new Set(mapl_filtrar().map(l=>l.nucleo).filter(Boolean)));
+  const todosRecolhidos = nucleosAtuais.length>0 && nucleosAtuais.every(n=>mapl_recolhidos.has(n));
+  if(todosRecolhidos) mapl_recolhidos.clear();
+  else nucleosAtuais.forEach(n=>mapl_recolhidos.add(n));
+  renderMapeamentoLotes();
+});
 
 function renderMatriz(dados){
   const cfg = IND[indicadorMatriz];
