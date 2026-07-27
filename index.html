@@ -613,6 +613,23 @@
 #mod-condenas ::-webkit-scrollbar{height:7px;width:7px;}
 #mod-condenas ::-webkit-scrollbar-thumb{background:var(--borda);border-radius:4px;}
 @media(max-width:560px){#mod-condenas .tipo-row{grid-template-columns:130px 1fr 70px;font-size:11.5px;}}
+
+#qf-print-header{ display:none; }
+@media print{
+  body *{ visibility:hidden; }
+  #mod-quadro [data-aba-qf-view="consolidado"] *,
+  #mod-quadro [data-aba-qf-view="consolidado"]{ visibility:visible; }
+  .sidebar, .topbar-mobile, .tabs-internas,
+  #qf-btnExpandirTodos, #qf-btnImprimir,
+  #mod-quadro [data-aba-qf-view="consolidado"] > p.nota,
+  .qf-legenda-atual-futuro{ display:none !important; }
+  #qf-print-header{ display:flex !important; visibility:visible; align-items:center; gap:14px; margin-bottom:18px; border-bottom:2px solid #C1272D; padding-bottom:12px; }
+  #qf-print-header img{ height:48px; }
+  #qf-print-header .qf-print-titulos h1{ font-size:18px; margin:0; font-family:'Sora',sans-serif; }
+  #qf-print-header .qf-print-titulos p{ font-size:11px; margin:2px 0 0; color:#666; }
+  #qf-tabelaConsolidada{ font-size:10px; }
+  .qf-nucleo-toggle::before{ content:''; }
+}
 </style>
 </head>
 <body>
@@ -1101,7 +1118,18 @@
           <div class="qf-legenda-item"><span class="qf-legenda-cor" style="background:#EAF4FF;border:1px solid #1D5A96;"></span> <strong style="color:#1D5A96;">Quadro Atual</strong> — o time real de hoje</div>
           <div class="qf-legenda-item"><span class="qf-legenda-cor" style="background:#FFF4E1;border:1px solid #8A6200;"></span> <strong style="color:#8A6200;">Quadro Futuro</strong> — projeção depois das saídas marcadas</div>
         </div>
+        <div style="display:flex;gap:10px;margin-bottom:12px;flex-wrap:wrap;">
+          <button class="btn-recolher" id="qf-btnExpandirTodos" type="button">Expandir todos</button>
+          <button class="btn-recolher" id="qf-btnImprimir" type="button">🖨️ Imprimir</button>
+        </div>
         <div class="painel">
+          <div id="qf-print-header">
+            <img src="logo.png" alt="Qualitti">
+            <div class="qf-print-titulos">
+              <h1>Quadro de Funcionários — Visão Consolidada</h1>
+              <p id="qf-print-data"></p>
+            </div>
+          </div>
           <div class="tabela-scroll"><table class="matriz-diaria" id="qf-tabelaConsolidada"></table></div>
         </div>
       </div>
@@ -1413,7 +1441,8 @@
 <script>
 function fetchJSONSync(url){
   const xhr = new XMLHttpRequest();
-  xhr.open('GET', url, false);
+  const semCache = url + (url.includes('?') ? '&' : '?') + '_cb=' + Date.now();
+  xhr.open('GET', semCache, false);
   xhr.send(null);
   if(xhr.status !== 200 && xhr.status !== 0) throw new Error('Falha ao carregar '+url+': HTTP '+xhr.status);
   return JSON.parse(xhr.responseText);
@@ -5036,8 +5065,30 @@ function renderQuadroConsolidado(){
       renderQuadroConsolidado();
     });
   });
+  const btnExp = document.getElementById('qf-btnExpandirTodos');
+  if(btnExp){
+    const todosExpandidos = nucleosOrdenados.length>0 && nucleosOrdenados.every(n=>window.qfConsolidadoExpandido.has(n));
+    btnExp.textContent = todosExpandidos ? 'Recolher todos' : 'Expandir todos';
+  }
+  const dataEl = document.getElementById('qf-print-data');
+  if(dataEl) dataEl.textContent = 'Gerado em ' + new Date().toLocaleString('pt-BR');
 }
 window.renderQuadroConsolidado = renderQuadroConsolidado;
+
+const btnExpandirTodosQf = document.getElementById('qf-btnExpandirTodos');
+if(btnExpandirTodosQf){
+  btnExpandirTodosQf.addEventListener('click', ()=>{
+    const nucleosAtuais = Array.from(new Set((window.POSTOS_QUADRO||[]).map(p=>p.nucleo)));
+    const todosExpandidos = nucleosAtuais.length>0 && nucleosAtuais.every(n=>window.qfConsolidadoExpandido.has(n));
+    if(todosExpandidos) window.qfConsolidadoExpandido.clear();
+    else nucleosAtuais.forEach(n=>window.qfConsolidadoExpandido.add(n));
+    renderQuadroConsolidado();
+  });
+}
+const btnImprimirQf = document.getElementById('qf-btnImprimir');
+if(btnImprimirQf){
+  btnImprimirQf.addEventListener('click', ()=>{ window.print(); });
+}
 
 function renderQuadroFuncionarios(){
   const cont = document.getElementById('quadroNucleosContainer');
