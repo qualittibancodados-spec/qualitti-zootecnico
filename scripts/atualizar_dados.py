@@ -27,7 +27,7 @@ from googleapiclient.discovery import build
 from googleapiclient.http import MediaIoBaseDownload
 
 SCOPES = ['https://www.googleapis.com/auth/drive.readonly']
-FOLDER_ID = os.environ['GDRIVE_FOLDER_ID']
+FOLDER_ID = os.environ['GDRIVE_FOLDER_ID'].strip()
 SERVICE_ACCOUNT_JSON = os.environ['GDRIVE_SERVICE_ACCOUNT_KEY']  # conteúdo do JSON, não o caminho
 DATA_DIR = os.path.join(os.path.dirname(__file__), '..', 'data')
 
@@ -316,6 +316,7 @@ def salvar(nome_arquivo, dados):
 def main():
     print("Conectando ao Google Drive...")
     servico = conectar_drive()
+    print(f"Pasta configurada (GDRIVE_FOLDER_ID): {FOLDER_ID}")
     arquivos = listar_planilhas(servico)
     print(f"Encontrados {len(arquivos)} arquivo(s) na pasta.")
 
