@@ -39,5 +39,11 @@ jobs:
           git config user.name "qualitti-bot"
           git config user.email "actions@github.com"
           git add data/
-          git diff --staged --quiet && echo "Nada mudou hoje." || git commit -m "Atualização automática dos dados ($(date -u +%Y-%m-%d))"
+          if git diff --staged --quiet; then
+            echo "Nada mudou hoje."
+          else
+            echo "{\"iso\":\"$(date -u +%Y-%m-%dT%H:%M:%SZ)\"}" > data/ultima_atualizacao.json
+            git add data/ultima_atualizacao.json
+            git commit -m "Atualização automática dos dados ($(date -u +%Y-%m-%d))"
+          fi
           git push
