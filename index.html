@@ -5269,7 +5269,11 @@ function calcularResumoNucleo(nuc, postos){
   // porque um mesmo núcleo pode ter casais cobrindo quantidades diferentes de aviários entre si.
   // Se ainda não foi configurada, usa como ponto de partida o nº de postos já cadastrados.
   const necessidadeDefinida = (window.NECESSIDADE_NUCLEOS && window.NECESSIDADE_NUCLEOS[nuc]!=null) ? window.NECESSIDADE_NUCLEOS[nuc] : null;
-  const necessidade = necessidadeDefinida!=null ? necessidadeDefinida : postos.length;
+  const necessidadeGranjeiro = necessidadeDefinida!=null ? necessidadeDefinida : postos.length;
+  // necessidade de ajudante = igual à de granjeiro, +1 pra cada posto que já tem os dois ajudantes preenchidos
+  // (só nesse caso aquele posto específico passa a "precisar" de 2 — se o 2º ficar vazio, volta ao normal)
+  const extrasAjudante = postos.filter(p=>p.ajudante2 && p.ajudante2.trim()).length;
+  const necessidadeAjudante = necessidadeGranjeiro + extrasAjudante;
   const atualGranj = postos.filter(p=>p.granjeiro && p.granjeiro.trim()).length;
   const atualAjud = postos.reduce((s,p)=> s + (p.ajudante&&p.ajudante.trim()?1:0) + (p.ajudante2&&p.ajudante2.trim()?1:0), 0);
   const futuroGranj = postos.filter(p=>p.granjeiro && p.granjeiro.trim() && !p.granjeiroSaindo).length;
@@ -5281,7 +5285,7 @@ function calcularResumoNucleo(nuc, postos){
       if(!ultimaAtualizacao || t > ultimaAtualizacao){ ultimaAtualizacao = t; ultimoAutor = p.atualizadoPor || ''; }
     }
   });
-  return {totalAviarios, necessidade, atualGranj, atualAjud, futuroGranj, futuroAjud, ultimaAtualizacao, ultimoAutor};
+  return {totalAviarios, necessidadeGranjeiro, necessidadeAjudante, atualGranj, atualAjud, futuroGranj, futuroAjud, ultimaAtualizacao, ultimoAutor};
 }
 
 async function iniciarQuadroFuncionarios(){
@@ -5316,7 +5320,7 @@ function renderQuadroConsolidado(){
     tabela.innerHTML = '<tbody><tr><td style="padding:14px;">Nenhum posto cadastrado ainda.</td></tr></tbody>';
     return;
   }
-  let totNecessidade=0, totAtualG=0, totAtualA=0, totFutG=0, totFutA=0;
+  let totNecessidadeG=0, totNecessidadeA=0, totAtualG=0, totAtualA=0, totFutG=0, totFutA=0;
   const thead = `<thead>
     <tr>
       <th class="rowhead" rowspan="2">Núcleo</th>
@@ -5336,18 +5340,19 @@ function renderQuadroConsolidado(){
   const linhas = nucleosOrdenados.map(nuc=>{
     const postos = porNucleo.get(nuc);
     const r = calcularResumoNucleo(nuc, postos);
-    totNecessidade += r.necessidade; totAtualG += r.atualGranj; totAtualA += r.atualAjud; totFutG += r.futuroGranj; totFutA += r.futuroAjud;
-    const faltaAtual = Math.max(0,r.necessidade-r.atualGranj) + Math.max(0,r.necessidade-r.atualAjud);
-    const faltaFuturo = Math.max(0,r.necessidade-r.futuroGranj) + Math.max(0,r.necessidade-r.futuroAjud);
+    totNecessidadeG += r.necessidadeGranjeiro; totNecessidadeA += r.necessidadeAjudante; totAtualG += r.atualGranj; totAtualA += r.atualAjud; totFutG += r.futuroGranj; totFutA += r.futuroAjud;
+    const faltaAtual = Math.max(0,r.necessidadeGranjeiro-r.atualGranj) + Math.max(0,r.necessidadeAjudante-r.atualAjud);
+    const faltaFuturo = Math.max(0,r.necessidadeGranjeiro-r.futuroGranj) + Math.max(0,r.necessidadeAjudante-r.futuroAjud);
     const expandido = window.qfConsolidadoExpandido.has(nuc);
+    const necessidadeTexto = r.necessidadeGranjeiro===r.necessidadeAjudante ? r.necessidadeGranjeiro : `${r.necessidadeGranjeiro}g / ${r.necessidadeAjudante}a`;
     const linhaPrincipal = `<tr class="qf-linha-nucleo-resumo">
       <th class="rowhead qf-nucleo-toggle" data-toggle-nucleo-cons="${nuc}">${expandido?'▾':'▸'} ${nuc}</th>
-      <td style="text-align:center;">${r.necessidade}</td>
-      <td class="qf-grupo-atual-td ${r.atualGranj>=r.necessidade?'qf-cons-ok':'qf-cons-falta'}" style="text-align:center;">${r.atualGranj}/${r.necessidade}</td>
-      <td class="qf-grupo-atual-td ${r.atualAjud>=r.necessidade?'qf-cons-ok':'qf-cons-falta'}" style="text-align:center;">${r.atualAjud}/${r.necessidade}</td>
+      <td style="text-align:center;">${necessidadeTexto}</td>
+      <td class="qf-grupo-atual-td ${r.atualGranj>=r.necessidadeGranjeiro?'qf-cons-ok':'qf-cons-falta'}" style="text-align:center;">${r.atualGranj}/${r.necessidadeGranjeiro}</td>
+      <td class="qf-grupo-atual-td ${r.atualAjud>=r.necessidadeAjudante?'qf-cons-ok':'qf-cons-falta'}" style="text-align:center;">${r.atualAjud}/${r.necessidadeAjudante}</td>
       <td style="text-align:center;font-weight:800;color:${faltaAtual>0?'var(--vermelho-alerta)':'var(--verde-ok)'};">${faltaAtual}</td>
-      <td class="qf-grupo-futuro-td ${r.futuroGranj>=r.necessidade?'qf-cons-ok':'qf-cons-falta'}" style="text-align:center;">${r.futuroGranj}/${r.necessidade}</td>
-      <td class="qf-grupo-futuro-td ${r.futuroAjud>=r.necessidade?'qf-cons-ok':'qf-cons-falta'}" style="text-align:center;">${r.futuroAjud}/${r.necessidade}</td>
+      <td class="qf-grupo-futuro-td ${r.futuroGranj>=r.necessidadeGranjeiro?'qf-cons-ok':'qf-cons-falta'}" style="text-align:center;">${r.futuroGranj}/${r.necessidadeGranjeiro}</td>
+      <td class="qf-grupo-futuro-td ${r.futuroAjud>=r.necessidadeAjudante?'qf-cons-ok':'qf-cons-falta'}" style="text-align:center;">${r.futuroAjud}/${r.necessidadeAjudante}</td>
       <td style="text-align:center;font-weight:800;color:${faltaFuturo>0?'var(--vermelho-alerta)':'var(--verde-ok)'};">${faltaFuturo}</td>
     </tr>`;
     let linhasDetalhe = '';
@@ -5376,16 +5381,17 @@ function renderQuadroConsolidado(){
     }
     return linhaPrincipal + linhasDetalhe;
   }).join('');
-  const faltaAtualTotal = Math.max(0,totNecessidade-totAtualG) + Math.max(0,totNecessidade-totAtualA);
-  const faltaFuturoTotal = Math.max(0,totNecessidade-totFutG) + Math.max(0,totNecessidade-totFutA);
+  const faltaAtualTotal = Math.max(0,totNecessidadeG-totAtualG) + Math.max(0,totNecessidadeA-totAtualA);
+  const faltaFuturoTotal = Math.max(0,totNecessidadeG-totFutG) + Math.max(0,totNecessidadeA-totFutA);
+  const necessidadeTotalTexto = totNecessidadeG===totNecessidadeA ? totNecessidadeG : `${totNecessidadeG}g / ${totNecessidadeA}a`;
   const linhaTotal = `<tr class="qf-linha-nucleo-resumo" style="border-top:2.5px solid var(--borda);">
     <th class="rowhead">TOTAL</th>
-    <td style="text-align:center;font-weight:800;">${totNecessidade}</td>
-    <td class="qf-grupo-atual-td" style="text-align:center;font-weight:800;">${totAtualG}/${totNecessidade}</td>
-    <td class="qf-grupo-atual-td" style="text-align:center;font-weight:800;">${totAtualA}/${totNecessidade}</td>
+    <td style="text-align:center;font-weight:800;">${necessidadeTotalTexto}</td>
+    <td class="qf-grupo-atual-td" style="text-align:center;font-weight:800;">${totAtualG}/${totNecessidadeG}</td>
+    <td class="qf-grupo-atual-td" style="text-align:center;font-weight:800;">${totAtualA}/${totNecessidadeA}</td>
     <td style="text-align:center;font-weight:800;color:${faltaAtualTotal>0?'var(--vermelho-alerta)':'var(--verde-ok)'};">${faltaAtualTotal}</td>
-    <td class="qf-grupo-futuro-td" style="text-align:center;font-weight:800;">${totFutG}/${totNecessidade}</td>
-    <td class="qf-grupo-futuro-td" style="text-align:center;font-weight:800;">${totFutA}/${totNecessidade}</td>
+    <td class="qf-grupo-futuro-td" style="text-align:center;font-weight:800;">${totFutG}/${totNecessidadeG}</td>
+    <td class="qf-grupo-futuro-td" style="text-align:center;font-weight:800;">${totFutA}/${totNecessidadeA}</td>
     <td style="text-align:center;font-weight:800;color:${faltaFuturoTotal>0?'var(--vermelho-alerta)':'var(--verde-ok)'};">${faltaFuturoTotal}</td>
   </tr>`;
   tabela.innerHTML = thead + '<tbody>'+linhas+linhaTotal+'</tbody>';
@@ -5453,14 +5459,18 @@ function renderQuadroFuncionarios(){
     const linhas = postos.map(p=>{
       const gSai = !!p.granjeiroSaindo, aSai = !!p.ajudanteSaindo, folguista = !!p.folguista;
       const a2Sai = !!p.ajudante2Saindo;
+      const mostraAjudante2 = (nuc === 'Aeroporto'); // caso bem específico: só o Aeroporto tem posto com ajudante extra
+      const celAjudante2 = mostraAjudante2
+        ? `<td class="${a2Sai?'qf-cel-saindo':''}" title="Use só quando esse posto tiver um ajudante a mais que o normal."><input type="text" class="qf-input-ajudante2 ${a2Sai?'quadro-nome-saindo':''}" value="${(p.ajudante2||'').replace(/"/g,'&quot;')}" placeholder="2º ajudante (opcional)" ${editavel?'':'disabled'} style="font-size:11.5px;"></td>
+           <td class="${a2Sai?'qf-cel-saindo':''}"><label class="quadro-saindo-label"><input type="checkbox" class="qf-check-ajudante2-sai" ${a2Sai?'checked':''} ${editavel?'':'disabled'}> sai</label></td>`
+        : '';
       return `<tr data-posto-id="${p.id}" class="${folguista?'qf-linha-folguista':''}">
         <td><input type="text" class="qf-input-aviarios" value="${(p.aviarios||'').replace(/"/g,'&quot;')}" placeholder="ex: 87-88" ${editavel?'':'disabled'} style="width:90px;text-align:center;"></td>
         <td class="${gSai?'qf-cel-saindo':''}"><input type="text" class="qf-input-granjeiro ${gSai?'quadro-nome-saindo':''}" value="${(p.granjeiro||'').replace(/"/g,'&quot;')}" placeholder="Vago" ${editavel?'':'disabled'}></td>
         <td class="${gSai?'qf-cel-saindo':''}"><label class="quadro-saindo-label"><input type="checkbox" class="qf-check-granjeiro-sai" ${gSai?'checked':''} ${editavel?'':'disabled'}> sai</label></td>
         <td class="${aSai?'qf-cel-saindo':''}"><input type="text" class="qf-input-ajudante ${aSai?'quadro-nome-saindo':''}" value="${(p.ajudante||'').replace(/"/g,'&quot;')}" placeholder="Vago" ${editavel?'':'disabled'}></td>
         <td class="${aSai?'qf-cel-saindo':''}"><label class="quadro-saindo-label"><input type="checkbox" class="qf-check-ajudante-sai" ${aSai?'checked':''} ${editavel?'':'disabled'}> sai</label></td>
-        <td class="${a2Sai?'qf-cel-saindo':''}" title="Use só quando esse posto tiver um ajudante a mais que o normal (ex: núcleo com carga maior)."><input type="text" class="qf-input-ajudante2 ${a2Sai?'quadro-nome-saindo':''}" value="${(p.ajudante2||'').replace(/"/g,'&quot;')}" placeholder="2º ajudante (opcional)" ${editavel?'':'disabled'} style="font-size:11.5px;"></td>
-        <td class="${a2Sai?'qf-cel-saindo':''}"><label class="quadro-saindo-label"><input type="checkbox" class="qf-check-ajudante2-sai" ${a2Sai?'checked':''} ${editavel?'':'disabled'}> sai</label></td>
+        ${celAjudante2}
         <td><label class="quadro-saindo-label" title="A dupla está temporariamente coberta por folguista(s), mas continua contando normal no quadro."><input type="checkbox" class="qf-check-folguista" ${folguista?'checked':''} ${editavel?'':'disabled'}> folguista</label></td>
         <td>${editavel?`<button class="quadro-btn-remover-posto" data-remover-posto="${p.id}" title="Remover posto">✕</button>`:''}</td>
       </tr>`;
@@ -5472,20 +5482,21 @@ function renderQuadroFuncionarios(){
     return `<div class="quadro-nucleo-card" data-nucleo-card="${nuc}">
       <div class="quadro-nucleo-titulo">
         ${nuc}
-        <span class="quadro-razao-campo">Necessidade (nº de postos): <input type="number" min="0" step="1" class="qf-input-razao" data-nucleo-razao="${nuc}" value="${r.necessidade}" ${window.souAdminPrincipal?'':'disabled'}></span>
+        <span class="quadro-razao-campo">Necessidade (nº de postos): <input type="number" min="0" step="1" class="qf-input-razao" data-nucleo-razao="${nuc}" value="${r.necessidadeGranjeiro}" ${window.souAdminPrincipal?'':'disabled'}></span>
       </div>
       <p class="nota" style="margin:2px 0 12px;font-size:11.5px;">${textoUltimaAtt}</p>
       <div class="quadro-stats">
         <div class="quadro-stat-bloco"><div class="quadro-stat-label">Total de aviários</div><div class="quadro-stat-valor">${r.totalAviarios}</div></div>
-        <div class="quadro-stat-bloco"><div class="quadro-stat-label">Necessidade (cada papel)</div><div class="quadro-stat-valor">${r.necessidade}</div></div>
-        <div class="quadro-stat-bloco"><div class="quadro-stat-label">Atual — Granjeiros</div><div class="quadro-stat-valor ${r.atualGranj>=r.necessidade?'ok':'falta'}">${r.atualGranj}/${r.necessidade}</div></div>
-        <div class="quadro-stat-bloco"><div class="quadro-stat-label">Atual — Ajudantes</div><div class="quadro-stat-valor ${r.atualAjud>=r.necessidade?'ok':'falta'}">${r.atualAjud}/${r.necessidade}</div></div>
-        <div class="quadro-stat-bloco"><div class="quadro-stat-label">Futuro — Granjeiros</div><div class="quadro-stat-valor ${r.futuroGranj>=r.necessidade?'ok':'falta'}">${r.futuroGranj}/${r.necessidade}</div></div>
-        <div class="quadro-stat-bloco"><div class="quadro-stat-label">Futuro — Ajudantes</div><div class="quadro-stat-valor ${r.futuroAjud>=r.necessidade?'ok':'falta'}">${r.futuroAjud}/${r.necessidade}</div></div>
+        <div class="quadro-stat-bloco"><div class="quadro-stat-label">Necessidade Granjeiro</div><div class="quadro-stat-valor">${r.necessidadeGranjeiro}</div></div>
+        <div class="quadro-stat-bloco"><div class="quadro-stat-label">Necessidade Ajudante</div><div class="quadro-stat-valor">${r.necessidadeAjudante}</div></div>
+        <div class="quadro-stat-bloco"><div class="quadro-stat-label">Atual — Granjeiros</div><div class="quadro-stat-valor ${r.atualGranj>=r.necessidadeGranjeiro?'ok':'falta'}">${r.atualGranj}/${r.necessidadeGranjeiro}</div></div>
+        <div class="quadro-stat-bloco"><div class="quadro-stat-label">Atual — Ajudantes</div><div class="quadro-stat-valor ${r.atualAjud>=r.necessidadeAjudante?'ok':'falta'}">${r.atualAjud}/${r.necessidadeAjudante}</div></div>
+        <div class="quadro-stat-bloco"><div class="quadro-stat-label">Futuro — Granjeiros</div><div class="quadro-stat-valor ${r.futuroGranj>=r.necessidadeGranjeiro?'ok':'falta'}">${r.futuroGranj}/${r.necessidadeGranjeiro}</div></div>
+        <div class="quadro-stat-bloco"><div class="quadro-stat-label">Futuro — Ajudantes</div><div class="quadro-stat-valor ${r.futuroAjud>=r.necessidadeAjudante?'ok':'falta'}">${r.futuroAjud}/${r.necessidadeAjudante}</div></div>
       </div>
       <div class="quadro-tabela-wrap">
         <table class="quadro-tabela">
-          <thead><tr><th>Aviários</th><th>Granjeiro</th><th></th><th>Ajudante</th><th></th><th>2º Ajudante</th><th></th><th>Folguista</th><th></th></tr></thead>
+          <thead><tr><th>Aviários</th><th>Granjeiro</th><th></th><th>Ajudante</th><th></th>${nuc==='Aeroporto'?'<th>2º Ajudante</th><th></th>':''}<th>Folguista</th><th></th></tr></thead>
           <tbody>${linhas}</tbody>
         </table>
       </div>
