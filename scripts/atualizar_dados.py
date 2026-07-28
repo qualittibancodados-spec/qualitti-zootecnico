@@ -317,6 +317,11 @@ def main():
     print("Conectando ao Google Drive...")
     servico = conectar_drive()
     print(f"Pasta configurada — tamanho: {len(FOLDER_ID)} caracteres | começa com: '{FOLDER_ID[:8]}' | termina com: '{FOLDER_ID[-8:]}'")
+    try:
+        meta = servico.files().get(fileId=FOLDER_ID, fields='id,name,mimeType,driveId,shortcutDetails').execute()
+        print(f"✅ Consegui enxergar a pasta em si: nome='{meta.get('name')}', tipo='{meta.get('mimeType')}', é atalho? {'sim' if meta.get('shortcutDetails') else 'não'}, driveId={meta.get('driveId','(Meu Drive)')}")
+    except Exception as e:
+        print(f"❌ NÃO consegui enxergar a pasta em si. Erro: {e}")
     arquivos = listar_planilhas(servico)
     print(f"Encontrados {len(arquivos)} arquivo(s) na pasta.")
 
