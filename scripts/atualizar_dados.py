@@ -44,6 +44,7 @@ def clean(v):
 
 def conectar_drive():
     info = json.loads(SERVICE_ACCOUNT_JSON)
+    print(f"🔑 E-mail da credencial que está sendo usada de verdade: {info.get('client_email')}")
     creds = service_account.Credentials.from_service_account_info(info, scopes=SCOPES)
     return build('drive', 'v3', credentials=creds)
 
