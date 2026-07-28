@@ -316,7 +316,7 @@ def salvar(nome_arquivo, dados):
 def main():
     print("Conectando ao Google Drive...")
     servico = conectar_drive()
-    print(f"Pasta configurada (GDRIVE_FOLDER_ID): {FOLDER_ID}")
+    print(f"Pasta configurada — tamanho: {len(FOLDER_ID)} caracteres | começa com: '{FOLDER_ID[:8]}' | termina com: '{FOLDER_ID[-8:]}'")
     arquivos = listar_planilhas(servico)
     print(f"Encontrados {len(arquivos)} arquivo(s) na pasta.")
 
