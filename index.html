@@ -131,20 +131,23 @@
   .matriz-diaria td.peso-abaixo-meta{ background:#FDF1DC; box-shadow:inset 0 0 0 1px #F0CB7A; }
   .matriz-diaria td.peso-abaixo-meta::after{ content:'▼'; font-size:8px; color:#A9720A; margin-left:3px; }
   .quadro-nucleo-card{ background:var(--card); border:1px solid var(--borda); border-radius:16px; padding:20px; margin-bottom:18px; box-shadow:var(--sombra); }
-  .quadro-nucleo-titulo{ font-family:'Sora',sans-serif; font-weight:800; font-size:16px; color:var(--vermelho); margin-bottom:12px; display:flex; align-items:center; gap:10px; flex-wrap:wrap; }
-  .quadro-razao-campo{ display:flex; align-items:center; gap:6px; font-size:11.5px; font-weight:600; color:var(--texto-suave); }
+  .quadro-nucleo-titulo{ font-family:'Sora',sans-serif; font-weight:800; font-size:16px; color:var(--vermelho); margin-bottom:14px; display:flex; align-items:center; gap:10px; flex-wrap:wrap; padding-bottom:12px; border-bottom:2px solid var(--bg); }
+  .quadro-razao-campo{ display:flex; align-items:center; gap:6px; font-size:11.5px; font-weight:600; color:var(--texto-suave); margin-left:auto; }
   .quadro-razao-campo input{ width:56px; padding:5px 7px; border-radius:7px; border:1.5px solid var(--borda); font-size:13px; font-family:inherit; text-align:center; }
-  .quadro-stats{ display:flex; gap:24px; flex-wrap:wrap; margin-bottom:14px; }
-  .quadro-stat-bloco{ min-width:150px; }
-  .quadro-stat-label{ font-size:10.5px; color:var(--texto-suave); font-weight:700; text-transform:uppercase; letter-spacing:.03em; }
-  .quadro-stat-valor{ font-size:15px; font-weight:800; color:var(--texto); margin-top:2px; }
+  .quadro-stats{ display:flex; gap:12px; flex-wrap:wrap; margin-bottom:16px; }
+  .quadro-stat-bloco{ min-width:140px; flex:1; background:var(--bg); border:1px solid var(--borda); border-radius:10px; padding:10px 12px; }
+  .quadro-stat-label{ font-size:10px; color:var(--texto-suave); font-weight:700; text-transform:uppercase; letter-spacing:.03em; }
+  .quadro-stat-valor{ font-size:16px; font-weight:800; color:var(--texto); margin-top:3px; }
   .quadro-stat-valor.ok{ color:var(--verde-ok); }
   .quadro-stat-valor.falta{ color:var(--vermelho-alerta); }
-  .quadro-tabela-wrap{ overflow-x:auto; }
+  .quadro-tabela-wrap{ overflow-x:auto; border:1px solid var(--borda); border-radius:12px; }
   .quadro-tabela{ width:100%; border-collapse:collapse; font-size:12.5px; }
-  .quadro-tabela th{ text-align:left; font-size:10.5px; color:var(--texto-suave); font-weight:700; text-transform:uppercase; letter-spacing:.02em; padding:6px 8px; border-bottom:2px solid var(--borda); }
-  .quadro-tabela td{ padding:6px 8px; border-bottom:1px solid var(--borda); vertical-align:middle; }
-  .quadro-tabela input[type="text"]{ width:100%; padding:6px 8px; border-radius:7px; border:1.5px solid var(--borda); font-size:12.5px; font-family:inherit; box-sizing:border-box; }
+  .quadro-tabela th{ text-align:left; font-size:10.5px; color:var(--texto-suave); font-weight:700; text-transform:uppercase; letter-spacing:.02em; padding:9px 10px; border-bottom:2px solid var(--borda); background:var(--bg); }
+  .quadro-tabela td{ padding:8px 10px; border-bottom:1px solid var(--borda); border-right:1px solid #F1EDE3; vertical-align:middle; }
+  .quadro-tabela td:last-child{ border-right:none; }
+  .quadro-tabela tbody tr:hover td{ background:#FBF9F4; }
+  .quadro-tabela input[type="text"]{ width:100%; padding:7px 9px; border-radius:7px; border:1.5px solid var(--borda); font-size:12.5px; font-family:inherit; box-sizing:border-box; }
+  .quadro-tabela input[type="text"]:focus{ outline:none; border-color:var(--dourado); box-shadow:0 0 0 3px rgba(242,169,0,.15); }
   .quadro-tabela input[type="text"]:disabled{ background:var(--bg); color:var(--texto-suave); border-color:transparent; }
   .quadro-vago{ color:var(--vermelho-alerta); font-weight:700; font-size:11px; }
   .quadro-saindo-label{ display:flex; align-items:center; gap:4px; font-size:10.5px; color:var(--texto-suave); white-space:nowrap; margin-top:3px; }
@@ -156,16 +159,23 @@
   .qf-grupo-futuro-th{ background:#FFF4E1 !important; color:#8A6200 !important; }
   .qf-grupo-atual-td{ background:#F5FAFF; }
   .qf-grupo-futuro-td{ background:#FFFBF2; }
-  .qf-legenda-atual-futuro{ display:flex; gap:18px; align-items:center; margin-bottom:12px; font-size:12px; font-weight:600; color:var(--texto-suave); flex-wrap:wrap; }
-  .qf-legenda-item{ display:flex; align-items:center; gap:6px; }
-  .qf-legenda-cor{ width:14px; height:14px; border-radius:4px; display:inline-block; }
+  .qf-legenda-atual-futuro{ display:flex; gap:10px; align-items:center; margin-bottom:14px; flex-wrap:wrap; }
+  .qf-toggle-visao{ display:flex; align-items:center; gap:7px; font-size:12.5px; font-weight:700; padding:9px 16px; border-radius:10px; border:1.5px solid var(--borda); background:var(--card); color:var(--texto-suave); cursor:pointer; transition:.15s; }
+  .qf-toggle-visao:hover{ border-color:var(--dourado); }
+  .qf-toggle-visao .qf-legenda-cor{ width:12px; height:12px; border-radius:4px; display:inline-block; }
+  .qf-toggle-visao.ativo-atual{ background:#EAF4FF; border-color:#1D5A96; color:#1D5A96; }
+  .qf-toggle-visao.ativo-futuro{ background:#FFF4E1; border-color:#8A6200; color:#8A6200; }
+  .qf-toggle-visao.ativo-ambos{ background:var(--vermelho); border-color:var(--vermelho); color:#fff; }
   .qf-nucleo-toggle{ cursor:pointer; user-select:none; }
   .qf-nucleo-toggle:hover{ text-decoration:underline; }
-  .qf-linha-aviario-detalhe td{ background:#FAFAF8; font-size:11.5px; padding:5px 8px; border-bottom:1px solid var(--borda); word-break:break-word; text-align:center; }
+  .qf-linha-aviario-detalhe td{ background:#FAFAF8; font-size:11.5px; padding:7px 10px; border-bottom:1px solid var(--borda); word-break:break-word; text-align:center; }
   .qf-linha-aviario-detalhe td:first-child{ text-align:left; padding-left:24px; color:var(--texto-suave); font-weight:600; }
   .qf-nome-saindo-detalhe{ text-decoration:line-through; color:var(--vermelho-alerta); }
   .qf-linha-aviario-detalhe .qf-nome-vago{ color:var(--vermelho-alerta); font-style:italic; }
   .quadro-nome-saindo{ text-decoration:line-through; color:var(--vermelho-alerta); }
+  .qf-linha-total-geral{ border-top:3px solid var(--vermelho); }
+  .qf-linha-total-geral th, .qf-linha-total-geral td{ background:var(--vermelho) !important; color:#fff !important; font-weight:800; padding-top:10px; padding-bottom:10px; }
+  .qf-linha-total-geral .qf-cons-ok, .qf-linha-total-geral .qf-cons-falta{ background:transparent !important; box-shadow:none !important; color:#fff !important; }
   .quadro-tabela tr.qf-linha-folguista td{ background:#EAE3FB !important; }
   .quadro-tabela tr.qf-linha-folguista td:first-child{ box-shadow:inset 3px 0 0 #8B6FD6; }
   .quadro-btn-remover-posto{ background:none; border:none; color:var(--vermelho-alerta); cursor:pointer; font-size:16px; padding:2px 6px; }
@@ -1192,8 +1202,9 @@
         <p class="nota" style="margin:0 0 8px;">Resumo de todos os núcleos — quanto falta pra completar o quadro, hoje e depois das saídas previstas. Clique no nome do núcleo pra ver aviário por aviário.</p>
         <p class="nota" style="margin:0 0 12px;color:var(--texto-suave);">🛈 Cada núcleo é mantido pelo técnico responsável por ele — só quem tem autorização naquele núcleo consegue atualizar granjeiro, ajudante ou marcar saídas. A coluna <strong>Futuro</strong> reflete exatamente os desligamentos e avisos prévios já lançados por esses técnicos; ela não antecipa saídas que ainda não foram registradas no sistema.</p>
         <div class="qf-legenda-atual-futuro">
-          <div class="qf-legenda-item"><span class="qf-legenda-cor" style="background:#EAF4FF;border:1px solid #1D5A96;"></span> <strong style="color:#1D5A96;">Quadro Atual</strong> — o time real de hoje</div>
-          <div class="qf-legenda-item"><span class="qf-legenda-cor" style="background:#FFF4E1;border:1px solid #8A6200;"></span> <strong style="color:#8A6200;">Quadro Futuro</strong> — projeção depois das saídas marcadas</div>
+          <button type="button" class="qf-toggle-visao ativo-ambos" id="qf-btnVisaoAmbos" data-visao="ambos"><span class="qf-legenda-cor" style="background:#fff;"></span> Ambos</button>
+          <button type="button" class="qf-toggle-visao" id="qf-btnVisaoAtual" data-visao="atual"><span class="qf-legenda-cor" style="background:#EAF4FF;border:1px solid #1D5A96;"></span> Só Quadro Atual — o time real de hoje</button>
+          <button type="button" class="qf-toggle-visao" id="qf-btnVisaoFuturo" data-visao="futuro"><span class="qf-legenda-cor" style="background:#FFF4E1;border:1px solid #8A6200;"></span> Só Quadro Futuro — projeção após saídas</button>
         </div>
         <div style="display:flex;gap:10px;margin-bottom:12px;flex-wrap:wrap;">
           <button class="btn-recolher" id="qf-btnExpandirTodos" type="button">Expandir todos</button>
@@ -5344,9 +5355,15 @@ async function iniciarQuadroFuncionarios(){
 }
 window.iniciarQuadroFuncionarios = iniciarQuadroFuncionarios;
 
+window.qfVisaoAtiva = window.qfVisaoAtiva || 'ambos';
+
 function renderQuadroConsolidado(){
   const tabela = document.getElementById('qf-tabelaConsolidada');
   if(!tabela) return;
+  const visao = window.qfVisaoAtiva;
+  const mostraAtual = visao==='ambos' || visao==='atual';
+  const mostraFuturo = visao==='ambos' || visao==='futuro';
+
   const porNucleo = new Map();
   (window.POSTOS_QUADRO||[]).forEach(p=>{
     if(!porNucleo.has(p.nucleo)) porNucleo.set(p.nucleo, []);
@@ -5358,20 +5375,21 @@ function renderQuadroConsolidado(){
     return;
   }
   let totNecessidadeG=0, totNecessidadeA=0, totAtualG=0, totAtualA=0, totFutG=0, totFutA=0;
+
+  const colsAtual = mostraAtual ? `<th colspan="2" class="qf-grupo-atual-th">QUADRO ATUAL (real, hoje)</th>` : '';
+  const colsFuturo = mostraFuturo ? `<th colspan="2" class="qf-grupo-futuro-th">QUADRO FUTURO (projeção pós-saídas)</th>` : '';
   const thead = `<thead>
     <tr>
       <th class="rowhead" rowspan="2">Núcleo</th>
       <th rowspan="2">Necessidade<br>(cada papel)</th>
-      <th colspan="2" class="qf-grupo-atual-th">QUADRO ATUAL (real, hoje)</th>
-      <th rowspan="2">Falta hoje<br>(G+A)</th>
-      <th colspan="2" class="qf-grupo-futuro-th">QUADRO FUTURO (projeção pós-saídas)</th>
-      <th rowspan="2">Falta futuro<br>(G+A)</th>
+      ${colsAtual}
+      ${mostraAtual?'<th rowspan="2">Falta hoje<br>(G+A)</th>':''}
+      ${colsFuturo}
+      ${mostraFuturo?'<th rowspan="2">Falta futuro<br>(G+A)</th>':''}
     </tr>
     <tr>
-      <th class="qf-grupo-atual-th">Granjeiros</th>
-      <th class="qf-grupo-atual-th">Ajudantes</th>
-      <th class="qf-grupo-futuro-th">Granjeiros</th>
-      <th class="qf-grupo-futuro-th">Ajudantes</th>
+      ${mostraAtual?'<th class="qf-grupo-atual-th">Granjeiros</th><th class="qf-grupo-atual-th">Ajudantes</th>':''}
+      ${mostraFuturo?'<th class="qf-grupo-futuro-th">Granjeiros</th><th class="qf-grupo-futuro-th">Ajudantes</th>':''}
     </tr>
   </thead>`;
   const linhas = nucleosOrdenados.map(nuc=>{
@@ -5382,15 +5400,19 @@ function renderQuadroConsolidado(){
     const faltaFuturo = Math.max(0,r.necessidadeGranjeiro-r.futuroGranj) + Math.max(0,r.necessidadeAjudante-r.futuroAjud);
     const expandido = window.qfConsolidadoExpandido.has(nuc);
     const necessidadeTexto = r.necessidadeGranjeiro===r.necessidadeAjudante ? r.necessidadeGranjeiro : `${r.necessidadeGranjeiro}g / ${r.necessidadeAjudante}a`;
+    const celAtual = mostraAtual ? `
+      <td class="qf-grupo-atual-td ${r.atualGranj>=r.necessidadeGranjeiro?'qf-cons-ok':'qf-cons-falta'}" style="text-align:center;">${r.atualGranj}/${r.necessidadeGranjeiro}</td>
+      <td class="qf-grupo-atual-td ${r.atualAjud>=r.necessidadeAjudante?'qf-cons-ok':'qf-cons-falta'}" style="text-align:center;">${r.atualAjud}/${r.necessidadeAjudante}</td>
+      <td style="text-align:center;font-weight:800;color:${faltaAtual>0?'var(--vermelho-alerta)':'var(--verde-ok)'};">${faltaAtual}</td>` : '';
+    const celFuturo = mostraFuturo ? `
+      <td class="qf-grupo-futuro-td ${r.futuroGranj>=r.necessidadeGranjeiro?'qf-cons-ok':'qf-cons-falta'}" style="text-align:center;">${r.futuroGranj}/${r.necessidadeGranjeiro}</td>
+      <td class="qf-grupo-futuro-td ${r.futuroAjud>=r.necessidadeAjudante?'qf-cons-ok':'qf-cons-falta'}" style="text-align:center;">${r.futuroAjud}/${r.necessidadeAjudante}</td>
+      <td style="text-align:center;font-weight:800;color:${faltaFuturo>0?'var(--vermelho-alerta)':'var(--verde-ok)'};">${faltaFuturo}</td>` : '';
     const linhaPrincipal = `<tr class="qf-linha-nucleo-resumo">
       <th class="rowhead qf-nucleo-toggle" data-toggle-nucleo-cons="${nuc}">${expandido?'▾':'▸'} ${nuc}</th>
       <td style="text-align:center;">${necessidadeTexto}</td>
-      <td class="qf-grupo-atual-td ${r.atualGranj>=r.necessidadeGranjeiro?'qf-cons-ok':'qf-cons-falta'}" style="text-align:center;">${r.atualGranj}/${r.necessidadeGranjeiro}</td>
-      <td class="qf-grupo-atual-td ${r.atualAjud>=r.necessidadeAjudante?'qf-cons-ok':'qf-cons-falta'}" style="text-align:center;">${r.atualAjud}/${r.necessidadeAjudante}</td>
-      <td style="text-align:center;font-weight:800;color:${faltaAtual>0?'var(--vermelho-alerta)':'var(--verde-ok)'};">${faltaAtual}</td>
-      <td class="qf-grupo-futuro-td ${r.futuroGranj>=r.necessidadeGranjeiro?'qf-cons-ok':'qf-cons-falta'}" style="text-align:center;">${r.futuroGranj}/${r.necessidadeGranjeiro}</td>
-      <td class="qf-grupo-futuro-td ${r.futuroAjud>=r.necessidadeAjudante?'qf-cons-ok':'qf-cons-falta'}" style="text-align:center;">${r.futuroAjud}/${r.necessidadeAjudante}</td>
-      <td style="text-align:center;font-weight:800;color:${faltaFuturo>0?'var(--vermelho-alerta)':'var(--verde-ok)'};">${faltaFuturo}</td>
+      ${celAtual}
+      ${celFuturo}
     </tr>`;
     let linhasDetalhe = '';
     if(expandido){
@@ -5398,21 +5420,17 @@ function renderQuadroConsolidado(){
       linhasDetalhe = postosOrdenados.map(p=>{
         const temG = p.granjeiro && p.granjeiro.trim();
         const temA = p.ajudante && p.ajudante.trim();
-        // Atual: mostra o nome normalmente (a pessoa ainda está lá hoje)
         const gAtualTxt = temG ? p.granjeiro : '<span class="qf-nome-vago">vago</span>';
         const aAtualTxt = temA ? p.ajudante : '<span class="qf-nome-vago">vago</span>';
-        // Futuro: se marcado como saindo, mostra riscado (não vai contar na projeção)
         const gFuturoTxt = temG ? (p.granjeiroSaindo ? `<span class="qf-nome-saindo-detalhe">${p.granjeiro}</span>` : p.granjeiro) : '<span class="qf-nome-vago">vago</span>';
         const aFuturoTxt = temA ? (p.ajudanteSaindo ? `<span class="qf-nome-saindo-detalhe">${p.ajudante}</span>` : p.ajudante) : '<span class="qf-nome-vago">vago</span>';
+        const detAtual = mostraAtual ? `<td>${gAtualTxt}</td><td>${aAtualTxt}</td><td></td>` : '';
+        const detFuturo = mostraFuturo ? `<td>${gFuturoTxt}</td><td>${aFuturoTxt}</td><td></td>` : '';
         return `<tr class="qf-linha-aviario-detalhe">
           <td>Aviários ${p.aviarios}</td>
           <td></td>
-          <td>${gAtualTxt}</td>
-          <td>${aAtualTxt}</td>
-          <td></td>
-          <td>${gFuturoTxt}</td>
-          <td>${aFuturoTxt}</td>
-          <td></td>
+          ${detAtual}
+          ${detFuturo}
         </tr>`;
       }).join('');
     }
@@ -5421,15 +5439,19 @@ function renderQuadroConsolidado(){
   const faltaAtualTotal = Math.max(0,totNecessidadeG-totAtualG) + Math.max(0,totNecessidadeA-totAtualA);
   const faltaFuturoTotal = Math.max(0,totNecessidadeG-totFutG) + Math.max(0,totNecessidadeA-totFutA);
   const necessidadeTotalTexto = totNecessidadeG===totNecessidadeA ? totNecessidadeG : `${totNecessidadeG}g / ${totNecessidadeA}a`;
-  const linhaTotal = `<tr class="qf-linha-nucleo-resumo" style="border-top:2.5px solid var(--borda);">
-    <th class="rowhead">TOTAL</th>
-    <td style="text-align:center;font-weight:800;">${necessidadeTotalTexto}</td>
+  const totCelAtual = mostraAtual ? `
     <td class="qf-grupo-atual-td" style="text-align:center;font-weight:800;">${totAtualG}/${totNecessidadeG}</td>
     <td class="qf-grupo-atual-td" style="text-align:center;font-weight:800;">${totAtualA}/${totNecessidadeA}</td>
-    <td style="text-align:center;font-weight:800;color:${faltaAtualTotal>0?'var(--vermelho-alerta)':'var(--verde-ok)'};">${faltaAtualTotal}</td>
+    <td style="text-align:center;font-weight:800;color:${faltaAtualTotal>0?'var(--vermelho-alerta)':'var(--verde-ok)'};">${faltaAtualTotal}</td>` : '';
+  const totCelFuturo = mostraFuturo ? `
     <td class="qf-grupo-futuro-td" style="text-align:center;font-weight:800;">${totFutG}/${totNecessidadeG}</td>
     <td class="qf-grupo-futuro-td" style="text-align:center;font-weight:800;">${totFutA}/${totNecessidadeA}</td>
-    <td style="text-align:center;font-weight:800;color:${faltaFuturoTotal>0?'var(--vermelho-alerta)':'var(--verde-ok)'};">${faltaFuturoTotal}</td>
+    <td style="text-align:center;font-weight:800;color:${faltaFuturoTotal>0?'var(--vermelho-alerta)':'var(--verde-ok)'};">${faltaFuturoTotal}</td>` : '';
+  const linhaTotal = `<tr class="qf-linha-total-geral">
+    <th class="rowhead">TOTAL GERAL</th>
+    <td style="text-align:center;font-weight:800;">${necessidadeTotalTexto}</td>
+    ${totCelAtual}
+    ${totCelFuturo}
   </tr>`;
   tabela.innerHTML = thead + '<tbody>'+linhas+linhaTotal+'</tbody>';
   tabela.querySelectorAll('[data-toggle-nucleo-cons]').forEach(el=>{
@@ -5451,6 +5473,20 @@ function renderQuadroConsolidado(){
 }
 window.renderQuadroConsolidado = renderQuadroConsolidado;
 
+['ambos','atual','futuro'].forEach(v=>{
+  const btn = document.getElementById(v==='ambos' ? 'qf-btnVisaoAmbos' : (v==='atual' ? 'qf-btnVisaoAtual' : 'qf-btnVisaoFuturo'));
+  if(!btn) return;
+  btn.addEventListener('click', ()=>{
+    window.qfVisaoAtiva = v;
+    ['qf-btnVisaoAmbos','qf-btnVisaoAtual','qf-btnVisaoFuturo'].forEach(id=>{
+      const el = document.getElementById(id);
+      if(el) el.classList.remove('ativo-ambos','ativo-atual','ativo-futuro');
+    });
+    btn.classList.add('ativo-'+v);
+    renderQuadroConsolidado();
+  });
+});
+
 const btnExpandirTodosQf = document.getElementById('qf-btnExpandirTodos');
 if(btnExpandirTodosQf){
   btnExpandirTodosQf.addEventListener('click', ()=>{
@@ -5464,9 +5500,9 @@ if(btnExpandirTodosQf){
 const btnImprimirQf = document.getElementById('qf-btnImprimir');
 if(btnImprimirQf){
   btnImprimirQf.addEventListener('click', ()=>{
-    const nucleosAtuais = Array.from(new Set((window.POSTOS_QUADRO||[]).map(p=>p.nucleo)));
-    nucleosAtuais.forEach(n=>window.qfConsolidadoExpandido.add(n));
-    renderQuadroConsolidado();
+    // imprime exatamente como está configurado na tela (núcleos expandidos/recolhidos e filtro de visão escolhidos pelo usuário)
+    const dataEl = document.getElementById('qf-print-data');
+    if(dataEl) dataEl.textContent = 'Gerado em ' + new Date().toLocaleString('pt-BR');
     setTimeout(()=>window.print(), 150);
   });
 }
