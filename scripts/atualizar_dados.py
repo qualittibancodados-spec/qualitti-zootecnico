@@ -246,7 +246,8 @@ def processar_resultado(xl):
         'Consumo Ração': 'consumoRacao', 'PM_7': 'pm7', 'PM_14': 'pm14', 'PM_21': 'pm21', 'PM_28': 'pm28',
         'PM_35': 'pm35', 'PM_42': 'pm42', 'Média Prev': 'mediaPrev', 'Média Real': 'mediaReal', 'Dif. Média': 'difMedia',
         'Situacao': 'situacao', 'Data Alojamento': 'dataAloj',
-        '%R7': 'r7', '%R14': 'r14', '%R21': 'r21', '%R28': 'r28', '%R35': 'r35', '%R42': 'r42'
+        '%R7': 'r7', '%R14': 'r14', '%R21': 'r21', '%R28': 'r28', '%R35': 'r35', '%R42': 'r42',
+        'Matriz (Idade.Lote.AvesAlojadas)': 'matrizTexto'
     }
     cols_existentes = [c for c in ren if c in df.columns]
     sub = df[cols_existentes].rename(columns={k: ren[k] for k in cols_existentes})
