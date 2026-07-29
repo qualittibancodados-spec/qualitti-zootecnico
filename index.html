@@ -2465,7 +2465,8 @@ function renderIdadeAndamento(){
   }
 
   // curva acumulada ponderada: para cada idade, soma baixas acumuladas ÷ soma alojadas dos lotes que alcançaram a idade
-  const idadeMax = Math.max(...lotes.map(l => l.idadeAtual));
+  // mesmo teto de segurança da matriz diária: evita que um lote com data de alojamento errada estique o gráfico todo
+  const idadeMax = Math.min(Math.max(...lotes.map(l => l.idadeAtual)), 60);
   const idades = [], valores = [], nLotesPorIdade = [];
   for(let t=0; t<=idadeMax; t++){
     let somaBaixa = 0, somaAloj = 0, nLotes = 0;
@@ -2637,10 +2638,20 @@ function renderMatrizDiaria(){
   }
   lotes.forEach(l => { l._idadeAtual = idadeAtualDe(l); });
 
-  const idadeMax = Math.max(...lotes.map(l => l._idadeAtual));
+  // teto de segurança: frango de corte não passa de ~60 dias na prática. Se algum lote calcular mais
+  // que isso, é sinal de erro na base (data de alojamento errada, ou lote que devia estar fechado e não está) —
+  // em vez de esticar a tabela toda pra esse único caso, limitamos as colunas e avisamos qual lote checar.
+  const TETO_IDADE_SEGURANCA = 60;
+  const idadeMaxReal = Math.max(...lotes.map(l => l._idadeAtual));
+  const idadeMax = Math.min(idadeMaxReal, TETO_IDADE_SEGURANCA);
+  const lotesSuspeitos = lotes.filter(l => l._idadeAtual > TETO_IDADE_SEGURANCA);
   const idades = []; for(let i=0;i<=idadeMax;i++) idades.push(i);
 
   info.textContent = `${lotes.length} aviário(s) · ${metricaLabel[metricaAtiva]} · idade 0 a ${idadeMax} dias`;
+  if(lotesSuspeitos.length){
+    const lista = lotesSuspeitos.map(l=>`${nomeNucleo(l.nucleo)} / ${l.aviario} (alojado em ${l.dataAloj}, calculou ${l._idadeAtual} dias)`).join('; ');
+    info.innerHTML += `<br><span style="color:var(--vermelho-alerta);font-weight:700;">⚠️ ${lotesSuspeitos.length} lote(s) com idade acima do esperado — confira a data de alojamento na base: ${lista}</span>`;
+  }
 
   const cel = (l, idade) => {
     const d = l.dias[idade];
