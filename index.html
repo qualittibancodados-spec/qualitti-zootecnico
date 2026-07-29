@@ -779,6 +779,33 @@
   </div>
 </div>
 
+<div id="telaConfirmarEmail" class="tela-auth" style="display:none;">
+  <div class="auth-card" style="text-align:center;">
+    <div class="auth-logo"><img src="logo.png" alt="Qualitti"></div>
+    <h2 style="margin:14px 0 8px;">📧 Confirme seu e-mail</h2>
+    <p style="color:var(--texto-suave);line-height:1.5;margin-bottom:14px;">Enviamos um link de confirmação pro seu e-mail. Clique nele e depois volte aqui — isso garante que só quem realmente tem acesso a essa caixa de entrada consegue usar o painel.</p>
+    <div style="display:flex;gap:10px;justify-content:center;flex-wrap:wrap;margin-bottom:14px;">
+      <button class="btn-recolher" id="btnReenviarConfirmacao" type="button">Reenviar e-mail</button>
+      <button class="btn-recolher" id="btnJaConfirmei" type="button" style="background:var(--vermelho);color:#fff;border-color:var(--vermelho);">Já confirmei, verificar</button>
+    </div>
+    <p class="auth-erro" id="msgReenvioConfirmacao"></p>
+    <button class="btn-recolher" id="btnSairConfirmarEmail" type="button" style="margin-top:6px;">Sair</button>
+  </div>
+</div>
+
+<div id="telaCadastroReprovado" class="tela-auth" style="display:none;">
+  <div class="auth-card" style="text-align:center;">
+    <div class="auth-logo"><img src="logo.png" alt="Qualitti"></div>
+    <h2 style="margin:14px 0 8px;">🚫 Cadastro não aprovado</h2>
+    <p style="color:var(--texto-suave);line-height:1.5;margin-bottom:18px;">O administrador não aprovou o acesso dessa conta. Se você acredita que isso é um engano, entre em contato diretamente.</p>
+    <div class="auth-contato">
+      <strong>Luiz Fernando</strong> · Analista de Dados<br>
+      Contato: avicultura05@qualitti.com.br
+    </div>
+    <button class="btn-recolher" id="btnSairReprovado" type="button" style="margin-top:16px;">Sair</button>
+  </div>
+</div>
+
 <div id="appRoot" style="display:none;">
 <div class="topbar-mobile">
   <button class="hamburguer" id="btnMenu" aria-label="Menu">
@@ -5205,6 +5232,8 @@ document.getElementById('formCadastro').addEventListener('submit', async (e)=>{
     await db.collection('acessos').doc(auth.currentUser.uid).set({
       email, aprovado: false, criadoEm: firebase.firestore.FieldValue.serverTimestamp()
     }, {merge:true});
+    // 3ª camada: confirma que a pessoa realmente tem acesso a essa caixa de entrada (evita alguém se cadastrar com e-mail alheio)
+    try{ await auth.currentUser.sendEmailVerification(); }catch(e){ /* não bloqueia o cadastro se o envio falhar */ }
   }catch(err){ erroEl.textContent = mensagemErroAuth(err); }
   finally{ setBotaoCarregando(btn, false, 'Criar conta'); }
 });
@@ -5251,37 +5280,48 @@ function atualizarBotoesModulosPermissao(){
   if(btnRegistros) btnRegistros.style.display = ''; // visível pra qualquer usuário logado, sem restrição de núcleo
 }
 
-auth.onAuthStateChanged(user => {
+function processarEstadoAuth(user){
   const nota = document.getElementById('notaCarregando');
   if(nota) nota.style.display = 'none';
   if(user){
     const emailLower = (user.email||'').toLowerCase();
     window.souAdminPrincipal = (emailLower === ADMIN_EMAIL);
 
-    // 2ª camada de segurança: mesmo com e-mail autorizado, o cadastro fica pendente até o admin aprovar manualmente
-    // (protege contra alguém criar conta com um e-mail autorizado que não é seu, OU criar conta direto pelo console,
-    // pulando totalmente o nosso formulário — o Firebase Auth em si não impede isso, então essa trava tem que
-    // funcionar mesmo pra contas que nunca passaram pelo nosso código). Admin principal nunca é bloqueado.
-    const checarAprovacao = window.souAdminPrincipal
-      ? Promise.resolve(true)
-      : db.collection('acessos').doc(user.uid).get().then(doc => {
-          if(doc.exists && doc.data().aprovado === true) return true; // aprovado explicitamente pelo admin
-          if(doc.exists && doc.data().hasOwnProperty('aprovado')) return false; // aprovado:false — pendente, bloqueia
-          if(doc.exists) return true; // registro já existia antes dessa atualização de segurança (usuário legítimo antigo) -> libera essa sessão, sem gravar nada (só o admin pode gravar aprovado:true, ver regra do Firestore)
-          // não existe nenhum registro ainda: conta nova de verdade (inclusive as criadas via console, pulando nosso formulário) -> grava como pendente e bloqueia
-          return db.collection('acessos').doc(user.uid).set({
-            email: user.email, aprovado: false, criadoEm: firebase.firestore.FieldValue.serverTimestamp()
-          }, {merge:true}).then(()=> false);
-        }).catch(()=>false); // qualquer erro na checagem = trava por segurança (nunca libera por engano)
+    function esconderTelasDeEspera(){
+      document.getElementById('telaAguardandoAprovacao').style.display = 'none';
+      document.getElementById('telaConfirmarEmail').style.display = 'none';
+      document.getElementById('telaCadastroReprovado').style.display = 'none';
+    }
 
-    checarAprovacao.then(aprovado => {
-      if(!aprovado){
+    // 2ª e 3ª camadas de segurança, nessa ordem: 1) e-mail precisa estar confirmado (prova que a pessoa
+    // realmente tem acesso àquela caixa de entrada, evita cadastro com e-mail alheio) e 2) cadastro
+    // precisa ser aprovado manualmente pelo admin (mesmo já confirmado). Admin principal nunca é bloqueado.
+    const checarTudo = window.souAdminPrincipal
+      ? Promise.resolve({status:'ok'})
+      : user.reload().then(()=>{
+          if(!auth.currentUser.emailVerified) return {status:'confirmar_email'};
+          return db.collection('acessos').doc(user.uid).get().then(doc => {
+            if(doc.exists && doc.data().reprovado === true) return {status:'reprovado'};
+            if(doc.exists && doc.data().aprovado === true) return {status:'ok'};
+            if(doc.exists && doc.data().hasOwnProperty('aprovado')) return {status:'pendente'};
+            if(doc.exists) return {status:'ok'}; // registro de antes dessa atualização de segurança -> libera, sem gravar nada
+            return db.collection('acessos').doc(user.uid).set({
+              email: user.email, aprovado: false, criadoEm: firebase.firestore.FieldValue.serverTimestamp()
+            }, {merge:true}).then(()=> ({status:'pendente'}));
+          });
+        }).catch(()=>({status:'pendente'})); // qualquer erro = trava por segurança
+
+    checarTudo.then(({status}) => {
+      if(status !== 'ok'){
         telaLogin.style.display = 'none';
         appRoot.style.display = 'none';
-        document.getElementById('telaAguardandoAprovacao').style.display = '';
+        esconderTelasDeEspera();
+        if(status === 'confirmar_email') document.getElementById('telaConfirmarEmail').style.display = '';
+        else if(status === 'reprovado') document.getElementById('telaCadastroReprovado').style.display = '';
+        else document.getElementById('telaAguardandoAprovacao').style.display = '';
         return;
       }
-      document.getElementById('telaAguardandoAprovacao').style.display = 'none';
+      esconderTelasDeEspera();
       telaLogin.style.display = 'none';
       appRoot.style.display = '';
 
@@ -5307,13 +5347,27 @@ auth.onAuthStateChanged(user => {
   } else {
     telaLogin.style.display = '';
     appRoot.style.display = 'none';
-    const telaEspera = document.getElementById('telaAguardandoAprovacao');
-    if(telaEspera) telaEspera.style.display = 'none';
+    ['telaAguardandoAprovacao','telaConfirmarEmail','telaCadastroReprovado'].forEach(id=>{
+      const el = document.getElementById(id);
+      if(el) el.style.display = 'none';
+    });
   }
-});
+}
+auth.onAuthStateChanged(processarEstadoAuth);
 
 document.addEventListener('click', (e)=>{ if(e.target.closest('#btnSairApp')) auth.signOut(); });
 document.addEventListener('click', (e)=>{ if(e.target.closest('#btnSairAguardando')) auth.signOut(); });
+document.addEventListener('click', (e)=>{ if(e.target.closest('#btnSairConfirmarEmail')) auth.signOut(); });
+document.addEventListener('click', (e)=>{ if(e.target.closest('#btnSairReprovado')) auth.signOut(); });
+document.addEventListener('click', (e)=>{
+  if(e.target.closest('#btnJaConfirmei') && auth.currentUser) processarEstadoAuth(auth.currentUser);
+});
+document.addEventListener('click', async (e)=>{
+  if(!e.target.closest('#btnReenviarConfirmacao') || !auth.currentUser) return;
+  const msg = document.getElementById('msgReenvioConfirmacao');
+  try{ await auth.currentUser.sendEmailVerification(); msg.style.color='var(--verde-ok)'; msg.textContent='E-mail reenviado!'; }
+  catch(err){ msg.style.color=''; msg.textContent='Erro ao reenviar: ' + mensagemErroAuth(err); }
+});
 document.addEventListener('click', (e)=>{
   if(e.target.closest('.modulo, .tab-visao, .tab-int, .tab')){
     setTimeout(()=>window.dispatchEvent(new Event('resize')), 100);
@@ -5383,19 +5437,28 @@ async function carregarPendentesAprovacao(){
   try{
     const snap = await db.collection('acessos').get();
     const pendentes = [];
-    snap.forEach(doc => { const d = doc.data(); if(d.aprovado === false) pendentes.push({uid: doc.id, email: d.email||'(sem e-mail)', criadoEm: d.criadoEm}); });
+    snap.forEach(doc => { const d = doc.data(); if(d.aprovado === false && d.reprovado !== true) pendentes.push({uid: doc.id, email: d.email||'(sem e-mail)', criadoEm: d.criadoEm}); });
     info.textContent = pendentes.length ? `${pendentes.length} pendente(s)` : 'Nenhum pendente';
     if(!pendentes.length){ cont.innerHTML = '<p class="nota">Nenhum cadastro esperando aprovação. ✅</p>'; return; }
     cont.innerHTML = pendentes.map(p => `
-      <div class="rank-card" style="grid-template-columns:1fr auto;align-items:center;">
+      <div class="rank-card" style="grid-template-columns:1fr auto auto;align-items:center;gap:8px;">
         <div class="rank-nome">${p.email}</div>
         <button class="btn-recolher" data-aprovar="${p.uid}" style="background:var(--verde-ok);color:#fff;border-color:var(--verde-ok);">✔ Aprovar acesso</button>
+        <button class="btn-recolher" data-reprovar="${p.uid}" style="border-color:var(--vermelho-alerta);color:var(--vermelho-alerta);">✕ Reprovar</button>
       </div>`).join('');
     cont.querySelectorAll('[data-aprovar]').forEach(btn=>{
       btn.addEventListener('click', async ()=>{
         btn.disabled = true; btn.textContent = 'Aprovando...';
-        try{ await db.collection('acessos').doc(btn.dataset.aprovar).set({aprovado:true}, {merge:true}); carregarPendentesAprovacao(); }
+        try{ await db.collection('acessos').doc(btn.dataset.aprovar).set({aprovado:true, reprovado:false}, {merge:true}); carregarPendentesAprovacao(); }
         catch(e){ alert('Erro ao aprovar: ' + e.message); btn.disabled=false; btn.textContent='✔ Aprovar acesso'; }
+      });
+    });
+    cont.querySelectorAll('[data-reprovar]').forEach(btn=>{
+      btn.addEventListener('click', async ()=>{
+        if(!confirm('Reprovar esse cadastro? A pessoa não vai conseguir acessar o painel com essa conta.')) return;
+        btn.disabled = true; btn.textContent = 'Reprovando...';
+        try{ await db.collection('acessos').doc(btn.dataset.reprovar).set({aprovado:false, reprovado:true}, {merge:true}); carregarPendentesAprovacao(); }
+        catch(e){ alert('Erro ao reprovar: ' + e.message); btn.disabled=false; btn.textContent='✕ Reprovar'; }
       });
     });
   }catch(e){
