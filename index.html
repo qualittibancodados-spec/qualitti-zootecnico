@@ -1261,7 +1261,7 @@
       <div data-aba-reg-view="energia">
         <div class="painel">
           <h2 style="margin-top:0;">Novo registro</h2>
-          <p class="nota" style="margin-top:0;color:#8A6200;background:#FFF4E1;border:1px solid #F0CB7A;border-radius:9px;padding:10px 12px;">⚠️ Lance esse registro <strong>somente depois que a energia retornar</strong> — o campo "Hora Retorno" é o que permite calcular certinho quanto tempo a granja ficou sem energia. Se lançar antes do retorno, o histórico vai mostrar "ainda sem retorno" até você editar e completar.</p>
+          <p class="nota" style="margin-top:0;color:#8A6200;background:#FFF4E1;border:1px solid #F0CB7A;border-radius:9px;padding:8px 12px;font-size:12px;">⚠️ Preencher somente após o retorno da energia.</p>
           <form id="regEnergiaForm" class="reg-form">
             <input type="hidden" id="regEn_editandoId" value="">
             <div class="campo" id="regEn_campoLancadoPor" style="display:none;"><label>Lançado por (e-mail) — opcional, só admin</label><input type="email" id="regEn_lancadoPor" placeholder="deixe em branco pra usar seu e-mail"></div>
@@ -1284,6 +1284,11 @@
           <div class="painel-header"><h2>Histórico</h2><span class="info" id="regEn_info"></span></div>
           <button class="btn-recolher" id="regEn_btnExcel" type="button" style="margin-bottom:12px;">📊 Exportar Excel</button>
           <div class="tabela-scroll"><table class="matriz-diaria" id="regEn_tabela"></table></div>
+        </div>
+        <div class="painel">
+          <div class="painel-header"><h2>Ocorrências e consumo de diesel por núcleo</h2></div>
+          <div class="chart-wrap" style="height:280px;"><canvas id="regEn_grafico"></canvas></div>
+          <p class="nota" id="regEn_graficoNota"></p>
         </div>
       </div>
 
@@ -1310,6 +1315,11 @@
           <div class="painel-header"><h2>Histórico</h2><span class="info" id="regAmb_info"></span></div>
           <button class="btn-recolher" id="regAmb_btnExcel" type="button" style="margin-bottom:12px;">📊 Exportar Excel</button>
           <div class="tabela-scroll"><table class="matriz-diaria" id="regAmb_tabela"></table></div>
+        </div>
+        <div class="painel">
+          <div class="painel-header"><h2>Temperatura e amônia médias por núcleo</h2></div>
+          <div class="chart-wrap" style="height:280px;"><canvas id="regAmb_grafico"></canvas></div>
+          <p class="nota" id="regAmb_graficoNota"></p>
         </div>
       </div>
 
@@ -1342,6 +1352,11 @@
           <div class="painel-header"><h2>Histórico</h2><span class="info" id="regPin_info"></span></div>
           <button class="btn-recolher" id="regPin_btnExcel" type="button" style="margin-bottom:12px;">📊 Exportar Excel</button>
           <div class="tabela-scroll"><table class="matriz-diaria" id="regPin_tabela"></table></div>
+        </div>
+        <div class="painel">
+          <div class="painel-header"><h2>Total de problemas identificados</h2></div>
+          <div class="chart-wrap" style="height:280px;"><canvas id="regPin_grafico"></canvas></div>
+          <p class="nota" id="regPin_graficoNota"></p>
         </div>
       </div>
     </div>
@@ -6003,8 +6018,98 @@ async function reg_carregarHistorico(tipo){
         reg_entrarModoEdicao(tipoEd, doc);
       });
     });
+    reg_renderGrafico(tipo, docs);
   }catch(e){
     tabela.innerHTML = `<tbody><tr><td style="padding:14px;color:var(--vermelho-alerta);">Erro ao carregar: ${e.message}</td></tr></tbody>`;
+  }
+}
+
+window.regGraficos = window.regGraficos || {};
+function reg_renderGrafico(tipo, docs){
+  const canvasId = tipo==='energia' ? 'regEn_grafico' : (tipo==='ambiencia' ? 'regAmb_grafico' : 'regPin_grafico');
+  const notaId = tipo==='energia' ? 'regEn_graficoNota' : (tipo==='ambiencia' ? 'regAmb_graficoNota' : 'regPin_graficoNota');
+  const canvas = document.getElementById(canvasId);
+  const notaEl = document.getElementById(notaId);
+  if(!canvas) return;
+  if(window.regGraficos[tipo]){ window.regGraficos[tipo].destroy(); window.regGraficos[tipo] = null; }
+  if(!docs.length){ if(notaEl) notaEl.textContent = 'Sem dados suficientes ainda pra montar o gráfico.'; return; }
+
+  const ctx = canvas.getContext('2d');
+  if(tipo==='energia'){
+    const porNucleo = new Map();
+    docs.forEach(d=>{
+      const n = d.nucleo || '—';
+      if(!porNucleo.has(n)) porNucleo.set(n, {ocorrencias:0, diesel:0});
+      const o = porNucleo.get(n);
+      o.ocorrencias++;
+      o.diesel += (d.consumoDiesel!=null ? Number(d.consumoDiesel) : 0);
+    });
+    const nucleos = Array.from(porNucleo.keys()).sort((a,b)=>porNucleo.get(b).ocorrencias-porNucleo.get(a).ocorrencias);
+    window.regGraficos.energia = new Chart(ctx, {
+      type: 'bar',
+      data: {
+        labels: nucleos,
+        datasets: [
+          { label: 'Ocorrências', data: nucleos.map(n=>porNucleo.get(n).ocorrencias), backgroundColor: '#C1272D', yAxisID: 'y' },
+          { label: 'Diesel total (L)', data: nucleos.map(n=>Math.round(porNucleo.get(n).diesel*10)/10), backgroundColor: '#F2A900', yAxisID: 'y1' }
+        ]
+      },
+      options: {
+        responsive:true, maintainAspectRatio:false,
+        scales:{
+          y:{ position:'left', beginAtZero:true, title:{display:true,text:'Ocorrências'} },
+          y1:{ position:'right', beginAtZero:true, grid:{drawOnChartArea:false}, title:{display:true,text:'Diesel (L)'} }
+        }
+      }
+    });
+    if(notaEl) notaEl.textContent = `${docs.length} registro(s) no total, em ${nucleos.length} núcleo(s).`;
+  } else if(tipo==='ambiencia'){
+    const porNucleo = new Map();
+    docs.forEach(d=>{
+      const n = d.nucleo || '—';
+      if(!porNucleo.has(n)) porNucleo.set(n, {somaTemp:0, contTemp:0, somaAmonia:0, contAmonia:0});
+      const o = porNucleo.get(n);
+      if(d.temperatura!=null){ o.somaTemp += Number(d.temperatura); o.contTemp++; }
+      if(d.nivelAmonia!=null){ o.somaAmonia += Number(d.nivelAmonia); o.contAmonia++; }
+    });
+    const nucleos = Array.from(porNucleo.keys()).sort();
+    window.regGraficos.ambiencia = new Chart(ctx, {
+      type: 'bar',
+      data: {
+        labels: nucleos,
+        datasets: [
+          { label: 'Temperatura média (°C)', data: nucleos.map(n=>{ const o=porNucleo.get(n); return o.contTemp? Math.round(o.somaTemp/o.contTemp*10)/10 : null; }), backgroundColor: '#C1272D', yAxisID: 'y' },
+          { label: 'Amônia média (ppm)', data: nucleos.map(n=>{ const o=porNucleo.get(n); return o.contAmonia? Math.round(o.somaAmonia/o.contAmonia*10)/10 : null; }), backgroundColor: '#8A6200', yAxisID: 'y1' }
+        ]
+      },
+      options: {
+        responsive:true, maintainAspectRatio:false,
+        scales:{
+          y:{ position:'left', beginAtZero:true, title:{display:true,text:'°C'} },
+          y1:{ position:'right', beginAtZero:true, grid:{drawOnChartArea:false}, title:{display:true,text:'ppm'} }
+        }
+      }
+    });
+    if(notaEl) notaEl.textContent = `${docs.length} registro(s) no total, em ${nucleos.length} núcleo(s).`;
+  } else {
+    const totais = { 'Temp. cloacal': 0, 'Plumagem ruim': 0, 'Desidratação': 0, 'Umbigo aberto': 0, 'Hematoma': 0 };
+    docs.forEach(d=>{
+      totais['Temp. cloacal'] += (d.tempCloacal||0);
+      totais['Plumagem ruim'] += (d.plumagem||0);
+      totais['Desidratação'] += (d.desidratacao||0);
+      totais['Umbigo aberto'] += (d.umbigo||0);
+      totais['Hematoma'] += (d.hematoma||0);
+    });
+    window.regGraficos.pintinhos = new Chart(ctx, {
+      type: 'bar',
+      data: {
+        labels: Object.keys(totais),
+        datasets: [{ label: 'Total de aves com o problema', data: Object.values(totais), backgroundColor: ['#C1272D','#F2A900','#1D5A96','#8A6200','#6B7280'] }]
+      },
+      options: { responsive:true, maintainAspectRatio:false, plugins:{legend:{display:false}}, scales:{ y:{ beginAtZero:true } } }
+    });
+    const totalPintinhos = docs.reduce((s,d)=>s+(d.quantidade||0),0);
+    if(notaEl) notaEl.textContent = `${docs.length} registro(s), somando ${totalPintinhos.toLocaleString('pt-BR')} pintinho(s) avaliado(s).`;
   }
 }
 
