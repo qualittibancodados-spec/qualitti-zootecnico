@@ -175,6 +175,7 @@
   .qf-nucleo-toggle:hover{ text-decoration:underline; }
   .qf-linha-aviario-detalhe td{ background:#FAFAF8; font-size:11.5px; padding:7px 10px; border-bottom:1px solid var(--borda); word-break:break-word; text-align:center; }
   .qf-linha-aviario-detalhe td:first-child{ text-align:left; padding-left:24px; color:var(--texto-suave); font-weight:600; }
+  .qf-linha-aviario-detalhe td.qf-cel-nome{ text-align:left; }
   .qf-nome-saindo-detalhe{ text-decoration:line-through; color:var(--vermelho-alerta); }
   .qf-linha-aviario-detalhe .qf-nome-vago{ color:var(--vermelho-alerta); font-style:italic; }
   .quadro-nome-saindo{ text-decoration:line-through; color:var(--vermelho-alerta); }
@@ -659,7 +660,11 @@
   /* a tabela deixa de rolar e passa a se ajustar à largura da página inteira */
   #qf-scrollConsolidada{ overflow:visible !important; width:100% !important; }
   #qf-tabelaConsolidada{ width:100% !important; table-layout:fixed; font-size:8.5px; }
-  #qf-tabelaConsolidada th, #qf-tabelaConsolidada td{ padding:3px 4px !important; overflow-wrap:break-word; }
+  #qf-tabelaConsolidada th, #qf-tabelaConsolidada td{ padding:3px 4px !important; overflow-wrap:break-word; word-break:break-word; text-align:center; }
+  /* 1ª coluna (Núcleo/Aviários) precisa de mais espaço pro nome não estourar, e fica alinhada à esquerda */
+  #qf-tabelaConsolidada th:first-child, #qf-tabelaConsolidada td:first-child{ width:22%; text-align:left !important; }
+  #qf-tabelaConsolidada th:not(:first-child), #qf-tabelaConsolidada td:not(:first-child){ width:auto; }
+  #qf-tabelaConsolidada td.qf-cel-nome{ width:16%; }
   .qf-nucleo-toggle::before{ content:''; }
   /* evita que uma linha (núcleo ou detalhe) fique cortada entre duas páginas */
   #qf-tabelaConsolidada tr{ page-break-inside:avoid; }
@@ -758,6 +763,19 @@
       <strong>Luiz Fernando</strong> · Analista de Dados<br>
       Contato: avicultura05@qualitti.com.br
     </div>
+  </div>
+</div>
+
+<div id="telaAguardandoAprovacao" class="tela-auth" style="display:none;">
+  <div class="auth-card" style="text-align:center;">
+    <div class="auth-logo"><img src="logo.png" alt="Qualitti"></div>
+    <h2 style="margin:14px 0 8px;">⏳ Cadastro em análise</h2>
+    <p style="color:var(--texto-suave);line-height:1.5;margin-bottom:18px;">Sua conta foi criada com sucesso, mas ainda precisa ser <strong>aprovada pelo administrador</strong> antes de liberar o acesso ao painel — isso é uma proteção extra, mesmo pra e-mails já autorizados.</p>
+    <div class="auth-contato">
+      <strong>Luiz Fernando</strong> · Analista de Dados<br>
+      Contato: avicultura05@qualitti.com.br
+    </div>
+    <button class="btn-recolher" id="btnSairAguardando" type="button" style="margin-top:16px;">Sair</button>
   </div>
 </div>
 
@@ -1338,6 +1356,11 @@
 
       <div id="admin-secao-usuarios" style="display:none;">
         <div class="painel">
+          <div class="painel-header"><h2>⏳ Cadastros pendentes de aprovação</h2><span class="info" id="infoPendentes"></span></div>
+          <p class="nota" style="margin-top:0;">Mesmo usando um e-mail já autorizado, toda conta nova precisa dessa aprovação antes de acessar o painel — proteção extra contra alguém criar conta com um e-mail que não é seu.</p>
+          <div id="listaPendentesAprovacao"></div>
+        </div>
+        <div class="painel">
           <div class="painel-header"><h2>Adicionar e-mail autorizado</h2></div>
           <form id="formAddEmail" style="display:flex;gap:10px;align-items:flex-end;flex-wrap:wrap;">
             <div class="campo" style="flex:1;min-width:220px;"><label>E-mail</label><input type="email" id="novoEmailAdmin" required style="width:100%;padding:10px 12px;border-radius:9px;border:1.5px solid var(--borda);font-size:14px;font-family:inherit;box-sizing:border-box;"></div>
@@ -1905,7 +1928,10 @@ document.querySelectorAll('.modulo').forEach(btn => {
       if(!window.registrosCarregado){ window.registrosCarregado = true; window.iniciarRegistros(); }
     }
     if(mod==='admin'){
-      if(window.souAdminPrincipal || window.minhasPermissoes.usuarios){ if(window.carregarListaEmails) window.carregarListaEmails(); }
+      if(window.souAdminPrincipal || window.minhasPermissoes.usuarios){
+        if(window.carregarListaEmails) window.carregarListaEmails();
+        if(window.carregarPendentesAprovacao) window.carregarPendentesAprovacao();
+      }
       if(window.souAdminPrincipal || window.minhasPermissoes.metas){ if(window.carregarFormMetasPeso) window.carregarFormMetasPeso(); }
       if(window.souAdminPrincipal){
         if(window.carregarAcessos) window.carregarAcessos();
@@ -5170,9 +5196,15 @@ document.getElementById('formCadastro').addEventListener('submit', async (e)=>{
   if(senha !== senha2){ erroEl.textContent = 'As senhas não coincidem.'; return; }
   setBotaoCarregando(btn, true, 'Criar conta');
   try{
-    const snap = await db.collection('emails_autorizados').where('email','==',email).limit(1).get();
-    if(snap.empty){ erroEl.textContent = 'Este e-mail não está autorizado. Fale com o administrador do painel.'; return; }
+    // busca por ID direto (e-mail em minúsculo é o próprio ID do documento) — nunca lista a coleção inteira,
+    // então ninguém consegue "descobrir" outros e-mails autorizados por essa checagem.
+    const docEmail = await db.collection('emails_autorizados').doc(email.toLowerCase()).get();
+    if(!docEmail.exists){ erroEl.textContent = 'Este e-mail não está autorizado. Fale com o administrador do painel.'; return; }
     await auth.createUserWithEmailAndPassword(email, senha);
+    // cadastro fica pendente de aprovação do admin até ser liberado manualmente (2ª camada de segurança)
+    await db.collection('acessos').doc(auth.currentUser.uid).set({
+      email, aprovado: false, criadoEm: firebase.firestore.FieldValue.serverTimestamp()
+    }, {merge:true});
   }catch(err){ erroEl.textContent = mensagemErroAuth(err); }
   finally{ setBotaoCarregando(btn, false, 'Criar conta'); }
 });
@@ -5223,36 +5255,65 @@ auth.onAuthStateChanged(user => {
   const nota = document.getElementById('notaCarregando');
   if(nota) nota.style.display = 'none';
   if(user){
-    telaLogin.style.display = 'none';
-    appRoot.style.display = '';
     const emailLower = (user.email||'').toLowerCase();
     window.souAdminPrincipal = (emailLower === ADMIN_EMAIL);
 
-    if(window.souAdminPrincipal){
-      window.minhasPermissoes = {metas:true, usuarios:true, funcionariosNucleos: NUCLEOS_QUADRO.slice()};
-      atualizarBotoesModulosPermissao();
-      atualizarVisibilidadeSecoesAdmin();
-    } else {
-      db.collection('admins').doc(emailLower).get().then(doc=>{
-        if(doc.exists){
-          const perm = doc.data().permissoes || {};
-          window.minhasPermissoes = {metas: !!perm.metas, usuarios: !!perm.usuarios, funcionariosNucleos: perm.funcionariosNucleos || []};
-        } else {
-          window.minhasPermissoes = {metas:false, usuarios:false, funcionariosNucleos:[]};
-        }
+    // 2ª camada de segurança: mesmo com e-mail autorizado, o cadastro fica pendente até o admin aprovar manualmente
+    // (protege contra alguém criar conta com um e-mail autorizado que não é seu, OU criar conta direto pelo console,
+    // pulando totalmente o nosso formulário — o Firebase Auth em si não impede isso, então essa trava tem que
+    // funcionar mesmo pra contas que nunca passaram pelo nosso código). Admin principal nunca é bloqueado.
+    const checarAprovacao = window.souAdminPrincipal
+      ? Promise.resolve(true)
+      : db.collection('acessos').doc(user.uid).get().then(doc => {
+          if(doc.exists && doc.data().aprovado === true) return true; // aprovado explicitamente pelo admin
+          if(doc.exists && doc.data().hasOwnProperty('aprovado')) return false; // aprovado:false — pendente, bloqueia
+          if(doc.exists) return true; // registro já existia antes dessa atualização de segurança (usuário legítimo antigo) -> libera essa sessão, sem gravar nada (só o admin pode gravar aprovado:true, ver regra do Firestore)
+          // não existe nenhum registro ainda: conta nova de verdade (inclusive as criadas via console, pulando nosso formulário) -> grava como pendente e bloqueia
+          return db.collection('acessos').doc(user.uid).set({
+            email: user.email, aprovado: false, criadoEm: firebase.firestore.FieldValue.serverTimestamp()
+          }, {merge:true}).then(()=> false);
+        }).catch(()=>false); // qualquer erro na checagem = trava por segurança (nunca libera por engano)
+
+    checarAprovacao.then(aprovado => {
+      if(!aprovado){
+        telaLogin.style.display = 'none';
+        appRoot.style.display = 'none';
+        document.getElementById('telaAguardandoAprovacao').style.display = '';
+        return;
+      }
+      document.getElementById('telaAguardandoAprovacao').style.display = 'none';
+      telaLogin.style.display = 'none';
+      appRoot.style.display = '';
+
+      if(window.souAdminPrincipal){
+        window.minhasPermissoes = {metas:true, usuarios:true, funcionariosNucleos: NUCLEOS_QUADRO.slice()};
         atualizarBotoesModulosPermissao();
         atualizarVisibilidadeSecoesAdmin();
-      }).catch(()=>{ atualizarBotoesModulosPermissao(); });
-    }
-    registrarAcesso(user);
-    setTimeout(()=>window.dispatchEvent(new Event('resize')), 80);
+      } else {
+        db.collection('admins').doc(emailLower).get().then(doc=>{
+          if(doc.exists){
+            const perm = doc.data().permissoes || {};
+            window.minhasPermissoes = {metas: !!perm.metas, usuarios: !!perm.usuarios, funcionariosNucleos: perm.funcionariosNucleos || []};
+          } else {
+            window.minhasPermissoes = {metas:false, usuarios:false, funcionariosNucleos:[]};
+          }
+          atualizarBotoesModulosPermissao();
+          atualizarVisibilidadeSecoesAdmin();
+        }).catch(()=>{ atualizarBotoesModulosPermissao(); });
+      }
+      registrarAcesso(user);
+      setTimeout(()=>window.dispatchEvent(new Event('resize')), 80);
+    });
   } else {
     telaLogin.style.display = '';
     appRoot.style.display = 'none';
+    const telaEspera = document.getElementById('telaAguardandoAprovacao');
+    if(telaEspera) telaEspera.style.display = 'none';
   }
 });
 
 document.addEventListener('click', (e)=>{ if(e.target.closest('#btnSairApp')) auth.signOut(); });
+document.addEventListener('click', (e)=>{ if(e.target.closest('#btnSairAguardando')) auth.signOut(); });
 document.addEventListener('click', (e)=>{
   if(e.target.closest('.modulo, .tab-visao, .tab-int, .tab')){
     setTimeout(()=>window.dispatchEvent(new Event('resize')), 100);
@@ -5275,7 +5336,21 @@ async function carregarListaEmails(){
   try{
     const snap = await db.collection('emails_autorizados').get();
     const docs = [];
-    snap.forEach(doc => docs.push({id: doc.id, email: (doc.data().email||'').toLowerCase()}));
+    const migracoes = [];
+    snap.forEach(doc => {
+      const email = (doc.data().email||'').toLowerCase();
+      docs.push({id: doc.id, email});
+      // migração automática e transparente: cadastros antigos tinham ID gerado aleatório; agora o ID é o próprio e-mail
+      // (isso é o que permite checar 1 e-mail específico sem dar pra listar todos os outros — ver auditoria de segurança)
+      if(email && doc.id !== email) migracoes.push({idAntigo: doc.id, email});
+    });
+    if(migracoes.length){
+      await Promise.all(migracoes.map(async m=>{
+        await db.collection('emails_autorizados').doc(m.email).set({email: m.email});
+        await db.collection('emails_autorizados').doc(m.idAntigo).delete();
+      }));
+      return carregarListaEmails(); // recarrega já com os IDs corrigidos
+    }
     docs.sort((a,b) => a.email.localeCompare(b.email));
     info.textContent = `${docs.length} e-mail(s) autorizado(s)`;
     if(!docs.length){ cont.innerHTML = '<p class="nota">Nenhum e-mail cadastrado ainda.</p>'; return; }
@@ -5298,6 +5373,36 @@ async function carregarListaEmails(){
   }
 }
 window.carregarListaEmails = carregarListaEmails;
+
+// ================= Aprovação de novos cadastros (2ª camada de segurança) =================
+async function carregarPendentesAprovacao(){
+  const cont = document.getElementById('listaPendentesAprovacao');
+  const info = document.getElementById('infoPendentes');
+  if(!cont) return;
+  cont.innerHTML = '<p class="nota">Carregando...</p>';
+  try{
+    const snap = await db.collection('acessos').get();
+    const pendentes = [];
+    snap.forEach(doc => { const d = doc.data(); if(d.aprovado === false) pendentes.push({uid: doc.id, email: d.email||'(sem e-mail)', criadoEm: d.criadoEm}); });
+    info.textContent = pendentes.length ? `${pendentes.length} pendente(s)` : 'Nenhum pendente';
+    if(!pendentes.length){ cont.innerHTML = '<p class="nota">Nenhum cadastro esperando aprovação. ✅</p>'; return; }
+    cont.innerHTML = pendentes.map(p => `
+      <div class="rank-card" style="grid-template-columns:1fr auto;align-items:center;">
+        <div class="rank-nome">${p.email}</div>
+        <button class="btn-recolher" data-aprovar="${p.uid}" style="background:var(--verde-ok);color:#fff;border-color:var(--verde-ok);">✔ Aprovar acesso</button>
+      </div>`).join('');
+    cont.querySelectorAll('[data-aprovar]').forEach(btn=>{
+      btn.addEventListener('click', async ()=>{
+        btn.disabled = true; btn.textContent = 'Aprovando...';
+        try{ await db.collection('acessos').doc(btn.dataset.aprovar).set({aprovado:true}, {merge:true}); carregarPendentesAprovacao(); }
+        catch(e){ alert('Erro ao aprovar: ' + e.message); btn.disabled=false; btn.textContent='✔ Aprovar acesso'; }
+      });
+    });
+  }catch(e){
+    cont.innerHTML = `<p class="nota" style="color:var(--vermelho-alerta);">Erro ao carregar: ${e.message}</p>`;
+  }
+}
+window.carregarPendentesAprovacao = carregarPendentesAprovacao;
 
 const NOMES_MODULOS_ADMIN = {mortalidade:'Mortalidade', resultado:'Resultado Zootécnico', condenas:'Condenas', peso:'Evolução de Pesos', admin:'Administração', quadro:'Quadro de Funcionários'};
 
@@ -5342,9 +5447,10 @@ if(formAddEmail){
     const btn = formAddEmail.querySelector('button[type="submit"]');
     btn.disabled = true; btn.textContent = 'Adicionando...';
     try{
-      const existente = await db.collection('emails_autorizados').where('email','==',email).limit(1).get();
-      if(!existente.empty){ erroEl.textContent = 'Esse e-mail já está na lista.'; return; }
-      await db.collection('emails_autorizados').add({ email });
+      const ref = db.collection('emails_autorizados').doc(email);
+      const existente = await ref.get();
+      if(existente.exists){ erroEl.textContent = 'Esse e-mail já está na lista.'; return; }
+      await ref.set({ email }); // e-mail é o próprio ID do documento — permite checagem individual segura no cadastro
       input.value = '';
       erroEl.style.color='var(--verde-ok)'; erroEl.textContent = 'E-mail adicionado com sucesso!';
       carregarListaEmails();
@@ -5678,8 +5784,8 @@ function renderQuadroConsolidado(){
         const aAtualTxt = temA ? p.ajudante : '<span class="qf-nome-vago">vago</span>';
         const gFuturoTxt = temG ? (p.granjeiroSaindo ? `<span class="qf-nome-saindo-detalhe">${p.granjeiro}</span>` : p.granjeiro) : '<span class="qf-nome-vago">vago</span>';
         const aFuturoTxt = temA ? (p.ajudanteSaindo ? `<span class="qf-nome-saindo-detalhe">${p.ajudante}</span>` : p.ajudante) : '<span class="qf-nome-vago">vago</span>';
-        const detAtual = mostraAtual ? `<td>${gAtualTxt}</td><td>${aAtualTxt}</td><td></td>` : '';
-        const detFuturo = mostraFuturo ? `<td>${gFuturoTxt}</td><td>${aFuturoTxt}</td><td></td>` : '';
+        const detAtual = mostraAtual ? `<td class="qf-cel-nome">${gAtualTxt}</td><td class="qf-cel-nome">${aAtualTxt}</td><td></td>` : '';
+        const detFuturo = mostraFuturo ? `<td class="qf-cel-nome">${gFuturoTxt}</td><td class="qf-cel-nome">${aFuturoTxt}</td><td></td>` : '';
         return `<tr class="qf-linha-aviario-detalhe">
           <td>Aviários ${p.aviarios}</td>
           <td></td>
