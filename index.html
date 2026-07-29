@@ -1253,7 +1253,6 @@
 
       <div class="tabs-internas" id="reg-tabs">
         <button class="tab-int ativo" data-aba-reg="energia">Falta de Energia</button>
-        <button class="tab-int" data-aba-reg="ambiencia">Ambiência</button>
         <button class="tab-int" data-aba-reg="pintinhos">Qualidade de Pintinhos</button>
       </div>
 
@@ -1292,37 +1291,6 @@
         </div>
       </div>
 
-      <!-- ABA: AMBIÊNCIA -->
-      <div data-aba-reg-view="ambiencia" style="display:none;">
-        <div class="painel">
-          <h2 style="margin-top:0;">Novo registro</h2>
-          <form id="regAmbForm" class="reg-form">
-            <input type="hidden" id="regAmb_editandoId" value="">
-            <div class="campo" id="regAmb_campoLancadoPor" style="display:none;"><label>Lançado por (e-mail) — opcional, só admin</label><input type="email" id="regAmb_lancadoPor" placeholder="deixe em branco pra usar seu e-mail"></div>
-            <div class="campo"><label>Núcleo</label><select id="regAmb_nucleo" required></select></div>
-            <div class="campo"><label>Aviário</label><input type="text" id="regAmb_aviario" required></div>
-            <div class="campo"><label>Data</label><input type="date" id="regAmb_data" required></div>
-            <div class="campo"><label>Temperatura (°C)</label><input type="number" step="0.1" id="regAmb_temp" required></div>
-            <div class="campo"><label>Nível de Amônia (ppm)</label><input type="number" step="0.1" min="0" id="regAmb_amonia"></div>
-            <div style="grid-column:1/-1;display:flex;gap:10px;">
-              <button type="submit" class="btn-recolher" id="regAmb_btnSalvar" style="background:var(--vermelho);color:#fff;border-color:var(--vermelho);">+ Salvar registro</button>
-              <button type="button" class="btn-recolher" id="regAmb_btnCancelarEdicao" style="display:none;">Cancelar edição</button>
-            </div>
-          </form>
-          <p class="nota" id="regAmb_erro" style="min-height:16px;"></p>
-        </div>
-        <div class="painel">
-          <div class="painel-header"><h2>Histórico</h2><span class="info" id="regAmb_info"></span></div>
-          <button class="btn-recolher" id="regAmb_btnExcel" type="button" style="margin-bottom:12px;">📊 Exportar Excel</button>
-          <div class="tabela-scroll"><table class="matriz-diaria" id="regAmb_tabela"></table></div>
-        </div>
-        <div class="painel">
-          <div class="painel-header"><h2>Temperatura e amônia médias por núcleo</h2></div>
-          <div class="chart-wrap" style="height:280px;"><canvas id="regAmb_grafico"></canvas></div>
-          <p class="nota" id="regAmb_graficoNota"></p>
-        </div>
-      </div>
-
       <!-- ABA: QUALIDADE DE PINTINHOS -->
       <div data-aba-reg-view="pintinhos" style="display:none;">
         <div class="painel">
@@ -1331,7 +1299,7 @@
             <input type="hidden" id="regPin_editandoId" value="">
             <div class="campo" id="regPin_campoLancadoPor" style="display:none;"><label>Lançado por (e-mail) — opcional, só admin</label><input type="email" id="regPin_lancadoPor" placeholder="deixe em branco pra usar seu e-mail"></div>
             <div class="campo"><label>Núcleo</label><select id="regPin_nucleo" required></select></div>
-            <div class="campo"><label>Aviário</label><input type="text" id="regPin_aviario" required></div>
+            <div class="campo"><label>Aviário</label><select id="regPin_aviario" required><option value="">Selecione o núcleo primeiro...</option></select></div>
             <div class="campo"><label>Data</label><input type="date" id="regPin_data" required></div>
             <div class="campo"><label>Qtd. de Pintinhos</label><input type="number" min="0" step="1" id="regPin_qtd" required></div>
             <div class="campo"><label>Temp. do Galpão (°C)</label><input type="number" step="0.1" id="regPin_tempGalpao"></div>
@@ -1341,6 +1309,7 @@
             <div class="campo"><label>Desidratação (qtd)</label><input type="number" min="0" step="1" id="regPin_desidratacao" value="0"></div>
             <div class="campo"><label>Umbigo aberto (qtd)</label><input type="number" min="0" step="1" id="regPin_umbigo" value="0"></div>
             <div class="campo"><label>Hematoma nas articulações (qtd)</label><input type="number" min="0" step="1" id="regPin_hematoma" value="0"></div>
+            <div class="campo"><label>Nível de Amônia (ppm)</label><input type="number" step="0.1" min="0" id="regPin_amonia" required></div>
             <div style="grid-column:1/-1;display:flex;gap:10px;">
               <button type="submit" class="btn-recolher" id="regPin_btnSalvar" style="background:var(--vermelho);color:#fff;border-color:var(--vermelho);">+ Salvar registro</button>
               <button type="button" class="btn-recolher" id="regPin_btnCancelarEdicao" style="display:none;">Cancelar edição</button>
@@ -1479,6 +1448,14 @@
 
     <div class="cards" id="cards"></div>
 
+    <div class="painel-grafico">
+      <div class="painel-grafico-header">
+        <h2 id="tituloBarrasAndamento">Mortalidade por núcleo — em andamento</h2>
+        <span class="info">Lotes em andamento · ponderada pelo alojamento</span>
+      </div>
+      <div class="chart-wrap" style="height:280px;"><canvas id="graficoBarrasAndamento"></canvas></div>
+    </div>
+
     <div class="quadro">
       <div class="quadro-header">
         <h2>Mortalidade diária por idade</h2>
@@ -1540,6 +1517,23 @@
       </div>
     </div>
 
+    <div class="quadro">
+      <div class="quadro-header">
+        <h2>Mortalidades por Aviário — semanal</h2>
+        <span class="info" id="infoMortSemanal"></span>
+      </div>
+      <p class="nota-grafico" style="margin:0 0 12px;">Mortalidade acumulada em cada checkpoint (7/14/21/28/35 dias) e o total de <strong>35+</strong> (do dia 36 até a idade atual). Clique no núcleo para expandir e ver o detalhamento por aviário.</p>
+      <div id="containerMortSemanal"></div>
+    </div>
+
+    <div class="painel-grafico">
+      <div class="painel-grafico-header">
+        <h2>Maiores mortalidades — em andamento</h2>
+        <span class="info">Top aviários por % de mortalidade acumulada até hoje</span>
+      </div>
+      <div class="chart-wrap" style="height:320px;"><canvas id="graficoMaioresMortalidades"></canvas></div>
+    </div>
+
     <div class="painel-grafico">
       <div class="painel-grafico-header">
         <h2 id="tituloIdadeAndamento">Mortalidade média por idade — em andamento</h2>
@@ -1547,14 +1541,6 @@
       </div>
       <div class="chart-wrap" style="height:280px;"><canvas id="graficoIdadeAndamento"></canvas></div>
       <p class="nota-grafico" id="notaIdadeAndamento"></p>
-    </div>
-
-    <div class="painel-grafico">
-      <div class="painel-grafico-header">
-        <h2 id="tituloBarrasAndamento">Mortalidade por núcleo — em andamento</h2>
-        <span class="info">Lotes em andamento · ponderada pelo alojamento</span>
-      </div>
-      <div class="chart-wrap" style="height:280px;"><canvas id="graficoBarrasAndamento"></canvas></div>
     </div>
 
     <div class="quadro">
@@ -2092,7 +2078,117 @@ function renderQuadro(lotes){
   });
 }
 
-// Cards do topo do "Em andamento": resumo do estado atual de TODOS os lotes abertos (não só os selecionados)
+const MORT_SEMANAL_CHECKPOINTS = [7,14,21,28,35];
+let mortSemanalRecolhidos = new Set();
+
+function mortSemanal_calcularPorLote(l){
+  // l vem de MORT_DIARIA: {nucleo, aviario, sexo, alojadas, dataAloj, dias:{'0':{total,morte,elim}, ...}}
+  const idadeAtual = Math.floor((new Date().setHours(0,0,0,0) - new Date(l.dataAloj+'T00:00:00')) / 86400000);
+  const diasOrdenados = Object.keys(l.dias).map(Number).sort((a,b)=>a-b);
+  let acumulado = 0, idxCheck = 0;
+  const porCheckpoint = {};
+  diasOrdenados.forEach(dia=>{
+    if(dia > idadeAtual) return; // não conta dias futuros/inexistentes
+    const reg = l.dias[dia];
+    acumulado += (reg.total!=null ? reg.total : ((reg.morte||0)+(reg.elim||0)));
+    while(idxCheck < MORT_SEMANAL_CHECKPOINTS.length && dia >= MORT_SEMANAL_CHECKPOINTS[idxCheck]){
+      porCheckpoint[MORT_SEMANAL_CHECKPOINTS[idxCheck]] = acumulado / l.alojadas * 100;
+      idxCheck++;
+    }
+  });
+  // 35+ : do dia 36 até a idade atual (só existe se o lote já passou dos 35 dias)
+  let mais35 = null;
+  if(idadeAtual > 35){
+    let acumMais35 = 0;
+    diasOrdenados.forEach(dia=>{
+      if(dia >= 36 && dia <= idadeAtual){ const reg = l.dias[dia]; acumMais35 += (reg.total!=null ? reg.total : ((reg.morte||0)+(reg.elim||0))); }
+    });
+    mais35 = acumMais35 / l.alojadas * 100;
+  }
+  const totalGeral = acumulado / l.alojadas * 100;
+  return { idadeAtual, porCheckpoint, mais35, totalGeral };
+}
+
+function renderMortalidadesSemanal(){
+  const nucSel = document.getElementById('fNucleo').value;
+  const lotes = MORT_DIARIA.filter(l => {
+    if(nucSel !== 'Todos' && l.nucleo !== nucSel) return false;
+    if(sexoAtivo !== 'Todos' && l.sexo !== sexoAtivo) return false;
+    return true;
+  });
+  const cont = document.getElementById('containerMortSemanal');
+  const info = document.getElementById('infoMortSemanal');
+  if(!lotes.length){ cont.innerHTML = '<div class="vazio">Nenhum aviário em andamento com esse filtro.</div>'; info.textContent=''; return; }
+
+  const calculados = lotes.map(l => ({ l, calc: mortSemanal_calcularPorLote(l) }));
+  info.textContent = `${calculados.length} aviário(s)`;
+
+  const porNucleo = new Map();
+  calculados.forEach(c => { if(!porNucleo.has(c.l.nucleo)) porNucleo.set(c.l.nucleo, []); porNucleo.get(c.l.nucleo).push(c); });
+
+  const theadCols = MORT_SEMANAL_CHECKPOINTS.map(d=>`<th>Mort. ${d}d</th>`).join('') + '<th>Mort. 35+</th>';
+
+  let html = `<div class="tabela-scroll"><table class="matriz-diaria"><thead><tr>
+    <th class="rowhead">Núcleo / Aviário</th><th>Idade atual</th>${theadCols}
+  </tr></thead><tbody>`;
+
+  Array.from(porNucleo.keys()).sort().forEach(nuc=>{
+    const itens = porNucleo.get(nuc).sort((a,b)=>String(a.l.aviario).localeCompare(String(b.l.aviario), undefined, {numeric:true}));
+    const rec = mortSemanalRecolhidos.has(nuc);
+    const mediaNuc = itens.reduce((s,c)=>s+c.calc.totalGeral,0) / itens.length;
+
+    html += `<tr class="linha-nucleo">
+      <th class="rowhead"><span class="nuc-toggle" data-toggle-mort-sem="${nuc}" style="cursor:pointer;">${rec?'▸':'▾'}</span> ${nomeNucleo(nuc)} (${itens.length})</th>
+      <td></td>
+      ${MORT_SEMANAL_CHECKPOINTS.map(()=>'<td></td>').join('')}
+      <td style="font-weight:800;">${mediaNuc.toFixed(2)}% méd.</td>
+    </tr>`;
+
+    if(!rec){
+      itens.forEach(({l, calc})=>{
+        const celulas = MORT_SEMANAL_CHECKPOINTS.map(d=>{
+          const v = calc.porCheckpoint[d];
+          return `<td>${v!=null ? v.toFixed(2).replace('.',',')+'%' : '–'}</td>`;
+        }).join('');
+        html += `<tr>
+          <th class="rowhead av">${l.aviario}</th>
+          <td>${calc.idadeAtual}d</td>
+          ${celulas}
+          <td style="font-weight:700;">${calc.mais35!=null ? calc.mais35.toFixed(2).replace('.',',')+'%' : '–'}</td>
+        </tr>`;
+      });
+    }
+  });
+  html += '</tbody></table></div>';
+  cont.innerHTML = html;
+
+  cont.querySelectorAll('[data-toggle-mort-sem]').forEach(el=>{
+    el.addEventListener('click', ()=>{
+      const n = el.dataset.toggleMortSem;
+      if(mortSemanalRecolhidos.has(n)) mortSemanalRecolhidos.delete(n); else mortSemanalRecolhidos.add(n);
+      renderMortalidadesSemanal();
+    });
+  });
+
+  // gráfico de maiores mortalidades: top 12 aviários por totalGeral
+  const top = calculados.slice().sort((a,b)=>b.calc.totalGeral-a.calc.totalGeral).slice(0,12);
+  const ctxTop = document.getElementById('graficoMaioresMortalidades');
+  if(ctxTop){
+    if(window.chartMaioresMortalidades) window.chartMaioresMortalidades.destroy();
+    window.chartMaioresMortalidades = new Chart(ctxTop.getContext('2d'), {
+      type: 'bar',
+      data: {
+        labels: top.map(c => `${nomeNucleo(c.l.nucleo)} / ${c.l.aviario}`),
+        datasets: [{ label: '% Mortalidade acumulada', data: top.map(c=>Math.round(c.calc.totalGeral*100)/100), backgroundColor: top.map((_,i)=> i<3 ? '#C1272D' : '#F2A900') }]
+      },
+      options: {
+        indexAxis: 'y', responsive:true, maintainAspectRatio:false,
+        plugins:{ legend:{display:false} },
+        scales:{ x:{ beginAtZero:true, title:{display:true,text:'% mortalidade'} } }
+      }
+    });
+  }
+}
 function pctEsperadoNaIdade(idade, metrica){
   const agg = (AGG_IDADE[sexoAtivo] || AGG_IDADE['Todos']).Fechado;
   if(!agg || !agg.length) return null;
@@ -3196,6 +3292,7 @@ function render(){
     const lotesAtivos = lotes.filter(l => lotesSelecionados.has(l.loteId));
     renderCards();
     renderMatrizDiaria();
+    renderMortalidadesSemanal();
     renderIdadeAndamento();
     renderBarrasAndamento();
     renderRankingNucleosAndamento();
@@ -4464,7 +4561,7 @@ function renderMapeamentoLotes(){
   const linhas = [];
   porAviario.forEach(ref=>{
     const idadeAtual = ref.idadeAbate!=null ? ref.idadeAbate : '–';
-    const matriz = `${idadeAtual}.${ref.lote}.${ref.alojadas!=null?ref.alojadas:'–'}`;
+    const matriz = ref.matrizTexto || `${idadeAtual}.${ref.lote}.${ref.alojadas!=null?ref.alojadas:'–'}`;
     const loteLimpo = mapl_limparPrefixoLote(ref.lote);
     const porIdade = mortPorLote.get(loteLimpo) || mortPorLote.get(ref.lote) || {};
     linhas.push({ nucleo: ref.nucleo, aviario: ref.aviario, incubatorio: ref.incubatorio||'–', dataAloj: ref.dataAloj, matriz, porIdade, totalGeral: ref.mortElim!=null?ref.mortElim:null });
@@ -5900,7 +5997,7 @@ if(btnImportarQuadroInicial){
   });
 }
 
-// ================= Registros (Falta de Energia, Ambiência, Qualidade de Pintinhos) =================
+// ================= Registros (Falta de Energia, Qualidade de Pintinhos) =================
 function reg_formatarDataBR(iso){
   if(!iso) return '–';
   const m = String(iso).match(/^(\d{4})-(\d{2})-(\d{2})/);
@@ -5920,7 +6017,7 @@ function reg_calcularDuracaoEnergia(horaInicio, horaRetorno){
 }
 
 function reg_popularNucleos(){
-  ['regEn_nucleo','regAmb_nucleo','regPin_nucleo'].forEach(id=>{
+  ['regEn_nucleo','regPin_nucleo'].forEach(id=>{
     const sel = document.getElementById(id);
     if(sel && !sel.dataset.populado){
       sel.innerHTML = '<option value="">Selecione...</option>' + NUCLEOS_QUADRO.map(n=>`<option value="${n}">${n}</option>`).join('');
@@ -5929,11 +6026,46 @@ function reg_popularNucleos(){
   });
 }
 
+// mapa núcleo -> lista de aviários conhecidos, construído a partir da base bruta de mortalidade (RAW_DATA é global, sempre carregada)
+// os nomes no dado bruto (ex: "NÚCLEO AEROPORTO 02") não batem 1:1 com a lista usada no formulário (ex: "Aeroporto") — daí a tabela de correspondência.
+const REG_MAPA_NUCLEO_BRUTO_PARA_QUADRO = {
+  'NÚCLEO AEROPORTO 01': 'Aeroporto', 'NÚCLEO AEROPORTO 02': 'Aeroporto',
+  'NÚCLEO AROEIRA': 'Aroeira', 'NÚCLEO ENGOPA': 'Engopa', 'NÚCLEO FLAMBOYANT': 'Flamboyant',
+  'NÚCLEO PARAÍSO 01': 'Paraiso 01', 'NÚCLEO PARAÍSO 02': 'Paraiso 02', 'NÚCLEO PARAÍSO 03': 'Paraiso 03', 'NÚCLEO PARAÍSO 04': 'Paraiso 04',
+  'NÚCLEO SANTA ROSA': 'Santa Rosa', 'NÚCLEO VAUZINHO': 'Valzinho',
+  'NÚCLEO VINAGRE 01': 'Vinagre 01', 'NÚCLEO VINAGRE 02': 'Vinagre 02', 'NÚCLEO VINAGRE 03': 'Vinagre 03'
+};
+let reg_mapaAviariosPorNucleo = null;
+function reg_construirMapaAviarios(){
+  if(reg_mapaAviariosPorNucleo) return reg_mapaAviariosPorNucleo;
+  reg_mapaAviariosPorNucleo = new Map();
+  (typeof RAW_DATA!=='undefined' ? RAW_DATA : []).forEach(l=>{
+    const nucBruto = l['Núcleo'], avi = l['Aviário'];
+    const nuc = REG_MAPA_NUCLEO_BRUTO_PARA_QUADRO[nucBruto];
+    if(!nuc || !avi) return;
+    if(!reg_mapaAviariosPorNucleo.has(nuc)) reg_mapaAviariosPorNucleo.set(nuc, new Set());
+    reg_mapaAviariosPorNucleo.get(nuc).add(String(avi));
+  });
+  return reg_mapaAviariosPorNucleo;
+}
+function reg_popularAviariosPintinhos(valorAtual){
+  const nucleo = document.getElementById('regPin_nucleo').value;
+  const selAviario = document.getElementById('regPin_aviario');
+  const mapa = reg_construirMapaAviarios();
+  const aviarios = nucleo && mapa.has(nucleo) ? Array.from(mapa.get(nucleo)).sort((a,b)=>a.localeCompare(b,undefined,{numeric:true})) : [];
+  if(!nucleo){ selAviario.innerHTML = '<option value="">Selecione o núcleo primeiro...</option>'; return; }
+  selAviario.innerHTML = aviarios.length
+    ? '<option value="">Selecione...</option>' + aviarios.map(a=>`<option value="${a}">${a}</option>`).join('')
+    : '<option value="">Nenhum aviário conhecido pra esse núcleo</option>';
+  if(valorAtual && aviarios.includes(valorAtual)) selAviario.value = valorAtual;
+}
+document.getElementById('regPin_nucleo').addEventListener('change', ()=> reg_popularAviariosPintinhos());
+
 document.querySelectorAll('#reg-tabs .tab-int').forEach(b=>b.addEventListener('click',()=>{
   document.querySelectorAll('#reg-tabs .tab-int').forEach(x=>x.classList.remove('ativo'));
   b.classList.add('ativo');
   const aba = b.dataset.abaReg;
-  ['energia','ambiencia','pintinhos'].forEach(a=>{
+  ['energia','pintinhos'].forEach(a=>{
     document.querySelector(`#mod-registros [data-aba-reg-view="${a}"]`).style.display = (a===aba) ? '' : 'none';
   });
 }));
@@ -5941,19 +6073,18 @@ document.querySelectorAll('#reg-tabs .tab-int').forEach(b=>b.addEventListener('c
 async function iniciarRegistros(){
   reg_popularNucleos();
   const hoje = new Date().toISOString().slice(0,10);
-  ['regEn_data','regAmb_data','regPin_data'].forEach(id=>{
+  ['regEn_data','regPin_data'].forEach(id=>{
     const el = document.getElementById(id);
     if(el && !el.value) el.value = hoje;
   });
   // campo "lançado por" e edição só aparecem pro admin principal (uso: migrar lançamentos antigos)
   if(window.souAdminPrincipal){
-    ['regEn_campoLancadoPor','regAmb_campoLancadoPor','regPin_campoLancadoPor'].forEach(id=>{
+    ['regEn_campoLancadoPor','regPin_campoLancadoPor'].forEach(id=>{
       const el = document.getElementById(id);
       if(el) el.style.display = '';
     });
   }
   await reg_carregarHistorico('energia');
-  await reg_carregarHistorico('ambiencia');
   await reg_carregarHistorico('pintinhos');
 }
 window.iniciarRegistros = iniciarRegistros;
@@ -5964,11 +6095,11 @@ function reg_escapar(txt){
   return div.innerHTML;
 }
 
-const REG_COLECOES = { energia:'registros_energia', ambiencia:'registros_ambiencia', pintinhos:'registros_pintinhos' };
+const REG_COLECOES = { energia:'registros_energia', pintinhos:'registros_pintinhos' };
 
 async function reg_carregarHistorico(tipo){
-  const tabela = document.getElementById(tipo==='energia'?'regEn_tabela':(tipo==='ambiencia'?'regAmb_tabela':'regPin_tabela'));
-  const info = document.getElementById(tipo==='energia'?'regEn_info':(tipo==='ambiencia'?'regAmb_info':'regPin_info'));
+  const tabela = document.getElementById(tipo==='energia'?'regEn_tabela':'regPin_tabela');
+  const info = document.getElementById(tipo==='energia'?'regEn_info':'regPin_info');
   if(!tabela) return;
   tabela.innerHTML = '<tbody><tr><td style="padding:14px;">Carregando...</td></tr></tbody>';
   try{
@@ -5992,22 +6123,14 @@ async function reg_carregarHistorico(tipo){
         <td><button class="quadro-btn-remover-posto" data-reg-remover="energia" data-reg-remover-id="${d.id}" title="Excluir">✕</button></td>
         ${window.souAdminPrincipal?`<td><button class="quadro-btn-remover-posto" data-reg-editar="energia" data-reg-editar-id="${d.id}" title="Editar">✏️</button></td>`:''}
       </tr>`).join('');
-    } else if(tipo==='ambiencia'){
-      thead = `<thead><tr><th>Data</th><th>Núcleo</th><th>Aviário</th><th>Temperatura (°C)</th><th>Amônia (ppm)</th><th>Lançado por</th><th></th>${colEditar('<th></th>')}</tr></thead>`;
-      corpo = docs.map(d=>`<tr data-reg-id="${d.id}">
-        <td>${reg_formatarDataBR(d.data)}</td><td>${d.nucleo||'–'}</td><td>${d.aviario||'–'}</td>
-        <td>${d.temperatura!=null?d.temperatura+'°C':'–'}</td><td>${d.nivelAmonia!=null?d.nivelAmonia:'–'}</td>
-        <td style="font-size:10.5px;color:var(--texto-suave);">${d.criadoPor||'–'}</td>
-        <td><button class="quadro-btn-remover-posto" data-reg-remover="ambiencia" data-reg-remover-id="${d.id}" title="Excluir">✕</button></td>
-        ${window.souAdminPrincipal?`<td><button class="quadro-btn-remover-posto" data-reg-editar="ambiencia" data-reg-editar-id="${d.id}" title="Editar">✏️</button></td>`:''}
-      </tr>`).join('');
     } else {
-      thead = `<thead><tr><th>Data</th><th>Núcleo</th><th>Aviário</th><th>Qtd.</th><th>T° Galpão</th><th>T° Caminhão</th><th>T° Cloacal</th><th>Plumagem</th><th>Desidr.</th><th>Umbigo</th><th>Hematoma</th><th>Lançado por</th><th></th>${colEditar('<th></th>')}</tr></thead>`;
+      thead = `<thead><tr><th>Data</th><th>Núcleo</th><th>Aviário</th><th>Qtd.</th><th>T° Galpão</th><th>T° Caminhão</th><th>T° Cloacal</th><th>Plumagem</th><th>Desidr.</th><th>Umbigo</th><th>Hematoma</th><th>Amônia (ppm)</th><th>Lançado por</th><th></th>${colEditar('<th></th>')}</tr></thead>`;
       corpo = docs.map(d=>`<tr data-reg-id="${d.id}">
         <td>${reg_formatarDataBR(d.data)}</td><td>${d.nucleo||'–'}</td><td>${d.aviario||'–'}</td>
         <td>${d.quantidade!=null?d.quantidade:'–'}</td><td>${d.tempGalpao!=null?d.tempGalpao+'°C':'–'}</td>
         <td>${d.tempCaminhao!=null?d.tempCaminhao+'°C':'–'}</td><td>${d.tempCloacal||0}</td><td>${d.plumagem||0}</td>
         <td>${d.desidratacao||0}</td><td>${d.umbigo||0}</td><td>${d.hematoma||0}</td>
+        <td>${d.nivelAmonia!=null?d.nivelAmonia:'–'}</td>
         <td style="font-size:10.5px;color:var(--texto-suave);">${d.criadoPor||'–'}</td>
         <td><button class="quadro-btn-remover-posto" data-reg-remover="pintinhos" data-reg-remover-id="${d.id}" title="Excluir">✕</button></td>
         ${window.souAdminPrincipal?`<td><button class="quadro-btn-remover-posto" data-reg-editar="pintinhos" data-reg-editar-id="${d.id}" title="Editar">✏️</button></td>`:''}
@@ -6037,8 +6160,8 @@ async function reg_carregarHistorico(tipo){
 
 window.regGraficos = window.regGraficos || {};
 function reg_renderGrafico(tipo, docs){
-  const canvasId = tipo==='energia' ? 'regEn_grafico' : (tipo==='ambiencia' ? 'regAmb_grafico' : 'regPin_grafico');
-  const notaId = tipo==='energia' ? 'regEn_graficoNota' : (tipo==='ambiencia' ? 'regAmb_graficoNota' : 'regPin_graficoNota');
+  const canvasId = tipo==='energia' ? 'regEn_grafico' : 'regPin_grafico';
+  const notaId = tipo==='energia' ? 'regEn_graficoNota' : 'regPin_graficoNota';
   const canvas = document.getElementById(canvasId);
   const notaEl = document.getElementById(notaId);
   if(!canvas) return;
@@ -6074,42 +6197,16 @@ function reg_renderGrafico(tipo, docs){
       }
     });
     if(notaEl) notaEl.textContent = `${docs.length} registro(s) no total, em ${nucleos.length} núcleo(s).`;
-  } else if(tipo==='ambiencia'){
-    const porNucleo = new Map();
-    docs.forEach(d=>{
-      const n = d.nucleo || '—';
-      if(!porNucleo.has(n)) porNucleo.set(n, {somaTemp:0, contTemp:0, somaAmonia:0, contAmonia:0});
-      const o = porNucleo.get(n);
-      if(d.temperatura!=null){ o.somaTemp += Number(d.temperatura); o.contTemp++; }
-      if(d.nivelAmonia!=null){ o.somaAmonia += Number(d.nivelAmonia); o.contAmonia++; }
-    });
-    const nucleos = Array.from(porNucleo.keys()).sort();
-    window.regGraficos.ambiencia = new Chart(ctx, {
-      type: 'bar',
-      data: {
-        labels: nucleos,
-        datasets: [
-          { label: 'Temperatura média (°C)', data: nucleos.map(n=>{ const o=porNucleo.get(n); return o.contTemp? Math.round(o.somaTemp/o.contTemp*10)/10 : null; }), backgroundColor: '#C1272D', yAxisID: 'y' },
-          { label: 'Amônia média (ppm)', data: nucleos.map(n=>{ const o=porNucleo.get(n); return o.contAmonia? Math.round(o.somaAmonia/o.contAmonia*10)/10 : null; }), backgroundColor: '#8A6200', yAxisID: 'y1' }
-        ]
-      },
-      options: {
-        responsive:true, maintainAspectRatio:false,
-        scales:{
-          y:{ position:'left', beginAtZero:true, title:{display:true,text:'°C'} },
-          y1:{ position:'right', beginAtZero:true, grid:{drawOnChartArea:false}, title:{display:true,text:'ppm'} }
-        }
-      }
-    });
-    if(notaEl) notaEl.textContent = `${docs.length} registro(s) no total, em ${nucleos.length} núcleo(s).`;
   } else {
     const totais = { 'Temp. cloacal': 0, 'Plumagem ruim': 0, 'Desidratação': 0, 'Umbigo aberto': 0, 'Hematoma': 0 };
+    let somaAmonia=0, contAmonia=0;
     docs.forEach(d=>{
       totais['Temp. cloacal'] += (d.tempCloacal||0);
       totais['Plumagem ruim'] += (d.plumagem||0);
       totais['Desidratação'] += (d.desidratacao||0);
       totais['Umbigo aberto'] += (d.umbigo||0);
       totais['Hematoma'] += (d.hematoma||0);
+      if(d.nivelAmonia!=null){ somaAmonia += Number(d.nivelAmonia); contAmonia++; }
     });
     window.regGraficos.pintinhos = new Chart(ctx, {
       type: 'bar',
@@ -6120,14 +6217,14 @@ function reg_renderGrafico(tipo, docs){
       options: { responsive:true, maintainAspectRatio:false, plugins:{legend:{display:false}}, scales:{ y:{ beginAtZero:true } } }
     });
     const totalPintinhos = docs.reduce((s,d)=>s+(d.quantidade||0),0);
-    if(notaEl) notaEl.textContent = `${docs.length} registro(s), somando ${totalPintinhos.toLocaleString('pt-BR')} pintinho(s) avaliado(s).`;
+    const amoniaMedia = contAmonia ? (somaAmonia/contAmonia).toFixed(1) : '–';
+    if(notaEl) notaEl.textContent = `${docs.length} registro(s), somando ${totalPintinhos.toLocaleString('pt-BR')} pintinho(s) avaliado(s). Amônia média: ${amoniaMedia} ppm.`;
   }
 }
 
 // --- Formulário: Falta de Energia ---
 function reg_camposPorTipo(tipo){
   if(tipo==='energia') return {form:'regEnergiaForm', prefixo:'regEn', colecao:'registros_energia'};
-  if(tipo==='ambiencia') return {form:'regAmbForm', prefixo:'regAmb', colecao:'registros_ambiencia'};
   return {form:'regPinForm', prefixo:'regPin', colecao:'registros_pintinhos'};
 }
 
@@ -6147,12 +6244,8 @@ function reg_entrarModoEdicao(tipo, doc){
     document.getElementById('regEn_horaRetorno').value = doc.horaRetorno || '';
     document.getElementById('regEn_diesel').value = doc.consumoDiesel!=null ? doc.consumoDiesel : '';
     document.getElementById('regEn_obs').value = doc.observacoes || '';
-  } else if(tipo==='ambiencia'){
-    document.getElementById('regAmb_aviario').value = doc.aviario || '';
-    document.getElementById('regAmb_temp').value = doc.temperatura!=null ? doc.temperatura : '';
-    document.getElementById('regAmb_amonia').value = doc.nivelAmonia!=null ? doc.nivelAmonia : '';
   } else {
-    document.getElementById('regPin_aviario').value = doc.aviario || '';
+    reg_popularAviariosPintinhos(doc.aviario || ''); // recarrega as opções do núcleo certo e já seleciona o aviário salvo
     document.getElementById('regPin_qtd').value = doc.quantidade!=null ? doc.quantidade : '';
     document.getElementById('regPin_tempGalpao').value = doc.tempGalpao!=null ? doc.tempGalpao : '';
     document.getElementById('regPin_tempCaminhao').value = doc.tempCaminhao!=null ? doc.tempCaminhao : '';
@@ -6161,6 +6254,7 @@ function reg_entrarModoEdicao(tipo, doc){
     document.getElementById('regPin_desidratacao').value = doc.desidratacao || 0;
     document.getElementById('regPin_umbigo').value = doc.umbigo || 0;
     document.getElementById('regPin_hematoma').value = doc.hematoma || 0;
+    document.getElementById('regPin_amonia').value = doc.nivelAmonia!=null ? doc.nivelAmonia : '';
   }
   document.getElementById(prefixo+'_btnSalvar').textContent = 'Atualizar registro';
   document.getElementById(prefixo+'_btnCancelarEdicao').style.display = '';
@@ -6176,7 +6270,7 @@ function reg_sairModoEdicao(tipo){
   document.getElementById(prefixo+'_btnCancelarEdicao').style.display = 'none';
 }
 
-['energia','ambiencia','pintinhos'].forEach(tipo=>{
+['energia','pintinhos'].forEach(tipo=>{
   const {prefixo} = reg_camposPorTipo(tipo);
   const btnCancelar = document.getElementById(prefixo+'_btnCancelarEdicao');
   if(btnCancelar) btnCancelar.addEventListener('click', ()=> reg_sairModoEdicao(tipo));
@@ -6220,42 +6314,6 @@ if(regEnergiaForm){
   });
 }
 
-// --- Formulário: Ambiência ---
-const regAmbForm = document.getElementById('regAmbForm');
-if(regAmbForm){
-  regAmbForm.addEventListener('submit', async (e)=>{
-    e.preventDefault();
-    const erroEl = document.getElementById('regAmb_erro');
-    erroEl.style.color=''; erroEl.textContent='';
-    const editandoId = document.getElementById('regAmb_editandoId').value;
-    const lancadoPor = window.souAdminPrincipal ? document.getElementById('regAmb_lancadoPor').value.trim() : '';
-    const dados = {
-      nucleo: document.getElementById('regAmb_nucleo').value,
-      aviario: document.getElementById('regAmb_aviario').value.trim(),
-      data: document.getElementById('regAmb_data').value,
-      temperatura: document.getElementById('regAmb_temp').value ? parseFloat(document.getElementById('regAmb_temp').value) : null,
-      nivelAmonia: document.getElementById('regAmb_amonia').value ? parseFloat(document.getElementById('regAmb_amonia').value) : null,
-      criadoPor: lancadoPor || (auth.currentUser&&auth.currentUser.email)||'',
-    };
-    if(!dados.nucleo || !dados.aviario || !dados.data || dados.temperatura==null){ erroEl.textContent = 'Preencha ao menos Núcleo, Aviário, Data e Temperatura.'; return; }
-    const btn = regAmbForm.querySelector('button[type="submit"]');
-    btn.disabled = true; btn.textContent = editandoId ? 'Atualizando...' : 'Salvando...';
-    try{
-      if(editandoId){
-        await db.collection('registros_ambiencia').doc(editandoId).update(dados);
-        erroEl.style.color = 'var(--verde-ok)'; erroEl.textContent = 'Registro atualizado com sucesso!';
-      } else {
-        dados.criadoEm = firebase.firestore.FieldValue.serverTimestamp();
-        await db.collection('registros_ambiencia').add(dados);
-        erroEl.style.color = 'var(--verde-ok)'; erroEl.textContent = 'Registro salvo com sucesso!';
-      }
-      reg_sairModoEdicao('ambiencia');
-      reg_carregarHistorico('ambiencia');
-    }catch(err){ erroEl.style.color=''; erroEl.textContent = 'Erro ao salvar: ' + err.message; }
-    finally{ btn.disabled = false; }
-  });
-}
-
 // --- Formulário: Qualidade de Pintinhos ---
 function reg_exportarExcel(tipo){
   if(typeof XLSX === 'undefined'){ alert('Não foi possível carregar o gerador de Excel. Verifique sua conexão e tente de novo.'); return; }
@@ -6269,13 +6327,13 @@ function reg_exportarExcel(tipo){
     const celulas = Array.from(tr.children).map(td=>td.textContent.trim()).filter((_,i)=> i < cabecalhos.length);
     linhas.push(celulas);
   });
-  const nomes = {energia:'Falta de Energia', ambiencia:'Ambiência', pintinhos:'Qualidade de Pintinhos'};
+  const nomes = {energia:'Falta de Energia', pintinhos:'Qualidade de Pintinhos'};
   const ws = XLSX.utils.aoa_to_sheet(linhas);
   const wb = XLSX.utils.book_new();
   XLSX.utils.book_append_sheet(wb, ws, nomes[tipo]);
   XLSX.writeFile(wb, `${tipo}_${new Date().toISOString().slice(0,10)}.xlsx`);
 }
-['energia','ambiencia','pintinhos'].forEach(tipo=>{
+['energia','pintinhos'].forEach(tipo=>{
   const {prefixo} = reg_camposPorTipo(tipo);
   const btn = document.getElementById(prefixo+'_btnExcel');
   if(btn) btn.addEventListener('click', ()=> reg_exportarExcel(tipo));
@@ -6302,9 +6360,10 @@ if(regPinForm){
       desidratacao: numOrNull('regPin_desidratacao') || 0,
       umbigo: numOrNull('regPin_umbigo') || 0,
       hematoma: numOrNull('regPin_hematoma') || 0,
+      nivelAmonia: numOrNull('regPin_amonia'),
       criadoPor: lancadoPor || (auth.currentUser&&auth.currentUser.email)||'',
     };
-    if(!dados.nucleo || !dados.aviario || !dados.data || dados.quantidade==null){ erroEl.textContent = 'Preencha ao menos Núcleo, Aviário, Data e Quantidade de Pintinhos.'; return; }
+    if(!dados.nucleo || !dados.aviario || !dados.data || dados.quantidade==null || dados.nivelAmonia==null){ erroEl.textContent = 'Preencha ao menos Núcleo, Aviário, Data, Quantidade de Pintinhos e Nível de Amônia.'; return; }
     const btn = regPinForm.querySelector('button[type="submit"]');
     btn.disabled = true; btn.textContent = editandoId ? 'Atualizando...' : 'Salvando...';
     try{
