@@ -5295,14 +5295,22 @@ function processarEstadoAuth(user){
 
     // 2ª e 3ª camadas de segurança, nessa ordem: 1) e-mail precisa estar confirmado (prova que a pessoa
     // realmente tem acesso àquela caixa de entrada, evita cadastro com e-mail alheio) e 2) cadastro
-    // precisa ser aprovado manualmente pelo admin (mesmo já confirmado). Admin principal nunca é bloqueado.
+    // precisa ser aprovado manualmente pelo admin (mesmo já confirmado). Além disso, MESMO quem já foi
+    // aprovado antes é checado de novo a cada login: se o e-mail foi removido da lista de autorizados
+    // (ex: a pessoa saiu da empresa), o acesso é bloqueado imediatamente, sem precisar excluir a conta
+    // do Firebase (que não é possível fazer com segurança sem um servidor). Admin principal nunca é bloqueado.
     const checarTudo = window.souAdminPrincipal
       ? Promise.resolve({status:'ok'})
       : user.reload().then(()=>{
           if(!auth.currentUser.emailVerified) return {status:'confirmar_email'};
           return db.collection('acessos').doc(user.uid).get().then(doc => {
             if(doc.exists && doc.data().reprovado === true) return {status:'reprovado'};
-            if(doc.exists && doc.data().aprovado === true) return {status:'ok'};
+            if(doc.exists && doc.data().aprovado === true){
+              // já foi aprovado antes — mas confere de novo se o e-mail continua na lista de autorizados
+              return db.collection('emails_autorizados').doc(emailLower).get().then(docEmail => {
+                return docEmail.exists ? {status:'ok'} : {status:'reprovado'};
+              });
+            }
             if(doc.exists && doc.data().hasOwnProperty('aprovado')) return {status:'pendente'};
             if(doc.exists) return {status:'ok'}; // registro de antes dessa atualização de segurança -> libera, sem gravar nada
             return db.collection('acessos').doc(user.uid).set({
@@ -5416,9 +5424,16 @@ async function carregarListaEmails(){
     cont.querySelectorAll('[data-remover]').forEach(btn => {
       btn.addEventListener('click', async () => {
         if(btn.dataset.email === ADMIN_EMAIL){ alert('Esse é o seu próprio e-mail de administrador — não é possível remover.'); return; }
-        if(!confirm(`Remover "${btn.dataset.email}" da lista de autorizados?`)) return;
+        if(!confirm(`Remover "${btn.dataset.email}" da lista de autorizados? Se essa pessoa já tiver uma conta, o acesso dela será bloqueado imediatamente.`)) return;
         btn.textContent = 'Removendo...'; btn.disabled = true;
-        try{ await db.collection('emails_autorizados').doc(btn.dataset.remover).delete(); carregarListaEmails(); }
+        try{
+          await db.collection('emails_autorizados').doc(btn.dataset.remover).delete();
+          // cascata: bloqueia (e tira da lista de pendentes) qualquer acesso já existente vinculado a esse e-mail
+          const snapAcessos = await db.collection('acessos').where('email','==',btn.dataset.email).get();
+          await Promise.all(snapAcessos.docs.map(doc => doc.ref.set({reprovado:true, aprovado:false}, {merge:true})));
+          carregarListaEmails();
+          if(window.carregarPendentesAprovacao) window.carregarPendentesAprovacao();
+        }
         catch(e){ alert('Erro ao remover: ' + e.message); btn.textContent='Remover'; btn.disabled=false; }
       });
     });
