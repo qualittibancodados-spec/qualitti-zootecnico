@@ -1261,6 +1261,7 @@
       <div data-aba-reg-view="energia">
         <div class="painel">
           <h2 style="margin-top:0;">Novo registro</h2>
+          <p class="nota" style="margin-top:0;color:#8A6200;background:#FFF4E1;border:1px solid #F0CB7A;border-radius:9px;padding:10px 12px;">⚠️ Lance esse registro <strong>somente depois que a energia retornar</strong> — o campo "Hora Retorno" é o que permite calcular certinho quanto tempo a granja ficou sem energia. Se lançar antes do retorno, o histórico vai mostrar "ainda sem retorno" até você editar e completar.</p>
           <form id="regEnergiaForm" class="reg-form">
             <input type="hidden" id="regEn_editandoId" value="">
             <div class="campo" id="regEn_campoLancadoPor" style="display:none;"><label>Lançado por (e-mail) — opcional, só admin</label><input type="email" id="regEn_lancadoPor" placeholder="deixe em branco pra usar seu e-mail"></div>
@@ -1281,6 +1282,7 @@
         </div>
         <div class="painel">
           <div class="painel-header"><h2>Histórico</h2><span class="info" id="regEn_info"></span></div>
+          <button class="btn-recolher" id="regEn_btnExcel" type="button" style="margin-bottom:12px;">📊 Exportar Excel</button>
           <div class="tabela-scroll"><table class="matriz-diaria" id="regEn_tabela"></table></div>
         </div>
       </div>
@@ -1306,6 +1308,7 @@
         </div>
         <div class="painel">
           <div class="painel-header"><h2>Histórico</h2><span class="info" id="regAmb_info"></span></div>
+          <button class="btn-recolher" id="regAmb_btnExcel" type="button" style="margin-bottom:12px;">📊 Exportar Excel</button>
           <div class="tabela-scroll"><table class="matriz-diaria" id="regAmb_tabela"></table></div>
         </div>
       </div>
@@ -1337,6 +1340,7 @@
         </div>
         <div class="painel">
           <div class="painel-header"><h2>Histórico</h2><span class="info" id="regPin_info"></span></div>
+          <button class="btn-recolher" id="regPin_btnExcel" type="button" style="margin-bottom:12px;">📊 Exportar Excel</button>
           <div class="tabela-scroll"><table class="matriz-diaria" id="regPin_tabela"></table></div>
         </div>
       </div>
@@ -5153,27 +5157,10 @@ async function carregarListaEmails(){
     info.textContent = `${docs.length} e-mail(s) autorizado(s)`;
     if(!docs.length){ cont.innerHTML = '<p class="nota">Nenhum e-mail cadastrado ainda.</p>'; return; }
     cont.innerHTML = docs.map(d => `
-      <div class="rank-card" style="grid-template-columns:1fr auto auto;align-items:center;gap:8px;">
+      <div class="rank-card" style="grid-template-columns:1fr auto;align-items:center;">
         <div class="rank-nome">${d.email}</div>
-        <button class="btn-recolher" data-resetar-senha="${d.email}" title="Manda um link de redefinição de senha pro e-mail dela">🔑 Redefinir senha</button>
         <button class="btn-recolher" data-remover="${d.id}" data-email="${d.email}" style="border-color:var(--vermelho-alerta);color:var(--vermelho-alerta);">Remover</button>
       </div>`).join('');
-    cont.querySelectorAll('[data-resetar-senha]').forEach(btn => {
-      btn.addEventListener('click', async () => {
-        const email = btn.dataset.resetarSenha;
-        if(!confirm(`Enviar um link de redefinição de senha pro e-mail "${email}"?`)) return;
-        const textoOriginal = btn.textContent;
-        btn.textContent = 'Enviando...'; btn.disabled = true;
-        try{
-          await auth.sendPasswordResetEmail(email);
-          btn.textContent = '✅ Enviado!';
-          setTimeout(()=>{ btn.textContent = textoOriginal; btn.disabled = false; }, 3000);
-        }catch(e){
-          alert('Erro ao enviar: ' + mensagemErroAuth(e));
-          btn.textContent = textoOriginal; btn.disabled = false;
-        }
-      });
-    });
     cont.querySelectorAll('[data-remover]').forEach(btn => {
       btn.addEventListener('click', async () => {
         if(btn.dataset.email === ADMIN_EMAIL){ alert('Esse é o seu próprio e-mail de administrador — não é possível remover.'); return; }
@@ -5895,6 +5882,17 @@ function reg_formatarDataBR(iso){
   return `${m[3]}/${m[2]}/${m[1]}`;
 }
 
+function reg_calcularDuracaoEnergia(horaInicio, horaRetorno){
+  if(!horaInicio) return '–';
+  if(!horaRetorno) return '<span style="color:var(--vermelho-alerta);font-weight:700;">ainda sem retorno</span>';
+  const [h1,m1] = horaInicio.split(':').map(Number);
+  const [h2,m2] = horaRetorno.split(':').map(Number);
+  let minutos = (h2*60+m2) - (h1*60+m1);
+  if(minutos < 0) minutos += 24*60; // cruzou a meia-noite
+  const horas = Math.floor(minutos/60), min = minutos%60;
+  return `${horas}h${min>0?' '+min+'min':''}`;
+}
+
 function reg_popularNucleos(){
   ['regEn_nucleo','regAmb_nucleo','regPin_nucleo'].forEach(id=>{
     const sel = document.getElementById(id);
@@ -5958,10 +5956,11 @@ async function reg_carregarHistorico(tipo){
     let thead, corpo;
     const colEditar = th => window.souAdminPrincipal ? th : '';
     if(tipo==='energia'){
-      thead = `<thead><tr><th>Data</th><th>Núcleo</th><th>Unid. Consumidora</th><th>Protocolo</th><th>Início</th><th>Retorno</th><th>Diesel (L)</th><th>Observações</th><th>Lançado por</th><th></th>${colEditar('<th></th>')}</tr></thead>`;
+      thead = `<thead><tr><th>Data</th><th>Núcleo</th><th>Unid. Consumidora</th><th>Protocolo</th><th>Início</th><th>Retorno</th><th>Duração</th><th>Diesel (L)</th><th>Observações</th><th>Lançado por</th><th></th>${colEditar('<th></th>')}</tr></thead>`;
       corpo = docs.map(d=>`<tr data-reg-id="${d.id}">
         <td>${reg_formatarDataBR(d.data)}</td><td>${d.nucleo||'–'}</td><td>${d.unidadeConsumidora||'–'}</td>
         <td>${d.protocolo||'–'}</td><td>${d.horaInicio||'–'}</td><td>${d.horaRetorno||'–'}</td>
+        <td style="font-weight:700;">${reg_calcularDuracaoEnergia(d.horaInicio, d.horaRetorno)}</td>
         <td>${d.consumoDiesel!=null?d.consumoDiesel:'–'}</td><td class="reg-obs-celula" style="max-width:220px;font-size:11.5px;">${reg_escapar(d.observacoes)||'–'}</td>
         <td style="font-size:10.5px;color:var(--texto-suave);">${d.criadoPor||'–'}</td>
         <td><button class="quadro-btn-remover-posto" data-reg-remover="energia" data-reg-remover-id="${d.id}" title="Excluir">✕</button></td>
@@ -6142,6 +6141,30 @@ if(regAmbForm){
 }
 
 // --- Formulário: Qualidade de Pintinhos ---
+function reg_exportarExcel(tipo){
+  if(typeof XLSX === 'undefined'){ alert('Não foi possível carregar o gerador de Excel. Verifique sua conexão e tente de novo.'); return; }
+  const {prefixo} = reg_camposPorTipo(tipo);
+  const tabela = document.getElementById(prefixo+'_tabela');
+  if(!tabela || !tabela.querySelector('thead')){ alert('Não há dados pra exportar ainda.'); return; }
+  const linhas = [];
+  const cabecalhos = Array.from(tabela.querySelectorAll('thead th')).map(th=>th.textContent.trim()).filter(t=>t!=='');
+  linhas.push(cabecalhos);
+  tabela.querySelectorAll('tbody tr').forEach(tr=>{
+    const celulas = Array.from(tr.children).map(td=>td.textContent.trim()).filter((_,i)=> i < cabecalhos.length);
+    linhas.push(celulas);
+  });
+  const nomes = {energia:'Falta de Energia', ambiencia:'Ambiência', pintinhos:'Qualidade de Pintinhos'};
+  const ws = XLSX.utils.aoa_to_sheet(linhas);
+  const wb = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb, ws, nomes[tipo]);
+  XLSX.writeFile(wb, `${tipo}_${new Date().toISOString().slice(0,10)}.xlsx`);
+}
+['energia','ambiencia','pintinhos'].forEach(tipo=>{
+  const {prefixo} = reg_camposPorTipo(tipo);
+  const btn = document.getElementById(prefixo+'_btnExcel');
+  if(btn) btn.addEventListener('click', ()=> reg_exportarExcel(tipo));
+});
+
 const regPinForm = document.getElementById('regPinForm');
 if(regPinForm){
   regPinForm.addEventListener('submit', async (e)=>{
