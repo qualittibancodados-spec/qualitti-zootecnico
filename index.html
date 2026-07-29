@@ -695,16 +695,23 @@
   #qf-print-header img{ height:44px; }
   #qf-print-header .qf-print-titulos h1{ font-size:16px; margin:0; font-family:'Sora',sans-serif; }
   #qf-print-header .qf-print-titulos p{ font-size:10px; margin:2px 0 0; color:#666; }
-  /* o grid de cards se ajusta à largura da página inteira (nº de colunas é definido dinamicamente pelo botão Imprimir) */
+  /* a tabela deixa de rolar e passa a se ajustar à largura da página inteira */
   #qf-scrollConsolidada{ overflow:visible !important; width:100% !important; }
-  .qf-cards-grid{ gap:8px !important; }
-  .qf-card-nucleo{ box-shadow:none !important; border:1px solid #999 !important; page-break-inside:avoid; }
-  .qf-card-header{ cursor:default !important; }
+  #qf-tabelaConsolidada{ width:100% !important; table-layout:fixed; font-size:8.5px; }
+  #qf-tabelaConsolidada th, #qf-tabelaConsolidada td{ padding:3px 4px !important; overflow-wrap:break-word; word-break:break-word; text-align:center; }
+  /* 1ª coluna (Núcleo/Aviários) precisa de mais espaço pro nome não estourar, e fica alinhada à esquerda */
+  #qf-tabelaConsolidada th:first-child, #qf-tabelaConsolidada td:first-child{ width:22%; text-align:left !important; }
+  #qf-tabelaConsolidada th:not(:first-child), #qf-tabelaConsolidada td:not(:first-child){ width:auto; }
+  #qf-tabelaConsolidada td.qf-cel-nome{ width:16%; }
+  .qf-nucleo-toggle::before{ content:''; }
+  /* evita que uma linha (núcleo ou detalhe) fique cortada entre duas páginas */
+  #qf-tabelaConsolidada tr{ page-break-inside:avoid; }
+  thead{ display:table-header-group; } /* repete o cabeçalho em cada página nova */
   .qf-totais-grid .qf-stat{ box-shadow:none !important; border:1.5px solid #333 !important; }
   .qf-totais-grid .qf-stat, .qf-totais-grid .qf-stat.qf-stat-falta-zero{ background:#fff !important; color:#000 !important; }
   /* reforço estrutural (funciona mesmo se a impressora não reproduzir cor) */
-  .qf-card-header{ border-bottom:1.5px solid #333 !important; }
-  .qf-card-detalhe{ font-style:italic; }
+  .qf-linha-nucleo-resumo th, .qf-linha-nucleo-resumo td{ border-top:2px solid #333 !important; font-weight:800 !important; }
+  .qf-linha-aviario-detalhe td{ font-style:italic; }
 }
 
 #mapl_print_header{ display:none; }
@@ -2230,6 +2237,7 @@ function renderMortalidadesSemanal(){
     const itens = porNucleo.get(nuc).sort((a,b)=>String(a.l.aviario).localeCompare(String(b.l.aviario), undefined, {numeric:true}));
     const rec = mortSemanalRecolhidos.has(nuc);
     const mediaNuc = itens.reduce((s,c)=>s+c.calc.totalGeral,0) / itens.length;
+    const mediaIdade = itens.reduce((s,c)=>s+c.calc.idadeAtual,0) / itens.length;
     const mediasCheckpoint = MORT_SEMANAL_CHECKPOINTS.map(d=>{
       const valores = itens.map(c=>c.calc.porCheckpoint[d]).filter(v=>v!=null);
       return valores.length ? valores.reduce((s,v)=>s+v,0)/valores.length : null;
@@ -2237,7 +2245,7 @@ function renderMortalidadesSemanal(){
 
     html += `<tr class="linha-nucleo">
       <th class="rowhead"><span class="nuc-toggle" data-toggle-mort-sem="${nuc}" style="cursor:pointer;">${rec?'▸':'▾'}</span> ${nomeNucleo(nuc)} (${itens.length})</th>
-      <td></td>
+      <td style="font-weight:800;">${mediaIdade.toFixed(0)}d méd.</td>
       ${mediasCheckpoint.map(v=>`<td style="font-weight:800;">${v!=null?v.toFixed(2).replace('.',',')+'%':'–'}</td>`).join('')}
       <td style="font-weight:800;">${mediaNuc.toFixed(2)}% méd.</td>
     </tr>`;
@@ -5874,58 +5882,87 @@ function renderQuadroConsolidado(){
 
   let totNecessidadeG=0, totNecessidadeA=0, totAtualG=0, totAtualA=0, totFutG=0, totFutA=0;
 
-  const cardsHtml = nucleosOrdenados.map(nuc=>{
+  const colsAtual = mostraAtual ? `<th colspan="2" class="qf-grupo-atual-th">Quadro Atual (hoje)</th>` : '';
+  const colsFuturo = mostraFuturo ? `<th colspan="2" class="qf-grupo-futuro-th">Quadro Futuro (pós-saídas)</th>` : '';
+  const thead = `<thead>
+    <tr>
+      <th class="rowhead" rowspan="2">Núcleo</th>
+      <th rowspan="2">Necessidade<br>(cada papel)</th>
+      ${colsAtual}
+      ${mostraAtual?'<th rowspan="2">Falta<br>hoje</th>':''}
+      ${colsFuturo}
+      ${mostraFuturo?'<th rowspan="2">Falta<br>futuro</th>':''}
+    </tr>
+    <tr>
+      ${mostraAtual?'<th class="qf-grupo-atual-th">Granjeiros</th><th class="qf-grupo-atual-th">Ajudantes</th>':''}
+      ${mostraFuturo?'<th class="qf-grupo-futuro-th">Granjeiros</th><th class="qf-grupo-futuro-th">Ajudantes</th>':''}
+    </tr>
+  </thead>`;
+
+  const linhas = nucleosOrdenados.map(nuc=>{
     const postos = porNucleo.get(nuc);
     const r = calcularResumoNucleo(nuc, postos);
     totNecessidadeG += r.necessidadeGranjeiro; totNecessidadeA += r.necessidadeAjudante; totAtualG += r.atualGranj; totAtualA += r.atualAjud; totFutG += r.futuroGranj; totFutA += r.futuroAjud;
     const faltaAtual = Math.max(0,r.necessidadeGranjeiro-r.atualGranj) + Math.max(0,r.necessidadeAjudante-r.atualAjud);
     const faltaFuturo = Math.max(0,r.necessidadeGranjeiro-r.futuroGranj) + Math.max(0,r.necessidadeAjudante-r.futuroAjud);
     const expandido = window.qfConsolidadoExpandido.has(nuc);
-    const necessidadeTexto = r.necessidadeGranjeiro===r.necessidadeAjudante ? `Necessidade: ${r.necessidadeGranjeiro}` : `Necessidade: ${r.necessidadeGranjeiro}g / ${r.necessidadeAjudante}a`;
-
-    const secaoAtual = mostraAtual ? `
-      <div class="qf-card-secao atual">
-        <div class="qf-card-secao-titulo">Quadro atual</div>
-        <div class="qf-card-papel-linha"><span class="qf-card-papel-nome">Granjeiros</span><span class="qf-card-papel-valor ${r.atualGranj>=r.necessidadeGranjeiro?'qf-cons-ok':'qf-cons-falta'}">${r.atualGranj}/${r.necessidadeGranjeiro}</span></div>
-        <div class="qf-card-papel-linha"><span class="qf-card-papel-nome">Ajudantes</span><span class="qf-card-papel-valor ${r.atualAjud>=r.necessidadeAjudante?'qf-cons-ok':'qf-cons-falta'}">${r.atualAjud}/${r.necessidadeAjudante}</span></div>
-        <div class="qf-card-falta ${faltaAtual>0?'qf-cons-falta':'qf-cons-ok'}">${faltaAtual>0?`Falta ${faltaAtual}`:'Completo ✓'}</div>
-      </div>` : '';
-    const secaoFuturo = mostraFuturo ? `
-      <div class="qf-card-secao futuro">
-        <div class="qf-card-secao-titulo">Quadro futuro</div>
-        <div class="qf-card-papel-linha"><span class="qf-card-papel-nome">Granjeiros</span><span class="qf-card-papel-valor ${r.futuroGranj>=r.necessidadeGranjeiro?'qf-cons-ok':'qf-cons-falta'}">${r.futuroGranj}/${r.necessidadeGranjeiro}</span></div>
-        <div class="qf-card-papel-linha"><span class="qf-card-papel-nome">Ajudantes</span><span class="qf-card-papel-valor ${r.futuroAjud>=r.necessidadeAjudante?'qf-cons-ok':'qf-cons-falta'}">${r.futuroAjud}/${r.necessidadeAjudante}</span></div>
-        <div class="qf-card-falta ${faltaFuturo>0?'qf-cons-falta':'qf-cons-ok'}">${faltaFuturo>0?`Falta ${faltaFuturo}`:'Completo ✓'}</div>
-      </div>` : '';
-
-    let detalheHtml = '';
+    const necessidadeTexto = r.necessidadeGranjeiro===r.necessidadeAjudante ? r.necessidadeGranjeiro : `${r.necessidadeGranjeiro}g / ${r.necessidadeAjudante}a`;
+    const celAtual = mostraAtual ? `
+      <td class="qf-grupo-atual-td ${r.atualGranj>=r.necessidadeGranjeiro?'qf-cons-ok':'qf-cons-falta'}" style="text-align:center;"><span class="${r.atualGranj>=r.necessidadeGranjeiro?'qf-cons-ok':'qf-cons-falta'}">${r.atualGranj}/${r.necessidadeGranjeiro}</span></td>
+      <td class="qf-grupo-atual-td ${r.atualAjud>=r.necessidadeAjudante?'qf-cons-ok':'qf-cons-falta'}" style="text-align:center;"><span class="${r.atualAjud>=r.necessidadeAjudante?'qf-cons-ok':'qf-cons-falta'}">${r.atualAjud}/${r.necessidadeAjudante}</span></td>
+      <td style="text-align:center;"><span class="${faltaAtual>0?'qf-cons-falta':'qf-cons-ok'}">${faltaAtual}</span></td>` : '';
+    const celFuturo = mostraFuturo ? `
+      <td class="qf-grupo-futuro-td ${r.futuroGranj>=r.necessidadeGranjeiro?'qf-cons-ok':'qf-cons-falta'}" style="text-align:center;"><span class="${r.futuroGranj>=r.necessidadeGranjeiro?'qf-cons-ok':'qf-cons-falta'}">${r.futuroGranj}/${r.necessidadeGranjeiro}</span></td>
+      <td class="qf-grupo-futuro-td ${r.futuroAjud>=r.necessidadeAjudante?'qf-cons-ok':'qf-cons-falta'}" style="text-align:center;"><span class="${r.futuroAjud>=r.necessidadeAjudante?'qf-cons-ok':'qf-cons-falta'}">${r.futuroAjud}/${r.necessidadeAjudante}</span></td>
+      <td style="text-align:center;"><span class="${faltaFuturo>0?'qf-cons-falta':'qf-cons-ok'}">${faltaFuturo}</span></td>` : '';
+    const linhaPrincipal = `<tr class="qf-linha-nucleo-resumo">
+      <th class="rowhead qf-nucleo-toggle" data-toggle-nucleo-cons="${nuc}">${expandido?'▾':'▸'} ${nomeNucleo(nuc)}</th>
+      <td style="text-align:center;">${necessidadeTexto}</td>
+      ${celAtual}
+      ${celFuturo}
+    </tr>`;
+    let linhasDetalhe = '';
     if(expandido){
       const postosOrdenados = postos.slice().sort((a,b)=>String(a.aviarios).localeCompare(String(b.aviarios), undefined, {numeric:true}));
-      detalheHtml = `<div class="qf-card-detalhe">` + postosOrdenados.map(p=>{
+      linhasDetalhe = postosOrdenados.map(p=>{
         const temG = p.granjeiro && p.granjeiro.trim();
         const temA = p.ajudante && p.ajudante.trim();
         const gAtualTxt = temG ? p.granjeiro : '<span class="qf-nome-vago">vago</span>';
         const aAtualTxt = temA ? p.ajudante : '<span class="qf-nome-vago">vago</span>';
         const gFuturoTxt = temG ? (p.granjeiroSaindo ? `<span class="qf-nome-saindo-detalhe">${p.granjeiro}</span>` : p.granjeiro) : '<span class="qf-nome-vago">vago</span>';
         const aFuturoTxt = temA ? (p.ajudanteSaindo ? `<span class="qf-nome-saindo-detalhe">${p.ajudante}</span>` : p.ajudante) : '<span class="qf-nome-vago">vago</span>';
-        const partes = [];
-        if(mostraAtual) partes.push(`Atual: ${gAtualTxt} / ${aAtualTxt}`);
-        if(mostraFuturo) partes.push(`Futuro: ${gFuturoTxt} / ${aFuturoTxt}`);
-        return `<div class="qf-card-detalhe-linha"><span class="qf-card-detalhe-aviario">Aviários ${p.aviarios}</span><span>${partes.join(' &nbsp;|&nbsp; ')}</span></div>`;
-      }).join('') + `</div>`;
+        const detAtual = mostraAtual ? `<td class="qf-cel-nome">${gAtualTxt}</td><td class="qf-cel-nome">${aAtualTxt}</td><td></td>` : '';
+        const detFuturo = mostraFuturo ? `<td class="qf-cel-nome">${gFuturoTxt}</td><td class="qf-cel-nome">${aFuturoTxt}</td><td></td>` : '';
+        return `<tr class="qf-linha-aviario-detalhe">
+          <td>Aviários ${p.aviarios}</td>
+          <td></td>
+          ${detAtual}
+          ${detFuturo}
+        </tr>`;
+      }).join('');
     }
-
-    return `<div class="qf-card-nucleo">
-      <div class="qf-card-header" data-toggle-nucleo-cons="${nuc}">
-        <span class="qf-card-nome"><span class="qf-card-toggle-icon">${expandido?'▾':'▸'}</span> ${nomeNucleo(nuc)}</span>
-        <span class="qf-card-necessidade">${necessidadeTexto}</span>
-      </div>
-      <div class="qf-card-corpo">${secaoAtual}${secaoFuturo}</div>
-      ${detalheHtml}
-    </div>`;
+    return linhaPrincipal + linhasDetalhe;
   }).join('');
 
-  gridEl.innerHTML = cardsHtml;
+  const faltaAtualTotal = Math.max(0,totNecessidadeG-totAtualG) + Math.max(0,totNecessidadeA-totAtualA);
+  const faltaFuturoTotal = Math.max(0,totNecessidadeG-totFutG) + Math.max(0,totNecessidadeA-totFutA);
+  const necessidadeTotalTexto = totNecessidadeG===totNecessidadeA ? totNecessidadeG : `${totNecessidadeG}g / ${totNecessidadeA}a`;
+  const totCelAtual = mostraAtual ? `
+    <td class="qf-grupo-atual-td" style="text-align:center;font-weight:800;">${totAtualG}/${totNecessidadeG}</td>
+    <td class="qf-grupo-atual-td" style="text-align:center;font-weight:800;">${totAtualA}/${totNecessidadeA}</td>
+    <td style="text-align:center;font-weight:800;">${faltaAtualTotal}</td>` : '';
+  const totCelFuturo = mostraFuturo ? `
+    <td class="qf-grupo-futuro-td" style="text-align:center;font-weight:800;">${totFutG}/${totNecessidadeG}</td>
+    <td class="qf-grupo-futuro-td" style="text-align:center;font-weight:800;">${totFutA}/${totNecessidadeA}</td>
+    <td style="text-align:center;font-weight:800;">${faltaFuturoTotal}</td>` : '';
+  const linhaTotal = `<tr class="qf-linha-total-geral">
+    <th class="rowhead">TOTAL GERAL</th>
+    <td style="text-align:center;font-weight:800;">${necessidadeTotalTexto}</td>
+    ${totCelAtual}
+    ${totCelFuturo}
+  </tr>`;
+
+  gridEl.innerHTML = `<div class="tabela-scroll arrastavel"><table class="matriz-diaria" id="qf-tabelaConsolidada">${thead}<tbody>${linhas}${linhaTotal}</tbody></table></div>`;
   gridEl.querySelectorAll('[data-toggle-nucleo-cons]').forEach(el=>{
     el.addEventListener('click', ()=>{
       const n = el.dataset.toggleNucleoCons;
@@ -5935,10 +5972,8 @@ function renderQuadroConsolidado(){
     });
   });
 
-  // resumo geral (totais), em destaque no topo
+  // resumo geral (totais), em destaque acima da tabela
   if(totaisEl){
-    const faltaAtualTotal = Math.max(0,totNecessidadeG-totAtualG) + Math.max(0,totNecessidadeA-totAtualA);
-    const faltaFuturoTotal = Math.max(0,totNecessidadeG-totFutG) + Math.max(0,totNecessidadeA-totFutA);
     const stats = [];
     stats.push(`<div class="qf-stat"><div class="qf-stat-label">Núcleos</div><div class="qf-stat-valor">${nucleosOrdenados.length}</div></div>`);
     if(mostraAtual) stats.push(`<div class="qf-stat"><div class="qf-stat-label">Atual — Granjeiros</div><div class="qf-stat-valor">${totAtualG}<small>/${totNecessidadeG}</small></div></div>`);
@@ -5957,7 +5992,7 @@ function renderQuadroConsolidado(){
   }
   const dataEl = document.getElementById('qf-print-data');
   if(dataEl) dataEl.textContent = 'Gerado em ' + new Date().toLocaleString('pt-BR');
-  if(typeof ativarArrastar==='function') ativarArrastar(document.getElementById('qf-scrollConsolidada'));
+  if(typeof ativarArrastar==='function') ativarArrastar(gridEl.querySelector('.tabela-scroll'));
 }
 window.renderQuadroConsolidado = renderQuadroConsolidado;
 
@@ -5992,19 +6027,20 @@ if(btnImprimirQf){
     const dataEl = document.getElementById('qf-print-data');
     if(dataEl) dataEl.textContent = 'Gerado em ' + new Date().toLocaleString('pt-BR');
 
-    // orientação: "Ambos" tem mais informação por card -> paisagem, grid com mais colunas.
-    // "Só Atual"/"Só Futuro" tem menos informação -> retrato, cards maiores e mais legíveis.
+    // orientação: "Ambos" tem muitas colunas -> paisagem. "Só Atual"/"Só Futuro" tem menos colunas -> retrato, com fonte maior e mais legível.
     const ehAmbos = (window.qfVisaoAtiva === 'ambos');
     let estilo = document.getElementById('qf-print-orientacao-dinamica');
     if(!estilo){ estilo = document.createElement('style'); estilo.id = 'qf-print-orientacao-dinamica'; document.head.appendChild(estilo); }
     estilo.textContent = ehAmbos
       ? `@media print{
            @page{ size: landscape; margin: 10mm; }
-           .qf-cards-grid{ grid-template-columns: repeat(3, 1fr) !important; font-size: 10px !important; }
+           #qf-tabelaConsolidada{ font-size: 8.5px !important; }
+           #qf-tabelaConsolidada th, #qf-tabelaConsolidada td{ padding: 3px 4px !important; }
          }`
       : `@media print{
            @page{ size: portrait; margin: 12mm; }
-           .qf-cards-grid{ grid-template-columns: repeat(2, 1fr) !important; font-size: 11.5px !important; }
+           #qf-tabelaConsolidada{ font-size: 11px !important; }
+           #qf-tabelaConsolidada th, #qf-tabelaConsolidada td{ padding: 6px 8px !important; }
          }`;
     setTimeout(()=>window.print(), 150);
   });
@@ -6616,5 +6652,28 @@ if(regPinForm){
 }
 </script>
 
+<button id="btnSubirTopo" type="button" aria-label="Subir ao topo" style="position:fixed;bottom:22px;right:18px;width:46px;height:46px;border-radius:50%;background:var(--vermelho);color:#fff;border:none;box-shadow:0 4px 14px rgba(193,39,45,.4);font-size:20px;cursor:pointer;display:none;z-index:500;align-items:center;justify-content:center;">↑</button>
+<div id="avisoGirarTela" style="display:none;position:fixed;top:0;left:0;right:0;background:#FFF4E1;color:#8A6200;border-bottom:1px solid #F0CB7A;padding:8px 14px;font-size:12px;text-align:center;z-index:499;">📱 Gire o aparelho na horizontal pra ver essa tabela melhor.</div>
+<script>
+(function(){
+  const btn = document.getElementById('btnSubirTopo');
+  window.addEventListener('scroll', ()=>{
+    btn.style.display = window.scrollY > 400 ? 'flex' : 'none';
+  }, {passive:true});
+  btn.addEventListener('click', ()=> window.scrollTo({top:0, behavior:'smooth'}));
+
+  // aviso de girar a tela: só no celular (retrato, tela estreita) e só quando alguma tabela larga está sendo cortada
+  const aviso = document.getElementById('avisoGirarTela');
+  function checarLargura(){
+    const ehCelularRetrato = window.innerWidth < 600 && window.innerHeight > window.innerWidth;
+    const temTabelaLarga = document.querySelector('.tabela-scroll table, .matriz-diaria');
+    const estourou = temTabelaLarga && temTabelaLarga.scrollWidth > temTabelaLarga.clientWidth + 20;
+    aviso.style.display = (ehCelularRetrato && estourou) ? 'block' : 'none';
+  }
+  window.addEventListener('resize', checarLargura, {passive:true});
+  window.addEventListener('orientationchange', checarLargura);
+  setInterval(checarLargura, 1500); // reavalia periodicamente, já que o conteúdo muda de módulo pra módulo
+})();
+</script>
 </body>
 </html>
