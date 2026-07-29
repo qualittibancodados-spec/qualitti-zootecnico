@@ -178,7 +178,38 @@
   .qf-linha-aviario-detalhe td.qf-cel-nome{ text-align:left; }
   .qf-nome-saindo-detalhe{ text-decoration:line-through; color:var(--vermelho-alerta); }
   .qf-linha-aviario-detalhe .qf-nome-vago{ color:var(--vermelho-alerta); font-style:italic; }
+  .qf-totais-grid{ display:flex; gap:14px; flex-wrap:wrap; margin-bottom:20px; }
+  .qf-totais-grid .qf-stat{ flex:1; min-width:150px; background:var(--vermelho); color:#fff; border-radius:14px; padding:14px 18px; box-shadow:0 4px 14px rgba(193,39,45,.25); }
+  .qf-totais-grid .qf-stat-label{ font-size:10.5px; font-weight:700; text-transform:uppercase; letter-spacing:.04em; opacity:.85; }
+  .qf-totais-grid .qf-stat-valor{ font-size:22px; font-weight:800; font-family:'Sora',sans-serif; margin-top:4px; }
+  .qf-totais-grid .qf-stat-valor small{ font-size:13px; font-weight:600; opacity:.8; }
+  .qf-totais-grid .qf-stat.qf-stat-falta-zero{ background:var(--verde-ok); box-shadow:0 4px 14px rgba(46,155,103,.25); }
+
+  .qf-cards-grid{ display:grid; grid-template-columns:repeat(auto-fill, minmax(300px, 1fr)); gap:16px; }
+  .qf-card-nucleo{ background:var(--card); border:1px solid var(--borda); border-radius:16px; overflow:hidden; box-shadow:var(--sombra); transition:.15s; }
+  .qf-card-nucleo:hover{ box-shadow:0 6px 18px rgba(0,0,0,.09); }
+  .qf-card-header{ display:flex; justify-content:space-between; align-items:center; padding:14px 16px; cursor:pointer; background:#FBF9F4; border-bottom:1px solid var(--borda); }
+  .qf-card-header:hover{ background:#F5F1E6; }
+  .qf-card-nome{ font-family:'Sora',sans-serif; font-weight:800; font-size:15px; color:var(--texto); display:flex; align-items:center; gap:8px; }
+  .qf-card-necessidade{ font-size:11px; font-weight:700; color:var(--texto-suave); background:var(--bg); border:1px solid var(--borda); border-radius:8px; padding:3px 9px; }
+  .qf-card-corpo{ padding:14px 16px; display:flex; gap:12px; flex-wrap:wrap; }
+  .qf-card-secao{ flex:1; min-width:120px; border-radius:12px; padding:10px 12px; }
+  .qf-card-secao.atual{ background:#F5FAFF; border:1px solid #CFE3F7; }
+  .qf-card-secao.futuro{ background:#FFFBF2; border:1px solid #F0DFB0; }
+  .qf-card-secao-titulo{ font-size:10px; font-weight:800; text-transform:uppercase; letter-spacing:.04em; margin-bottom:8px; }
+  .qf-card-secao.atual .qf-card-secao-titulo{ color:#1D5A96; }
+  .qf-card-secao.futuro .qf-card-secao-titulo{ color:#8A6200; }
+  .qf-card-papel-linha{ display:flex; justify-content:space-between; align-items:center; font-size:12.5px; margin-bottom:6px; }
+  .qf-card-papel-nome{ color:var(--texto-suave); font-weight:600; }
+  .qf-card-papel-valor{ font-weight:800; padding:2px 9px; border-radius:20px; font-size:12px; }
+  .qf-card-falta{ margin-top:8px; padding-top:8px; border-top:1px dashed rgba(0,0,0,.1); font-size:11.5px; font-weight:700; text-align:center; border-radius:8px; padding:5px; }
+  .qf-card-detalhe{ border-top:1px solid var(--borda); background:#FAFAF8; padding:10px 16px; }
+  .qf-card-detalhe-linha{ display:flex; justify-content:space-between; gap:10px; font-size:11.5px; padding:5px 0; border-bottom:1px dashed rgba(0,0,0,.06); flex-wrap:wrap; }
+  .qf-card-detalhe-linha:last-child{ border-bottom:none; }
+  .qf-card-detalhe-aviario{ font-weight:700; color:var(--texto-suave); min-width:90px; }
+  .qf-card-toggle-icon{ transition:.15s; display:inline-block; }
   .quadro-nome-saindo{ text-decoration:line-through; color:var(--vermelho-alerta); }
+
   .qf-linha-total-geral{ border-top:3px solid var(--vermelho); }
   .qf-linha-total-geral th, .qf-linha-total-geral td{ background:#FBE3E1 !important; color:var(--vermelho-escuro) !important; font-weight:800; padding-top:10px; padding-bottom:10px; }
   .qf-linha-nucleo-resumo th, .qf-linha-nucleo-resumo td{ background:#FCEBEA !important; color:var(--vermelho-escuro) !important; font-weight:800 !important; }
@@ -239,6 +270,10 @@
   .tendencia.subiu{ color:var(--vermelho-alerta); }
   .tendencia.desceu{ color:var(--verde-ok); }
   .tendencia.neutro{ color:var(--texto-suave); font-weight:500; font-size:11.5px;}
+  .tend-badge{ display:inline-block; padding:4px 10px; border-radius:20px; font-weight:700; font-size:11.5px; cursor:help; white-space:nowrap; }
+  .tend-badge.subiu{ background:#FDECEC; color:var(--vermelho-alerta); }
+  .tend-badge.desceu{ background:#E8F7EC; color:var(--verde-ok); }
+  .tend-badge.neutro{ background:var(--bg); color:var(--texto-suave); font-weight:600; }
 
   .cards{ display:grid; grid-template-columns:repeat(auto-fit, minmax(158px,1fr)); gap:14px; margin-bottom:16px; }
   .card{ background:var(--card); border:1px solid var(--borda); border-radius:var(--raio); padding:18px; box-shadow:var(--sombra); position:relative; overflow:hidden; transition:.18s; }
@@ -660,21 +695,16 @@
   #qf-print-header img{ height:44px; }
   #qf-print-header .qf-print-titulos h1{ font-size:16px; margin:0; font-family:'Sora',sans-serif; }
   #qf-print-header .qf-print-titulos p{ font-size:10px; margin:2px 0 0; color:#666; }
-  /* a tabela deixa de rolar e passa a se ajustar à largura da página inteira */
+  /* o grid de cards se ajusta à largura da página inteira (nº de colunas é definido dinamicamente pelo botão Imprimir) */
   #qf-scrollConsolidada{ overflow:visible !important; width:100% !important; }
-  #qf-tabelaConsolidada{ width:100% !important; table-layout:fixed; font-size:8.5px; }
-  #qf-tabelaConsolidada th, #qf-tabelaConsolidada td{ padding:3px 4px !important; overflow-wrap:break-word; word-break:break-word; text-align:center; }
-  /* 1ª coluna (Núcleo/Aviários) precisa de mais espaço pro nome não estourar, e fica alinhada à esquerda */
-  #qf-tabelaConsolidada th:first-child, #qf-tabelaConsolidada td:first-child{ width:22%; text-align:left !important; }
-  #qf-tabelaConsolidada th:not(:first-child), #qf-tabelaConsolidada td:not(:first-child){ width:auto; }
-  #qf-tabelaConsolidada td.qf-cel-nome{ width:16%; }
-  .qf-nucleo-toggle::before{ content:''; }
-  /* evita que uma linha (núcleo ou detalhe) fique cortada entre duas páginas */
-  #qf-tabelaConsolidada tr{ page-break-inside:avoid; }
-  thead{ display:table-header-group; } /* repete o cabeçalho em cada página nova */
+  .qf-cards-grid{ gap:8px !important; }
+  .qf-card-nucleo{ box-shadow:none !important; border:1px solid #999 !important; page-break-inside:avoid; }
+  .qf-card-header{ cursor:default !important; }
+  .qf-totais-grid .qf-stat{ box-shadow:none !important; border:1.5px solid #333 !important; }
+  .qf-totais-grid .qf-stat, .qf-totais-grid .qf-stat.qf-stat-falta-zero{ background:#fff !important; color:#000 !important; }
   /* reforço estrutural (funciona mesmo se a impressora não reproduzir cor) */
-  .qf-linha-nucleo-resumo th, .qf-linha-nucleo-resumo td{ border-top:2px solid #333 !important; font-weight:800 !important; }
-  .qf-linha-aviario-detalhe td{ font-style:italic; }
+  .qf-card-header{ border-bottom:1.5px solid #333 !important; }
+  .qf-card-detalhe{ font-style:italic; }
 }
 
 #mapl_print_header{ display:none; }
@@ -1281,7 +1311,8 @@
               <p id="qf-print-data"></p>
             </div>
           </div>
-          <div class="tabela-scroll arrastavel" id="qf-scrollConsolidada"><table class="matriz-diaria" id="qf-tabelaConsolidada"></table></div>
+          <div id="qf-resumoTotais" class="qf-totais-grid"></div>
+          <div id="qf-scrollConsolidada" class="qf-cards-grid"></div>
         </div>
       </div>
 
@@ -1558,7 +1589,7 @@
         <span class="info" id="infoQuadro"></span>
       </div>
       <div class="legenda-tendencia">
-        <strong>Tendência do aviário:</strong> compara este lote com a <em>média dos até 3 ciclos anteriores do mesmo aviário, na mesma idade em que este lote está agora</em> (não o resultado final do ciclo deles).
+        <strong>Tendência do aviário:</strong> compara este lote com a <em>média dos até 3 ciclos anteriores do mesmo aviário, na mesma idade em que este lote está agora</em> (não o resultado final do ciclo deles). Passe o mouse sobre o selo pra ver os detalhes.
         <span class="leg-item"><span class="tendencia subiu">▲ subiu</span> = pior que a média recente</span>
         <span class="leg-item"><span class="tendencia desceu">▼ caiu</span> = melhor que a média recente</span>
         <span class="leg-item">em pontos percentuais (p.p.)</span>
@@ -2096,15 +2127,15 @@ function renderQuadro(lotes){
       const tend = tendenciaDoLote(l, metricaAtiva);
       let tendHtml;
       if(!tend){
-        tendHtml = `<span class="tendencia neutro">— 1º ciclo do aviário</span>`;
+        tendHtml = `<span class="tend-badge neutro" title="Primeiro ciclo desse aviário — ainda não há histórico pra comparar.">— 1º ciclo</span>`;
       } else {
-        const ref = `<span style="font-weight:500;color:var(--texto-suave)">vs média ${tend.mediaAnterior.toFixed(2)}% (${tend.nCiclos} ciclo${tend.nCiclos>1?'s':''})</span>`;
+        const tituloRef = `vs média ${tend.mediaAnterior.toFixed(2)}% dos últimos ${tend.nCiclos} ciclo${tend.nCiclos>1?'s':''} (na mesma idade)`;
         if(tend.delta > 0.01){
-          tendHtml = `<span class="tendencia subiu">▲ +${tend.delta.toFixed(2)} p.p. ${ref}</span>`;
+          tendHtml = `<span class="tend-badge subiu" title="${tituloRef}">▲ +${tend.delta.toFixed(2)} p.p.</span>`;
         } else if(tend.delta < -0.01){
-          tendHtml = `<span class="tendencia desceu">▼ ${tend.delta.toFixed(2)} p.p. ${ref}</span>`;
+          tendHtml = `<span class="tend-badge desceu" title="${tituloRef}">▼ ${tend.delta.toFixed(2)} p.p.</span>`;
         } else {
-          tendHtml = `<span class="tendencia neutro">≈ estável ${ref}</span>`;
+          tendHtml = `<span class="tend-badge neutro" title="${tituloRef}">≈ estável</span>`;
         }
       }
       return `<tr class="${selecionado?'selecionada':''}" data-lote="${l.loteId}">
@@ -2199,11 +2230,15 @@ function renderMortalidadesSemanal(){
     const itens = porNucleo.get(nuc).sort((a,b)=>String(a.l.aviario).localeCompare(String(b.l.aviario), undefined, {numeric:true}));
     const rec = mortSemanalRecolhidos.has(nuc);
     const mediaNuc = itens.reduce((s,c)=>s+c.calc.totalGeral,0) / itens.length;
+    const mediasCheckpoint = MORT_SEMANAL_CHECKPOINTS.map(d=>{
+      const valores = itens.map(c=>c.calc.porCheckpoint[d]).filter(v=>v!=null);
+      return valores.length ? valores.reduce((s,v)=>s+v,0)/valores.length : null;
+    });
 
     html += `<tr class="linha-nucleo">
       <th class="rowhead"><span class="nuc-toggle" data-toggle-mort-sem="${nuc}" style="cursor:pointer;">${rec?'▸':'▾'}</span> ${nomeNucleo(nuc)} (${itens.length})</th>
       <td></td>
-      ${MORT_SEMANAL_CHECKPOINTS.map(()=>'<td></td>').join('')}
+      ${mediasCheckpoint.map(v=>`<td style="font-weight:800;">${v!=null?v.toFixed(2).replace('.',',')+'%':'–'}</td>`).join('')}
       <td style="font-weight:800;">${mediaNuc.toFixed(2)}% méd.</td>
     </tr>`;
 
@@ -5818,8 +5853,9 @@ window.iniciarQuadroFuncionarios = iniciarQuadroFuncionarios;
 window.qfVisaoAtiva = window.qfVisaoAtiva || 'ambos';
 
 function renderQuadroConsolidado(){
-  const tabela = document.getElementById('qf-tabelaConsolidada');
-  if(!tabela) return;
+  const totaisEl = document.getElementById('qf-resumoTotais');
+  const gridEl = document.getElementById('qf-scrollConsolidada');
+  if(!gridEl) return;
   const visao = window.qfVisaoAtiva;
   const mostraAtual = visao==='ambos' || visao==='atual';
   const mostraFuturo = visao==='ambos' || visao==='futuro';
@@ -5831,90 +5867,66 @@ function renderQuadroConsolidado(){
   });
   const nucleosOrdenados = Array.from(porNucleo.keys()).sort();
   if(!nucleosOrdenados.length){
-    tabela.innerHTML = '<tbody><tr><td style="padding:14px;">Nenhum posto cadastrado ainda.</td></tr></tbody>';
+    if(totaisEl) totaisEl.innerHTML = '';
+    gridEl.innerHTML = '<div class="vazio">Nenhum posto cadastrado ainda.</div>';
     return;
   }
+
   let totNecessidadeG=0, totNecessidadeA=0, totAtualG=0, totAtualA=0, totFutG=0, totFutA=0;
 
-  const colsAtual = mostraAtual ? `<th colspan="2" class="qf-grupo-atual-th">QUADRO ATUAL (real, hoje)</th>` : '';
-  const colsFuturo = mostraFuturo ? `<th colspan="2" class="qf-grupo-futuro-th">QUADRO FUTURO (projeção pós-saídas)</th>` : '';
-  const thead = `<thead>
-    <tr>
-      <th class="rowhead" rowspan="2">Núcleo</th>
-      <th rowspan="2">Necessidade<br>(cada papel)</th>
-      ${colsAtual}
-      ${mostraAtual?'<th rowspan="2">Falta hoje<br>(G+A)</th>':''}
-      ${colsFuturo}
-      ${mostraFuturo?'<th rowspan="2">Falta futuro<br>(G+A)</th>':''}
-    </tr>
-    <tr>
-      ${mostraAtual?'<th class="qf-grupo-atual-th">Granjeiros</th><th class="qf-grupo-atual-th">Ajudantes</th>':''}
-      ${mostraFuturo?'<th class="qf-grupo-futuro-th">Granjeiros</th><th class="qf-grupo-futuro-th">Ajudantes</th>':''}
-    </tr>
-  </thead>`;
-  const linhas = nucleosOrdenados.map(nuc=>{
+  const cardsHtml = nucleosOrdenados.map(nuc=>{
     const postos = porNucleo.get(nuc);
     const r = calcularResumoNucleo(nuc, postos);
     totNecessidadeG += r.necessidadeGranjeiro; totNecessidadeA += r.necessidadeAjudante; totAtualG += r.atualGranj; totAtualA += r.atualAjud; totFutG += r.futuroGranj; totFutA += r.futuroAjud;
     const faltaAtual = Math.max(0,r.necessidadeGranjeiro-r.atualGranj) + Math.max(0,r.necessidadeAjudante-r.atualAjud);
     const faltaFuturo = Math.max(0,r.necessidadeGranjeiro-r.futuroGranj) + Math.max(0,r.necessidadeAjudante-r.futuroAjud);
     const expandido = window.qfConsolidadoExpandido.has(nuc);
-    const necessidadeTexto = r.necessidadeGranjeiro===r.necessidadeAjudante ? r.necessidadeGranjeiro : `${r.necessidadeGranjeiro}g / ${r.necessidadeAjudante}a`;
-    const celAtual = mostraAtual ? `
-      <td class="qf-grupo-atual-td ${r.atualGranj>=r.necessidadeGranjeiro?'qf-cons-ok':'qf-cons-falta'}" style="text-align:center;">${r.atualGranj}/${r.necessidadeGranjeiro}</td>
-      <td class="qf-grupo-atual-td ${r.atualAjud>=r.necessidadeAjudante?'qf-cons-ok':'qf-cons-falta'}" style="text-align:center;">${r.atualAjud}/${r.necessidadeAjudante}</td>
-      <td style="text-align:center;"><span class="${faltaAtual>0?'qf-cons-falta':'qf-cons-ok'}">${faltaAtual}</span></td>` : '';
-    const celFuturo = mostraFuturo ? `
-      <td class="qf-grupo-futuro-td ${r.futuroGranj>=r.necessidadeGranjeiro?'qf-cons-ok':'qf-cons-falta'}" style="text-align:center;">${r.futuroGranj}/${r.necessidadeGranjeiro}</td>
-      <td class="qf-grupo-futuro-td ${r.futuroAjud>=r.necessidadeAjudante?'qf-cons-ok':'qf-cons-falta'}" style="text-align:center;">${r.futuroAjud}/${r.necessidadeAjudante}</td>
-      <td style="text-align:center;"><span class="${faltaFuturo>0?'qf-cons-falta':'qf-cons-ok'}">${faltaFuturo}</span></td>` : '';
-    const linhaPrincipal = `<tr class="qf-linha-nucleo-resumo">
-      <th class="rowhead qf-nucleo-toggle" data-toggle-nucleo-cons="${nuc}">${expandido?'▾':'▸'} ${nuc}</th>
-      <td style="text-align:center;">${necessidadeTexto}</td>
-      ${celAtual}
-      ${celFuturo}
-    </tr>`;
-    let linhasDetalhe = '';
+    const necessidadeTexto = r.necessidadeGranjeiro===r.necessidadeAjudante ? `Necessidade: ${r.necessidadeGranjeiro}` : `Necessidade: ${r.necessidadeGranjeiro}g / ${r.necessidadeAjudante}a`;
+
+    const secaoAtual = mostraAtual ? `
+      <div class="qf-card-secao atual">
+        <div class="qf-card-secao-titulo">Quadro atual</div>
+        <div class="qf-card-papel-linha"><span class="qf-card-papel-nome">Granjeiros</span><span class="qf-card-papel-valor ${r.atualGranj>=r.necessidadeGranjeiro?'qf-cons-ok':'qf-cons-falta'}">${r.atualGranj}/${r.necessidadeGranjeiro}</span></div>
+        <div class="qf-card-papel-linha"><span class="qf-card-papel-nome">Ajudantes</span><span class="qf-card-papel-valor ${r.atualAjud>=r.necessidadeAjudante?'qf-cons-ok':'qf-cons-falta'}">${r.atualAjud}/${r.necessidadeAjudante}</span></div>
+        <div class="qf-card-falta ${faltaAtual>0?'qf-cons-falta':'qf-cons-ok'}">${faltaAtual>0?`Falta ${faltaAtual}`:'Completo ✓'}</div>
+      </div>` : '';
+    const secaoFuturo = mostraFuturo ? `
+      <div class="qf-card-secao futuro">
+        <div class="qf-card-secao-titulo">Quadro futuro</div>
+        <div class="qf-card-papel-linha"><span class="qf-card-papel-nome">Granjeiros</span><span class="qf-card-papel-valor ${r.futuroGranj>=r.necessidadeGranjeiro?'qf-cons-ok':'qf-cons-falta'}">${r.futuroGranj}/${r.necessidadeGranjeiro}</span></div>
+        <div class="qf-card-papel-linha"><span class="qf-card-papel-nome">Ajudantes</span><span class="qf-card-papel-valor ${r.futuroAjud>=r.necessidadeAjudante?'qf-cons-ok':'qf-cons-falta'}">${r.futuroAjud}/${r.necessidadeAjudante}</span></div>
+        <div class="qf-card-falta ${faltaFuturo>0?'qf-cons-falta':'qf-cons-ok'}">${faltaFuturo>0?`Falta ${faltaFuturo}`:'Completo ✓'}</div>
+      </div>` : '';
+
+    let detalheHtml = '';
     if(expandido){
       const postosOrdenados = postos.slice().sort((a,b)=>String(a.aviarios).localeCompare(String(b.aviarios), undefined, {numeric:true}));
-      linhasDetalhe = postosOrdenados.map(p=>{
+      detalheHtml = `<div class="qf-card-detalhe">` + postosOrdenados.map(p=>{
         const temG = p.granjeiro && p.granjeiro.trim();
         const temA = p.ajudante && p.ajudante.trim();
         const gAtualTxt = temG ? p.granjeiro : '<span class="qf-nome-vago">vago</span>';
         const aAtualTxt = temA ? p.ajudante : '<span class="qf-nome-vago">vago</span>';
         const gFuturoTxt = temG ? (p.granjeiroSaindo ? `<span class="qf-nome-saindo-detalhe">${p.granjeiro}</span>` : p.granjeiro) : '<span class="qf-nome-vago">vago</span>';
         const aFuturoTxt = temA ? (p.ajudanteSaindo ? `<span class="qf-nome-saindo-detalhe">${p.ajudante}</span>` : p.ajudante) : '<span class="qf-nome-vago">vago</span>';
-        const detAtual = mostraAtual ? `<td class="qf-cel-nome">${gAtualTxt}</td><td class="qf-cel-nome">${aAtualTxt}</td><td></td>` : '';
-        const detFuturo = mostraFuturo ? `<td class="qf-cel-nome">${gFuturoTxt}</td><td class="qf-cel-nome">${aFuturoTxt}</td><td></td>` : '';
-        return `<tr class="qf-linha-aviario-detalhe">
-          <td>Aviários ${p.aviarios}</td>
-          <td></td>
-          ${detAtual}
-          ${detFuturo}
-        </tr>`;
-      }).join('');
+        const partes = [];
+        if(mostraAtual) partes.push(`Atual: ${gAtualTxt} / ${aAtualTxt}`);
+        if(mostraFuturo) partes.push(`Futuro: ${gFuturoTxt} / ${aFuturoTxt}`);
+        return `<div class="qf-card-detalhe-linha"><span class="qf-card-detalhe-aviario">Aviários ${p.aviarios}</span><span>${partes.join(' &nbsp;|&nbsp; ')}</span></div>`;
+      }).join('') + `</div>`;
     }
-    return linhaPrincipal + linhasDetalhe;
+
+    return `<div class="qf-card-nucleo">
+      <div class="qf-card-header" data-toggle-nucleo-cons="${nuc}">
+        <span class="qf-card-nome"><span class="qf-card-toggle-icon">${expandido?'▾':'▸'}</span> ${nomeNucleo(nuc)}</span>
+        <span class="qf-card-necessidade">${necessidadeTexto}</span>
+      </div>
+      <div class="qf-card-corpo">${secaoAtual}${secaoFuturo}</div>
+      ${detalheHtml}
+    </div>`;
   }).join('');
-  const faltaAtualTotal = Math.max(0,totNecessidadeG-totAtualG) + Math.max(0,totNecessidadeA-totAtualA);
-  const faltaFuturoTotal = Math.max(0,totNecessidadeG-totFutG) + Math.max(0,totNecessidadeA-totFutA);
-  const necessidadeTotalTexto = totNecessidadeG===totNecessidadeA ? totNecessidadeG : `${totNecessidadeG}g / ${totNecessidadeA}a`;
-  const totCelAtual = mostraAtual ? `
-    <td class="qf-grupo-atual-td" style="text-align:center;font-weight:800;">${totAtualG}/${totNecessidadeG}</td>
-    <td class="qf-grupo-atual-td" style="text-align:center;font-weight:800;">${totAtualA}/${totNecessidadeA}</td>
-    <td style="text-align:center;font-weight:800;color:${faltaAtualTotal>0?'var(--vermelho-alerta)':'var(--verde-ok)'};">${faltaAtualTotal}</td>` : '';
-  const totCelFuturo = mostraFuturo ? `
-    <td class="qf-grupo-futuro-td" style="text-align:center;font-weight:800;">${totFutG}/${totNecessidadeG}</td>
-    <td class="qf-grupo-futuro-td" style="text-align:center;font-weight:800;">${totFutA}/${totNecessidadeA}</td>
-    <td style="text-align:center;font-weight:800;color:${faltaFuturoTotal>0?'var(--vermelho-alerta)':'var(--verde-ok)'};">${faltaFuturoTotal}</td>` : '';
-  const linhaTotal = `<tr class="qf-linha-total-geral">
-    <th class="rowhead">TOTAL GERAL</th>
-    <td style="text-align:center;font-weight:800;">${necessidadeTotalTexto}</td>
-    ${totCelAtual}
-    ${totCelFuturo}
-  </tr>`;
-  tabela.innerHTML = thead + '<tbody>'+linhas+linhaTotal+'</tbody>';
-  tabela.querySelectorAll('[data-toggle-nucleo-cons]').forEach(el=>{
+
+  gridEl.innerHTML = cardsHtml;
+  gridEl.querySelectorAll('[data-toggle-nucleo-cons]').forEach(el=>{
     el.addEventListener('click', ()=>{
       const n = el.dataset.toggleNucleoCons;
       if(window.qfConsolidadoExpandido.has(n)) window.qfConsolidadoExpandido.delete(n);
@@ -5922,6 +5934,22 @@ function renderQuadroConsolidado(){
       renderQuadroConsolidado();
     });
   });
+
+  // resumo geral (totais), em destaque no topo
+  if(totaisEl){
+    const faltaAtualTotal = Math.max(0,totNecessidadeG-totAtualG) + Math.max(0,totNecessidadeA-totAtualA);
+    const faltaFuturoTotal = Math.max(0,totNecessidadeG-totFutG) + Math.max(0,totNecessidadeA-totFutA);
+    const stats = [];
+    stats.push(`<div class="qf-stat"><div class="qf-stat-label">Núcleos</div><div class="qf-stat-valor">${nucleosOrdenados.length}</div></div>`);
+    if(mostraAtual) stats.push(`<div class="qf-stat"><div class="qf-stat-label">Atual — Granjeiros</div><div class="qf-stat-valor">${totAtualG}<small>/${totNecessidadeG}</small></div></div>`);
+    if(mostraAtual) stats.push(`<div class="qf-stat"><div class="qf-stat-label">Atual — Ajudantes</div><div class="qf-stat-valor">${totAtualA}<small>/${totNecessidadeA}</small></div></div>`);
+    if(mostraAtual) stats.push(`<div class="qf-stat ${faltaAtualTotal===0?'qf-stat-falta-zero':''}"><div class="qf-stat-label">Falta hoje</div><div class="qf-stat-valor">${faltaAtualTotal}</div></div>`);
+    if(mostraFuturo) stats.push(`<div class="qf-stat"><div class="qf-stat-label">Futuro — Granjeiros</div><div class="qf-stat-valor">${totFutG}<small>/${totNecessidadeG}</small></div></div>`);
+    if(mostraFuturo) stats.push(`<div class="qf-stat"><div class="qf-stat-label">Futuro — Ajudantes</div><div class="qf-stat-valor">${totFutA}<small>/${totNecessidadeA}</small></div></div>`);
+    if(mostraFuturo) stats.push(`<div class="qf-stat ${faltaFuturoTotal===0?'qf-stat-falta-zero':''}"><div class="qf-stat-label">Falta futuro</div><div class="qf-stat-valor">${faltaFuturoTotal}</div></div>`);
+    totaisEl.innerHTML = stats.join('');
+  }
+
   const btnExp = document.getElementById('qf-btnExpandirTodos');
   if(btnExp){
     const todosExpandidos = nucleosOrdenados.length>0 && nucleosOrdenados.every(n=>window.qfConsolidadoExpandido.has(n));
@@ -5964,20 +5992,19 @@ if(btnImprimirQf){
     const dataEl = document.getElementById('qf-print-data');
     if(dataEl) dataEl.textContent = 'Gerado em ' + new Date().toLocaleString('pt-BR');
 
-    // orientação: "Ambos" tem muitas colunas -> paisagem. "Só Atual"/"Só Futuro" tem menos colunas -> retrato, com fonte maior e mais legível.
+    // orientação: "Ambos" tem mais informação por card -> paisagem, grid com mais colunas.
+    // "Só Atual"/"Só Futuro" tem menos informação -> retrato, cards maiores e mais legíveis.
     const ehAmbos = (window.qfVisaoAtiva === 'ambos');
     let estilo = document.getElementById('qf-print-orientacao-dinamica');
     if(!estilo){ estilo = document.createElement('style'); estilo.id = 'qf-print-orientacao-dinamica'; document.head.appendChild(estilo); }
     estilo.textContent = ehAmbos
       ? `@media print{
            @page{ size: landscape; margin: 10mm; }
-           #qf-tabelaConsolidada{ font-size: 8.5px !important; }
-           #qf-tabelaConsolidada th, #qf-tabelaConsolidada td{ padding: 3px 4px !important; }
+           .qf-cards-grid{ grid-template-columns: repeat(3, 1fr) !important; font-size: 10px !important; }
          }`
       : `@media print{
            @page{ size: portrait; margin: 12mm; }
-           #qf-tabelaConsolidada{ font-size: 11px !important; }
-           #qf-tabelaConsolidada th, #qf-tabelaConsolidada td{ padding: 6px 8px !important; }
+           .qf-cards-grid{ grid-template-columns: repeat(2, 1fr) !important; font-size: 11.5px !important; }
          }`;
     setTimeout(()=>window.print(), 150);
   });
