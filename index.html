@@ -98,6 +98,10 @@
 
   .filtros{ background:var(--card); border:1px solid var(--borda); border-radius:var(--raio); padding:16px; margin-bottom:16px; box-shadow:var(--sombra); }
   .filtros-grid{ display:grid; grid-template-columns:repeat(auto-fit, minmax(150px,1fr)); gap:12px; }
+  .reg-form{ display:grid; grid-template-columns:repeat(auto-fit, minmax(170px,1fr)); gap:14px; align-items:end; }
+  .reg-form .campo label{ display:block; font-size:11.5px; font-weight:700; color:var(--texto-suave); text-transform:uppercase; letter-spacing:.03em; margin-bottom:5px; }
+  .reg-form .campo input, .reg-form .campo select{ width:100%; padding:10px 12px; border-radius:9px; border:1.5px solid var(--borda); font-size:14px; font-family:inherit; box-sizing:border-box; }
+  .reg-form .campo input:focus, .reg-form .campo select:focus{ outline:none; border-color:var(--dourado); box-shadow:0 0 0 3px rgba(242,169,0,.15); }
   .campo label{ display:block; font-size:11px; font-weight:700; color:var(--texto-suave); text-transform:uppercase; letter-spacing:.04em; margin-bottom:6px; }
   select{ width:100%; padding:10px 12px; border-radius:10px; border:1.5px solid var(--borda); background:#fff; font-size:13.5px; font-family:inherit; color:var(--texto); font-weight:500; transition:.15s; }
   select:focus{ outline:none; border-color:var(--dourado); box-shadow:0 0 0 3px rgba(242,169,0,.15); }
@@ -791,6 +795,9 @@
       <button class="modulo" data-modulo="quadro" id="btnModuloQuadro" style="display:none;">
         <span class="modulo-ic">👥</span> Quadro de Funcionários
       </button>
+      <button class="modulo" data-modulo="registros" id="btnModuloRegistros" style="display:none;">
+        <span class="modulo-ic">📋</span> Registros
+      </button>
       <button class="modulo" data-modulo="admin" id="btnModuloAdmin" style="display:none;">
         <span class="modulo-ic">⚙️</span> Administração
       </button>
@@ -1231,6 +1238,88 @@
         <p class="nota" style="margin:0 0 16px;color:var(--texto-suave);">🛈 Você só edita os núcleos para os quais tem autorização — os demais não aparecem aqui. Marque quem está <strong>saindo/em aviso</strong> assim que o desligamento for confirmado: isso não altera o quadro Atual, só atualiza a projeção <strong>Futuro</strong> na Visão Consolidada, que os gestores usam pra planejar reposição.</p>
         <button class="btn-recolher" id="btnImportarQuadroInicial" style="display:none;margin-bottom:16px;">Importar lista inicial (uma vez)</button>
         <div id="quadroNucleosContainer"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============ MÓDULO: REGISTROS ============ -->
+  <div data-modulo-view="registros" style="display:none;">
+    <div id="mod-registros">
+      <div class="pagina-head"><h1 class="pagina-titulo">Registros</h1></div>
+
+      <div class="tabs-internas" id="reg-tabs">
+        <button class="tab-int ativo" data-aba-reg="energia">Falta de Energia</button>
+        <button class="tab-int" data-aba-reg="ambiencia">Ambiência</button>
+        <button class="tab-int" data-aba-reg="pintinhos">Qualidade de Pintinhos</button>
+      </div>
+
+      <!-- ABA: FALTA DE ENERGIA -->
+      <div data-aba-reg-view="energia">
+        <div class="painel">
+          <h2 style="margin-top:0;">Novo registro</h2>
+          <form id="regEnergiaForm" class="reg-form">
+            <div class="campo"><label>Núcleo</label><select id="regEn_nucleo" required></select></div>
+            <div class="campo"><label>Unidade Consumidora</label><input type="text" id="regEn_uc" required></div>
+            <div class="campo"><label>Data</label><input type="date" id="regEn_data" required></div>
+            <div class="campo"><label>Nº do Protocolo</label><input type="text" id="regEn_protocolo"></div>
+            <div class="campo"><label>Hora Início</label><input type="time" id="regEn_horaInicio" required></div>
+            <div class="campo"><label>Hora Retorno</label><input type="time" id="regEn_horaRetorno"></div>
+            <div class="campo"><label>Consumo Óleo Diesel (L)</label><input type="number" step="0.1" min="0" id="regEn_diesel"></div>
+            <div class="campo" style="grid-column:1/-1;"><label>Observações</label><textarea id="regEn_obs" rows="2" style="width:100%;padding:10px 12px;border-radius:9px;border:1.5px solid var(--borda);font-size:14px;font-family:inherit;box-sizing:border-box;resize:vertical;"></textarea></div>
+            <div style="grid-column:1/-1;"><button type="submit" class="btn-recolher" style="background:var(--vermelho);color:#fff;border-color:var(--vermelho);">+ Salvar registro</button></div>
+          </form>
+          <p class="nota" id="regEn_erro" style="min-height:16px;"></p>
+        </div>
+        <div class="painel">
+          <div class="painel-header"><h2>Histórico</h2><span class="info" id="regEn_info"></span></div>
+          <div class="tabela-scroll"><table class="matriz-diaria" id="regEn_tabela"></table></div>
+        </div>
+      </div>
+
+      <!-- ABA: AMBIÊNCIA -->
+      <div data-aba-reg-view="ambiencia" style="display:none;">
+        <div class="painel">
+          <h2 style="margin-top:0;">Novo registro</h2>
+          <form id="regAmbForm" class="reg-form">
+            <div class="campo"><label>Núcleo</label><select id="regAmb_nucleo" required></select></div>
+            <div class="campo"><label>Aviário</label><input type="text" id="regAmb_aviario" required></div>
+            <div class="campo"><label>Data</label><input type="date" id="regAmb_data" required></div>
+            <div class="campo"><label>Temperatura (°C)</label><input type="number" step="0.1" id="regAmb_temp" required></div>
+            <div class="campo"><label>Nível de Amônia (ppm)</label><input type="number" step="0.1" min="0" id="regAmb_amonia"></div>
+            <div style="grid-column:1/-1;"><button type="submit" class="btn-recolher" style="background:var(--vermelho);color:#fff;border-color:var(--vermelho);">+ Salvar registro</button></div>
+          </form>
+          <p class="nota" id="regAmb_erro" style="min-height:16px;"></p>
+        </div>
+        <div class="painel">
+          <div class="painel-header"><h2>Histórico</h2><span class="info" id="regAmb_info"></span></div>
+          <div class="tabela-scroll"><table class="matriz-diaria" id="regAmb_tabela"></table></div>
+        </div>
+      </div>
+
+      <!-- ABA: QUALIDADE DE PINTINHOS -->
+      <div data-aba-reg-view="pintinhos" style="display:none;">
+        <div class="painel">
+          <h2 style="margin-top:0;">Novo registro</h2>
+          <form id="regPinForm" class="reg-form">
+            <div class="campo"><label>Núcleo</label><select id="regPin_nucleo" required></select></div>
+            <div class="campo"><label>Aviário</label><input type="text" id="regPin_aviario" required></div>
+            <div class="campo"><label>Data</label><input type="date" id="regPin_data" required></div>
+            <div class="campo"><label>Qtd. de Pintinhos</label><input type="number" min="0" step="1" id="regPin_qtd" required></div>
+            <div class="campo"><label>Temp. do Galpão (°C)</label><input type="number" step="0.1" id="regPin_tempGalpao"></div>
+            <div class="campo"><label>Temp. do Caminhão (°C)</label><input type="number" step="0.1" id="regPin_tempCaminhao"></div>
+            <div class="campo"><label>Temp. Cloacal fora do padrão (qtd)</label><input type="number" min="0" step="1" id="regPin_tempCloacal" value="0"></div>
+            <div class="campo"><label>Plumagem ruim (qtd)</label><input type="number" min="0" step="1" id="regPin_plumagem" value="0"></div>
+            <div class="campo"><label>Desidratação (qtd)</label><input type="number" min="0" step="1" id="regPin_desidratacao" value="0"></div>
+            <div class="campo"><label>Umbigo aberto (qtd)</label><input type="number" min="0" step="1" id="regPin_umbigo" value="0"></div>
+            <div class="campo"><label>Hematoma nas articulações (qtd)</label><input type="number" min="0" step="1" id="regPin_hematoma" value="0"></div>
+            <div style="grid-column:1/-1;"><button type="submit" class="btn-recolher" style="background:var(--vermelho);color:#fff;border-color:var(--vermelho);">+ Salvar registro</button></div>
+          </form>
+          <p class="nota" id="regPin_erro" style="min-height:16px;"></p>
+        </div>
+        <div class="painel">
+          <div class="painel-header"><h2>Histórico</h2><span class="info" id="regPin_info"></span></div>
+          <div class="tabela-scroll"><table class="matriz-diaria" id="regPin_tabela"></table></div>
+        </div>
       </div>
     </div>
   </div>
@@ -1776,6 +1865,7 @@ document.querySelectorAll('.modulo').forEach(btn => {
     document.querySelector('[data-modulo-view="condenas"]').style.display = (mod==='condenas') ? '' : 'none';
     document.querySelector('[data-modulo-view="peso"]').style.display = (mod==='peso') ? '' : 'none';
     document.querySelector('[data-modulo-view="quadro"]').style.display = (mod==='quadro') ? '' : 'none';
+    document.querySelector('[data-modulo-view="registros"]').style.display = (mod==='registros') ? '' : 'none';
     document.querySelector('[data-modulo-view="admin"]').style.display = (mod==='admin') ? '' : 'none';
     document.getElementById('tabsMortalidade').style.display = (mod==='mortalidade') ? '' : 'none';
     // os filtros do topo pertencem ao módulo mortalidade (Resultado e Condenas têm os seus próprios dentro deles)
@@ -1786,6 +1876,9 @@ document.querySelectorAll('.modulo').forEach(btn => {
     if(mod==='peso' && window.renderPeso) window.renderPeso();
     if(mod==='quadro' && window.iniciarQuadroFuncionarios){
       if(!window.quadroFuncionariosCarregado){ window.quadroFuncionariosCarregado = true; window.iniciarQuadroFuncionarios(); }
+    }
+    if(mod==='registros' && window.iniciarRegistros){
+      if(!window.registrosCarregado){ window.registrosCarregado = true; window.iniciarRegistros(); }
     }
     if(mod==='admin'){
       if(window.souAdminPrincipal || window.minhasPermissoes.usuarios){ if(window.carregarListaEmails) window.carregarListaEmails(); }
@@ -4974,8 +5067,10 @@ function atualizarVisibilidadeSecoesAdmin(){
 function atualizarBotoesModulosPermissao(){
   const btnAdmin = document.getElementById('btnModuloAdmin');
   const btnQuadro = document.getElementById('btnModuloQuadro');
+  const btnRegistros = document.getElementById('btnModuloRegistros');
   if(btnAdmin) btnAdmin.style.display = (window.souAdminPrincipal || window.minhasPermissoes.metas || window.minhasPermissoes.usuarios) ? '' : 'none';
   if(btnQuadro) btnQuadro.style.display = (window.souAdminPrincipal || (window.minhasPermissoes.funcionariosNucleos||[]).length>0) ? '' : 'none';
+  if(btnRegistros) btnRegistros.style.display = ''; // visível pra qualquer usuário logado, sem restrição de núcleo
 }
 
 auth.onAuthStateChanged(user => {
@@ -5753,6 +5848,200 @@ if(btnImportarQuadroInicial){
       btnImportarQuadroInicial.disabled = false;
       btnImportarQuadroInicial.textContent = 'Importar lista inicial (uma vez)';
     }
+  });
+}
+
+// ================= Registros (Falta de Energia, Ambiência, Qualidade de Pintinhos) =================
+function reg_formatarDataBR(iso){
+  if(!iso) return '–';
+  const m = String(iso).match(/^(\d{4})-(\d{2})-(\d{2})/);
+  if(!m) return iso;
+  return `${m[3]}/${m[2]}/${m[1]}`;
+}
+
+function reg_popularNucleos(){
+  ['regEn_nucleo','regAmb_nucleo','regPin_nucleo'].forEach(id=>{
+    const sel = document.getElementById(id);
+    if(sel && !sel.dataset.populado){
+      sel.innerHTML = '<option value="">Selecione...</option>' + NUCLEOS_QUADRO.map(n=>`<option value="${n}">${n}</option>`).join('');
+      sel.dataset.populado = '1';
+    }
+  });
+}
+
+document.querySelectorAll('#reg-tabs .tab-int').forEach(b=>b.addEventListener('click',()=>{
+  document.querySelectorAll('#reg-tabs .tab-int').forEach(x=>x.classList.remove('ativo'));
+  b.classList.add('ativo');
+  const aba = b.dataset.abaReg;
+  ['energia','ambiencia','pintinhos'].forEach(a=>{
+    document.querySelector(`#mod-registros [data-aba-reg-view="${a}"]`).style.display = (a===aba) ? '' : 'none';
+  });
+}));
+
+async function iniciarRegistros(){
+  reg_popularNucleos();
+  const hoje = new Date().toISOString().slice(0,10);
+  ['regEn_data','regAmb_data','regPin_data'].forEach(id=>{
+    const el = document.getElementById(id);
+    if(el && !el.value) el.value = hoje;
+  });
+  await reg_carregarHistorico('energia');
+  await reg_carregarHistorico('ambiencia');
+  await reg_carregarHistorico('pintinhos');
+}
+window.iniciarRegistros = iniciarRegistros;
+
+const REG_COLECOES = { energia:'registros_energia', ambiencia:'registros_ambiencia', pintinhos:'registros_pintinhos' };
+
+async function reg_carregarHistorico(tipo){
+  const tabela = document.getElementById(tipo==='energia'?'regEn_tabela':(tipo==='ambiencia'?'regAmb_tabela':'regPin_tabela'));
+  const info = document.getElementById(tipo==='energia'?'regEn_info':(tipo==='ambiencia'?'regAmb_info':'regPin_info'));
+  if(!tabela) return;
+  tabela.innerHTML = '<tbody><tr><td style="padding:14px;">Carregando...</td></tr></tbody>';
+  try{
+    const snap = await db.collection(REG_COLECOES[tipo]).get();
+    const docs = [];
+    snap.forEach(doc => docs.push({id: doc.id, ...doc.data()}));
+    docs.sort((a,b) => String(b.data||'').localeCompare(String(a.data||'')));
+    info.textContent = `${docs.length} registro(s)`;
+    if(!docs.length){ tabela.innerHTML = '<tbody><tr><td style="padding:14px;">Nenhum registro ainda.</td></tr></tbody>'; return; }
+
+    let thead, corpo;
+    if(tipo==='energia'){
+      thead = '<thead><tr><th>Data</th><th>Núcleo</th><th>Unid. Consumidora</th><th>Protocolo</th><th>Início</th><th>Retorno</th><th>Diesel (L)</th><th>Observações</th><th></th></tr></thead>';
+      corpo = docs.map(d=>`<tr data-reg-id="${d.id}">
+        <td>${reg_formatarDataBR(d.data)}</td><td>${d.nucleo||'–'}</td><td>${d.unidadeConsumidora||'–'}</td>
+        <td>${d.protocolo||'–'}</td><td>${d.horaInicio||'–'}</td><td>${d.horaRetorno||'–'}</td>
+        <td>${d.consumoDiesel!=null?d.consumoDiesel:'–'}</td><td style="max-width:220px;font-size:11.5px;">${d.observacoes||'–'}</td>
+        <td><button class="quadro-btn-remover-posto" data-reg-remover="energia" data-reg-remover-id="${d.id}" title="Excluir">✕</button></td>
+      </tr>`).join('');
+    } else if(tipo==='ambiencia'){
+      thead = '<thead><tr><th>Data</th><th>Núcleo</th><th>Aviário</th><th>Temperatura (°C)</th><th>Amônia (ppm)</th><th></th></tr></thead>';
+      corpo = docs.map(d=>`<tr data-reg-id="${d.id}">
+        <td>${reg_formatarDataBR(d.data)}</td><td>${d.nucleo||'–'}</td><td>${d.aviario||'–'}</td>
+        <td>${d.temperatura!=null?d.temperatura+'°C':'–'}</td><td>${d.nivelAmonia!=null?d.nivelAmonia:'–'}</td>
+        <td><button class="quadro-btn-remover-posto" data-reg-remover="ambiencia" data-reg-remover-id="${d.id}" title="Excluir">✕</button></td>
+      </tr>`).join('');
+    } else {
+      thead = '<thead><tr><th>Data</th><th>Núcleo</th><th>Aviário</th><th>Qtd.</th><th>T° Galpão</th><th>T° Caminhão</th><th>T° Cloacal</th><th>Plumagem</th><th>Desidr.</th><th>Umbigo</th><th>Hematoma</th><th></th></tr></thead>';
+      corpo = docs.map(d=>`<tr data-reg-id="${d.id}">
+        <td>${reg_formatarDataBR(d.data)}</td><td>${d.nucleo||'–'}</td><td>${d.aviario||'–'}</td>
+        <td>${d.quantidade!=null?d.quantidade:'–'}</td><td>${d.tempGalpao!=null?d.tempGalpao+'°C':'–'}</td>
+        <td>${d.tempCaminhao!=null?d.tempCaminhao+'°C':'–'}</td><td>${d.tempCloacal||0}</td><td>${d.plumagem||0}</td>
+        <td>${d.desidratacao||0}</td><td>${d.umbigo||0}</td><td>${d.hematoma||0}</td>
+        <td><button class="quadro-btn-remover-posto" data-reg-remover="pintinhos" data-reg-remover-id="${d.id}" title="Excluir">✕</button></td>
+      </tr>`).join('');
+    }
+    tabela.innerHTML = thead + '<tbody>'+corpo+'</tbody>';
+    tabela.querySelectorAll('[data-reg-remover]').forEach(btn=>{
+      btn.addEventListener('click', async ()=>{
+        if(!confirm('Excluir esse registro?')) return;
+        try{ await db.collection(REG_COLECOES[btn.dataset.regRemover]).doc(btn.dataset.regRemoverId).delete(); reg_carregarHistorico(btn.dataset.regRemover); }
+        catch(e){ alert('Erro ao excluir: '+e.message); }
+      });
+    });
+  }catch(e){
+    tabela.innerHTML = `<tbody><tr><td style="padding:14px;color:var(--vermelho-alerta);">Erro ao carregar: ${e.message}</td></tr></tbody>`;
+  }
+}
+
+// --- Formulário: Falta de Energia ---
+const regEnergiaForm = document.getElementById('regEnergiaForm');
+if(regEnergiaForm){
+  regEnergiaForm.addEventListener('submit', async (e)=>{
+    e.preventDefault();
+    const erroEl = document.getElementById('regEn_erro');
+    erroEl.style.color=''; erroEl.textContent='';
+    const dados = {
+      nucleo: document.getElementById('regEn_nucleo').value,
+      unidadeConsumidora: document.getElementById('regEn_uc').value.trim(),
+      data: document.getElementById('regEn_data').value,
+      protocolo: document.getElementById('regEn_protocolo').value.trim(),
+      horaInicio: document.getElementById('regEn_horaInicio').value,
+      horaRetorno: document.getElementById('regEn_horaRetorno').value,
+      consumoDiesel: document.getElementById('regEn_diesel').value ? parseFloat(document.getElementById('regEn_diesel').value) : null,
+      observacoes: document.getElementById('regEn_obs').value.trim(),
+      criadoPor: (auth.currentUser&&auth.currentUser.email)||'',
+      criadoEm: firebase.firestore.FieldValue.serverTimestamp()
+    };
+    if(!dados.nucleo || !dados.unidadeConsumidora || !dados.data || !dados.horaInicio){ erroEl.textContent = 'Preencha ao menos Núcleo, Unidade Consumidora, Data e Hora Início.'; return; }
+    const btn = regEnergiaForm.querySelector('button[type="submit"]');
+    btn.disabled = true; btn.textContent = 'Salvando...';
+    try{
+      await db.collection('registros_energia').add(dados);
+      erroEl.style.color = 'var(--verde-ok)'; erroEl.textContent = 'Registro salvo com sucesso!';
+      regEnergiaForm.reset();
+      document.getElementById('regEn_data').value = new Date().toISOString().slice(0,10);
+      reg_carregarHistorico('energia');
+    }catch(err){ erroEl.textContent = 'Erro ao salvar: ' + err.message; }
+    finally{ btn.disabled = false; btn.textContent = '+ Salvar registro'; }
+  });
+}
+
+// --- Formulário: Ambiência ---
+const regAmbForm = document.getElementById('regAmbForm');
+if(regAmbForm){
+  regAmbForm.addEventListener('submit', async (e)=>{
+    e.preventDefault();
+    const erroEl = document.getElementById('regAmb_erro');
+    erroEl.style.color=''; erroEl.textContent='';
+    const dados = {
+      nucleo: document.getElementById('regAmb_nucleo').value,
+      aviario: document.getElementById('regAmb_aviario').value.trim(),
+      data: document.getElementById('regAmb_data').value,
+      temperatura: document.getElementById('regAmb_temp').value ? parseFloat(document.getElementById('regAmb_temp').value) : null,
+      nivelAmonia: document.getElementById('regAmb_amonia').value ? parseFloat(document.getElementById('regAmb_amonia').value) : null,
+      criadoPor: (auth.currentUser&&auth.currentUser.email)||'',
+      criadoEm: firebase.firestore.FieldValue.serverTimestamp()
+    };
+    if(!dados.nucleo || !dados.aviario || !dados.data || dados.temperatura==null){ erroEl.textContent = 'Preencha ao menos Núcleo, Aviário, Data e Temperatura.'; return; }
+    const btn = regAmbForm.querySelector('button[type="submit"]');
+    btn.disabled = true; btn.textContent = 'Salvando...';
+    try{
+      await db.collection('registros_ambiencia').add(dados);
+      erroEl.style.color = 'var(--verde-ok)'; erroEl.textContent = 'Registro salvo com sucesso!';
+      regAmbForm.reset();
+      document.getElementById('regAmb_data').value = new Date().toISOString().slice(0,10);
+      reg_carregarHistorico('ambiencia');
+    }catch(err){ erroEl.textContent = 'Erro ao salvar: ' + err.message; }
+    finally{ btn.disabled = false; btn.textContent = '+ Salvar registro'; }
+  });
+}
+
+// --- Formulário: Qualidade de Pintinhos ---
+const regPinForm = document.getElementById('regPinForm');
+if(regPinForm){
+  regPinForm.addEventListener('submit', async (e)=>{
+    e.preventDefault();
+    const erroEl = document.getElementById('regPin_erro');
+    erroEl.style.color=''; erroEl.textContent='';
+    const numOrNull = id => { const v = document.getElementById(id).value; return v ? parseFloat(v) : null; };
+    const dados = {
+      nucleo: document.getElementById('regPin_nucleo').value,
+      aviario: document.getElementById('regPin_aviario').value.trim(),
+      data: document.getElementById('regPin_data').value,
+      quantidade: numOrNull('regPin_qtd'),
+      tempGalpao: numOrNull('regPin_tempGalpao'),
+      tempCaminhao: numOrNull('regPin_tempCaminhao'),
+      tempCloacal: numOrNull('regPin_tempCloacal') || 0,
+      plumagem: numOrNull('regPin_plumagem') || 0,
+      desidratacao: numOrNull('regPin_desidratacao') || 0,
+      umbigo: numOrNull('regPin_umbigo') || 0,
+      hematoma: numOrNull('regPin_hematoma') || 0,
+      criadoPor: (auth.currentUser&&auth.currentUser.email)||'',
+      criadoEm: firebase.firestore.FieldValue.serverTimestamp()
+    };
+    if(!dados.nucleo || !dados.aviario || !dados.data || dados.quantidade==null){ erroEl.textContent = 'Preencha ao menos Núcleo, Aviário, Data e Quantidade de Pintinhos.'; return; }
+    const btn = regPinForm.querySelector('button[type="submit"]');
+    btn.disabled = true; btn.textContent = 'Salvando...';
+    try{
+      await db.collection('registros_pintinhos').add(dados);
+      erroEl.style.color = 'var(--verde-ok)'; erroEl.textContent = 'Registro salvo com sucesso!';
+      regPinForm.reset();
+      document.getElementById('regPin_data').value = new Date().toISOString().slice(0,10);
+      reg_carregarHistorico('pintinhos');
+    }catch(err){ erroEl.textContent = 'Erro ao salvar: ' + err.message; }
+    finally{ btn.disabled = false; btn.textContent = '+ Salvar registro'; }
   });
 }
 </script>
