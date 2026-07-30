@@ -39,7 +39,8 @@
     --sidebar-w: 250px;
   }
   *{box-sizing:border-box; margin:0; padding:0;}
-  body{ font-family:'Plus Jakarta Sans','Inter',system-ui,sans-serif; background:var(--bg); color:var(--texto); -webkit-font-smoothing:antialiased; }
+  html{ overscroll-behavior-y:none; background:var(--side-bg); }
+  body{ font-family:'Plus Jakarta Sans','Inter',system-ui,sans-serif; background:var(--bg); color:var(--texto); -webkit-font-smoothing:antialiased; overscroll-behavior-y:none; }
   h1,h2,h3,.display{ font-family:'Sora','Plus Jakarta Sans',sans-serif; }
 
   /* ===================== SIDEBAR ===================== */
@@ -235,7 +236,7 @@
   .comb-modal-fundo{ position:fixed; inset:0; background:rgba(20,20,20,.55); z-index:900; display:flex; align-items:center; justify-content:center; padding:20px; overflow-y:auto; }
   .comb-ticket{ background:#fff; border-radius:18px; max-width:460px; width:100%; overflow:hidden; box-shadow:0 20px 60px rgba(0,0,0,.35); position:relative; }
   .comb-ticket-header{ background:linear-gradient(135deg, var(--vermelho), #E8542E); padding:18px 20px; display:flex; align-items:center; gap:12px; position:relative; }
-  .comb-ticket-logo{ height:40px; background:#fff; border-radius:10px; padding:4px 8px; }
+  .comb-ticket-logo{ height:40px; }
   .comb-ticket-titulos{ flex:1; }
   .comb-ticket-titulos h2{ color:#fff; font-family:'Sora',sans-serif; font-size:16px; margin:0; }
   .comb-ticket-titulos p{ color:rgba(255,255,255,.85); font-size:10.5px; margin:2px 0 0; }
@@ -276,6 +277,15 @@
   .quadro-tabela tr.qf-linha-folguista td{ background:#EAE3FB !important; }
   .quadro-tabela tr.qf-linha-folguista td:first-child{ box-shadow:inset 3px 0 0 #8B6FD6; }
   .quadro-btn-remover-posto{ background:none; border:none; color:var(--vermelho-alerta); cursor:pointer; font-size:16px; padding:2px 6px; }
+  .comb-btn-acao{ display:inline-flex; align-items:center; justify-content:center; width:30px; height:30px; border-radius:8px; border:1px solid transparent; cursor:pointer; font-size:14px; transition:.15s; }
+  .comb-btn-acao.reimprimir{ background:#EAF4FF; color:#1D5A96; border-color:#CFE3F7; }
+  .comb-btn-acao.reimprimir:hover{ background:#D8ECFF; }
+  .comb-btn-acao.editar{ background:#FFF4E1; color:#8A6200; border-color:#F0CB7A; }
+  .comb-btn-acao.editar:hover{ background:#FFECC7; }
+  .comb-btn-acao.excluir{ background:#FDECEC; color:#8A1F1F; border-color:#F0A0A0; }
+  .comb-btn-acao.excluir:hover{ background:#FBDADA; }
+  .comb-btn-pagina{ min-width:34px; height:34px; border-radius:9px; border:1.5px solid var(--borda); background:#fff; color:var(--texto); font-weight:700; font-size:13px; cursor:pointer; }
+  .comb-btn-pagina.ativo{ background:var(--vermelho); border-color:var(--vermelho); color:#fff; }
   .matriz-diaria th.rowhead.av{ padding-left:20px; font-weight:500; color:var(--texto-suave); }
   .matriz-diaria td.cel{ font-variant-numeric:tabular-nums; }
   .matriz-diaria .aloj{ font-weight:600; background:#F7F9FB; width:80px; min-width:80px; }
@@ -1519,10 +1529,22 @@
         </div>
 
         <div class="painel">
+          <div class="painel-header"><h2>📊 Exportar relatório</h2></div>
+          <p class="nota" style="margin-top:0;">Filtre o que quer exportar — deixe em "Todos" pra incluir tudo.</p>
+          <div style="display:flex;gap:12px;flex-wrap:wrap;align-items:flex-end;margin-bottom:14px;">
+            <div class="campo"><label>Núcleo</label><select id="comb-exportNucleo" style="min-width:150px;"><option value="Todos">Todos</option></select></div>
+            <div class="campo"><label>Solicitante</label><select id="comb-exportSolicitante" style="min-width:170px;"><option value="Todos">Todos</option></select></div>
+            <div class="campo"><label>Mês</label><select id="comb-exportMes" style="min-width:140px;"><option value="Todos">Todos os meses</option></select></div>
+            <div class="campo"><label>Ano</label><select id="comb-exportAno" style="min-width:100px;"><option value="Todos">Todos</option></select></div>
+            <button class="btn-recolher" id="comb-btnExcel" type="button">📊 Exportar Excel</button>
+          </div>
+        </div>
+
+        <div class="painel">
           <div class="painel-header"><h2>Histórico</h2><span class="info" id="comb-infoHistorico"></span></div>
           <input type="text" id="comb-buscaHistorico" placeholder="Buscar por solicitante, núcleo ou motivo..." style="width:100%;padding:10px 12px;border-radius:9px;border:1.5px solid var(--borda);font-size:13.5px;font-family:inherit;box-sizing:border-box;margin-bottom:12px;">
-          <button class="btn-recolher" id="comb-btnExcel" type="button" style="margin-bottom:12px;">📊 Exportar Excel</button>
           <div class="tabela-scroll"><table class="matriz-diaria" id="comb-tabelaHistorico"></table></div>
+          <div id="comb-paginacao" style="display:flex;gap:6px;justify-content:center;margin-top:14px;flex-wrap:wrap;"></div>
         </div>
 
         <div class="painel-grafico">
@@ -2174,7 +2196,11 @@ async function compartilharTabelaWhatsApp(tabelaId, nomeArquivo, btnClicado){
   if(btnClicado) btnClicado.innerHTML = 'Gerando imagem...';
 
   try{
-    const canvas = await html2canvas(tabela, { backgroundColor:'#ffffff', scale:2 });
+    const canvas = await html2canvas(tabela, {
+      backgroundColor:'#ffffff', scale:2,
+      width: tabela.scrollWidth, height: tabela.scrollHeight,
+      windowWidth: tabela.scrollWidth, windowHeight: tabela.scrollHeight
+    });
     canvas.toBlob(async (blob) => {
       if(btnClicado) btnClicado.innerHTML = textoOriginal;
       const arquivo = new File([blob], nomeArquivo, { type:'image/png' });
@@ -7220,7 +7246,7 @@ async function iniciarCombustivel(){
   document.getElementById('comb-btnFecharTicket').addEventListener('click', combustivelFecharTicket);
   document.getElementById('comb-btnFecharTicket2').addEventListener('click', combustivelFecharTicket);
   document.getElementById('comb-btnImprimirTicket').addEventListener('click', ()=> window.print());
-  document.getElementById('comb-buscaHistorico').addEventListener('input', ()=> combustivelRenderHistorico());
+  document.getElementById('comb-buscaHistorico').addEventListener('input', ()=>{ combustivelPaginaAtual = 1; combustivelRenderHistorico(); });
   document.getElementById('comb-btnExcel').addEventListener('click', combustivelExportarExcel);
 
   const btnImportarHist = document.getElementById('comb-btnImportarHistorico');
@@ -7230,6 +7256,7 @@ async function iniciarCombustivel(){
     btnImportarHist.addEventListener('click', combustivelImportarHistoricoManus);
   }
   combustivelRenderHistorico();
+  combustivelPopularFiltrosExportacao();
   combustivelRenderGraficos();
 }
 window.iniciarCombustivel = iniciarCombustivel;
@@ -7309,6 +7336,7 @@ async function combustivelRegistrar(){
     }
     await combustivelCarregarDados();
     combustivelRenderHistorico();
+    combustivelPopularFiltrosExportacao();
     combustivelRenderGraficos();
     combustivelSairModoEdicao();
     combustivelAbrirTicket({...dados, ticketId, criadoEm, id:docId});
@@ -7361,6 +7389,7 @@ async function combustivelExcluir(id){
     await db.collection('registros_combustivel').doc(id).delete();
     await combustivelCarregarDados();
     combustivelRenderHistorico();
+    combustivelPopularFiltrosExportacao();
     combustivelRenderGraficos();
   }catch(e){ alert('Erro ao excluir: ' + e.message); }
 }
@@ -7388,9 +7417,13 @@ function combustivelFecharTicket(){
   document.getElementById('comb-modalTicket').style.display = 'none';
 }
 
+let combustivelPaginaAtual = 1;
+const COMBUSTIVEL_ITENS_POR_PAGINA = 10;
+
 function combustivelRenderHistorico(){
   const tabela = document.getElementById('comb-tabelaHistorico');
   const info = document.getElementById('comb-infoHistorico');
+  const paginacaoEl = document.getElementById('comb-paginacao');
   const termo = document.getElementById('comb-buscaHistorico').value.trim().toLowerCase();
   const filtrados = !termo ? combustivelDados : combustivelDados.filter(d=>
     (d.nomeSolicitante||'').toLowerCase().includes(termo) ||
@@ -7398,9 +7431,15 @@ function combustivelRenderHistorico(){
     (d.motivo||'').toLowerCase().includes(termo)
   );
   info.textContent = `${filtrados.length} requisição(ões)`;
-  if(!filtrados.length){ tabela.innerHTML = '<tbody><tr><td style="padding:14px;">Nenhuma requisição encontrada.</td></tr></tbody>'; return; }
+  if(!filtrados.length){ tabela.innerHTML = '<tbody><tr><td style="padding:14px;">Nenhuma requisição encontrada.</td></tr></tbody>'; if(paginacaoEl) paginacaoEl.innerHTML=''; return; }
+
+  const totalPaginas = Math.max(1, Math.ceil(filtrados.length / COMBUSTIVEL_ITENS_POR_PAGINA));
+  if(combustivelPaginaAtual > totalPaginas) combustivelPaginaAtual = totalPaginas;
+  const inicio = (combustivelPaginaAtual-1) * COMBUSTIVEL_ITENS_POR_PAGINA;
+  const paginaAtualItens = filtrados.slice(inicio, inicio + COMBUSTIVEL_ITENS_POR_PAGINA);
+
   tabela.innerHTML = `<thead><tr><th>Ticket</th><th class="rowhead">Núcleo</th><th>Distribuição</th><th>Data</th><th>Solicitante</th><th>Combustível</th><th>Qtd. (L)</th><th></th>${window.souAdminPrincipal?'<th></th><th></th>':''}</tr></thead>
-    <tbody>${filtrados.map(d=>`<tr>
+    <tbody>${paginaAtualItens.map(d=>`<tr>
       <td style="font-weight:800;color:var(--vermelho);">#${d.ticketId}</td>
       <th class="rowhead">${d.nucleo}</th>
       <td style="font-size:11px;">${d.rateioNucleo ? 'Núcleo Todo' : (d.galpoes||[]).join(', ')}</td>
@@ -7408,9 +7447,20 @@ function combustivelRenderHistorico(){
       <td>${d.nomeSolicitante}</td>
       <td>${d.tipoCombustivel||'Gasolina'}</td>
       <td style="font-weight:700;">${Number(d.quantidade).toLocaleString('pt-BR',{minimumFractionDigits:1})}</td>
-      <td><button class="quadro-btn-remover-posto" data-comb-reimprimir="${d.id}" title="Reimprimir ticket">🖨️</button></td>
-      ${window.souAdminPrincipal?`<td><button class="quadro-btn-remover-posto" data-comb-editar="${d.id}" title="Editar">✏️</button></td><td><button class="quadro-btn-remover-posto" data-comb-excluir="${d.id}" title="Excluir">✕</button></td>`:''}
+      <td><button class="comb-btn-acao reimprimir" data-comb-reimprimir="${d.id}" title="Reimprimir ticket">🖨️</button></td>
+      ${window.souAdminPrincipal?`<td><button class="comb-btn-acao editar" data-comb-editar="${d.id}" title="Editar">✏️</button></td><td><button class="comb-btn-acao excluir" data-comb-excluir="${d.id}" title="Excluir">✕</button></td>`:''}
     </tr>`).join('')}</tbody>`;
+
+  if(paginacaoEl){
+    let botoes = '';
+    for(let p=1; p<=totalPaginas; p++){
+      botoes += `<button class="comb-btn-pagina ${p===combustivelPaginaAtual?'ativo':''}" data-comb-pagina="${p}">${p}</button>`;
+    }
+    paginacaoEl.innerHTML = totalPaginas>1 ? botoes : '';
+    paginacaoEl.querySelectorAll('[data-comb-pagina]').forEach(btn=>{
+      btn.addEventListener('click', ()=>{ combustivelPaginaAtual = parseInt(btn.dataset.combPagina); combustivelRenderHistorico(); });
+    });
+  }
 
   tabela.querySelectorAll('[data-comb-reimprimir]').forEach(btn=>{
     btn.addEventListener('click', ()=>{
@@ -7475,11 +7525,35 @@ function combustivelRenderGraficos(){
   }
 }
 
+function combustivelPopularFiltrosExportacao(){
+  const nucleos = Array.from(new Set(combustivelDados.map(d=>d.nucleo))).sort();
+  const solicitantes = Array.from(new Set(combustivelDados.map(d=>d.nomeSolicitante))).sort();
+  const anos = Array.from(new Set(combustivelDados.map(d=>d.dataSolicitacao ? d.dataSolicitacao.slice(0,4) : null).filter(Boolean))).sort();
+  const meses = ['01','02','03','04','05','06','07','08','09','10','11','12'];
+  const nomesMeses = ['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'];
+  document.getElementById('comb-exportNucleo').innerHTML = '<option value="Todos">Todos</option>' + nucleos.map(n=>`<option value="${n}">${n}</option>`).join('');
+  document.getElementById('comb-exportSolicitante').innerHTML = '<option value="Todos">Todos</option>' + solicitantes.map(s=>`<option value="${s}">${s}</option>`).join('');
+  document.getElementById('comb-exportMes').innerHTML = '<option value="Todos">Todos os meses</option>' + meses.map((m,i)=>`<option value="${m}">${nomesMeses[i]}</option>`).join('');
+  document.getElementById('comb-exportAno').innerHTML = '<option value="Todos">Todos</option>' + anos.map(a=>`<option value="${a}">${a}</option>`).join('');
+}
+
 function combustivelExportarExcel(){
   if(typeof XLSX === 'undefined'){ alert('Não foi possível carregar o gerador de Excel.'); return; }
   if(!combustivelDados.length){ alert('Nenhuma requisição pra exportar.'); return; }
+  const fNucleo = document.getElementById('comb-exportNucleo').value;
+  const fSolicitante = document.getElementById('comb-exportSolicitante').value;
+  const fMes = document.getElementById('comb-exportMes').value;
+  const fAno = document.getElementById('comb-exportAno').value;
+  const filtrados = combustivelDados.filter(d=>{
+    if(fNucleo!=='Todos' && d.nucleo!==fNucleo) return false;
+    if(fSolicitante!=='Todos' && d.nomeSolicitante!==fSolicitante) return false;
+    if(fMes!=='Todos' && (!d.dataSolicitacao || d.dataSolicitacao.slice(5,7)!==fMes)) return false;
+    if(fAno!=='Todos' && (!d.dataSolicitacao || d.dataSolicitacao.slice(0,4)!==fAno)) return false;
+    return true;
+  });
+  if(!filtrados.length){ alert('Nenhuma requisição encontrada com esses filtros.'); return; }
   const linhas = [['Ticket','Núcleo','Distribuição','Data','Solicitante','Combustível','Quantidade (L)','Motivo']];
-  combustivelDados.forEach(d=>{
+  filtrados.forEach(d=>{
     linhas.push([d.ticketId, d.nucleo, d.rateioNucleo?'Núcleo Todo':(d.galpoes||[]).join(', '), reg_formatarDataBR(d.dataSolicitacao), d.nomeSolicitante, d.tipoCombustivel||'Gasolina', d.quantidade, d.motivo]);
   });
   const ws = XLSX.utils.aoa_to_sheet(linhas);
@@ -7499,6 +7573,7 @@ async function combustivelImportarHistoricoManus(){
     }
     await combustivelCarregarDados();
     combustivelRenderHistorico();
+    combustivelPopularFiltrosExportacao();
     combustivelRenderGraficos();
     btn.style.display = 'none';
     alert(`Importação concluída! ${historico.length} requisições adicionadas.`);
