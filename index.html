@@ -1488,51 +1488,77 @@
       <p class="nota" id="energiasolar-erroImportar" style="min-height:16px;margin-top:12px;"></p>
     </div>
 
-    <div class="quadro" id="energiasolar-painel-filtros">
-      <div style="display:flex;gap:14px;flex-wrap:wrap;align-items:flex-end;">
-        <div class="campo"><label>Ano</label><select id="energiasolar-fAno" style="min-width:110px;"></select></div>
-        <div class="campo"><label>Mês</label><select id="energiasolar-fMes" style="min-width:150px;"></select></div>
-        <div class="campo"><label>Usina</label><select id="energiasolar-fUsina" style="min-width:190px;"></select></div>
-        <button class="btn-recolher" id="energiasolar-btnRelatorio" type="button">📊 Relatório diário (Excel)</button>
+    <div class="tabs-internas" id="energiasolar-tabs">
+      <button class="tab-int ativo" data-aba-solar="geral">Visão Geral</button>
+      <button class="tab-int" data-aba-solar="relatorio">Relatório Diário</button>
+    </div>
+
+    <div data-aba-solar-view="geral">
+      <div class="quadro" id="energiasolar-painel-filtros">
+        <div style="display:flex;gap:14px;flex-wrap:wrap;align-items:flex-end;">
+          <div class="campo"><label>Ano</label><select id="energiasolar-fAno" style="min-width:110px;"></select></div>
+          <div class="campo"><label>Mês</label><select id="energiasolar-fMes" style="min-width:150px;"></select></div>
+          <div class="campo"><label>Usina</label><select id="energiasolar-fUsina" style="min-width:190px;"></select></div>
+          <button class="btn-recolher" id="energiasolar-btnLimparFiltros" type="button">Limpar filtros</button>
+        </div>
+      </div>
+
+      <div class="cards" id="energiasolar-cards"></div>
+
+      <div class="quadro" id="energiasolar-painel-alertas" style="display:none;padding:14px 18px;">
+        <div style="font-size:11px;font-weight:700;color:var(--texto-suave);text-transform:uppercase;letter-spacing:.03em;margin-bottom:10px;">⚠️ Pontos de atenção</div>
+        <div id="energiasolar-listaAlertas"></div>
+      </div>
+
+      <div class="painel-grafico">
+        <div class="painel-grafico-header">
+          <h2>Produção vs. Estimativa por mês</h2>
+        </div>
+        <div class="chart-wrap" style="height:300px;"><canvas id="energiasolar-graficoMensal"></canvas></div>
+      </div>
+
+      <div class="painel-grafico">
+        <div class="painel-grafico-header">
+          <h2>Produção vs. Estimativa por ano</h2>
+        </div>
+        <div class="chart-wrap" style="height:260px;"><canvas id="energiasolar-graficoAnual"></canvas></div>
+      </div>
+
+      <div class="painel-grafico">
+        <div class="painel-grafico-header">
+          <h2>Evolução diária — mês atual</h2>
+          <span class="info" id="energiasolar-infoEvolucaoDiaria"></span>
+        </div>
+        <div class="chart-wrap" style="height:280px;"><canvas id="energiasolar-graficoEvolucaoDiaria"></canvas></div>
+      </div>
+
+      <div class="painel-grafico">
+        <div class="painel-grafico-header">
+          <h2>Comparativo por Granja</h2>
+        </div>
+        <div class="chart-wrap" style="height:300px;"><canvas id="energiasolar-graficoGranja"></canvas></div>
+      </div>
+
+      <div class="quadro">
+        <div class="quadro-header">
+          <h2>Produção por usina</h2>
+          <span class="info" id="energiasolar-infoUsinas"></span>
+        </div>
+        <div class="tabela-scroll"><table class="matriz-diaria" id="energiasolar-tabelaUsinas"></table></div>
       </div>
     </div>
 
-    <div class="cards" id="energiasolar-cards"></div>
-
-    <div class="quadro" id="energiasolar-painel-alertas" style="display:none;">
-      <div class="quadro-header"><h2>⚠️ Alertas</h2></div>
-      <div id="energiasolar-listaAlertas"></div>
-    </div>
-
-    <div class="painel-grafico">
-      <div class="painel-grafico-header">
-        <h2>Produção vs. Estimativa por mês</h2>
+    <div data-aba-solar-view="relatorio" style="display:none;">
+      <div class="quadro">
+        <div class="quadro-header">
+          <h2>Comparativo — últimos 2 dias</h2>
+          <span class="info" id="energiasolar-infoRelatorio"></span>
+        </div>
+        <button class="btn-recolher" id="energiasolar-btnCompartilhar" type="button" style="margin-bottom:14px;">📤 Compartilhar</button>
+        <div class="tabela-scroll"><table class="matriz-diaria" id="energiasolar-tabelaRelatorio"></table></div>
       </div>
-      <div class="chart-wrap" style="height:300px;"><canvas id="energiasolar-graficoMensal"></canvas></div>
     </div>
-
-    <div class="painel-grafico">
-      <div class="painel-grafico-header">
-        <h2>Evolução diária — mês atual</h2>
-        <span class="info" id="energiasolar-infoEvolucaoDiaria"></span>
-      </div>
-      <div class="chart-wrap" style="height:280px;"><canvas id="energiasolar-graficoEvolucaoDiaria"></canvas></div>
-    </div>
-
-    <div class="painel-grafico">
-      <div class="painel-grafico-header">
-        <h2>Comparativo por Granja</h2>
-      </div>
-      <div class="chart-wrap" style="height:300px;"><canvas id="energiasolar-graficoGranja"></canvas></div>
-    </div>
-
-    <div class="quadro">
-      <div class="quadro-header">
-        <h2>Produção por usina</h2>
-        <span class="info" id="energiasolar-infoUsinas"></span>
-      </div>
-      <div class="tabela-scroll"><table class="matriz-diaria" id="energiasolar-tabelaUsinas"></table></div>
-    </div>
+  </div>
   </div>
 
   <div data-modulo-view="admin" style="display:none;">
@@ -1550,6 +1576,7 @@
           <div class="painel-header"><h2>Adicionar e-mail autorizado</h2></div>
           <form id="formAddEmail" style="display:flex;gap:10px;align-items:flex-end;flex-wrap:wrap;">
             <div class="campo" style="flex:1;min-width:220px;"><label>E-mail</label><input type="email" id="novoEmailAdmin" required style="width:100%;padding:10px 12px;border-radius:9px;border:1.5px solid var(--borda);font-size:14px;font-family:inherit;box-sizing:border-box;"></div>
+            <label style="display:flex;align-items:center;gap:6px;font-size:12.5px;font-weight:600;color:var(--texto-suave);white-space:nowrap;"><input type="checkbox" id="novoEmailPularConfirmacao" style="width:16px;height:16px;"> Dispensar confirmação de e-mail (só pra quem você conhece pessoalmente)</label>
             <button type="submit" class="btn-recolher" style="background:var(--vermelho);color:#fff;border-color:var(--vermelho);">+ Adicionar</button>
           </form>
           <p class="nota" id="erroAddEmail" style="min-height:16px;margin-top:8px;"></p>
@@ -1589,6 +1616,19 @@
             <div style="width:100%;">
               <label style="display:block;font-size:11.5px;font-weight:700;color:var(--texto-suave);text-transform:uppercase;letter-spacing:.03em;margin-bottom:6px;">Pode editar o Quadro de Funcionários destes núcleos:</label>
               <div id="permNucleosQuadro" style="display:flex;flex-wrap:wrap;gap:10px;"></div>
+            </div>
+            <div style="width:100%;">
+              <label style="display:block;font-size:11.5px;font-weight:700;color:var(--texto-suave);text-transform:uppercase;letter-spacing:.03em;margin-bottom:6px;">Módulos visíveis pra essa pessoa (deixe tudo desmarcado pra liberar acesso a todos):</label>
+              <div style="display:flex;flex-wrap:wrap;gap:10px;">
+                <label style="display:flex;align-items:center;gap:5px;font-size:12.5px;"><input type="checkbox" class="perm-modulo-check" value="mortalidade"> Mortalidade</label>
+                <label style="display:flex;align-items:center;gap:5px;font-size:12.5px;"><input type="checkbox" class="perm-modulo-check" value="resultado"> Resultado Zootécnico</label>
+                <label style="display:flex;align-items:center;gap:5px;font-size:12.5px;"><input type="checkbox" class="perm-modulo-check" value="condenas"> Condenas</label>
+                <label style="display:flex;align-items:center;gap:5px;font-size:12.5px;"><input type="checkbox" class="perm-modulo-check" value="peso"> Evolução de Pesos</label>
+                <label style="display:flex;align-items:center;gap:5px;font-size:12.5px;"><input type="checkbox" class="perm-modulo-check" value="quadro"> Quadro de Funcionários</label>
+                <label style="display:flex;align-items:center;gap:5px;font-size:12.5px;"><input type="checkbox" class="perm-modulo-check" value="registros"> Registros</label>
+                <label style="display:flex;align-items:center;gap:5px;font-size:12.5px;"><input type="checkbox" class="perm-modulo-check" value="produtos"> Consulta de Produtos</label>
+                <label style="display:flex;align-items:center;gap:5px;font-size:12.5px;"><input type="checkbox" class="perm-modulo-check" value="energiasolar"> Energia Solar</label>
+              </div>
             </div>
             <button type="submit" class="btn-recolher" style="background:var(--vermelho);color:#fff;border-color:var(--vermelho);">Promover / Atualizar</button>
           </form>
@@ -5358,7 +5398,7 @@ const appRoot = document.getElementById('appRoot');
 const ADMIN_EMAIL = 'avicultura05@qualitti.com.br';
 const NUCLEOS_QUADRO = ['Aeroporto','Aroeira','Engopa','Flamboyant','Paraiso 01','Paraiso 02','Paraiso 03','Paraiso 04','Santa Rosa','Valzinho','Vinagre 01','Vinagre 02','Vinagre 03'];
 window.souAdminPrincipal = false;
-window.minhasPermissoes = {metas:false, usuarios:false, produtos:false, energiaSolar:false, funcionariosNucleos:[]};
+window.minhasPermissoes = {metas:false, usuarios:false, produtos:false, energiaSolar:false, funcionariosNucleos:[], modulosPermitidos: null};
 window.qfConsolidadoExpandido = new Set();
 
 function mensagemErroAuth(err){
@@ -5465,6 +5505,13 @@ function atualizarVisibilidadeSecoesAdmin(){
   if(secAcessos) secAcessos.style.display = window.souAdminPrincipal ? '' : 'none';
 }
 
+function podeVerModulo(chave){
+  if(window.souAdminPrincipal) return true;
+  const lista = window.minhasPermissoes.modulosPermitidos;
+  if(!lista) return true; // sem restrição definida pra essa pessoa -> vê tudo (padrão de sempre)
+  return lista.includes(chave);
+}
+
 function atualizarBotoesModulosPermissao(){
   const btnAdmin = document.getElementById('btnModuloAdmin');
   const btnQuadro = document.getElementById('btnModuloQuadro');
@@ -5472,10 +5519,14 @@ function atualizarBotoesModulosPermissao(){
   const btnProdutos = document.getElementById('btnModuloProdutos');
   const btnEnergiaSolar = document.getElementById('btnModuloEnergiaSolar');
   if(btnAdmin) btnAdmin.style.display = (window.souAdminPrincipal || window.minhasPermissoes.metas || window.minhasPermissoes.usuarios || window.minhasPermissoes.produtos || window.minhasPermissoes.energiaSolar) ? '' : 'none';
-  if(btnQuadro) btnQuadro.style.display = (window.souAdminPrincipal || (window.minhasPermissoes.funcionariosNucleos||[]).length>0) ? '' : 'none';
-  if(btnRegistros) btnRegistros.style.display = ''; // visível pra qualquer usuário logado, sem restrição de núcleo
-  if(btnProdutos) btnProdutos.style.display = ''; // consulta é livre pra qualquer usuário aprovado; só a IMPORTAÇÃO é restrita por permissão
-  if(btnEnergiaSolar) btnEnergiaSolar.style.display = '';
+  if(btnQuadro) btnQuadro.style.display = ((window.souAdminPrincipal || (window.minhasPermissoes.funcionariosNucleos||[]).length>0) && podeVerModulo('quadro')) ? '' : 'none';
+  if(btnRegistros) btnRegistros.style.display = podeVerModulo('registros') ? '' : 'none';
+  if(btnProdutos) btnProdutos.style.display = podeVerModulo('produtos') ? '' : 'none';
+  if(btnEnergiaSolar) btnEnergiaSolar.style.display = podeVerModulo('energiasolar') ? '' : 'none';
+  ['mortalidade','resultado','condenas','peso'].forEach(chave=>{
+    const btn = document.querySelector(`.sidebar [data-modulo="${chave}"]`);
+    if(btn) btn.style.display = podeVerModulo(chave) ? '' : 'none';
+  });
 }
 
 function processarEstadoAuth(user){
@@ -5500,20 +5551,21 @@ function processarEstadoAuth(user){
     const checarTudo = window.souAdminPrincipal
       ? Promise.resolve({status:'ok'})
       : user.reload().then(()=>{
-          if(!auth.currentUser.emailVerified) return {status:'confirmar_email'};
-          return db.collection('acessos').doc(user.uid).get().then(doc => {
-            if(doc.exists && doc.data().reprovado === true) return {status:'reprovado'};
-            if(doc.exists && doc.data().aprovado === true){
-              // já foi aprovado antes — mas confere de novo se o e-mail continua na lista de autorizados
-              return db.collection('emails_autorizados').doc(emailLower).get().then(docEmail => {
+          return db.collection('emails_autorizados').doc(emailLower).get().then(docEmail => {
+            const podeDispensarConfirmacao = docEmail.exists && docEmail.data().pularConfirmacaoEmail === true;
+            if(!auth.currentUser.emailVerified && !podeDispensarConfirmacao) return {status:'confirmar_email'};
+            return db.collection('acessos').doc(user.uid).get().then(doc => {
+              if(doc.exists && doc.data().reprovado === true) return {status:'reprovado'};
+              if(doc.exists && doc.data().aprovado === true){
+                // já foi aprovado antes — mas confere de novo se o e-mail continua na lista de autorizados
                 return docEmail.exists ? {status:'ok'} : {status:'reprovado'};
-              });
-            }
-            if(doc.exists && doc.data().hasOwnProperty('aprovado')) return {status:'pendente'};
-            if(doc.exists) return {status:'ok'}; // registro de antes dessa atualização de segurança -> libera, sem gravar nada
-            return db.collection('acessos').doc(user.uid).set({
-              email: user.email, aprovado: false, criadoEm: firebase.firestore.FieldValue.serverTimestamp()
-            }, {merge:true}).then(()=> ({status:'pendente'}));
+              }
+              if(doc.exists && doc.data().hasOwnProperty('aprovado')) return {status:'pendente'};
+              if(doc.exists) return {status:'ok'}; // registro de antes dessa atualização de segurança -> libera, sem gravar nada
+              return db.collection('acessos').doc(user.uid).set({
+                email: user.email, aprovado: false, criadoEm: firebase.firestore.FieldValue.serverTimestamp()
+              }, {merge:true}).then(()=> ({status:'pendente'}));
+            });
           });
         }).catch(()=>({status:'pendente'})); // qualquer erro = trava por segurança
 
@@ -5532,16 +5584,18 @@ function processarEstadoAuth(user){
       appRoot.style.display = '';
 
       if(window.souAdminPrincipal){
-        window.minhasPermissoes = {metas:true, usuarios:true, produtos:true, energiaSolar:true, funcionariosNucleos: NUCLEOS_QUADRO.slice()};
+        window.minhasPermissoes = {metas:true, usuarios:true, produtos:true, energiaSolar:true, funcionariosNucleos: NUCLEOS_QUADRO.slice(), modulosPermitidos: null};
         atualizarBotoesModulosPermissao();
         atualizarVisibilidadeSecoesAdmin();
       } else {
         db.collection('admins').doc(emailLower).get().then(doc=>{
           if(doc.exists){
             const perm = doc.data().permissoes || {};
-            window.minhasPermissoes = {metas: !!perm.metas, usuarios: !!perm.usuarios, produtos: !!perm.produtos, energiaSolar: !!perm.energiaSolar, funcionariosNucleos: perm.funcionariosNucleos || []};
+            // modulosPermitidos: null = sem restrição (vê tudo, comportamento padrão). Array com itens = só vê o que estiver na lista.
+            const modulos = (perm.modulosPermitidos && perm.modulosPermitidos.length) ? perm.modulosPermitidos : null;
+            window.minhasPermissoes = {metas: !!perm.metas, usuarios: !!perm.usuarios, produtos: !!perm.produtos, energiaSolar: !!perm.energiaSolar, funcionariosNucleos: perm.funcionariosNucleos || [], modulosPermitidos: modulos};
           } else {
-            window.minhasPermissoes = {metas:false, usuarios:false, produtos:false, energiaSolar:false, funcionariosNucleos:[]};
+            window.minhasPermissoes = {metas:false, usuarios:false, produtos:false, energiaSolar:false, funcionariosNucleos:[], modulosPermitidos: null};
           }
           atualizarBotoesModulosPermissao();
           atualizarVisibilidadeSecoesAdmin();
@@ -5719,6 +5773,7 @@ if(formAddEmail){
     const input = document.getElementById('novoEmailAdmin');
     const erroEl = document.getElementById('erroAddEmail');
     const email = input.value.trim().toLowerCase();
+    const pularConfirmacao = document.getElementById('novoEmailPularConfirmacao').checked;
     erroEl.style.color=''; erroEl.textContent = '';
     const btn = formAddEmail.querySelector('button[type="submit"]');
     btn.disabled = true; btn.textContent = 'Adicionando...';
@@ -5726,8 +5781,9 @@ if(formAddEmail){
       const ref = db.collection('emails_autorizados').doc(email);
       const existente = await ref.get();
       if(existente.exists){ erroEl.textContent = 'Esse e-mail já está na lista.'; return; }
-      await ref.set({ email }); // e-mail é o próprio ID do documento — permite checagem individual segura no cadastro
+      await ref.set({ email, pularConfirmacaoEmail: pularConfirmacao }); // e-mail é o próprio ID do documento — permite checagem individual segura no cadastro
       input.value = '';
+      document.getElementById('novoEmailPularConfirmacao').checked = false;
       erroEl.style.color='var(--verde-ok)'; erroEl.textContent = 'E-mail adicionado com sucesso!';
       carregarListaEmails();
     }catch(e){
@@ -5855,19 +5911,21 @@ if(formPromoverAdmin){
     const permMetas = document.getElementById('permMetas').checked;
     const permUsuarios = document.getElementById('permUsuarios').checked;
     const nucleosSelecionados = Array.from(document.querySelectorAll('.qf-perm-nucleo-check:checked')).map(el=>el.value);
+    const modulosSelecionados = Array.from(document.querySelectorAll('.perm-modulo-check:checked')).map(el=>el.value);
     if(!email){ erroEl.textContent = 'Selecione um e-mail.'; return; }
     if(email === ADMIN_EMAIL){ erroEl.textContent = 'Esse já é o e-mail do administrador principal.'; return; }
-    if(!permMetas && !permUsuarios && nucleosSelecionados.length===0){ erroEl.textContent = 'Marque ao menos uma permissão.'; return; }
+    if(!permMetas && !permUsuarios && nucleosSelecionados.length===0 && modulosSelecionados.length===0){ erroEl.textContent = 'Marque ao menos uma permissão ou módulo.'; return; }
     const btn = formPromoverAdmin.querySelector('button[type="submit"]');
     btn.disabled = true; btn.textContent = 'Salvando...';
     try{
-      await db.collection('admins').doc(email).set({ email, permissoes: {metas: permMetas, usuarios: permUsuarios, funcionariosNucleos: nucleosSelecionados} });
+      await db.collection('admins').doc(email).set({ email, permissoes: {metas: permMetas, usuarios: permUsuarios, funcionariosNucleos: nucleosSelecionados, modulosPermitidos: modulosSelecionados} });
       erroEl.style.color = 'var(--verde-ok)';
       erroEl.textContent = 'Permissões salvas com sucesso!';
       document.getElementById('emailPromover').value='';
       document.getElementById('permMetas').checked=false;
       document.getElementById('permUsuarios').checked=false;
       document.querySelectorAll('.qf-perm-nucleo-check').forEach(el=>el.checked=false);
+      document.querySelectorAll('.perm-modulo-check').forEach(el=>el.checked=false);
       carregarListaAdmins();
     }catch(e){
       erroEl.textContent = 'Erro ao salvar: ' + e.message;
@@ -6677,8 +6735,28 @@ async function iniciarEnergiaSolar(){
     });
   });
 
-  const btnRelatorio = document.getElementById('energiasolar-btnRelatorio');
-  if(btnRelatorio) btnRelatorio.addEventListener('click', energiaSolarGerarRelatorio);
+  const btnLimpar = document.getElementById('energiasolar-btnLimparFiltros');
+  if(btnLimpar) btnLimpar.addEventListener('click', ()=>{
+    window.energiaSolarFiltro = { ano:'Todos', mes:'Todos', usina:'Todas' };
+    document.getElementById('energiasolar-fAno').value = 'Todos';
+    document.getElementById('energiasolar-fMes').value = 'Todos';
+    document.getElementById('energiasolar-fUsina').value = 'Todas';
+    energiaSolarRenderTudo();
+  });
+
+  document.querySelectorAll('#energiasolar-tabs .tab-int').forEach(btn=>{
+    btn.addEventListener('click', ()=>{
+      document.querySelectorAll('#energiasolar-tabs .tab-int').forEach(b=>b.classList.remove('ativo'));
+      btn.classList.add('ativo');
+      const aba = btn.dataset.abaSolar;
+      document.querySelector('[data-aba-solar-view="geral"]').style.display = (aba==='geral') ? '' : 'none';
+      document.querySelector('[data-aba-solar-view="relatorio"]').style.display = (aba==='relatorio') ? '' : 'none';
+      if(aba==='relatorio') energiaSolarRenderRelatorio();
+    });
+  });
+
+  const btnCompartilhar = document.getElementById('energiasolar-btnCompartilhar');
+  if(btnCompartilhar) btnCompartilhar.addEventListener('click', energiaSolarCompartilharRelatorio);
 }
 window.iniciarEnergiaSolar = iniciarEnergiaSolar;
 
@@ -6776,6 +6854,32 @@ function energiaSolarRenderTudo(){
         datasets: [
           { label: 'Produção (kWh)', data: mesesOrdenados.map(m=>Math.round(porMes.get(m).producao)), backgroundColor: '#F2A900' },
           { label: 'Estimativa (kWh)', data: mesesOrdenados.map(m=>Math.round(porMes.get(m).estimativa)), backgroundColor: '#C1272D', type:'line', borderColor:'#C1272D', fill:false }
+        ]
+      },
+      options: { responsive:true, maintainAspectRatio:false, scales:{ y:{ beginAtZero:true, title:{display:true,text:'kWh'} } } }
+    });
+  }
+
+  // Gráfico anual: compara ano a ano (não faz sentido aplicar o filtro de Ano aqui, já que é ELE quem estamos comparando) — respeita só o filtro de Usina.
+  const filtradosPorUsinaAnual = window.energiaSolarFiltro.usina==='Todas' ? energiaSolarDados : energiaSolarDados.filter(d=>d.planta===window.energiaSolarFiltro.usina);
+  const porAno = new Map();
+  filtradosPorUsinaAnual.forEach(d=>{
+    if(!d.ano) return;
+    if(!porAno.has(d.ano)) porAno.set(d.ano, {producao:0, estimativa:0});
+    const a = porAno.get(d.ano);
+    a.producao += (d.producao||0); a.estimativa += (d.estimativa||0);
+  });
+  const anosOrdenados = Array.from(porAno.keys()).sort();
+  const ctxAnual = document.getElementById('energiasolar-graficoAnual');
+  if(ctxAnual){
+    if(window.chartEnergiaSolarAnual) window.chartEnergiaSolarAnual.destroy();
+    window.chartEnergiaSolarAnual = new Chart(ctxAnual.getContext('2d'), {
+      type: 'bar',
+      data: {
+        labels: anosOrdenados,
+        datasets: [
+          { label: 'Produção (kWh)', data: anosOrdenados.map(a=>Math.round(porAno.get(a).producao)), backgroundColor: '#F2A900' },
+          { label: 'Estimativa (kWh)', data: anosOrdenados.map(a=>Math.round(porAno.get(a).estimativa)), backgroundColor: '#C1272D' }
         ]
       },
       options: { responsive:true, maintainAspectRatio:false, scales:{ y:{ beginAtZero:true, title:{display:true,text:'kWh'} } } }
@@ -6883,17 +6987,20 @@ function energiaSolarRenderAlertas(){
 
   if(!zeradas.length && !baixaTendencia.length){ painel.style.display = 'none'; return; }
   painel.style.display = '';
-  let html = '';
+  let html = '<div style="display:flex;flex-direction:column;gap:10px;">';
   if(zeradas.length){
-    html += `<p class="nota" style="color:#8A1F1F;background:#FDECEC;border:1px solid #F0A0A0;border-radius:9px;padding:10px 14px;margin-bottom:10px;">
-      🔴 <strong>Produção zerada em ${energiaSolarFormatarDataBR(ultimoDia)}:</strong> ${zeradas.map(d=>d.planta).join(', ')}
-    </p>`;
+    html += `<div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
+      <span style="font-size:11.5px;font-weight:700;color:#8A1F1F;white-space:nowrap;">🔴 Zerada hoje:</span>
+      ${zeradas.map(d=>`<span style="font-size:11px;background:#FDECEC;color:#8A1F1F;border-radius:20px;padding:3px 10px;">${d.planta}</span>`).join('')}
+    </div>`;
   }
   if(baixaTendencia.length){
-    html += `<p class="nota" style="color:#8A6200;background:#FFF4E1;border:1px solid #F0CB7A;border-radius:9px;padding:10px 14px;">
-      🟡 <strong>Tendência de baixa produção (últimos 7 dias, abaixo de ${(ENERGIA_SOLAR_LIMIAR_IDEAL*100).toFixed(0)}% da estimativa):</strong> ${baixaTendencia.map(d=>`${d.nome} (${d.pct.toFixed(0)}%)`).join(', ')}
-    </p>`;
+    html += `<div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
+      <span style="font-size:11.5px;font-weight:700;color:#8A6200;white-space:nowrap;">🟡 Abaixo de ${(ENERGIA_SOLAR_LIMIAR_IDEAL*100).toFixed(0)}% (7d):</span>
+      ${baixaTendencia.map(d=>`<span style="font-size:11px;background:#FFF4E1;color:#8A6200;border-radius:20px;padding:3px 10px;">${d.nome} ${d.pct.toFixed(0)}%</span>`).join('')}
+    </div>`;
   }
+  html += '</div>';
   lista.innerHTML = html;
 }
 
@@ -6903,28 +7010,36 @@ function energiaSolarFormatarDataBR(iso){
   return `${d}/${m}/${a}`;
 }
 
-function energiaSolarGerarRelatorio(){
-  if(typeof XLSX === 'undefined'){ alert('Não foi possível carregar o gerador de Excel.'); return; }
-  if(!energiaSolarDados.length){ alert('Nenhum dado importado ainda.'); return; }
+function energiaSolarRenderRelatorio(){
+  const tabela = document.getElementById('energiasolar-tabelaRelatorio');
+  const info = document.getElementById('energiasolar-infoRelatorio');
+  if(!energiaSolarDados.length){ tabela.innerHTML = ''; info.textContent = ''; return; }
+
   const diasComDado = Array.from(new Set(energiaSolarDados.map(d=>d.dia))).sort();
   const ultimoDia = diasComDado[diasComDado.length-1];
   const diaAnterior = diasComDado[diasComDado.length-2];
   const usinas = Array.from(new Set(energiaSolarDados.map(d=>d.planta))).sort();
+  info.textContent = `${energiaSolarFormatarDataBR(diaAnterior)} → ${energiaSolarFormatarDataBR(ultimoDia)}`;
 
-  const linhas = [['Usina', 'Produção '+energiaSolarFormatarDataBR(ultimoDia)+' (kWh)', 'Produção '+energiaSolarFormatarDataBR(diaAnterior)+' (kWh)', 'Variação (%)']];
-  usinas.forEach(nome=>{
+  const linhas = usinas.map(nome=>{
     const hoje = energiaSolarDados.find(d=>d.planta===nome && d.dia===ultimoDia);
     const ontem = energiaSolarDados.find(d=>d.planta===nome && d.dia===diaAnterior);
     const prodHoje = hoje ? (hoje.producao||0) : 0;
     const prodOntem = ontem ? (ontem.producao||0) : 0;
     const variacao = prodOntem ? ((prodHoje-prodOntem)/prodOntem*100) : null;
-    linhas.push([nome, prodHoje.toFixed(1), prodOntem.toFixed(1), variacao!=null ? variacao.toFixed(1)+'%' : '–']);
-  });
+    return `<tr>
+      <th class="rowhead">${nome}</th>
+      <td>${prodOntem.toLocaleString('pt-BR',{maximumFractionDigits:1})} kWh</td>
+      <td style="font-weight:700;">${prodHoje.toLocaleString('pt-BR',{maximumFractionDigits:1})} kWh</td>
+      <td style="color:${variacao==null?'inherit':(variacao>=0?'var(--verde-ok)':'var(--vermelho-alerta)')};font-weight:700;">${variacao!=null ? (variacao>=0?'+':'')+variacao.toFixed(1)+'%' : '–'}</td>
+    </tr>`;
+  }).join('');
 
-  const ws = XLSX.utils.aoa_to_sheet(linhas);
-  const wb = XLSX.utils.book_new();
-  XLSX.utils.book_append_sheet(wb, ws, 'Relatório Diário');
-  XLSX.writeFile(wb, `energia_solar_relatorio_${ultimoDia}.xlsx`);
+  tabela.innerHTML = `<thead><tr><th class="rowhead">Usina</th><th>${energiaSolarFormatarDataBR(diaAnterior)}</th><th>${energiaSolarFormatarDataBR(ultimoDia)}</th><th>Variação</th></tr></thead><tbody>${linhas}</tbody>`;
+}
+
+function energiaSolarCompartilharRelatorio(){
+  compartilharTabelaWhatsApp('energiasolar-tabelaRelatorio', `energia_solar_${new Date().toISOString().slice(0,10)}.png`, document.getElementById('energiasolar-btnCompartilhar'));
 }
 
 async function energiaSolarImportarArquivo(){
