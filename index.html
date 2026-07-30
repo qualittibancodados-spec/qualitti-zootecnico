@@ -148,8 +148,11 @@
   .quadro-tabela-wrap{ overflow-x:auto; border:1px solid var(--borda); border-radius:12px; }
   .quadro-tabela{ width:100%; border-collapse:collapse; font-size:12.5px; }
   .quadro-tabela th{ text-align:left; font-size:10.5px; color:var(--texto-suave); font-weight:700; text-transform:uppercase; letter-spacing:.02em; padding:9px 10px; border-bottom:2px solid var(--borda); background:var(--bg); }
-  .quadro-tabela td{ padding:8px 10px; border-bottom:1px solid var(--borda); border-right:1px solid #F1EDE3; vertical-align:middle; }
+  .quadro-tabela td{ padding:9px 10px; border-bottom:1px solid var(--borda); border-right:1px solid #F1EDE3; vertical-align:middle; }
   .quadro-tabela td:last-child{ border-right:none; }
+  /* agrupamento visual sutil: granjeiro (col 2-3) e ajudante (col 4-5) ficam com um fundo levemente diferente, facilitando achar cada bloco de informação rapidinho */
+  .quadro-tabela th:nth-child(2), .quadro-tabela th:nth-child(3){ background:#F7FAFD; }
+  .quadro-tabela th:nth-child(4), .quadro-tabela th:nth-child(5){ background:#FFFBF2; }
   .quadro-tabela tbody tr:hover td{ background:#FBF9F4; }
   .quadro-tabela input[type="text"]{ width:100%; padding:7px 9px; border-radius:7px; border:1.5px solid var(--borda); font-size:12.5px; font-family:inherit; box-sizing:border-box; }
   .quadro-tabela input[type="text"]:focus{ outline:none; border-color:var(--dourado); box-shadow:0 0 0 3px rgba(242,169,0,.15); }
@@ -209,6 +212,9 @@
   .qf-card-detalhe-aviario{ font-weight:700; color:var(--texto-suave); min-width:90px; }
   .qf-card-toggle-icon{ transition:.15s; display:inline-block; }
   .quadro-nome-saindo{ text-decoration:line-through; color:var(--vermelho-alerta); }
+  #mod-admin > div[id^="admin-secao-"]{ margin-bottom:36px; padding-bottom:8px; }
+  #mod-admin > div[id^="admin-secao-"]:last-child{ margin-bottom:0; }
+  .admin-secao-titulo{ font-family:'Sora',sans-serif; font-size:13px; font-weight:800; text-transform:uppercase; letter-spacing:.05em; color:var(--vermelho); margin-bottom:14px; padding-bottom:8px; border-bottom:2px solid var(--dourado); display:flex; align-items:center; gap:8px; }
 
   .qf-linha-total-geral{ border-top:3px solid var(--vermelho); }
   .qf-linha-total-geral th, .qf-linha-total-geral td{ background:#FBE3E1 !important; color:var(--vermelho-escuro) !important; font-weight:800; padding-top:10px; padding-bottom:10px; }
@@ -1299,14 +1305,14 @@
       </div>
 
       <div data-aba-qf-view="consolidado">
-        <p class="nota" style="margin:0 0 8px;">Resumo de todos os núcleos — quanto falta pra completar o quadro, hoje e depois das saídas previstas. Clique no nome do núcleo pra ver aviário por aviário.</p>
-        <p class="nota" style="margin:0 0 12px;color:var(--texto-suave);">🛈 Cada núcleo é mantido pelo técnico responsável por ele — só quem tem autorização naquele núcleo consegue atualizar granjeiro, ajudante ou marcar saídas. A coluna <strong>Futuro</strong> reflete exatamente os desligamentos e avisos prévios já lançados por esses técnicos; ela não antecipa saídas que ainda não foram registradas no sistema.</p>
-        <div class="qf-legenda-atual-futuro">
+        <p class="nota" style="margin:16px 0 10px;">Resumo de todos os núcleos — quanto falta pra completar o quadro, hoje e depois das saídas previstas. Clique no nome do núcleo pra ver aviário por aviário.</p>
+        <p class="nota" style="margin:0 0 16px;color:var(--texto-suave);">🛈 Cada núcleo é mantido pelo técnico responsável por ele — só quem tem autorização naquele núcleo consegue atualizar granjeiro, ajudante ou marcar saídas. A coluna <strong>Futuro</strong> reflete exatamente os desligamentos e avisos prévios já lançados por esses técnicos; ela não antecipa saídas que ainda não foram registradas no sistema.</p>
+        <div class="qf-legenda-atual-futuro" style="margin-bottom:16px;">
           <button type="button" class="qf-toggle-visao ativo-ambos" id="qf-btnVisaoAmbos" data-visao="ambos"><span class="qf-legenda-cor" style="background:#fff;"></span> Ambos</button>
           <button type="button" class="qf-toggle-visao" id="qf-btnVisaoAtual" data-visao="atual"><span class="qf-legenda-cor" style="background:#EAF4FF;border:1px solid #1D5A96;"></span> Só Quadro Atual — o time real de hoje</button>
           <button type="button" class="qf-toggle-visao" id="qf-btnVisaoFuturo" data-visao="futuro"><span class="qf-legenda-cor" style="background:#FFF4E1;border:1px solid #8A6200;"></span> Só Quadro Futuro — projeção após saídas</button>
         </div>
-        <div style="display:flex;gap:10px;margin-bottom:12px;flex-wrap:wrap;">
+        <div style="display:flex;gap:10px;margin-bottom:18px;flex-wrap:wrap;">
           <button class="btn-recolher" id="qf-btnExpandirTodos" type="button">Expandir todos</button>
           <button class="btn-recolher" id="qf-btnImprimir" type="button">🖨️ Imprimir</button>
         </div>
@@ -1324,9 +1330,9 @@
       </div>
 
       <div data-aba-qf-view="atualizar" style="display:none;">
-        <p class="nota" style="margin:0 0 8px;">Cada aviário é coberto em dupla (granjeiro + ajudante). A <strong>necessidade</strong> de cada núcleo é calculada a partir do total de aviários dividido pela razão definida ali.</p>
-        <p class="nota" style="margin:0 0 16px;color:var(--texto-suave);">🛈 Você só edita os núcleos para os quais tem autorização — os demais não aparecem aqui. Marque quem está <strong>saindo/em aviso</strong> assim que o desligamento for confirmado: isso não altera o quadro Atual, só atualiza a projeção <strong>Futuro</strong> na Visão Consolidada, que os gestores usam pra planejar reposição.</p>
-        <button class="btn-recolher" id="btnImportarQuadroInicial" style="display:none;margin-bottom:16px;">Importar lista inicial (uma vez)</button>
+        <p class="nota" style="margin:16px 0 10px;">Cada aviário é coberto em dupla (granjeiro + ajudante). A <strong>necessidade</strong> de cada núcleo é calculada a partir do total de aviários dividido pela razão definida ali.</p>
+        <p class="nota" style="margin:0 0 18px;color:var(--texto-suave);">🛈 Você só edita os núcleos para os quais tem autorização — os demais não aparecem aqui. Marque quem está <strong>saindo/em aviso</strong> assim que o desligamento for confirmado: isso não altera o quadro Atual, só atualiza a projeção <strong>Futuro</strong> na Visão Consolidada, que os gestores usam pra planejar reposição.</p>
+        <button class="btn-recolher" id="btnImportarQuadroInicial" style="display:none;margin-bottom:18px;">Importar lista inicial (uma vez)</button>
         <div id="quadroNucleosContainer"></div>
       </div>
     </div>
@@ -1346,7 +1352,7 @@
       <div data-aba-reg-view="energia">
         <div class="painel">
           <h2 style="margin-top:0;">Novo registro</h2>
-          <p class="nota" style="margin-top:0;color:#8A6200;background:#FFF4E1;border:1px solid #F0CB7A;border-radius:9px;padding:8px 12px;font-size:12px;">⚠️ Preencher somente após o retorno da energia.</p>
+          <p class="nota" style="margin:14px 0 18px;color:#8A6200;background:#FFF4E1;border:1px solid #F0CB7A;border-radius:9px;padding:10px 14px;font-size:12px;">⚠️ Preencher somente após o retorno da energia.</p>
           <form id="regEnergiaForm" class="reg-form">
             <input type="hidden" id="regEn_editandoId" value="">
             <div class="campo" id="regEn_campoLancadoPor" style="display:none;"><label>Lançado por (e-mail) — opcional, só admin</label><input type="email" id="regEn_lancadoPor" placeholder="deixe em branco pra usar seu e-mail"></div>
@@ -1423,6 +1429,7 @@
       <div class="pagina-head"><h1 class="pagina-titulo">Administração</h1></div>
 
       <div id="admin-secao-usuarios" style="display:none;">
+        <div class="admin-secao-titulo">👥 Gestão de Usuários</div>
         <div class="painel">
           <div class="painel-header"><h2>⏳ Cadastros pendentes de aprovação</h2><span class="info" id="infoPendentes"></span></div>
           <p class="nota" style="margin-top:0;">Mesmo usando um e-mail já autorizado, toda conta nova precisa dessa aprovação antes de acessar o painel — proteção extra contra alguém criar conta com um e-mail que não é seu.</p>
@@ -1443,6 +1450,7 @@
       </div>
 
       <div id="admin-secao-metas" style="display:none;">
+        <div class="admin-secao-titulo">🎯 Metas de Peso</div>
         <div class="painel">
           <div class="painel-header"><h2>Metas de peso por idade</h2></div>
           <p class="nota" style="margin-top:0;">Defina o peso esperado (kg) em cada idade. A matriz de peso em "Evolução de Pesos → Em andamento" passa a sinalizar quem está acima ou abaixo dessas metas.</p>
@@ -1459,6 +1467,7 @@
       </div>
 
       <div id="admin-secao-promover" style="display:none;">
+        <div class="admin-secao-titulo">🔑 Permissões de Administrador</div>
         <div class="painel">
           <div class="painel-header"><h2>Promover administrador</h2></div>
           <p class="nota" style="margin-top:0;">Dá acesso parcial ao painel de Administração pra outra pessoa — só o que você marcar abaixo.</p>
@@ -1481,6 +1490,7 @@
       </div>
 
       <div id="admin-secao-acessos" style="display:none;">
+        <div class="admin-secao-titulo">📊 Acessos e Uso do Painel</div>
         <div class="painel">
           <div class="painel-header"><h2>Acessos e uso do painel</h2><span class="info" id="infoAcessos"></span></div>
           <p class="nota" style="margin-top:0;">Quem está usando o painel de verdade — ordenado por acesso mais recente. Atualiza sozinho conforme as pessoas usam o site.</p>
@@ -1585,8 +1595,8 @@
         <h2>Mortalidades por Aviário — semanal</h2>
         <span class="info" id="infoMortSemanal"></span>
       </div>
-      <p class="nota-grafico" style="margin:0 0 12px;">Mortalidade acumulada em cada checkpoint (7/14/21/28/35 dias) e o total de <strong>35+</strong> (do dia 36 até a idade atual). Clique no núcleo para expandir e ver o detalhamento por aviário.</p>
-      <button class="btn-recolher" id="btnExpandirMortSemanal" type="button" style="margin-bottom:12px;">Expandir todos</button>
+      <p class="nota-grafico" style="margin:12px 0 14px;">Mortalidade acumulada em cada checkpoint (7/14/21/28/35 dias) e o total de <strong>35+</strong> (do dia 36 até a idade atual). Clique no núcleo para expandir e ver o detalhamento por aviário.</p>
+      <button class="btn-recolher" id="btnExpandirMortSemanal" type="button" style="margin-bottom:14px;">Expandir todos</button>
       <div id="containerMortSemanal"></div>
     </div>
 
@@ -6101,7 +6111,7 @@ function renderQuadroFuncionarios(){
         ${nuc}
         <span class="quadro-razao-campo">Necessidade (nº de postos): <input type="number" min="0" step="1" class="qf-input-razao" data-nucleo-razao="${nuc}" value="${r.necessidadeGranjeiro}" ${window.souAdminPrincipal?'':'disabled'}></span>
       </div>
-      <p class="nota" style="margin:2px 0 12px;font-size:11.5px;">${textoUltimaAtt}</p>
+      <p class="nota" style="margin:6px 0 16px;font-size:11.5px;">${textoUltimaAtt}</p>
       <div class="quadro-stats">
         <div class="quadro-stat-bloco"><div class="quadro-stat-label">Total de aviários</div><div class="quadro-stat-valor">${r.totalAviarios}</div></div>
         <div class="quadro-stat-bloco"><div class="quadro-stat-label">Necessidade Granjeiro</div><div class="quadro-stat-valor">${r.necessidadeGranjeiro}</div></div>
@@ -6653,7 +6663,6 @@ if(regPinForm){
 </script>
 
 <button id="btnSubirTopo" type="button" aria-label="Subir ao topo" style="position:fixed;bottom:22px;right:18px;width:46px;height:46px;border-radius:50%;background:var(--vermelho);color:#fff;border:none;box-shadow:0 4px 14px rgba(193,39,45,.4);font-size:20px;cursor:pointer;display:none;z-index:500;align-items:center;justify-content:center;">↑</button>
-<div id="avisoGirarTela" style="display:none;position:fixed;top:0;left:0;right:0;background:#FFF4E1;color:#8A6200;border-bottom:1px solid #F0CB7A;padding:8px 14px;font-size:12px;text-align:center;z-index:499;">📱 Gire o aparelho na horizontal pra ver essa tabela melhor.</div>
 <script>
 (function(){
   const btn = document.getElementById('btnSubirTopo');
@@ -6661,18 +6670,6 @@ if(regPinForm){
     btn.style.display = window.scrollY > 400 ? 'flex' : 'none';
   }, {passive:true});
   btn.addEventListener('click', ()=> window.scrollTo({top:0, behavior:'smooth'}));
-
-  // aviso de girar a tela: só no celular (retrato, tela estreita) e só quando alguma tabela larga está sendo cortada
-  const aviso = document.getElementById('avisoGirarTela');
-  function checarLargura(){
-    const ehCelularRetrato = window.innerWidth < 600 && window.innerHeight > window.innerWidth;
-    const temTabelaLarga = document.querySelector('.tabela-scroll table, .matriz-diaria');
-    const estourou = temTabelaLarga && temTabelaLarga.scrollWidth > temTabelaLarga.clientWidth + 20;
-    aviso.style.display = (ehCelularRetrato && estourou) ? 'block' : 'none';
-  }
-  window.addEventListener('resize', checarLargura, {passive:true});
-  window.addEventListener('orientationchange', checarLargura);
-  setInterval(checarLargura, 1500); // reavalia periodicamente, já que o conteúdo muda de módulo pra módulo
 })();
 </script>
 </body>
