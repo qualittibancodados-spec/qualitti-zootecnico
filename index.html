@@ -1554,6 +1554,11 @@
           <h2>Comparativo — últimos 2 dias</h2>
           <span class="info" id="energiasolar-infoRelatorio"></span>
         </div>
+        <div class="legenda-tendencia" style="margin:12px 0 14px;">
+          <span class="leg-item">✅ <strong>Ideal</strong> = produção do dia igual ou acima de 80% da meta</span>
+          <span class="leg-item">🟡 <strong>Abaixo do ideal (7d)</strong> = média dos últimos 7 dias abaixo de 80% da meta</span>
+          <span class="leg-item">🔴 <strong>Zerada</strong> = nenhuma produção registrada no dia, com meta prevista</span>
+        </div>
         <button class="btn-recolher" id="energiasolar-btnCompartilhar" type="button" style="margin-bottom:14px;">📤 Compartilhar</button>
         <div class="tabela-scroll"><table class="matriz-diaria" id="energiasolar-tabelaRelatorio"></table></div>
       </div>
@@ -7006,6 +7011,7 @@ function energiaSolarRenderRelatorio(){
     const ontem = energiaSolarDados.find(d=>d.planta===nome && d.dia===diaAnterior);
     const prodHoje = hoje ? (hoje.producao||0) : 0;
     const prodOntem = ontem ? (ontem.producao||0) : 0;
+    const metaHoje = hoje ? (hoje.estimativa||0) : 0;
     const variacao = prodOntem ? ((prodHoje-prodOntem)/prodOntem*100) : null;
     const status = statusPorUsina.get(nome);
     let statusHtml = '<span style="color:var(--verde-ok);font-weight:700;">✅ Ideal</span>';
@@ -7015,12 +7021,13 @@ function energiaSolarRenderRelatorio(){
       <th class="rowhead">${nome}</th>
       <td>${prodOntem.toLocaleString('pt-BR',{maximumFractionDigits:1})} kWh</td>
       <td style="font-weight:700;">${prodHoje.toLocaleString('pt-BR',{maximumFractionDigits:1})} kWh</td>
+      <td style="color:var(--texto-suave);">${metaHoje.toLocaleString('pt-BR',{maximumFractionDigits:1})} kWh</td>
       <td style="color:${variacao==null?'inherit':(variacao>=0?'var(--verde-ok)':'var(--vermelho-alerta)')};font-weight:700;">${variacao!=null ? (variacao>=0?'+':'')+variacao.toFixed(1)+'%' : '–'}</td>
       <td>${statusHtml}</td>
     </tr>`;
   }).join('');
 
-  tabela.innerHTML = `<thead><tr><th class="rowhead">Usina</th><th>${energiaSolarFormatarDataBR(diaAnterior)}</th><th>${energiaSolarFormatarDataBR(ultimoDia)}</th><th>Variação</th><th>Status</th></tr></thead><tbody>${linhas}</tbody>`;
+  tabela.innerHTML = `<thead><tr><th class="rowhead">Usina</th><th>${energiaSolarFormatarDataBR(diaAnterior)}</th><th>${energiaSolarFormatarDataBR(ultimoDia)}</th><th>Meta do dia</th><th>Variação</th><th>Status</th></tr></thead><tbody>${linhas}</tbody>`;
 }
 
 function energiaSolarCompartilharRelatorio(){
