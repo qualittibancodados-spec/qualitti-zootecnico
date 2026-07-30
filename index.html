@@ -893,6 +893,12 @@
       <button class="modulo" data-modulo="registros" id="btnModuloRegistros" style="display:none;">
         <span class="modulo-ic">📋</span> Registros
       </button>
+      <button class="modulo" data-modulo="produtos" id="btnModuloProdutos" style="display:none;">
+        <span class="modulo-ic">📦</span> Consulta de Produtos
+      </button>
+      <button class="modulo" data-modulo="energiasolar" id="btnModuloEnergiaSolar" style="display:none;">
+        <span class="modulo-ic">☀️</span> Energia Solar
+      </button>
       <button class="modulo" data-modulo="admin" id="btnModuloAdmin" style="display:none;">
         <span class="modulo-ic">⚙️</span> Administração
       </button>
@@ -1424,6 +1430,68 @@
   </div>
 
   <!-- ============ MÓDULO: ADMINISTRAÇÃO ============ -->
+  <div data-modulo-view="produtos" style="display:none;">
+    <h1>Consulta de Produtos</h1>
+    <p class="nota" style="margin:16px 0 18px;">Busque por nome ou código do produto — a busca é instantânea, direto no seu navegador.</p>
+
+    <div class="quadro" id="produtos-painel-importar">
+      <div class="quadro-header">
+        <h2>📥 Importar base de produtos</h2>
+        <span class="info" id="produtos-infoUltimaImportacao"></span>
+      </div>
+      <p class="nota" style="margin:12px 0 14px;">Selecione o arquivo Excel (.xlsx) do Almoxarifado. O sistema considera as colunas <strong>Produto</strong>, <strong>Cód. Produto</strong>, <strong>Un. Pedido</strong> e <strong>Controle</strong>, agrupando tudo por produto.</p>
+      <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;">
+        <input type="file" id="produtos-inputArquivo" accept=".xlsx,.xls" style="font-size:13px;">
+        <button class="btn-recolher" id="produtos-btnImportar" type="button" style="background:var(--vermelho);color:#fff;border-color:var(--vermelho);">Importar</button>
+      </div>
+      <p class="nota" id="produtos-erroImportar" style="min-height:16px;margin-top:10px;"></p>
+    </div>
+
+    <div class="quadro">
+      <div class="quadro-header">
+        <h2>Buscar produto</h2>
+        <span class="info" id="produtos-infoResultados"></span>
+      </div>
+      <input type="text" id="produtos-inputBusca" placeholder="Digite o nome ou código do produto..." style="width:100%;padding:14px 16px;border-radius:10px;border:1.5px solid var(--borda);font-size:15px;font-family:inherit;box-sizing:border-box;margin:14px 0 18px;">
+      <div id="produtos-listaResultados"></div>
+    </div>
+  </div>
+
+  <div data-modulo-view="energiasolar" style="display:none;">
+    <h1>Energia Solar</h1>
+    <p class="nota" style="margin:16px 0 18px;">Produção das usinas solares por núcleo — comparada com a estimativa esperada.</p>
+
+    <div class="quadro" id="energiasolar-painel-importar">
+      <div class="quadro-header">
+        <h2>📥 Importar dados de produção</h2>
+        <span class="info" id="energiasolar-infoUltimaImportacao"></span>
+      </div>
+      <p class="nota" style="margin:12px 0 14px;">Selecione o arquivo Excel (.xlsx) de Energia Solar atualizado.</p>
+      <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;">
+        <input type="file" id="energiasolar-inputArquivo" accept=".xlsx,.xls" style="font-size:13px;">
+        <button class="btn-recolher" id="energiasolar-btnImportar" type="button" style="background:var(--vermelho);color:#fff;border-color:var(--vermelho);">Importar</button>
+      </div>
+      <p class="nota" id="energiasolar-erroImportar" style="min-height:16px;margin-top:10px;"></p>
+    </div>
+
+    <div class="cards" id="energiasolar-cards"></div>
+
+    <div class="painel-grafico">
+      <div class="painel-grafico-header">
+        <h2>Produção vs. Estimativa por mês</h2>
+      </div>
+      <div class="chart-wrap" style="height:300px;"><canvas id="energiasolar-graficoMensal"></canvas></div>
+    </div>
+
+    <div class="quadro">
+      <div class="quadro-header">
+        <h2>Produção por usina</h2>
+        <span class="info" id="energiasolar-infoUsinas"></span>
+      </div>
+      <div class="tabela-scroll"><table class="matriz-diaria" id="energiasolar-tabelaUsinas"></table></div>
+    </div>
+  </div>
+
   <div data-modulo-view="admin" style="display:none;">
     <div id="mod-admin">
       <div class="pagina-head"><h1 class="pagina-titulo">Administração</h1></div>
@@ -1992,6 +2060,8 @@ document.querySelectorAll('.modulo').forEach(btn => {
     document.querySelector('[data-modulo-view="peso"]').style.display = (mod==='peso') ? '' : 'none';
     document.querySelector('[data-modulo-view="quadro"]').style.display = (mod==='quadro') ? '' : 'none';
     document.querySelector('[data-modulo-view="registros"]').style.display = (mod==='registros') ? '' : 'none';
+    document.querySelector('[data-modulo-view="produtos"]').style.display = (mod==='produtos') ? '' : 'none';
+    document.querySelector('[data-modulo-view="energiasolar"]').style.display = (mod==='energiasolar') ? '' : 'none';
     document.querySelector('[data-modulo-view="admin"]').style.display = (mod==='admin') ? '' : 'none';
     document.getElementById('tabsMortalidade').style.display = (mod==='mortalidade') ? '' : 'none';
     // os filtros do topo pertencem ao módulo mortalidade (Resultado e Condenas têm os seus próprios dentro deles)
@@ -2005,6 +2075,12 @@ document.querySelectorAll('.modulo').forEach(btn => {
     }
     if(mod==='registros' && window.iniciarRegistros){
       if(!window.registrosCarregado){ window.registrosCarregado = true; window.iniciarRegistros(); }
+    }
+    if(mod==='produtos' && window.iniciarProdutos){
+      if(!window.produtosCarregado){ window.produtosCarregado = true; window.iniciarProdutos(); }
+    }
+    if(mod==='energiasolar' && window.iniciarEnergiaSolar){
+      if(!window.energiaSolarCarregado){ window.energiaSolarCarregado = true; window.iniciarEnergiaSolar(); }
     }
     if(mod==='admin'){
       if(window.souAdminPrincipal || window.minhasPermissoes.usuarios){
@@ -5239,7 +5315,7 @@ const appRoot = document.getElementById('appRoot');
 const ADMIN_EMAIL = 'avicultura05@qualitti.com.br';
 const NUCLEOS_QUADRO = ['Aeroporto','Aroeira','Engopa','Flamboyant','Paraiso 01','Paraiso 02','Paraiso 03','Paraiso 04','Santa Rosa','Valzinho','Vinagre 01','Vinagre 02','Vinagre 03'];
 window.souAdminPrincipal = false;
-window.minhasPermissoes = {metas:false, usuarios:false, funcionariosNucleos:[]};
+window.minhasPermissoes = {metas:false, usuarios:false, produtos:false, energiaSolar:false, funcionariosNucleos:[]};
 window.qfConsolidadoExpandido = new Set();
 
 function mensagemErroAuth(err){
@@ -5350,9 +5426,13 @@ function atualizarBotoesModulosPermissao(){
   const btnAdmin = document.getElementById('btnModuloAdmin');
   const btnQuadro = document.getElementById('btnModuloQuadro');
   const btnRegistros = document.getElementById('btnModuloRegistros');
-  if(btnAdmin) btnAdmin.style.display = (window.souAdminPrincipal || window.minhasPermissoes.metas || window.minhasPermissoes.usuarios) ? '' : 'none';
+  const btnProdutos = document.getElementById('btnModuloProdutos');
+  const btnEnergiaSolar = document.getElementById('btnModuloEnergiaSolar');
+  if(btnAdmin) btnAdmin.style.display = (window.souAdminPrincipal || window.minhasPermissoes.metas || window.minhasPermissoes.usuarios || window.minhasPermissoes.produtos || window.minhasPermissoes.energiaSolar) ? '' : 'none';
   if(btnQuadro) btnQuadro.style.display = (window.souAdminPrincipal || (window.minhasPermissoes.funcionariosNucleos||[]).length>0) ? '' : 'none';
   if(btnRegistros) btnRegistros.style.display = ''; // visível pra qualquer usuário logado, sem restrição de núcleo
+  if(btnProdutos) btnProdutos.style.display = ''; // consulta é livre pra qualquer usuário aprovado; só a IMPORTAÇÃO é restrita por permissão
+  if(btnEnergiaSolar) btnEnergiaSolar.style.display = '';
 }
 
 function processarEstadoAuth(user){
@@ -5409,16 +5489,16 @@ function processarEstadoAuth(user){
       appRoot.style.display = '';
 
       if(window.souAdminPrincipal){
-        window.minhasPermissoes = {metas:true, usuarios:true, funcionariosNucleos: NUCLEOS_QUADRO.slice()};
+        window.minhasPermissoes = {metas:true, usuarios:true, produtos:true, energiaSolar:true, funcionariosNucleos: NUCLEOS_QUADRO.slice()};
         atualizarBotoesModulosPermissao();
         atualizarVisibilidadeSecoesAdmin();
       } else {
         db.collection('admins').doc(emailLower).get().then(doc=>{
           if(doc.exists){
             const perm = doc.data().permissoes || {};
-            window.minhasPermissoes = {metas: !!perm.metas, usuarios: !!perm.usuarios, funcionariosNucleos: perm.funcionariosNucleos || []};
+            window.minhasPermissoes = {metas: !!perm.metas, usuarios: !!perm.usuarios, produtos: !!perm.produtos, energiaSolar: !!perm.energiaSolar, funcionariosNucleos: perm.funcionariosNucleos || []};
           } else {
-            window.minhasPermissoes = {metas:false, usuarios:false, funcionariosNucleos:[]};
+            window.minhasPermissoes = {metas:false, usuarios:false, produtos:false, energiaSolar:false, funcionariosNucleos:[]};
           }
           atualizarBotoesModulosPermissao();
           atualizarVisibilidadeSecoesAdmin();
@@ -6367,6 +6447,302 @@ async function iniciarRegistros(){
   await reg_carregarHistorico('pintinhos');
 }
 window.iniciarRegistros = iniciarRegistros;
+
+// ================= Consulta de Produtos =================
+let produtosCatalogo = null; // array em memória, carregado 1x
+const SENHA_IMPORTACAO = 'qualitti123'; // trava básica — não é segurança de verdade, só evita mexer sem querer
+
+function produtosFormatarDataImportacao(iso){
+  if(!iso) return 'Nenhuma importação ainda';
+  const d = new Date(iso);
+  return 'Última importação: ' + d.toLocaleString('pt-BR', {day:'2-digit',month:'2-digit',year:'numeric',hour:'2-digit',minute:'2-digit'});
+}
+
+async function iniciarProdutos(){
+  try{
+    const doc = await db.collection('configuracoes').doc('produtos_meta').get();
+    document.getElementById('produtos-infoUltimaImportacao').textContent = doc.exists ? produtosFormatarDataImportacao(doc.data().ultimaImportacao) : 'Nenhuma importação ainda';
+  }catch(e){ /* silencioso — não bloqueia a busca por causa disso */ }
+
+  await produtosCarregarCatalogo();
+
+  const input = document.getElementById('produtos-inputBusca');
+  input.addEventListener('input', ()=> produtosRenderResultados(input.value));
+  produtosRenderResultados('');
+
+  const btnImportar = document.getElementById('produtos-btnImportar');
+  if(btnImportar) btnImportar.addEventListener('click', produtosImportarArquivo);
+}
+window.iniciarProdutos = iniciarProdutos;
+
+async function produtosCarregarCatalogo(){
+  const info = document.getElementById('produtos-infoResultados');
+  try{
+    const doc = await db.collection('produtos_catalogo').doc('dados').get();
+    produtosCatalogo = doc.exists ? (doc.data().itens || []) : [];
+    if(!produtosCatalogo.length && info) info.textContent = 'Nenhum catálogo importado ainda.';
+  }catch(e){
+    produtosCatalogo = [];
+    if(info) info.textContent = 'Nenhum catálogo importado ainda.';
+  }
+}
+
+function produtosRenderResultados(termo){
+  const cont = document.getElementById('produtos-listaResultados');
+  const info = document.getElementById('produtos-infoResultados');
+  if(!produtosCatalogo || !produtosCatalogo.length){
+    cont.innerHTML = '<div class="vazio">Nenhum produto importado ainda. Peça pro administrador importar a base.</div>';
+    return;
+  }
+  const t = termo.trim().toLowerCase();
+  const filtrados = !t ? produtosCatalogo : produtosCatalogo.filter(p =>
+    p.nome.toLowerCase().includes(t) || String(p.codigo).includes(t)
+  );
+  info.textContent = `${filtrados.length} produto(s)`;
+  const lista = filtrados.slice(0, 200); // limita a exibição pra não travar com uma busca muito genérica
+  cont.innerHTML = lista.map(p => `
+    <div class="rank-card" style="grid-template-columns:auto 1fr auto;align-items:center;gap:14px;">
+      <div style="font-family:'Sora',sans-serif;font-weight:800;color:var(--vermelho);font-size:13px;background:var(--bg);border-radius:8px;padding:6px 10px;">#${p.codigo}</div>
+      <div>
+        <div style="font-weight:700;">${p.nome}</div>
+        <div style="font-size:11.5px;color:var(--texto-suave);margin-top:3px;">Unidade: ${p.unidade || '–'}${p.controles && p.controles.length ? ' &nbsp;·&nbsp; Controles: ' + p.controles.join(', ') : ''}</div>
+      </div>
+    </div>`).join('');
+  if(filtrados.length > 200) cont.innerHTML += `<p class="nota" style="text-align:center;">Mostrando 200 de ${filtrados.length} resultados — refine a busca pra ver os demais.</p>`;
+}
+
+async function produtosImportarArquivo(){
+  const input = document.getElementById('produtos-inputArquivo');
+  const erroEl = document.getElementById('produtos-erroImportar');
+  const btn = document.getElementById('produtos-btnImportar');
+  erroEl.style.color=''; erroEl.textContent = '';
+  const senha = prompt('Senha pra importar a base de produtos:');
+  if(senha === null) return; // cancelou
+  if(senha !== SENHA_IMPORTACAO){ erroEl.textContent = 'Senha incorreta.'; return; }
+  if(!input.files || !input.files[0]){ erroEl.textContent = 'Selecione um arquivo primeiro.'; return; }
+  btn.disabled = true; btn.textContent = 'Processando...';
+  try{
+    const arrayBuffer = await input.files[0].arrayBuffer();
+    const wb = XLSX.read(arrayBuffer, {type:'array', cellDates:true});
+    const ws = wb.Sheets[wb.SheetNames[0]];
+    const linhas = XLSX.utils.sheet_to_json(ws, {defval:null});
+    if(!linhas.length) throw new Error('A planilha está vazia.');
+
+    const camposNecessarios = ['Produto','Un. Pedido','Controle','Cód. Produto'];
+    const faltando = camposNecessarios.filter(c => !(c in linhas[0]));
+    if(faltando.length) throw new Error('Colunas não encontradas na planilha: ' + faltando.join(', '));
+
+    // agrupa por nome do produto: pega o código/unidade mais frequentes, e junta os controles únicos
+    const porNome = new Map();
+    linhas.forEach(l=>{
+      const nome = l['Produto'];
+      if(!nome) return;
+      if(!porNome.has(nome)) porNome.set(nome, {codigos:new Map(), unidades:new Map(), controles:new Set()});
+      const g = porNome.get(nome);
+      const cod = l['Cód. Produto'];
+      const un = l['Un. Pedido'];
+      const ctrl = l['Controle'];
+      if(cod!=null) g.codigos.set(cod, (g.codigos.get(cod)||0)+1);
+      if(un!=null) g.unidades.set(un, (g.unidades.get(un)||0)+1);
+      if(ctrl!=null && String(ctrl).trim()) g.controles.add(String(ctrl).trim());
+    });
+    const maisFrequente = (mapa)=>{
+      let melhor=null, melhorN=-1;
+      mapa.forEach((n,v)=>{ if(n>melhorN){ melhor=v; melhorN=n; } });
+      return melhor;
+    };
+    const catalogo = Array.from(porNome.entries()).map(([nome, g])=>({
+      nome, codigo: maisFrequente(g.codigos), unidade: maisFrequente(g.unidades),
+      controles: Array.from(g.controles).sort()
+    })).sort((a,b)=>a.nome.localeCompare(b.nome));
+
+    // guarda no Firestore num único documento (cabe tranquilo no limite de 1MB por documento)
+    await db.collection('produtos_catalogo').doc('dados').set({ itens: catalogo });
+    await db.collection('configuracoes').doc('produtos_meta').set({ ultimaImportacao: new Date().toISOString(), totalProdutos: catalogo.length }, {merge:true});
+
+    erroEl.style.color = 'var(--verde-ok)';
+    erroEl.textContent = `Importado com sucesso! ${catalogo.length} produtos únicos processados.`;
+    document.getElementById('produtos-infoUltimaImportacao').textContent = produtosFormatarDataImportacao(new Date().toISOString());
+    input.value = '';
+    await produtosCarregarCatalogo();
+    produtosRenderResultados(document.getElementById('produtos-inputBusca').value);
+  }catch(e){
+    erroEl.style.color='';
+    erroEl.textContent = 'Erro ao importar: ' + e.message;
+  }finally{
+    btn.disabled = false; btn.textContent = 'Importar';
+  }
+}
+
+// ================= Energia Solar =================
+let energiaSolarDados = null;
+
+function energiaSolarFormatarDataImportacao(iso){
+  if(!iso) return 'Nenhuma importação ainda';
+  const d = new Date(iso);
+  return 'Última importação: ' + d.toLocaleString('pt-BR', {day:'2-digit',month:'2-digit',year:'numeric',hour:'2-digit',minute:'2-digit'});
+}
+
+async function iniciarEnergiaSolar(){
+  try{
+    const doc = await db.collection('configuracoes').doc('energia_solar_meta').get();
+    document.getElementById('energiasolar-infoUltimaImportacao').textContent = doc.exists ? energiaSolarFormatarDataImportacao(doc.data().ultimaImportacao) : 'Nenhuma importação ainda';
+  }catch(e){ /* silencioso */ }
+
+  await energiaSolarCarregarDados();
+  energiaSolarRenderTudo();
+
+  const btnImportar = document.getElementById('energiasolar-btnImportar');
+  if(btnImportar) btnImportar.addEventListener('click', energiaSolarImportarArquivo);
+}
+window.iniciarEnergiaSolar = iniciarEnergiaSolar;
+
+const ENERGIA_SOLAR_TAMANHO_PEDACO = 3000; // registros por documento — fica bem abaixo do limite de 1MB do Firestore
+
+async function energiaSolarCarregarDados(){
+  try{
+    const meta = await db.collection('configuracoes').doc('energia_solar_meta').get();
+    const totalPedacos = meta.exists ? (meta.data().totalPedacos || 0) : 0;
+    if(!totalPedacos){ energiaSolarDados = []; return; }
+    const pedacos = await Promise.all(
+      Array.from({length: totalPedacos}, (_,i) => db.collection('energia_solar_dados').doc('pedaco_'+i).get())
+    );
+    energiaSolarDados = pedacos.flatMap(doc => doc.exists ? (doc.data().registros || []) : []);
+  }catch(e){
+    energiaSolarDados = [];
+  }
+}
+
+function energiaSolarRenderTudo(){
+  const cardsEl = document.getElementById('energiasolar-cards');
+  const tabelaEl = document.getElementById('energiasolar-tabelaUsinas');
+  const infoUsinas = document.getElementById('energiasolar-infoUsinas');
+  if(!energiaSolarDados || !energiaSolarDados.length){
+    cardsEl.innerHTML = '<div class="vazio">Nenhum dado importado ainda.</div>';
+    tabelaEl.innerHTML = '';
+    if(infoUsinas) infoUsinas.textContent = '';
+    return;
+  }
+
+  // considera só os últimos 12 meses com dado, pra não misturar 2025/2026 inteiros num só card
+  const hoje = new Date();
+  const mesAtualStr = hoje.toISOString().slice(0,7); // YYYY-MM
+  const doMesAtual = energiaSolarDados.filter(d => d.dia && d.dia.slice(0,7) === mesAtualStr);
+  const somaProdMes = doMesAtual.reduce((s,d)=>s+(d.producao||0),0);
+  const somaEstMes = doMesAtual.reduce((s,d)=>s+(d.estimativa||0),0);
+  const diffMesPct = somaEstMes ? ((somaProdMes-somaEstMes)/somaEstMes*100) : 0;
+  const usinas = new Set(energiaSolarDados.map(d=>d.planta));
+
+  cardsEl.innerHTML = `
+    <div class="card"><div class="label">Usinas monitoradas</div><div class="valor">${usinas.size}</div></div>
+    <div class="card"><div class="label">Produção — mês atual</div><div class="valor">${somaProdMes.toLocaleString('pt-BR',{maximumFractionDigits:0})} kWh</div></div>
+    <div class="card"><div class="label">Estimativa — mês atual</div><div class="valor">${somaEstMes.toLocaleString('pt-BR',{maximumFractionDigits:0})} kWh</div></div>
+    <div class="card"><div class="label">Diferença vs. estimativa</div><div class="valor" style="color:${diffMesPct>=0?'var(--verde-ok)':'var(--vermelho-alerta)'};">${diffMesPct>=0?'+':''}${diffMesPct.toFixed(1)}%</div></div>
+  `;
+
+  // agregação mensal (todas as usinas somadas), pro gráfico
+  const porMes = new Map();
+  energiaSolarDados.forEach(d=>{
+    if(!d.dia) return;
+    const chave = d.dia.slice(0,7);
+    if(!porMes.has(chave)) porMes.set(chave, {producao:0, estimativa:0});
+    const m = porMes.get(chave);
+    m.producao += (d.producao||0); m.estimativa += (d.estimativa||0);
+  });
+  const mesesOrdenados = Array.from(porMes.keys()).sort();
+  const ctx = document.getElementById('energiasolar-graficoMensal');
+  if(ctx){
+    if(window.chartEnergiaSolarMensal) window.chartEnergiaSolarMensal.destroy();
+    window.chartEnergiaSolarMensal = new Chart(ctx.getContext('2d'), {
+      type: 'bar',
+      data: {
+        labels: mesesOrdenados.map(m=>{ const [a,mm]=m.split('-'); return mm+'/'+a.slice(2); }),
+        datasets: [
+          { label: 'Produção (kWh)', data: mesesOrdenados.map(m=>Math.round(porMes.get(m).producao)), backgroundColor: '#F2A900' },
+          { label: 'Estimativa (kWh)', data: mesesOrdenados.map(m=>Math.round(porMes.get(m).estimativa)), backgroundColor: '#C1272D', type:'line', borderColor:'#C1272D', fill:false }
+        ]
+      },
+      options: { responsive:true, maintainAspectRatio:false, scales:{ y:{ beginAtZero:true, title:{display:true,text:'kWh'} } } }
+    });
+  }
+
+  // resumo por usina (últimos 30 dias com dado, pra ficar relevante e não diluir num ano inteiro)
+  const dataLimite = new Date(); dataLimite.setDate(dataLimite.getDate()-30);
+  const dataLimiteStr = dataLimite.toISOString().slice(0,10);
+  const porUsina = new Map();
+  energiaSolarDados.forEach(d=>{
+    if(!d.dia || d.dia < dataLimiteStr) return;
+    if(!porUsina.has(d.planta)) porUsina.set(d.planta, {producao:0, estimativa:0, galpoes:d.galpoes});
+    const u = porUsina.get(d.planta);
+    u.producao += (d.producao||0); u.estimativa += (d.estimativa||0);
+  });
+  const usinasOrdenadas = Array.from(porUsina.keys()).sort();
+  if(infoUsinas) infoUsinas.textContent = `${usinasOrdenadas.length} usina(s) · últimos 30 dias com dado`;
+  tabelaEl.innerHTML = `<thead><tr><th class="rowhead">Usina</th><th>Aviários</th><th>Produção (kWh)</th><th>Estimativa (kWh)</th><th>Diferença</th></tr></thead>
+    <tbody>${usinasOrdenadas.map(nome=>{
+      const u = porUsina.get(nome);
+      const diffPct = u.estimativa ? ((u.producao-u.estimativa)/u.estimativa*100) : 0;
+      return `<tr><th class="rowhead">${nome}</th><td>${u.galpoes||'–'}</td><td>${u.producao.toLocaleString('pt-BR',{maximumFractionDigits:0})}</td><td>${u.estimativa.toLocaleString('pt-BR',{maximumFractionDigits:0})}</td><td style="color:${diffPct>=0?'var(--verde-ok)':'var(--vermelho-alerta)'};font-weight:700;">${diffPct>=0?'+':''}${diffPct.toFixed(1)}%</td></tr>`;
+    }).join('')}</tbody>`;
+}
+
+async function energiaSolarImportarArquivo(){
+  const input = document.getElementById('energiasolar-inputArquivo');
+  const erroEl = document.getElementById('energiasolar-erroImportar');
+  const btn = document.getElementById('energiasolar-btnImportar');
+  erroEl.style.color=''; erroEl.textContent = '';
+  const senha = prompt('Senha pra importar os dados de Energia Solar:');
+  if(senha === null) return; // cancelou
+  if(senha !== SENHA_IMPORTACAO){ erroEl.textContent = 'Senha incorreta.'; return; }
+  if(!input.files || !input.files[0]){ erroEl.textContent = 'Selecione um arquivo primeiro.'; return; }
+  btn.disabled = true; btn.textContent = 'Processando...';
+  try{
+    const arrayBuffer = await input.files[0].arrayBuffer();
+    const wb = XLSX.read(arrayBuffer, {type:'array', cellDates:true});
+    const ws = wb.Sheets[wb.SheetNames[0]];
+    const linhas = XLSX.utils.sheet_to_json(ws, {defval:null});
+    if(!linhas.length) throw new Error('A planilha está vazia.');
+
+    const camposNecessarios = ['PLANTA','DIA','PRODUÇÃO kWh','ESTIMATIVA kWh'];
+    const faltando = camposNecessarios.filter(c => !(c in linhas[0]));
+    if(faltando.length) throw new Error('Colunas não encontradas na planilha: ' + faltando.join(', '));
+
+    const registros = linhas.filter(l=>l['PLANTA']).map(l=>({
+      planta: l['PLANTA'], galpoes: l['GALPÕES']!=null?String(l['GALPÕES']):null,
+      medidor: l['Nº MEDIDOR']!=null?String(l['Nº MEDIDOR']):null, unidade: l['UNIDADE'],
+      ano: l['ANO'], dia: l['DIA'] ? new Date(l['DIA']).toISOString().slice(0,10) : null,
+      mes: l['MÊS'], producao: l['PRODUÇÃO kWh'], estimativa: l['ESTIMATIVA kWh'], diferenca: l['DIFERENÇA']
+    })).filter(r=>r.dia);
+
+    // divide em pedaços pra caber no limite de 1MB por documento do Firestore
+    const meta = await db.collection('configuracoes').doc('energia_solar_meta').get();
+    const pedacosAntigos = meta.exists ? (meta.data().totalPedacos || 0) : 0;
+    const novosPedacos = [];
+    for(let i=0; i<registros.length; i+=ENERGIA_SOLAR_TAMANHO_PEDACO){
+      novosPedacos.push(registros.slice(i, i+ENERGIA_SOLAR_TAMANHO_PEDACO));
+    }
+    await Promise.all(novosPedacos.map((pedaco, i) => db.collection('energia_solar_dados').doc('pedaco_'+i).set({registros: pedaco})));
+    // se a nova importação tem menos pedaços que a anterior, apaga os pedaços velhos que sobraram
+    if(pedacosAntigos > novosPedacos.length){
+      await Promise.all(Array.from({length: pedacosAntigos-novosPedacos.length}, (_,i)=>
+        db.collection('energia_solar_dados').doc('pedaco_'+(novosPedacos.length+i)).delete()
+      ));
+    }
+    await db.collection('configuracoes').doc('energia_solar_meta').set({ ultimaImportacao: new Date().toISOString(), totalRegistros: registros.length, totalPedacos: novosPedacos.length }, {merge:true});
+
+    erroEl.style.color = 'var(--verde-ok)';
+    erroEl.textContent = `Importado com sucesso! ${registros.length} registros processados.`;
+    document.getElementById('energiasolar-infoUltimaImportacao').textContent = energiaSolarFormatarDataImportacao(new Date().toISOString());
+    input.value = '';
+    await energiaSolarCarregarDados();
+    energiaSolarRenderTudo();
+  }catch(e){
+    erroEl.style.color='';
+    erroEl.textContent = 'Erro ao importar: ' + e.message;
+  }finally{
+    btn.disabled = false; btn.textContent = 'Importar';
+  }
+}
 
 function reg_escapar(txt){
   const div = document.createElement('div');
