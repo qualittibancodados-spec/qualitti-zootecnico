@@ -592,6 +592,9 @@
 #mod-registros .tabs-internas{display:flex;gap:8px;margin-bottom:18px;flex-wrap:wrap;background:var(--card);padding:6px;border-radius:14px;border:1px solid var(--borda);box-shadow:var(--sombra);width:fit-content;}
 #mod-registros .tab-int{background:transparent;border:none;color:var(--texto-suave);font-family:inherit;font-size:13.5px;font-weight:600;padding:9px 20px;border-radius:10px;cursor:pointer;transition:.16s;}
 #mod-registros .tab-int.ativo{background:var(--vermelho);color:#fff;box-shadow:0 2px 10px rgba(193,39,45,.3);}
+#mod-energiasolar .tabs-internas{display:flex;gap:8px;margin-bottom:18px;flex-wrap:wrap;background:var(--card);padding:6px;border-radius:14px;border:1px solid var(--borda);box-shadow:var(--sombra);width:fit-content;}
+#mod-energiasolar .tab-int{background:transparent;border:none;color:var(--texto-suave);font-family:inherit;font-size:13.5px;font-weight:600;padding:9px 20px;border-radius:10px;cursor:pointer;transition:.16s;}
+#mod-energiasolar .tab-int.ativo{background:var(--vermelho);color:#fff;box-shadow:0 2px 10px rgba(193,39,45,.3);}
 #mod-condenas .filtros{background:var(--card);border:1px solid var(--borda);border-radius:var(--raio);padding:16px;margin-bottom:16px;box-shadow:var(--sombra);}
 #mod-condenas .filtros-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px;}
 #mod-condenas .campo label{display:block;font-size:11px;font-weight:700;color:var(--texto-suave);text-transform:uppercase;letter-spacing:.04em;margin-bottom:6px;}
@@ -1468,8 +1471,10 @@
   </div>
 
   <div data-modulo-view="energiasolar" style="display:none;">
+  <div id="mod-energiasolar">
     <h1>Energia Solar</h1>
-    <p class="nota" style="margin:16px 0 18px;">Produção das usinas solares por núcleo — comparada com a estimativa esperada. Produção considerada ideal a partir de <strong>80% da estimativa</strong>.</p>
+    <p class="nota" style="margin:16px 0 12px;">Produção das usinas solares por núcleo — comparada com a estimativa esperada. Produção considerada ideal a partir de <strong>80% da estimativa</strong>.</p>
+    <p class="nota" style="margin:0 0 18px;color:#1D5A96;background:#EAF4FF;border:1px solid #CFE3F7;border-radius:9px;padding:10px 14px;font-size:12px;">ℹ️ As metas/estimativas de produção são repassadas pelo engenheiro elétrico responsável.</p>
 
     <div class="quadro" id="energiasolar-painel-importar">
       <div class="quadro-header">
@@ -1504,11 +1509,6 @@
       </div>
 
       <div class="cards" id="energiasolar-cards"></div>
-
-      <div class="quadro" id="energiasolar-painel-alertas" style="display:none;padding:14px 18px;">
-        <div style="font-size:11px;font-weight:700;color:var(--texto-suave);text-transform:uppercase;letter-spacing:.03em;margin-bottom:10px;">⚠️ Pontos de atenção</div>
-        <div id="energiasolar-listaAlertas"></div>
-      </div>
 
       <div class="painel-grafico">
         <div class="painel-grafico-header">
@@ -1558,6 +1558,7 @@
         <div class="tabela-scroll"><table class="matriz-diaria" id="energiasolar-tabelaRelatorio"></table></div>
       </div>
     </div>
+  </div>
   </div>
 
   <div data-modulo-view="admin" style="display:none;">
@@ -6949,58 +6950,37 @@ function energiaSolarRenderTudo(){
     u.producao += (d.producao||0); u.estimativa += (d.estimativa||0);
   });
   const usinasOrdenadas = Array.from(porUsina.keys()).sort();
-  if(infoUsinas) infoUsinas.textContent = `${usinasOrdenadas.length} usina(s) · últimos 30 dias com dado`;
+  if(infoUsinas) infoUsinas.textContent = `${usinasOrdenadas.length} usina(s) · últimos 30 dias com dados`;
   tabelaEl.innerHTML = `<thead><tr><th class="rowhead">Usina</th><th>Aviários</th><th>Produção (kWh)</th><th>Estimativa (kWh)</th><th>Diferença</th></tr></thead>
     <tbody>${usinasOrdenadas.map(nome=>{
       const u = porUsina.get(nome);
       const diffPct = u.estimativa ? ((u.producao-u.estimativa)/u.estimativa*100) : 0;
       return `<tr><th class="rowhead">${nome}</th><td>${u.galpoes||'–'}</td><td>${u.producao.toLocaleString('pt-BR',{maximumFractionDigits:0})}</td><td>${u.estimativa.toLocaleString('pt-BR',{maximumFractionDigits:0})}</td><td style="color:${diffPct>=0?'var(--verde-ok)':'var(--vermelho-alerta)'};font-weight:700;">${diffPct>=0?'+':''}${diffPct.toFixed(1)}%</td></tr>`;
     }).join('')}</tbody>`;
-
-  energiaSolarRenderAlertas();
 }
 
-function energiaSolarRenderAlertas(){
-  const painel = document.getElementById('energiasolar-painel-alertas');
-  const lista = document.getElementById('energiasolar-listaAlertas');
-  if(!energiaSolarDados.length){ painel.style.display = 'none'; return; }
-
-  // pega a data mais recente com dado, pra checar produção zerada
+function energiaSolarCalcularStatusUsinas(){
+  // retorna um Map: nome da usina -> {zerada: bool, mediaPct7d: number|null}
+  const resultado = new Map();
+  if(!energiaSolarDados.length) return resultado;
   const diasComDado = Array.from(new Set(energiaSolarDados.map(d=>d.dia))).sort();
   const ultimoDia = diasComDado[diasComDado.length-1];
-  const registrosUltimoDia = energiaSolarDados.filter(d=>d.dia===ultimoDia);
-  const zeradas = registrosUltimoDia.filter(d=>(d.producao||0)===0 && (d.estimativa||0)>0);
-
-  // tendência de baixa: média dos últimos 7 dias com dado abaixo de 80% da estimativa
   const seteDiasAtras = diasComDado.slice(-7);
+
   const porUsinaRecente = new Map();
   energiaSolarDados.filter(d=>seteDiasAtras.includes(d.dia)).forEach(d=>{
     if(!porUsinaRecente.has(d.planta)) porUsinaRecente.set(d.planta, {producao:0, estimativa:0});
     const u = porUsinaRecente.get(d.planta);
     u.producao += (d.producao||0); u.estimativa += (d.estimativa||0);
   });
-  const baixaTendencia = Array.from(porUsinaRecente.entries())
-    .filter(([nome,u]) => u.estimativa>0 && (u.producao/u.estimativa) < ENERGIA_SOLAR_LIMIAR_IDEAL)
-    .map(([nome,u]) => ({nome, pct: u.producao/u.estimativa*100}))
-    .sort((a,b)=>a.pct-b.pct);
-
-  if(!zeradas.length && !baixaTendencia.length){ painel.style.display = 'none'; return; }
-  painel.style.display = '';
-  let html = '<div style="display:flex;flex-direction:column;gap:10px;">';
-  if(zeradas.length){
-    html += `<div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
-      <span style="font-size:11.5px;font-weight:700;color:#8A1F1F;white-space:nowrap;">🔴 Zerada hoje:</span>
-      ${zeradas.map(d=>`<span style="font-size:11px;background:#FDECEC;color:#8A1F1F;border-radius:20px;padding:3px 10px;">${d.planta}</span>`).join('')}
-    </div>`;
-  }
-  if(baixaTendencia.length){
-    html += `<div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
-      <span style="font-size:11.5px;font-weight:700;color:#8A6200;white-space:nowrap;">🟡 Abaixo de ${(ENERGIA_SOLAR_LIMIAR_IDEAL*100).toFixed(0)}% (7d):</span>
-      ${baixaTendencia.map(d=>`<span style="font-size:11px;background:#FFF4E1;color:#8A6200;border-radius:20px;padding:3px 10px;">${d.nome} ${d.pct.toFixed(0)}%</span>`).join('')}
-    </div>`;
-  }
-  html += '</div>';
-  lista.innerHTML = html;
+  const registrosUltimoDia = energiaSolarDados.filter(d=>d.dia===ultimoDia);
+  registrosUltimoDia.forEach(d=>{
+    const zerada = (d.producao||0)===0 && (d.estimativa||0)>0;
+    const rec = porUsinaRecente.get(d.planta);
+    const mediaPct7d = (rec && rec.estimativa>0) ? (rec.producao/rec.estimativa*100) : null;
+    resultado.set(d.planta, {zerada, mediaPct7d});
+  });
+  return resultado;
 }
 
 function energiaSolarFormatarDataBR(iso){
@@ -7019,6 +6999,7 @@ function energiaSolarRenderRelatorio(){
   const diaAnterior = diasComDado[diasComDado.length-2];
   const usinas = Array.from(new Set(energiaSolarDados.map(d=>d.planta))).sort();
   info.textContent = `${energiaSolarFormatarDataBR(diaAnterior)} → ${energiaSolarFormatarDataBR(ultimoDia)}`;
+  const statusPorUsina = energiaSolarCalcularStatusUsinas();
 
   const linhas = usinas.map(nome=>{
     const hoje = energiaSolarDados.find(d=>d.planta===nome && d.dia===ultimoDia);
@@ -7026,15 +7007,20 @@ function energiaSolarRenderRelatorio(){
     const prodHoje = hoje ? (hoje.producao||0) : 0;
     const prodOntem = ontem ? (ontem.producao||0) : 0;
     const variacao = prodOntem ? ((prodHoje-prodOntem)/prodOntem*100) : null;
+    const status = statusPorUsina.get(nome);
+    let statusHtml = '<span style="color:var(--verde-ok);font-weight:700;">✅ Ideal</span>';
+    if(status && status.zerada) statusHtml = '<span style="color:#8A1F1F;background:#FDECEC;border-radius:20px;padding:3px 10px;font-weight:700;">🔴 Zerada</span>';
+    else if(status && status.mediaPct7d!=null && status.mediaPct7d < ENERGIA_SOLAR_LIMIAR_IDEAL*100) statusHtml = `<span style="color:#8A6200;background:#FFF4E1;border-radius:20px;padding:3px 10px;font-weight:700;">🟡 ${status.mediaPct7d.toFixed(0)}% (7d)</span>`;
     return `<tr>
       <th class="rowhead">${nome}</th>
       <td>${prodOntem.toLocaleString('pt-BR',{maximumFractionDigits:1})} kWh</td>
       <td style="font-weight:700;">${prodHoje.toLocaleString('pt-BR',{maximumFractionDigits:1})} kWh</td>
       <td style="color:${variacao==null?'inherit':(variacao>=0?'var(--verde-ok)':'var(--vermelho-alerta)')};font-weight:700;">${variacao!=null ? (variacao>=0?'+':'')+variacao.toFixed(1)+'%' : '–'}</td>
+      <td>${statusHtml}</td>
     </tr>`;
   }).join('');
 
-  tabela.innerHTML = `<thead><tr><th class="rowhead">Usina</th><th>${energiaSolarFormatarDataBR(diaAnterior)}</th><th>${energiaSolarFormatarDataBR(ultimoDia)}</th><th>Variação</th></tr></thead><tbody>${linhas}</tbody>`;
+  tabela.innerHTML = `<thead><tr><th class="rowhead">Usina</th><th>${energiaSolarFormatarDataBR(diaAnterior)}</th><th>${energiaSolarFormatarDataBR(ultimoDia)}</th><th>Variação</th><th>Status</th></tr></thead><tbody>${linhas}</tbody>`;
 }
 
 function energiaSolarCompartilharRelatorio(){
@@ -7062,12 +7048,16 @@ async function energiaSolarImportarArquivo(){
     const faltando = camposNecessarios.filter(c => !(c in linhas[0]));
     if(faltando.length) throw new Error('Colunas não encontradas na planilha: ' + faltando.join(', '));
 
+    // só considera dados até ontem — hoje normalmente ainda está incompleto (dia não terminou),
+    // o que gera falsos alarmes de "produção zerada" ou muito abaixo do esperado.
+    const ontem = new Date(); ontem.setDate(ontem.getDate()-1);
+    const ontemStr = ontem.toISOString().slice(0,10);
     const registros = linhas.filter(l=>l['PLANTA']).map(l=>({
       planta: l['PLANTA'], galpoes: l['GALPÕES']!=null?String(l['GALPÕES']):null,
       medidor: l['Nº MEDIDOR']!=null?String(l['Nº MEDIDOR']):null, unidade: l['UNIDADE'],
       ano: l['ANO'], dia: l['DIA'] ? new Date(l['DIA']).toISOString().slice(0,10) : null,
       mes: l['MÊS'], producao: l['PRODUÇÃO kWh'], estimativa: l['ESTIMATIVA kWh'], diferenca: l['DIFERENÇA']
-    })).filter(r=>r.dia);
+    })).filter(r=>r.dia && r.dia <= ontemStr);
 
     // divide em pedaços pra caber no limite de 1MB por documento do Firestore
     const meta = await db.collection('configuracoes').doc('energia_solar_meta').get();
