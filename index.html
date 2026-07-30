@@ -223,6 +223,12 @@
   .comb-card{ display:flex; flex-direction:column; gap:18px; }
   .comb-secao{ background:var(--bg); border:1px solid var(--borda); border-radius:14px; padding:18px; display:flex; flex-direction:column; gap:12px; }
   .comb-secao-titulo{ font-family:'Sora',sans-serif; font-weight:800; font-size:13px; color:var(--vermelho); text-transform:uppercase; letter-spacing:.03em; }
+  .comb-secao .campo{ margin-bottom:2px; }
+  .comb-secao .campo input[type="text"], .comb-secao .campo input[type="date"], .comb-secao .campo input[type="number"], .comb-secao .campo select, .comb-secao .campo textarea{
+    width:100%; padding:11px 13px; border-radius:9px; border:1.5px solid var(--borda); font-size:14px; font-family:inherit; color:var(--texto); background:#fff; box-sizing:border-box; appearance:none; -webkit-appearance:none;
+  }
+  .comb-secao .campo select{ background-image:url("data:image/svg+xml;charset=UTF-8,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23888' stroke-width='2'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E"); background-repeat:no-repeat; background-position:right 12px center; background-size:16px; padding-right:36px; }
+  .comb-secao .campo input:focus, .comb-secao .campo select:focus, .comb-secao .campo textarea:focus{ outline:none; border-color:var(--vermelho); box-shadow:0 0 0 3px rgba(193,39,45,.12); }
   .comb-check-rateio{ display:flex; align-items:center; gap:10px; background:#FFF9E6; border:1.5px solid #F0CB7A; border-radius:10px; padding:12px 14px; font-size:13.5px; font-weight:700; color:#8A6200; cursor:pointer; }
   .comb-check-rateio input{ width:18px; height:18px; }
   .comb-area-desabilitada{ background:#EFEFEF; color:var(--texto-suave); border-radius:10px; padding:14px; font-size:13px; text-align:center; }
@@ -284,8 +290,10 @@
   .comb-btn-acao.editar:hover{ background:#FFECC7; }
   .comb-btn-acao.excluir{ background:#FDECEC; color:#8A1F1F; border-color:#F0A0A0; }
   .comb-btn-acao.excluir:hover{ background:#FBDADA; }
-  .comb-btn-pagina{ min-width:34px; height:34px; border-radius:9px; border:1.5px solid var(--borda); background:#fff; color:var(--texto); font-weight:700; font-size:13px; cursor:pointer; }
-  .comb-btn-pagina.ativo{ background:var(--vermelho); border-color:var(--vermelho); color:#fff; }
+  .comb-btn-pagina{ min-width:38px; height:38px; border-radius:9px; border:1.5px solid var(--borda); background:#fff; color:var(--texto); font-weight:800; font-size:16px; cursor:pointer; }
+  .comb-btn-pagina:disabled{ opacity:.35; cursor:default; }
+  .comb-btn-pagina:not(:disabled):hover{ background:var(--bg); }
+  .comb-pagina-indicador{ font-size:13px; font-weight:700; color:var(--texto-suave); padding:0 6px; display:flex; align-items:center; }
   .matriz-diaria th.rowhead.av{ padding-left:20px; font-weight:500; color:var(--texto-suave); }
   .matriz-diaria td.cel{ font-variant-numeric:tabular-nums; }
   .matriz-diaria .aloj{ font-weight:600; background:#F7F9FB; width:80px; min-width:80px; }
@@ -1511,7 +1519,7 @@
             <div class="comb-secao-titulo">📄 Dados da Solicitação</div>
             <input type="hidden" id="comb-editandoId" value="">
             <div class="campo"><label>Data da Solicitação <span style="color:var(--vermelho-alerta);">*</span></label><input type="date" id="comb-data" required></div>
-            <div class="campo"><label>Nome do Solicitante <span style="color:var(--vermelho-alerta);">*</span></label><input type="text" id="comb-solicitante" placeholder="Digite o nome completo" required></div>
+            <div class="campo"><label>Nome do Solicitante <span style="color:var(--vermelho-alerta);">*</span></label><input type="text" id="comb-solicitante" list="comb-listaNomes" placeholder="Digite o nome completo" required autocomplete="off"><datalist id="comb-listaNomes"></datalist></div>
             <div class="campo"><label>Tipo de Combustível <span style="color:var(--vermelho-alerta);">*</span></label>
               <select id="comb-tipo" required>
                 <option value="Gasolina">Gasolina</option>
@@ -7257,6 +7265,7 @@ async function iniciarCombustivel(){
   }
   combustivelRenderHistorico();
   combustivelPopularFiltrosExportacao();
+  combustivelPopularListaNomes();
   combustivelRenderGraficos();
 }
 window.iniciarCombustivel = iniciarCombustivel;
@@ -7337,6 +7346,7 @@ async function combustivelRegistrar(){
     await combustivelCarregarDados();
     combustivelRenderHistorico();
     combustivelPopularFiltrosExportacao();
+  combustivelPopularListaNomes();
     combustivelRenderGraficos();
     combustivelSairModoEdicao();
     combustivelAbrirTicket({...dados, ticketId, criadoEm, id:docId});
@@ -7390,6 +7400,7 @@ async function combustivelExcluir(id){
     await combustivelCarregarDados();
     combustivelRenderHistorico();
     combustivelPopularFiltrosExportacao();
+  combustivelPopularListaNomes();
     combustivelRenderGraficos();
   }catch(e){ alert('Erro ao excluir: ' + e.message); }
 }
@@ -7452,14 +7463,16 @@ function combustivelRenderHistorico(){
     </tr>`).join('')}</tbody>`;
 
   if(paginacaoEl){
-    let botoes = '';
-    for(let p=1; p<=totalPaginas; p++){
-      botoes += `<button class="comb-btn-pagina ${p===combustivelPaginaAtual?'ativo':''}" data-comb-pagina="${p}">${p}</button>`;
+    if(totalPaginas>1){
+      paginacaoEl.innerHTML = `
+        <button class="comb-btn-pagina" id="comb-btnPaginaAnterior" ${combustivelPaginaAtual===1?'disabled':''}>‹</button>
+        <span class="comb-pagina-indicador">Página ${combustivelPaginaAtual} de ${totalPaginas}</span>
+        <button class="comb-btn-pagina" id="comb-btnPaginaProxima" ${combustivelPaginaAtual===totalPaginas?'disabled':''}>›</button>`;
+      document.getElementById('comb-btnPaginaAnterior').addEventListener('click', ()=>{ combustivelPaginaAtual--; combustivelRenderHistorico(); });
+      document.getElementById('comb-btnPaginaProxima').addEventListener('click', ()=>{ combustivelPaginaAtual++; combustivelRenderHistorico(); });
+    } else {
+      paginacaoEl.innerHTML = '';
     }
-    paginacaoEl.innerHTML = totalPaginas>1 ? botoes : '';
-    paginacaoEl.querySelectorAll('[data-comb-pagina]').forEach(btn=>{
-      btn.addEventListener('click', ()=>{ combustivelPaginaAtual = parseInt(btn.dataset.combPagina); combustivelRenderHistorico(); });
-    });
   }
 
   tabela.querySelectorAll('[data-comb-reimprimir]').forEach(btn=>{
@@ -7525,6 +7538,13 @@ function combustivelRenderGraficos(){
   }
 }
 
+function combustivelPopularListaNomes(){
+  const lista = document.getElementById('comb-listaNomes');
+  if(!lista) return;
+  const nomes = Array.from(new Set(combustivelDados.map(d=>d.nomeSolicitante).filter(Boolean))).sort();
+  lista.innerHTML = nomes.map(n=>`<option value="${n}">`).join('');
+}
+
 function combustivelPopularFiltrosExportacao(){
   const nucleos = Array.from(new Set(combustivelDados.map(d=>d.nucleo))).sort();
   const solicitantes = Array.from(new Set(combustivelDados.map(d=>d.nomeSolicitante))).sort();
@@ -7574,6 +7594,7 @@ async function combustivelImportarHistoricoManus(){
     await combustivelCarregarDados();
     combustivelRenderHistorico();
     combustivelPopularFiltrosExportacao();
+  combustivelPopularListaNomes();
     combustivelRenderGraficos();
     btn.style.display = 'none';
     alert(`Importação concluída! ${historico.length} requisições adicionadas.`);
