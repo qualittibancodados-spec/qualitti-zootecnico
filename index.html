@@ -217,6 +217,52 @@
   .painel-importar-label:hover{ border-color:var(--vermelho); background:#FDF4F4; }
   .painel-importar-icone{ font-size:26px; }
   .painel-importar-texto{ font-size:13px; color:var(--texto-suave); font-weight:600; }
+
+  /* ===== Requisição de Combustível ===== */
+  .comb-card{ display:flex; flex-direction:column; gap:18px; }
+  .comb-secao{ background:var(--bg); border:1px solid var(--borda); border-radius:14px; padding:18px; display:flex; flex-direction:column; gap:12px; }
+  .comb-secao-titulo{ font-family:'Sora',sans-serif; font-weight:800; font-size:13px; color:var(--vermelho); text-transform:uppercase; letter-spacing:.03em; }
+  .comb-check-rateio{ display:flex; align-items:center; gap:10px; background:#FFF9E6; border:1.5px solid #F0CB7A; border-radius:10px; padding:12px 14px; font-size:13.5px; font-weight:700; color:#8A6200; cursor:pointer; }
+  .comb-check-rateio input{ width:18px; height:18px; }
+  .comb-area-desabilitada{ background:#EFEFEF; color:var(--texto-suave); border-radius:10px; padding:14px; font-size:13px; text-align:center; }
+  .comb-galpoes-grid{ display:grid; grid-template-columns:repeat(auto-fill, minmax(130px,1fr)); gap:8px; max-height:220px; overflow-y:auto; padding:4px; }
+  .comb-galpao-check{ display:flex; align-items:center; gap:6px; font-size:12.5px; background:#fff; border:1px solid var(--borda); border-radius:8px; padding:6px 9px; cursor:pointer; }
+  .comb-galpao-check input{ width:14px; height:14px; }
+  .comb-btn-registrar{ width:100%; padding:16px; border:none; border-radius:14px; background:linear-gradient(135deg, var(--vermelho), #E8542E); color:#fff; font-family:'Sora',sans-serif; font-weight:800; font-size:15.5px; cursor:pointer; box-shadow:0 6px 16px rgba(193,39,45,.3); transition:.15s; }
+  .comb-btn-registrar:hover{ filter:brightness(1.05); }
+  .comb-btn-registrar:disabled{ opacity:.6; cursor:default; }
+
+  .comb-modal-fundo{ position:fixed; inset:0; background:rgba(20,20,20,.55); z-index:900; display:flex; align-items:center; justify-content:center; padding:20px; overflow-y:auto; }
+  .comb-ticket{ background:#fff; border-radius:18px; max-width:460px; width:100%; overflow:hidden; box-shadow:0 20px 60px rgba(0,0,0,.35); position:relative; }
+  .comb-ticket-header{ background:linear-gradient(135deg, var(--vermelho), #E8542E); padding:18px 20px; display:flex; align-items:center; gap:12px; position:relative; }
+  .comb-ticket-logo{ height:40px; background:#fff; border-radius:10px; padding:4px 8px; }
+  .comb-ticket-titulos{ flex:1; }
+  .comb-ticket-titulos h2{ color:#fff; font-family:'Sora',sans-serif; font-size:16px; margin:0; }
+  .comb-ticket-titulos p{ color:rgba(255,255,255,.85); font-size:10.5px; margin:2px 0 0; }
+  .comb-ticket-numero{ background:rgba(0,0,0,.18); border-radius:10px; padding:6px 12px; text-align:center; }
+  .comb-ticket-numero-label{ color:rgba(255,255,255,.75); font-size:9px; font-weight:800; letter-spacing:.05em; }
+  .comb-ticket-numero-valor{ color:#FFD54F; font-family:'Sora',sans-serif; font-weight:800; font-size:14px; }
+  .comb-ticket-fechar{ position:absolute; top:10px; right:10px; background:rgba(255,255,255,.2); border:none; color:#fff; width:24px; height:24px; border-radius:50%; cursor:pointer; font-size:13px; }
+  .comb-ticket-confirmacao{ background:#E8F7EC; color:var(--verde-ok); font-weight:700; font-size:12.5px; padding:10px 20px; }
+  .comb-ticket-corpo{ padding:18px 20px; }
+  .comb-ticket-secao-titulo{ font-size:10.5px; font-weight:800; color:var(--texto-suave); text-transform:uppercase; letter-spacing:.04em; margin-bottom:8px; }
+  .comb-ticket-grid{ display:grid; grid-template-columns:1fr 1fr; gap:12px; }
+  .comb-ticket-label{ font-size:10px; color:var(--texto-suave); text-transform:uppercase; font-weight:700; margin-bottom:3px; }
+  .comb-ticket-valor{ font-size:14px; font-weight:700; color:var(--texto); }
+  .comb-ticket-tag{ display:inline-block; background:#FFF4E1; color:#8A6200; border:1px solid #F0CB7A; border-radius:8px; padding:4px 10px; font-size:12.5px; font-weight:700; }
+  .comb-ticket-linha{ border:none; border-top:1px dashed var(--borda); margin:14px 0; }
+  .comb-ticket-quantidade{ font-family:'Sora',sans-serif; font-size:32px; font-weight:800; color:var(--vermelho); }
+  .comb-ticket-quantidade span:last-child{ font-size:16px; font-weight:600; color:var(--texto-suave); margin-left:6px; }
+  .comb-ticket-motivo{ background:var(--bg); border-radius:10px; padding:12px 14px; font-size:13px; color:var(--texto); }
+  .comb-ticket-rodape{ display:flex; justify-content:space-between; padding:10px 20px; font-size:10px; color:var(--texto-suave); border-top:1px solid var(--borda); }
+  .comb-ticket-acoes{ display:flex; gap:10px; padding:14px 20px 20px; }
+  .comb-ticket-acoes button{ flex:1; }
+  @media print{
+    body *{ visibility:hidden; }
+    #comb-ticketConteudo, #comb-ticketConteudo *{ visibility:visible; }
+    #comb-ticketConteudo{ position:fixed; top:0; left:0; width:100%; box-shadow:none; }
+    .comb-ticket-acoes, .comb-ticket-fechar{ display:none !important; }
+  }
   #mod-admin > div[id^="admin-secao-"]{ margin-bottom:36px; padding-bottom:8px; }
   #mod-admin > div[id^="admin-secao-"]:last-child{ margin-bottom:0; }
   .admin-secao-titulo{ font-family:'Sora',sans-serif; font-size:13px; font-weight:800; text-transform:uppercase; letter-spacing:.05em; color:var(--vermelho); margin-bottom:14px; padding-bottom:8px; border-bottom:2px solid var(--dourado); display:flex; align-items:center; gap:8px; }
@@ -1360,6 +1406,7 @@
       <div class="tabs-internas" id="reg-tabs">
         <button class="tab-int ativo" data-aba-reg="energia">Falta de Energia</button>
         <button class="tab-int" data-aba-reg="pintinhos">Qualidade de Pintinhos</button>
+        <button class="tab-int" data-aba-reg="combustivel">Requisição de Combustível</button>
       </div>
 
       <!-- ABA: FALTA DE ENERGIA -->
@@ -1432,6 +1479,63 @@
           <div class="painel-header"><h2>Total de problemas identificados</h2></div>
           <div class="chart-wrap" style="height:280px;"><canvas id="regPin_grafico"></canvas></div>
           <p class="nota" id="regPin_graficoNota"></p>
+        </div>
+      </div>
+
+      <!-- ABA: REQUISIÇÃO DE COMBUSTÍVEL -->
+      <div data-aba-reg-view="combustivel" style="display:none;">
+        <button class="btn-recolher" id="comb-btnImportarHistorico" type="button" style="display:none;margin-bottom:16px;background:var(--dourado);border-color:var(--dourado);">Importar histórico do Manus (uma vez)</button>
+
+        <div class="painel comb-card">
+          <div class="comb-secao">
+            <div class="comb-secao-titulo">📍 Localização</div>
+            <div class="campo"><label>Núcleo <span style="color:var(--vermelho-alerta);">*</span></label><select id="comb-nucleo" required><option value="">Selecione o núcleo...</option></select></div>
+            <label class="comb-check-rateio">
+              <input type="checkbox" id="comb-ratear">
+              Ratear para o <strong>Núcleo todo</strong> (todos os galpões)
+            </label>
+            <div id="comb-areaGalpoes" class="comb-area-desabilitada">Selecione um núcleo para escolher os galpões</div>
+          </div>
+
+          <div class="comb-secao">
+            <div class="comb-secao-titulo">📄 Dados da Solicitação</div>
+            <input type="hidden" id="comb-editandoId" value="">
+            <div class="campo"><label>Data da Solicitação <span style="color:var(--vermelho-alerta);">*</span></label><input type="date" id="comb-data" required></div>
+            <div class="campo"><label>Nome do Solicitante <span style="color:var(--vermelho-alerta);">*</span></label><input type="text" id="comb-solicitante" placeholder="Digite o nome completo" required></div>
+            <div class="campo"><label>Tipo de Combustível <span style="color:var(--vermelho-alerta);">*</span></label>
+              <select id="comb-tipo" required>
+                <option value="Gasolina">Gasolina</option>
+                <option value="Diesel">Diesel</option>
+                <option value="Etanol">Etanol</option>
+              </select>
+            </div>
+            <div class="campo"><label>Quantidade (litros) <span style="color:var(--vermelho-alerta);">*</span></label><input type="number" min="0" step="0.5" id="comb-quantidade" required></div>
+            <div class="campo"><label>Motivo da Solicitação <span style="color:var(--vermelho-alerta);">*</span></label><textarea id="comb-motivo" rows="2" required style="width:100%;padding:10px 12px;border-radius:9px;border:1.5px solid var(--borda);font-size:14px;font-family:inherit;box-sizing:border-box;resize:vertical;" placeholder="Descreva o motivo da solicitação..."></textarea></div>
+          </div>
+
+          <button type="button" class="comb-btn-registrar" id="comb-btnRegistrar">⛽ Registrar Requisição</button>
+          <button type="button" class="btn-recolher" id="comb-btnCancelarEdicao" style="display:none;margin-top:10px;">Cancelar edição</button>
+          <p class="nota" id="comb-erro" style="min-height:16px;"></p>
+        </div>
+
+        <div class="painel">
+          <div class="painel-header"><h2>Histórico</h2><span class="info" id="comb-infoHistorico"></span></div>
+          <input type="text" id="comb-buscaHistorico" placeholder="Buscar por solicitante, núcleo ou motivo..." style="width:100%;padding:10px 12px;border-radius:9px;border:1.5px solid var(--borda);font-size:13.5px;font-family:inherit;box-sizing:border-box;margin-bottom:12px;">
+          <button class="btn-recolher" id="comb-btnExcel" type="button" style="margin-bottom:12px;">📊 Exportar Excel</button>
+          <div class="tabela-scroll"><table class="matriz-diaria" id="comb-tabelaHistorico"></table></div>
+        </div>
+
+        <div class="painel-grafico">
+          <div class="painel-grafico-header"><h2>Consumo por solicitante</h2></div>
+          <div class="chart-wrap" style="height:280px;"><canvas id="comb-graficoSolicitante"></canvas></div>
+        </div>
+        <div class="painel-grafico">
+          <div class="painel-grafico-header"><h2>Consumo por núcleo</h2></div>
+          <div class="chart-wrap" style="height:280px;"><canvas id="comb-graficoNucleo"></canvas></div>
+        </div>
+        <div class="painel-grafico">
+          <div class="painel-grafico-header"><h2>Consumo por mês</h2></div>
+          <div class="chart-wrap" style="height:280px;"><canvas id="comb-graficoMes"></canvas></div>
         </div>
       </div>
     </div>
@@ -6530,9 +6634,10 @@ document.querySelectorAll('#reg-tabs .tab-int').forEach(b=>b.addEventListener('c
   document.querySelectorAll('#reg-tabs .tab-int').forEach(x=>x.classList.remove('ativo'));
   b.classList.add('ativo');
   const aba = b.dataset.abaReg;
-  ['energia','pintinhos'].forEach(a=>{
+  ['energia','pintinhos','combustivel'].forEach(a=>{
     document.querySelector(`#mod-registros [data-aba-reg-view="${a}"]`).style.display = (a===aba) ? '' : 'none';
   });
+  if(aba==='combustivel' && !window.combustivelCarregado){ window.combustivelCarregado = true; iniciarCombustivel(); }
 }));
 
 async function iniciarRegistros(){
@@ -7096,6 +7201,313 @@ async function energiaSolarImportarArquivo(){
   }
 }
 
+window.COMBUSTIVEL_HISTORICO_MANUS = [{"ticketId": 2190002, "nucleo": "Vinagre 02", "galpoes": ["Núcleo Todo"], "rateioNucleo": true, "dataSolicitacao": "2026-07-30", "nomeSolicitante": "Juliana Barbosa Dantas", "tipoCombustivel": "Gasolina", "quantidade": 3.0, "motivo": "Puxar frango de moto", "criadoEm": "2026-07-30T12:00:00.000Z", "criadoPor": "importacao_manus"}, {"ticketId": 2190001, "nucleo": "Vinagre 02", "galpoes": ["Núcleo Todo"], "rateioNucleo": true, "dataSolicitacao": "2026-07-30", "nomeSolicitante": "Juliana Barbosa Dantas", "tipoCombustivel": "Gasolina", "quantidade": 15.0, "motivo": "Soprador de Cama de Frango", "criadoEm": "2026-07-30T12:00:00.000Z", "criadoPor": "importacao_manus"}, {"ticketId": 2160001, "nucleo": "Santa Rosa", "galpoes": ["Núcleo Todo"], "rateioNucleo": true, "dataSolicitacao": "2026-07-30", "nomeSolicitante": "Ully Souza", "tipoCombustivel": "Gasolina", "quantidade": 28.0, "motivo": "Batedor de Cama", "criadoEm": "2026-07-30T12:00:00.000Z", "criadoPor": "importacao_manus"}, {"ticketId": 2130001, "nucleo": "Aroeira", "galpoes": ["Galpão 87", "Galpão 103", "Galpão 104", "Galpão 105", "Galpão 106"], "rateioNucleo": false, "dataSolicitacao": "2026-07-29", "nomeSolicitante": "Gabriel Santana", "tipoCombustivel": "Gasolina", "quantidade": 35.0, "motivo": "Batedor de Cama", "criadoEm": "2026-07-29T12:00:00.000Z", "criadoPor": "importacao_manus"}, {"ticketId": 2100001, "nucleo": "Flamboyant", "galpoes": ["Galpão 116", "Galpão 117", "Galpão 118", "Galpão 119", "Galpão 120", "Galpão 121", "Galpão 122", "Galpão 123", "Galpão 124", "Galpão 125", "Galpão 126"], "rateioNucleo": false, "dataSolicitacao": "2026-07-28", "nomeSolicitante": "Jose Renato", "tipoCombustivel": "Gasolina", "quantidade": 27.5, "motivo": "Soprador de Cama", "criadoEm": "2026-07-28T12:00:00.000Z", "criadoPor": "importacao_manus"}, {"ticketId": 2040001, "nucleo": "Aroeira", "galpoes": ["Galpão 95", "Galpão 96", "Galpão 99", "Galpão 100", "Galpão 101", "Galpão 102"], "rateioNucleo": false, "dataSolicitacao": "2026-07-27", "nomeSolicitante": "Gabriel Santana", "tipoCombustivel": "Gasolina", "quantidade": 42.0, "motivo": "Batedor de Cama", "criadoEm": "2026-07-27T12:00:00.000Z", "criadoPor": "importacao_manus"}, {"ticketId": 2070001, "nucleo": "Aroeira", "galpoes": ["Galpão 96", "Galpão 99", "Galpão 100", "Galpão 101", "Galpão 102"], "rateioNucleo": false, "dataSolicitacao": "2026-07-25", "nomeSolicitante": "Gabriel Santana", "tipoCombustivel": "Gasolina", "quantidade": 35.0, "motivo": "Batedor de Cama", "criadoEm": "2026-07-27T12:00:00.000Z", "criadoPor": "importacao_manus"}, {"ticketId": 2010001, "nucleo": "Valzinho", "galpoes": ["Galpão 75", "Galpão 76", "Galpão 77", "Galpão 78", "Galpão 79", "Galpão 80"], "rateioNucleo": false, "dataSolicitacao": "2026-07-24", "nomeSolicitante": "Ully Souza", "tipoCombustivel": "Gasolina", "quantidade": 42.0, "motivo": "Batedor de Cama", "criadoEm": "2026-07-24T12:00:00.000Z", "criadoPor": "importacao_manus"}, {"ticketId": 1980001, "nucleo": "Vinagre 01", "galpoes": ["Núcleo Todo"], "rateioNucleo": true, "dataSolicitacao": "2026-07-23", "nomeSolicitante": "Juliana Barbosa Dantas", "tipoCombustivel": "Gasolina", "quantidade": 5.0, "motivo": "Verificar o poço artesiano do Vinagre 1", "criadoEm": "2026-07-23T12:00:00.000Z", "criadoPor": "importacao_manus"}, {"ticketId": 1950002, "nucleo": "Aroeira", "galpoes": ["Galpão 87", "Galpão 88", "Galpão 89", "Galpão 93", "Galpão 94"], "rateioNucleo": false, "dataSolicitacao": "2026-07-21", "nomeSolicitante": "Gabriel Santana", "tipoCombustivel": "Gasolina", "quantidade": 35.0, "motivo": "Batedor de Cama", "criadoEm": "2026-07-21T12:00:00.000Z", "criadoPor": "importacao_manus"}, {"ticketId": 1920001, "nucleo": "Santa Rosa", "galpoes": ["Galpão 59", "Galpão 60", "Galpão 61", "Galpão 62"], "rateioNucleo": false, "dataSolicitacao": "2026-07-21", "nomeSolicitante": "Ully Souza", "tipoCombustivel": "Gasolina", "quantidade": 28.0, "motivo": "Batedor de Cama", "criadoEm": "2026-07-21T12:00:00.000Z", "criadoPor": "importacao_manus"}, {"ticketId": 1890001, "nucleo": "Valzinho", "galpoes": ["Galpão 71", "Galpão 72"], "rateioNucleo": false, "dataSolicitacao": "2026-07-21", "nomeSolicitante": "Ully Souza", "tipoCombustivel": "Gasolina", "quantidade": 14.0, "motivo": "Batedor de Cama", "criadoEm": "2026-07-21T12:00:00.000Z", "criadoPor": "importacao_manus"}, {"ticketId": 1860001, "nucleo": "Aroeira", "galpoes": ["Galpão 90", "Galpão 91", "Galpão 92"], "rateioNucleo": false, "dataSolicitacao": "2026-07-20", "nomeSolicitante": "Gabriel Santana", "tipoCombustivel": "Gasolina", "quantidade": 21.0, "motivo": "Batedor de Cama", "criadoEm": "2026-07-20T12:00:00.000Z", "criadoPor": "importacao_manus"}, {"ticketId": 1830001, "nucleo": "Vinagre 03", "galpoes": ["Galpão 51", "Galpão 52", "Galpão 53", "Galpão 57"], "rateioNucleo": false, "dataSolicitacao": "2026-07-20", "nomeSolicitante": "Jessika Caroline", "tipoCombustivel": "Gasolina", "quantidade": 20.0, "motivo": "Batedor de Cama", "criadoEm": "2026-07-20T12:00:00.000Z", "criadoPor": "importacao_manus"}, {"ticketId": 1800001, "nucleo": "Valzinho", "galpoes": ["Galpão 72", "Galpão 73", "Galpão 74", "Galpão 75", "Galpão 76"], "rateioNucleo": false, "dataSolicitacao": "2026-07-17", "nomeSolicitante": "Ully Souza", "tipoCombustivel": "Gasolina", "quantidade": 35.0, "motivo": "Batedor de Cama", "criadoEm": "2026-07-17T12:00:00.000Z", "criadoPor": "importacao_manus"}, {"ticketId": 1770001, "nucleo": "Valzinho", "galpoes": ["Galpão 77", "Galpão 78", "Galpão 79", "Galpão 80"], "rateioNucleo": false, "dataSolicitacao": "2026-07-14", "nomeSolicitante": "Ully Souza", "tipoCombustivel": "Gasolina", "quantidade": 28.0, "motivo": "Batedor de Cama", "criadoEm": "2026-07-14T12:00:00.000Z", "criadoPor": "importacao_manus"}, {"ticketId": 1740003, "nucleo": "Vinagre 03", "galpoes": ["Galpão 57", "Galpão 58"], "rateioNucleo": false, "dataSolicitacao": "2026-07-14", "nomeSolicitante": "Grazyana Machado", "tipoCombustivel": "Gasolina", "quantidade": 15.0, "motivo": "Batedor de Cama", "criadoEm": "2026-07-14T12:00:00.000Z", "criadoPor": "importacao_manus"}, {"ticketId": 1740002, "nucleo": "Vinagre 03", "galpoes": ["Galpão 55", "Galpão 56"], "rateioNucleo": false, "dataSolicitacao": "2026-07-14", "nomeSolicitante": "Grazyana Machado", "tipoCombustivel": "Gasolina", "quantidade": 15.0, "motivo": "Batedor de Cama", "criadoEm": "2026-07-14T12:00:00.000Z", "criadoPor": "importacao_manus"}, {"ticketId": 1740001, "nucleo": "Vinagre 03", "galpoes": ["Galpão 53", "Galpão 54"], "rateioNucleo": false, "dataSolicitacao": "2026-07-14", "nomeSolicitante": "Grazyana Machado", "tipoCombustivel": "Gasolina", "quantidade": 15.0, "motivo": "Batedor de Cama", "criadoEm": "2026-07-14T12:00:00.000Z", "criadoPor": "importacao_manus"}, {"ticketId": 1680004, "nucleo": "Aeroporto", "galpoes": ["Núcleo Todo"], "rateioNucleo": true, "dataSolicitacao": "2026-07-14", "nomeSolicitante": "Carlos", "tipoCombustivel": "Gasolina", "quantidade": 100.0, "motivo": "Abastecimento geral do núcleo", "criadoEm": "2026-07-14T12:00:00.000Z", "criadoPor": "importacao_manus"}, {"ticketId": 1680003, "nucleo": "Aeroporto", "galpoes": ["Galpão 11", "Galpão 12"], "rateioNucleo": false, "dataSolicitacao": "2026-07-14", "nomeSolicitante": "Maria", "tipoCombustivel": "Gasolina", "quantidade": 30.0, "motivo": "Abastecimento de veículos", "criadoEm": "2026-07-14T12:00:00.000Z", "criadoPor": "importacao_manus"}, {"ticketId": 1680002, "nucleo": "Aeroporto", "galpoes": ["Núcleo Todo"], "rateioNucleo": true, "dataSolicitacao": "2026-07-14", "nomeSolicitante": "Carlos", "tipoCombustivel": "Gasolina", "quantidade": 100.0, "motivo": "Abastecimento geral do núcleo", "criadoEm": "2026-07-14T12:00:00.000Z", "criadoPor": "importacao_manus"}, {"ticketId": 1680001, "nucleo": "Aeroporto", "galpoes": ["Galpão 11", "Galpão 12"], "rateioNucleo": false, "dataSolicitacao": "2026-07-14", "nomeSolicitante": "Maria", "tipoCombustivel": "Gasolina", "quantidade": 30.0, "motivo": "Abastecimento de veículos", "criadoEm": "2026-07-14T12:00:00.000Z", "criadoPor": "importacao_manus"}, {"ticketId": 1620001, "nucleo": "Vinagre 03", "galpoes": ["Galpão 57", "Galpão 58"], "rateioNucleo": false, "dataSolicitacao": "2026-07-09", "nomeSolicitante": "Lionel Dias de Paula", "tipoCombustivel": "Gasolina", "quantidade": 15.0, "motivo": "Batedor de Cama", "criadoEm": "2026-07-09T12:00:00.000Z", "criadoPor": "importacao_manus"}, {"ticketId": 1590005, "nucleo": "Paraiso 04", "galpoes": ["Núcleo Todo"], "rateioNucleo": true, "dataSolicitacao": "2026-07-09", "nomeSolicitante": "Amilton Marcolino", "tipoCombustivel": "Gasolina", "quantidade": 10.0, "motivo": "Soprador", "criadoEm": "2026-07-09T12:00:00.000Z", "criadoPor": "importacao_manus"}, {"ticketId": 1590004, "nucleo": "Paraiso 03", "galpoes": ["Núcleo Todo"], "rateioNucleo": true, "dataSolicitacao": "2026-07-09", "nomeSolicitante": "Amilton Marcolino", "tipoCombustivel": "Gasolina", "quantidade": 10.0, "motivo": "Soprador", "criadoEm": "2026-07-09T12:00:00.000Z", "criadoPor": "importacao_manus"}, {"ticketId": 1590003, "nucleo": "Paraiso 02", "galpoes": ["Núcleo Todo"], "rateioNucleo": true, "dataSolicitacao": "2026-07-09", "nomeSolicitante": "Amilton Marcolino", "tipoCombustivel": "Gasolina", "quantidade": 10.0, "motivo": "Soprador", "criadoEm": "2026-07-09T12:00:00.000Z", "criadoPor": "importacao_manus"}, {"ticketId": 1590002, "nucleo": "Paraiso 01", "galpoes": ["Núcleo Todo"], "rateioNucleo": true, "dataSolicitacao": "2026-07-09", "nomeSolicitante": "Amilton Marcolino", "tipoCombustivel": "Gasolina", "quantidade": 10.0, "motivo": "Soprador", "criadoEm": "2026-07-09T12:00:00.000Z", "criadoPor": "importacao_manus"}, {"ticketId": 1590001, "nucleo": "Aeroporto", "galpoes": ["Núcleo Todo"], "rateioNucleo": true, "dataSolicitacao": "2026-07-09", "nomeSolicitante": "Amilton Marcolino", "tipoCombustivel": "Gasolina", "quantidade": 10.0, "motivo": "Soprador", "criadoEm": "2026-07-09T12:00:00.000Z", "criadoPor": "importacao_manus"}, {"ticketId": 1560001, "nucleo": "Valzinho", "galpoes": ["Galpão 77", "Galpão 78", "Galpão 79", "Galpão 80"], "rateioNucleo": false, "dataSolicitacao": "2026-07-08", "nomeSolicitante": "Ully Souza", "tipoCombustivel": "Gasolina", "quantidade": 28.0, "motivo": "Batedor de Cama", "criadoEm": "2026-07-08T12:00:00.000Z", "criadoPor": "importacao_manus"}, {"ticketId": 1500001, "nucleo": "Vinagre 03", "galpoes": ["Galpão 55", "Galpão 56"], "rateioNucleo": false, "dataSolicitacao": "2026-07-07", "nomeSolicitante": "Lionel Dias de Paula", "tipoCombustivel": "Gasolina", "quantidade": 15.0, "motivo": "Bater Cama de Frango", "criadoEm": "2026-07-07T12:00:00.000Z", "criadoPor": "importacao_manus"}, {"ticketId": 1530002, "nucleo": "Vinagre 02", "galpoes": ["Galpão 63", "Galpão 67", "Galpão 68"], "rateioNucleo": false, "dataSolicitacao": "2026-07-07", "nomeSolicitante": "Juliana Barbosa", "tipoCombustivel": "Gasolina", "quantidade": 20.0, "motivo": "Batedor de Cama", "criadoEm": "2026-07-07T12:00:00.000Z", "criadoPor": "importacao_manus"}, {"ticketId": 1530001, "nucleo": "Vinagre 02", "galpoes": ["Galpão 69"], "rateioNucleo": false, "dataSolicitacao": "2026-07-07", "nomeSolicitante": "Juliana Barbosa", "tipoCombustivel": "Gasolina", "quantidade": 7.0, "motivo": "Batedor de Cama", "criadoEm": "2026-07-07T12:00:00.000Z", "criadoPor": "importacao_manus"}, {"ticketId": 1530003, "nucleo": "Vinagre 02", "galpoes": ["Galpão 64", "Galpão 65", "Galpão 66"], "rateioNucleo": false, "dataSolicitacao": "2026-07-07", "nomeSolicitante": "Juliana Barbosa", "tipoCombustivel": "Gasolina", "quantidade": 20.0, "motivo": "Batedor de Cama", "criadoEm": "2026-07-07T12:00:00.000Z", "criadoPor": "importacao_manus"}, {"ticketId": 1470002, "nucleo": "Aroeira", "galpoes": ["Galpão 87", "Galpão 88", "Galpão 89"], "rateioNucleo": false, "dataSolicitacao": "2026-07-07", "nomeSolicitante": "Gabriel Santana", "tipoCombustivel": "Gasolina", "quantidade": 21.0, "motivo": "Batedor de Cama", "criadoEm": "2026-07-07T12:00:00.000Z", "criadoPor": "importacao_manus"}, {"ticketId": 1470001, "nucleo": "Valzinho", "galpoes": ["Galpão 81", "Galpão 82", "Galpão 83", "Galpão 84"], "rateioNucleo": false, "dataSolicitacao": "2026-07-07", "nomeSolicitante": "Ully Souza", "tipoCombustivel": "Gasolina", "quantidade": 28.0, "motivo": "Batedor de Cama", "criadoEm": "2026-07-07T12:00:00.000Z", "criadoPor": "importacao_manus"}, {"ticketId": 1440001, "nucleo": "Santa Rosa", "galpoes": ["Núcleo Todo"], "rateioNucleo": true, "dataSolicitacao": "2026-07-06", "nomeSolicitante": "Ully Souza", "tipoCombustivel": "Gasolina", "quantidade": 20.0, "motivo": "Batedor de Cama", "criadoEm": "2026-07-06T12:00:00.000Z", "criadoPor": "importacao_manus"}, {"ticketId": 1410002, "nucleo": "Vinagre 01", "galpoes": ["Galpão 45", "Galpão 46"], "rateioNucleo": false, "dataSolicitacao": "2026-07-03", "nomeSolicitante": "Juliana Barbosa", "tipoCombustivel": "Gasolina", "quantidade": 15.0, "motivo": "Batedor de Cama", "criadoEm": "2026-07-03T12:00:00.000Z", "criadoPor": "importacao_manus"}, {"ticketId": 1410004, "nucleo": "Vinagre 01", "galpoes": ["Galpão 49", "Galpão 50"], "rateioNucleo": false, "dataSolicitacao": "2026-07-03", "nomeSolicitante": "Juliana Barbosa", "tipoCombustivel": "Gasolina", "quantidade": 15.0, "motivo": "Batedor de Cama", "criadoEm": "2026-07-03T12:00:00.000Z", "criadoPor": "importacao_manus"}, {"ticketId": 1410003, "nucleo": "Vinagre 01", "galpoes": ["Galpão 47", "Galpão 48"], "rateioNucleo": false, "dataSolicitacao": "2026-07-03", "nomeSolicitante": "Juliana Barbosa", "tipoCombustivel": "Gasolina", "quantidade": 15.0, "motivo": "Batedor de Cama", "criadoEm": "2026-07-03T12:00:00.000Z", "criadoPor": "importacao_manus"}, {"ticketId": 1410001, "nucleo": "Vinagre 01", "galpoes": ["Galpão 43", "Galpão 44"], "rateioNucleo": false, "dataSolicitacao": "2026-07-03", "nomeSolicitante": "Juliana Barbosa", "tipoCombustivel": "Gasolina", "quantidade": 15.0, "motivo": "Batedor de Cama", "criadoEm": "2026-07-03T12:00:00.000Z", "criadoPor": "importacao_manus"}, {"ticketId": 1350001, "nucleo": "Aroeira", "galpoes": ["Galpão 87", "Galpão 95", "Galpão 96"], "rateioNucleo": false, "dataSolicitacao": "2026-07-02", "nomeSolicitante": "Gabriel Santana", "tipoCombustivel": "Gasolina", "quantidade": 10.0, "motivo": "Roçadeira", "criadoEm": "2026-07-02T12:00:00.000Z", "criadoPor": "importacao_manus"}, {"ticketId": 1320001, "nucleo": "Vinagre 02", "galpoes": ["Galpão 63", "Galpão 64", "Galpão 65", "Galpão 66", "Galpão 67", "Galpão 68"], "rateioNucleo": false, "dataSolicitacao": "2026-07-02", "nomeSolicitante": "Juliana Barbosa", "tipoCombustivel": "Gasolina", "quantidade": 10.0, "motivo": "Batedor de Cama", "criadoEm": "2026-07-02T12:00:00.000Z", "criadoPor": "importacao_manus"}, {"ticketId": 1230001, "nucleo": "Outros", "galpoes": ["Núcleo Todo"], "rateioNucleo": true, "dataSolicitacao": "2026-07-01", "nomeSolicitante": "Marcos Rodrigues Moraes", "tipoCombustivel": "Gasolina", "quantidade": 30.0, "motivo": "Carro Manutenção", "criadoEm": "2026-07-01T12:00:00.000Z", "criadoPor": "importacao_manus"}, {"ticketId": 1290001, "nucleo": "Flamboyant", "galpoes": ["Galpão 119", "Galpão 120", "Galpão 125", "Galpão 126"], "rateioNucleo": false, "dataSolicitacao": "2026-07-01", "nomeSolicitante": "Jose Renato", "tipoCombustivel": "Gasolina", "quantidade": 28.0, "motivo": "Batedor de Cama", "criadoEm": "2026-07-01T12:00:00.000Z", "criadoPor": "importacao_manus"}, {"ticketId": 1260001, "nucleo": "Vinagre 01", "galpoes": ["Galpão 43", "Galpão 44", "Galpão 47", "Galpão 48"], "rateioNucleo": false, "dataSolicitacao": "2026-07-01", "nomeSolicitante": "Maria Clara Angelino", "tipoCombustivel": "Gasolina", "quantidade": 28.0, "motivo": "Batedor de Cama", "criadoEm": "2026-07-01T12:00:00.000Z", "criadoPor": "importacao_manus"}, {"ticketId": 1200001, "nucleo": "Flamboyant", "galpoes": ["Galpão 116", "Galpão 117", "Galpão 118", "Galpão 120", "Galpão 121", "Galpão 122"], "rateioNucleo": false, "dataSolicitacao": "2026-06-30", "nomeSolicitante": "José Renato", "tipoCombustivel": "Gasolina", "quantidade": 42.0, "motivo": "Batedor de Cama", "criadoEm": "2026-06-30T12:00:00.000Z", "criadoPor": "importacao_manus"}, {"ticketId": 1170001, "nucleo": "Valzinho", "galpoes": ["Galpão 71", "Galpão 72", "Galpão 73", "Galpão 74", "Galpão 75", "Galpão 76", "Galpão 77", "Galpão 78"], "rateioNucleo": false, "dataSolicitacao": "2026-06-29", "nomeSolicitante": "Ully Souza", "tipoCombustivel": "Gasolina", "quantidade": 40.0, "motivo": "Batedor de Cama", "criadoEm": "2026-06-29T12:00:00.000Z", "criadoPor": "importacao_manus"}, {"ticketId": 1140001, "nucleo": "Vinagre 01", "galpoes": ["Galpão 49", "Galpão 50"], "rateioNucleo": false, "dataSolicitacao": "2026-06-26", "nomeSolicitante": "Maria Clara Angelino", "tipoCombustivel": "Gasolina", "quantidade": 14.0, "motivo": "Batedor de Cama", "criadoEm": "2026-06-26T12:00:00.000Z", "criadoPor": "importacao_manus"}, {"ticketId": 1110001, "nucleo": "Paraiso 03", "galpoes": ["Núcleo Todo"], "rateioNucleo": true, "dataSolicitacao": "2026-06-25", "nomeSolicitante": "Amilton Marcolino", "tipoCombustivel": "Gasolina", "quantidade": 15.0, "motivo": "Batedor de Cama", "criadoEm": "2026-06-25T12:00:00.000Z", "criadoPor": "importacao_manus"}, {"ticketId": 1080001, "nucleo": "Valzinho", "galpoes": ["Galpão 81", "Galpão 82", "Galpão 83", "Galpão 84", "Galpão 85", "Galpão 86"], "rateioNucleo": false, "dataSolicitacao": "2026-06-25", "nomeSolicitante": "Ully", "tipoCombustivel": "Gasolina", "quantidade": 30.0, "motivo": "batedor de cama", "criadoEm": "2026-06-25T12:00:00.000Z", "criadoPor": "importacao_manus"}, {"ticketId": 1050001, "nucleo": "Flamboyant", "galpoes": ["Galpão 119", "Galpão 120", "Galpão 123", "Galpão 124", "Galpão 125", "Galpão 126"], "rateioNucleo": false, "dataSolicitacao": "2026-06-24", "nomeSolicitante": "José Renato", "tipoCombustivel": "Gasolina", "quantidade": 42.0, "motivo": "Batedor de Cama", "criadoEm": "2026-06-24T12:00:00.000Z", "criadoPor": "importacao_manus"}, {"ticketId": 990001, "nucleo": "Vinagre 03", "galpoes": ["Galpão 55", "Galpão 56", "Galpão 57", "Galpão 58"], "rateioNucleo": false, "dataSolicitacao": "2026-06-23", "nomeSolicitante": "Jessika Caroline", "tipoCombustivel": "Gasolina", "quantidade": 20.0, "motivo": "Batedor de Cama", "criadoEm": "2026-06-23T12:00:00.000Z", "criadoPor": "importacao_manus"}, {"ticketId": 1020001, "nucleo": "Vinagre 01", "galpoes": ["Núcleo Todo"], "rateioNucleo": true, "dataSolicitacao": "2026-06-23", "nomeSolicitante": "Maria Clara Angelino", "tipoCombustivel": "Gasolina", "quantidade": 5.0, "motivo": "Solicitação para o funcionário João Bosco, que faz o acompanhamento da bomba da caixa d'agua do Vinagre 1.", "criadoEm": "2026-06-23T12:00:00.000Z", "criadoPor": "importacao_manus"}, {"ticketId": 900005, "nucleo": "Vinagre 02", "galpoes": ["Núcleo Todo"], "rateioNucleo": true, "dataSolicitacao": "2026-06-22", "nomeSolicitante": "Juliana Barbosa", "tipoCombustivel": "Gasolina", "quantidade": 20.0, "motivo": "Captação de água do Núcleo", "criadoEm": "2026-06-22T12:00:00.000Z", "criadoPor": "importacao_manus"}, {"ticketId": 900001, "nucleo": "Vinagre 02", "galpoes": ["Galpão 69", "Galpão 70"], "rateioNucleo": false, "dataSolicitacao": "2026-06-22", "nomeSolicitante": "Juliana Barbosa", "tipoCombustivel": "Gasolina", "quantidade": 20.0, "motivo": "Batedor de Cama", "criadoEm": "2026-06-22T12:00:00.000Z", "criadoPor": "importacao_manus"}, {"ticketId": 900006, "nucleo": "Vinagre 03", "galpoes": ["Galpão 51", "Galpão 52"], "rateioNucleo": false, "dataSolicitacao": "2026-06-22", "nomeSolicitante": "Jessika Caroline", "tipoCombustivel": "Gasolina", "quantidade": 10.0, "motivo": "Batedor de Cama", "criadoEm": "2026-06-22T12:00:00.000Z", "criadoPor": "importacao_manus"}, {"ticketId": 930001, "nucleo": "Vinagre 01", "galpoes": ["Núcleo Todo"], "rateioNucleo": true, "dataSolicitacao": "2026-06-22", "nomeSolicitante": "Maria Clara Angelino", "tipoCombustivel": "Gasolina", "quantidade": 5.0, "motivo": "Bater Veneno - Observação liberar 1 Óleo 2 tempos 500ml.", "criadoEm": "2026-06-22T12:00:00.000Z", "criadoPor": "importacao_manus"}, {"ticketId": 900003, "nucleo": "Vinagre 02", "galpoes": ["Galpão 64", "Galpão 65", "Galpão 66"], "rateioNucleo": false, "dataSolicitacao": "2026-06-22", "nomeSolicitante": "Juliana Barbosa", "tipoCombustivel": "Gasolina", "quantidade": 30.0, "motivo": "Batedor de Cama", "criadoEm": "2026-06-22T12:00:00.000Z", "criadoPor": "importacao_manus"}, {"ticketId": 900002, "nucleo": "Vinagre 02", "galpoes": ["Galpão 63", "Galpão 67", "Galpão 68"], "rateioNucleo": false, "dataSolicitacao": "2026-06-22", "nomeSolicitante": "Juliana Barbosa", "tipoCombustivel": "Gasolina", "quantidade": 30.0, "motivo": "Batedor de Cama", "criadoEm": "2026-06-22T12:00:00.000Z", "criadoPor": "importacao_manus"}, {"ticketId": 870004, "nucleo": "Paraiso 02", "galpoes": ["Núcleo Todo"], "rateioNucleo": true, "dataSolicitacao": "2026-06-19", "nomeSolicitante": "Amilton Marcolino", "tipoCombustivel": "Gasolina", "quantidade": 17.0, "motivo": "Batedor de Cama", "criadoEm": "2026-06-19T12:00:00.000Z", "criadoPor": "importacao_manus"}, {"ticketId": 870003, "nucleo": "Paraiso 04", "galpoes": ["Núcleo Todo"], "rateioNucleo": true, "dataSolicitacao": "2026-06-19", "nomeSolicitante": "Amilton Marcolino", "tipoCombustivel": "Gasolina", "quantidade": 17.0, "motivo": "Batedor de Cama", "criadoEm": "2026-06-19T12:00:00.000Z", "criadoPor": "importacao_manus"}, {"ticketId": 870002, "nucleo": "Paraiso 01", "galpoes": ["Núcleo Todo"], "rateioNucleo": true, "dataSolicitacao": "2026-06-19", "nomeSolicitante": "Amilton Marcolino", "tipoCombustivel": "Gasolina", "quantidade": 17.0, "motivo": "Batedor de Cama", "criadoEm": "2026-06-19T12:00:00.000Z", "criadoPor": "importacao_manus"}, {"ticketId": 870001, "nucleo": "Paraiso 03", "galpoes": ["Núcleo Todo"], "rateioNucleo": true, "dataSolicitacao": "2026-06-19", "nomeSolicitante": "Amilton Marcolino", "tipoCombustivel": "Gasolina", "quantidade": 42.0, "motivo": "Batedor de Cama", "criadoEm": "2026-06-19T12:00:00.000Z", "criadoPor": "importacao_manus"}, {"ticketId": 840001, "nucleo": "Flamboyant", "galpoes": ["Galpão 113", "Galpão 114", "Galpão 115", "Galpão 116", "Galpão 117", "Galpão 118", "Galpão 119", "Galpão 120", "Galpão 121", "Galpão 122"], "rateioNucleo": false, "dataSolicitacao": "2026-06-18", "nomeSolicitante": "Jose Renato", "tipoCombustivel": "Gasolina", "quantidade": 70.03, "motivo": "Batedor de Cama", "criadoEm": "2026-06-18T12:00:00.000Z", "criadoPor": "importacao_manus"}, {"ticketId": 810001, "nucleo": "Aroeira", "galpoes": ["Galpão 103", "Galpão 104"], "rateioNucleo": false, "dataSolicitacao": "2026-06-16", "nomeSolicitante": "Gabriel Santana", "tipoCombustivel": "Gasolina", "quantidade": 18.0, "motivo": "Batedor de Cama", "criadoEm": "2026-06-16T12:00:00.000Z", "criadoPor": "importacao_manus"}, {"ticketId": 780001, "nucleo": "Flamboyant", "galpoes": ["Galpão 107", "Galpão 108", "Galpão 109", "Galpão 110", "Galpão 111", "Galpão 112"], "rateioNucleo": false, "dataSolicitacao": "2026-06-16", "nomeSolicitante": "Jose Renato", "tipoCombustivel": "Gasolina", "quantidade": 42.0, "motivo": "Batedor de Cama", "criadoEm": "2026-06-16T12:00:00.000Z", "criadoPor": "importacao_manus"}, {"ticketId": 750001, "nucleo": "Vinagre 02", "galpoes": ["Núcleo Todo"], "rateioNucleo": true, "dataSolicitacao": "2026-06-15", "nomeSolicitante": "Juliana Barbosa", "tipoCombustivel": "Gasolina", "quantidade": 15.0, "motivo": "Acender Fornalha", "criadoEm": "2026-06-15T12:00:00.000Z", "criadoPor": "importacao_manus"}, {"ticketId": 720001, "nucleo": "Aroeira", "galpoes": ["Galpão 100", "Galpão 102", "Galpão 105", "Galpão 106"], "rateioNucleo": false, "dataSolicitacao": "2026-06-12", "nomeSolicitante": "Gabriel Santana", "tipoCombustivel": "Gasolina", "quantidade": 28.0, "motivo": "Batedor de Cama", "criadoEm": "2026-06-12T12:00:00.000Z", "criadoPor": "importacao_manus"}, {"ticketId": 690001, "nucleo": "Aroeira", "galpoes": ["Galpão 90", "Galpão 91", "Galpão 92", "Galpão 101", "Galpão 102", "Galpão 106"], "rateioNucleo": false, "dataSolicitacao": "2026-06-09", "nomeSolicitante": "Gabriel Santana", "tipoCombustivel": "Gasolina", "quantidade": 42.0, "motivo": "Batedor de Cama", "criadoEm": "2026-06-09T12:00:00.000Z", "criadoPor": "importacao_manus"}, {"ticketId": 660004, "nucleo": "Paraiso 04", "galpoes": ["Núcleo Todo"], "rateioNucleo": true, "dataSolicitacao": "2026-06-08", "nomeSolicitante": "Amilton Marcolino", "tipoCombustivel": "Gasolina", "quantidade": 25.0, "motivo": "Batedor de Cama", "criadoEm": "2026-06-08T12:00:00.000Z", "criadoPor": "importacao_manus"}, {"ticketId": 660003, "nucleo": "Paraiso 02", "galpoes": ["Núcleo Todo"], "rateioNucleo": true, "dataSolicitacao": "2026-06-08", "nomeSolicitante": "Amilton Marcolino", "tipoCombustivel": "Gasolina", "quantidade": 25.0, "motivo": "Batedor de Cama", "criadoEm": "2026-06-08T12:00:00.000Z", "criadoPor": "importacao_manus"}, {"ticketId": 660002, "nucleo": "Paraiso 01", "galpoes": ["Núcleo Todo"], "rateioNucleo": true, "dataSolicitacao": "2026-06-08", "nomeSolicitante": "Amilton Marcolino", "tipoCombustivel": "Gasolina", "quantidade": 25.0, "motivo": "Batedor de Cama", "criadoEm": "2026-06-08T12:00:00.000Z", "criadoPor": "importacao_manus"}, {"ticketId": 660001, "nucleo": "Aeroporto", "galpoes": ["Núcleo Todo"], "rateioNucleo": true, "dataSolicitacao": "2026-06-08", "nomeSolicitante": "Amilton Marcolino", "tipoCombustivel": "Gasolina", "quantidade": 25.0, "motivo": "Batedor de Cama", "criadoEm": "2026-06-08T12:00:00.000Z", "criadoPor": "importacao_manus"}, {"ticketId": 630001, "nucleo": "Aroeira", "galpoes": ["Galpão 87", "Galpão 97", "Galpão 98", "Galpão 99", "Galpão 100", "Galpão 103", "Galpão 104"], "rateioNucleo": false, "dataSolicitacao": "2026-06-08", "nomeSolicitante": "Gabriel Santana", "tipoCombustivel": "Gasolina", "quantidade": 47.0, "motivo": "Batedor de Cama", "criadoEm": "2026-06-08T12:00:00.000Z", "criadoPor": "importacao_manus"}, {"ticketId": 600001, "nucleo": "Aroeira", "galpoes": ["Galpão 88", "Galpão 89", "Galpão 91", "Galpão 92", "Galpão 93", "Galpão 94"], "rateioNucleo": false, "dataSolicitacao": "2026-06-05", "nomeSolicitante": "Gabriel Santana", "tipoCombustivel": "Gasolina", "quantidade": 42.0, "motivo": "Batedor de Cama", "criadoEm": "2026-06-05T12:00:00.000Z", "criadoPor": "importacao_manus"}, {"ticketId": 570001, "nucleo": "Vinagre 03", "galpoes": ["Galpão 51", "Galpão 54"], "rateioNucleo": false, "dataSolicitacao": "2026-06-05", "nomeSolicitante": "Jessika Caroline", "tipoCombustivel": "Gasolina", "quantidade": 5.0, "motivo": "Retirada de cama de frango", "criadoEm": "2026-06-05T12:00:00.000Z", "criadoPor": "importacao_manus"}, {"ticketId": 540001, "nucleo": "Aroeira", "galpoes": ["Galpão 98", "Galpão 101", "Galpão 102"], "rateioNucleo": false, "dataSolicitacao": "2026-06-03", "nomeSolicitante": "Gabriel Santana", "tipoCombustivel": "Gasolina", "quantidade": 21.0, "motivo": "Batedor de Cama", "criadoEm": "2026-06-03T12:00:00.000Z", "criadoPor": "importacao_manus"}, {"ticketId": 480001, "nucleo": "Vinagre 02", "galpoes": ["Galpão 63", "Galpão 67", "Galpão 68"], "rateioNucleo": false, "dataSolicitacao": "2026-06-02", "nomeSolicitante": "JULIANA", "tipoCombustivel": "Gasolina", "quantidade": 5.0, "motivo": "LIMPESA EXTERNA E INTERNA NOS GOLPOES SELECIONADOS", "criadoEm": "2026-06-02T12:00:00.000Z", "criadoPor": "importacao_manus"}, {"ticketId": 510001, "nucleo": "Valzinho", "galpoes": ["Galpão 73", "Galpão 74", "Galpão 75", "Galpão 76", "Galpão 79"], "rateioNucleo": false, "dataSolicitacao": "2026-06-02", "nomeSolicitante": "Ully Souza", "tipoCombustivel": "Gasolina", "quantidade": 35.0, "motivo": "Bater Cama de Frango", "criadoEm": "2026-06-02T12:00:00.000Z", "criadoPor": "importacao_manus"}, {"ticketId": 420002, "nucleo": "Valzinho", "galpoes": ["Galpão 78", "Galpão 81", "Galpão 82"], "rateioNucleo": false, "dataSolicitacao": "2026-06-01", "nomeSolicitante": "Gabriel Santana", "tipoCombustivel": "Gasolina", "quantidade": 20.0, "motivo": "Batedor de Cama", "criadoEm": "2026-06-01T12:00:00.000Z", "criadoPor": "importacao_manus"}, {"ticketId": 420001, "nucleo": "Valzinho", "galpoes": ["Galpão 71", "Galpão 72", "Galpão 77"], "rateioNucleo": false, "dataSolicitacao": "2026-06-01", "nomeSolicitante": "Gabriel Santana", "tipoCombustivel": "Gasolina", "quantidade": 20.0, "motivo": "Batedor de Cama", "criadoEm": "2026-06-01T12:00:00.000Z", "criadoPor": "importacao_manus"}, {"ticketId": 390001, "nucleo": "Vinagre 01", "galpoes": ["Galpão 47"], "rateioNucleo": false, "dataSolicitacao": "2026-06-01", "nomeSolicitante": "Maria Clara Angelino", "tipoCombustivel": "Gasolina", "quantidade": 10.0, "motivo": "Retirada de cama molhada", "criadoEm": "2026-06-01T12:00:00.000Z", "criadoPor": "importacao_manus"}, {"ticketId": 360001, "nucleo": "Aroeira", "galpoes": ["Galpão 101", "Galpão 102", "Galpão 103", "Galpão 104", "Galpão 105"], "rateioNucleo": false, "dataSolicitacao": "2026-06-01", "nomeSolicitante": "Estevao Baracho", "tipoCombustivel": "Gasolina", "quantidade": 35.0, "motivo": "Batedor de Cama", "criadoEm": "2026-06-01T12:00:00.000Z", "criadoPor": "importacao_manus"}, {"ticketId": 330001, "nucleo": "Santa Rosa", "galpoes": ["Núcleo Todo"], "rateioNucleo": true, "dataSolicitacao": "2026-05-29", "nomeSolicitante": "Gabriel Santana", "tipoCombustivel": "Gasolina", "quantidade": 20.0, "motivo": "Batedor de Cama", "criadoEm": "2026-05-29T12:00:00.000Z", "criadoPor": "importacao_manus"}, {"ticketId": 300001, "nucleo": "Vinagre 03", "galpoes": ["Galpão 53", "Galpão 54"], "rateioNucleo": false, "dataSolicitacao": "2026-05-29", "nomeSolicitante": "Jessika Caroline", "tipoCombustivel": "Gasolina", "quantidade": 5.0, "motivo": "Tirar cama molhada (moto caretinha)", "criadoEm": "2026-05-29T12:00:00.000Z", "criadoPor": "importacao_manus"}, {"ticketId": 180002, "nucleo": "Valzinho", "galpoes": ["Núcleo Todo"], "rateioNucleo": true, "dataSolicitacao": "2026-05-28", "nomeSolicitante": "Gabriel Santana", "tipoCombustivel": "Gasolina", "quantidade": 5.0, "motivo": "Roçadeira", "criadoEm": "2026-05-28T12:00:00.000Z", "criadoPor": "importacao_manus"}, {"ticketId": 180001, "nucleo": "Valzinho", "galpoes": ["Galpão 81", "Galpão 82", "Galpão 83"], "rateioNucleo": false, "dataSolicitacao": "2026-05-28", "nomeSolicitante": "Gabriel Santana", "tipoCombustivel": "Gasolina", "quantidade": 20.0, "motivo": "Batedor de Cama", "criadoEm": "2026-05-28T12:00:00.000Z", "criadoPor": "importacao_manus"}, {"ticketId": 150001, "nucleo": "Aroeira", "galpoes": ["Galpão 94", "Galpão 95", "Galpão 96", "Galpão 97", "Galpão 98", "Galpão 99", "Galpão 100", "Galpão 101"], "rateioNucleo": false, "dataSolicitacao": "2026-05-28", "nomeSolicitante": "Estevao Baracho", "tipoCombustivel": "Gasolina", "quantidade": 56.0, "motivo": "Batedor de Cama", "criadoEm": "2026-05-28T12:00:00.000Z", "criadoPor": "importacao_manus"}, {"ticketId": 30005, "nucleo": "Aroeira", "galpoes": ["Galpão 87", "Galpão 88", "Galpão 89", "Galpão 90", "Galpão 91", "Galpão 92", "Galpão 93"], "rateioNucleo": false, "dataSolicitacao": "2026-05-27", "nomeSolicitante": "Estevao Baracho", "tipoCombustivel": "Gasolina", "quantidade": 49.0, "motivo": "Batedor de Cama", "criadoEm": "2026-05-27T12:00:00.000Z", "criadoPor": "importacao_manus"}, {"ticketId": 30008, "nucleo": "Santa Rosa", "galpoes": ["Núcleo Todo"], "rateioNucleo": true, "dataSolicitacao": "2026-05-27", "nomeSolicitante": "Gabriel Santana", "tipoCombustivel": "Gasolina", "quantidade": 20.0, "motivo": "Batedor de Cama", "criadoEm": "2026-05-27T12:00:00.000Z", "criadoPor": "importacao_manus"}, {"ticketId": 30007, "nucleo": "Valzinho", "galpoes": ["Galpão 83", "Galpão 84", "Galpão 85"], "rateioNucleo": false, "dataSolicitacao": "2026-05-27", "nomeSolicitante": "Gabriel Santana", "tipoCombustivel": "Gasolina", "quantidade": 20.0, "motivo": "Batedor de Cama", "criadoEm": "2026-05-27T12:00:00.000Z", "criadoPor": "importacao_manus"}, {"ticketId": 30006, "nucleo": "Aroeira", "galpoes": ["Núcleo Todo"], "rateioNucleo": true, "dataSolicitacao": "2026-05-27", "nomeSolicitante": "Estevao Baracho", "tipoCombustivel": "Gasolina", "quantidade": 10.0, "motivo": "Estação de Tratamento de Água", "criadoEm": "2026-05-27T12:00:00.000Z", "criadoPor": "importacao_manus"}];
+
+// ================= Requisição de Combustível =================
+let combustivelDados = [];
+let combustivelGalpoesEscolhidos = new Set();
+
+async function iniciarCombustivel(){
+  const selNucleo = document.getElementById('comb-nucleo');
+  selNucleo.innerHTML = '<option value="">Selecione o núcleo...</option>' + NUCLEOS_QUADRO.map(n=>`<option value="${n}">${n}</option>`).join('');
+  const dataEl = document.getElementById('comb-data');
+  if(!dataEl.value) dataEl.value = new Date().toISOString().slice(0,10);
+
+  selNucleo.addEventListener('change', ()=> combustivelAtualizarGalpoes());
+  document.getElementById('comb-ratear').addEventListener('change', ()=> combustivelAtualizarGalpoes());
+  document.getElementById('comb-btnRegistrar').addEventListener('click', combustivelRegistrar);
+  document.getElementById('comb-btnCancelarEdicao').addEventListener('click', combustivelSairModoEdicao);
+  document.getElementById('comb-btnFecharTicket').addEventListener('click', combustivelFecharTicket);
+  document.getElementById('comb-btnFecharTicket2').addEventListener('click', combustivelFecharTicket);
+  document.getElementById('comb-btnImprimirTicket').addEventListener('click', ()=> window.print());
+  document.getElementById('comb-buscaHistorico').addEventListener('input', ()=> combustivelRenderHistorico());
+  document.getElementById('comb-btnExcel').addEventListener('click', combustivelExportarExcel);
+
+  const btnImportarHist = document.getElementById('comb-btnImportarHistorico');
+  await combustivelCarregarDados();
+  if(window.souAdminPrincipal && combustivelDados.length===0){
+    btnImportarHist.style.display = '';
+    btnImportarHist.addEventListener('click', combustivelImportarHistoricoManus);
+  }
+  combustivelRenderHistorico();
+  combustivelRenderGraficos();
+}
+window.iniciarCombustivel = iniciarCombustivel;
+
+function combustivelAtualizarGalpoes(){
+  const nucleo = document.getElementById('comb-nucleo').value;
+  const ratear = document.getElementById('comb-ratear').checked;
+  const area = document.getElementById('comb-areaGalpoes');
+  combustivelGalpoesEscolhidos.clear();
+  if(!nucleo){ area.className='comb-area-desabilitada'; area.innerHTML = 'Selecione um núcleo para escolher os galpões'; return; }
+  if(ratear){ area.className='comb-area-desabilitada'; area.innerHTML = 'Rateando pra todos os galpões desse núcleo — nenhuma seleção individual necessária.'; return; }
+  const mapa = reg_construirMapaAviarios();
+  const aviarios = mapa.has(nucleo) ? Array.from(mapa.get(nucleo)).sort((a,b)=>a.localeCompare(b,undefined,{numeric:true})) : [];
+  if(!aviarios.length){ area.className='comb-area-desabilitada'; area.innerHTML = 'Nenhum galpão conhecido pra esse núcleo.'; return; }
+  area.className = 'comb-galpoes-grid';
+  area.innerHTML = aviarios.map(a=>`<label class="comb-galpao-check"><input type="checkbox" class="comb-galpao-item" value="Galpão ${a}"> Galpão ${a}</label>`).join('');
+  area.querySelectorAll('.comb-galpao-item').forEach(chk=>{
+    chk.addEventListener('change', ()=>{
+      if(chk.checked) combustivelGalpoesEscolhidos.add(chk.value); else combustivelGalpoesEscolhidos.delete(chk.value);
+    });
+  });
+}
+
+async function combustivelCarregarDados(){
+  try{
+    const snap = await db.collection('registros_combustivel').get();
+    combustivelDados = [];
+    snap.forEach(doc => combustivelDados.push({id: doc.id, ...doc.data()}));
+    combustivelDados.sort((a,b) => (b.ticketId||0) - (a.ticketId||0));
+  }catch(e){
+    combustivelDados = [];
+  }
+}
+
+function combustivelProximoTicketId(){
+  if(!combustivelDados.length) return 2190003; // continua a partir do último número usado no Manus
+  return Math.max(...combustivelDados.map(d=>d.ticketId||0)) + 1;
+}
+
+async function combustivelRegistrar(){
+  const erroEl = document.getElementById('comb-erro');
+  erroEl.style.color=''; erroEl.textContent='';
+  const nucleo = document.getElementById('comb-nucleo').value;
+  const ratear = document.getElementById('comb-ratear').checked;
+  const data = document.getElementById('comb-data').value;
+  const solicitante = document.getElementById('comb-solicitante').value.trim();
+  const tipo = document.getElementById('comb-tipo').value;
+  const quantidade = parseFloat(document.getElementById('comb-quantidade').value);
+  const motivo = document.getElementById('comb-motivo').value.trim();
+  const editandoId = document.getElementById('comb-editandoId').value;
+
+  if(!nucleo || !data || !solicitante || !quantidade || quantidade<=0 || !motivo){
+    erroEl.textContent = 'Preencha todos os campos obrigatórios.'; return;
+  }
+  const galpoes = ratear ? ['Núcleo Todo'] : Array.from(combustivelGalpoesEscolhidos);
+  if(!ratear && !galpoes.length){ erroEl.textContent = 'Escolha ao menos um galpão, ou marque "Ratear pro núcleo todo".'; return; }
+
+  const btn = document.getElementById('comb-btnRegistrar');
+  btn.disabled = true; btn.textContent = editandoId ? 'Salvando...' : 'Registrando...';
+  try{
+    const dados = {
+      nucleo, galpoes, rateioNucleo: ratear,
+      dataSolicitacao: data, nomeSolicitante: solicitante, tipoCombustivel: tipo,
+      quantidade, motivo, criadoPor: (auth.currentUser&&auth.currentUser.email)||''
+    };
+    let ticketId, criadoEm, docId;
+    if(editandoId){
+      const existente = combustivelDados.find(d=>d.id===editandoId);
+      ticketId = existente.ticketId; criadoEm = existente.criadoEm; docId = editandoId;
+      await db.collection('registros_combustivel').doc(editandoId).update(dados);
+    } else {
+      ticketId = combustivelProximoTicketId();
+      criadoEm = new Date().toISOString();
+      dados.ticketId = ticketId; dados.criadoEm = criadoEm;
+      const ref = await db.collection('registros_combustivel').add(dados);
+      docId = ref.id;
+    }
+    await combustivelCarregarDados();
+    combustivelRenderHistorico();
+    combustivelRenderGraficos();
+    combustivelSairModoEdicao();
+    combustivelAbrirTicket({...dados, ticketId, criadoEm, id:docId});
+  }catch(e){
+    erroEl.textContent = 'Erro ao registrar: ' + e.message;
+  }finally{
+    btn.disabled = false; btn.textContent = '⛽ Registrar Requisição';
+  }
+}
+
+function combustivelSairModoEdicao(){
+  document.getElementById('comb-editandoId').value = '';
+  document.getElementById('comb-nucleo').value = '';
+  document.getElementById('comb-ratear').checked = false;
+  document.getElementById('comb-solicitante').value = '';
+  document.getElementById('comb-tipo').value = 'Gasolina';
+  document.getElementById('comb-quantidade').value = '';
+  document.getElementById('comb-motivo').value = '';
+  document.getElementById('comb-data').value = new Date().toISOString().slice(0,10);
+  combustivelAtualizarGalpoes();
+  document.getElementById('comb-btnRegistrar').textContent = '⛽ Registrar Requisição';
+  document.getElementById('comb-btnCancelarEdicao').style.display = 'none';
+}
+
+function combustivelEntrarModoEdicao(item){
+  document.getElementById('comb-editandoId').value = item.id;
+  document.getElementById('comb-nucleo').value = item.nucleo;
+  document.getElementById('comb-ratear').checked = !!item.rateioNucleo;
+  combustivelAtualizarGalpoes();
+  if(!item.rateioNucleo){
+    (item.galpoes||[]).forEach(g=>{
+      combustivelGalpoesEscolhidos.add(g);
+      const chk = document.querySelector(`.comb-galpao-item[value="${g}"]`);
+      if(chk) chk.checked = true;
+    });
+  }
+  document.getElementById('comb-data').value = item.dataSolicitacao;
+  document.getElementById('comb-solicitante').value = item.nomeSolicitante;
+  document.getElementById('comb-tipo').value = item.tipoCombustivel || 'Gasolina';
+  document.getElementById('comb-quantidade').value = item.quantidade;
+  document.getElementById('comb-motivo').value = item.motivo;
+  document.getElementById('comb-btnRegistrar').textContent = 'Atualizar Requisição';
+  document.getElementById('comb-btnCancelarEdicao').style.display = '';
+  document.getElementById('comb-btnRegistrar').scrollIntoView({behavior:'smooth', block:'center'});
+}
+
+async function combustivelExcluir(id){
+  if(!confirm('Excluir essa requisição? Essa ação não pode ser desfeita.')) return;
+  try{
+    await db.collection('registros_combustivel').doc(id).delete();
+    await combustivelCarregarDados();
+    combustivelRenderHistorico();
+    combustivelRenderGraficos();
+  }catch(e){ alert('Erro ao excluir: ' + e.message); }
+}
+
+function combustivelAbrirTicket(item){
+  document.getElementById('comb-ticketId').textContent = '#'+item.ticketId;
+  document.getElementById('comb-ticketTitulo').textContent = 'Requisição de ' + (item.tipoCombustivel||'Combustível');
+  document.getElementById('comb-ticketTituloCombustivel').textContent = item.tipoCombustivel||'Combustível';
+  const dataConfirmacao = new Date(item.criadoEm);
+  document.getElementById('comb-ticketConfirmacao').textContent = '✓ Registrado em ' + dataConfirmacao.toLocaleString('pt-BR', {day:'2-digit',month:'2-digit',year:'numeric',hour:'2-digit',minute:'2-digit',second:'2-digit'});
+  document.getElementById('comb-ticketNucleo').textContent = item.nucleo;
+  document.getElementById('comb-ticketDistribuicao').textContent = item.rateioNucleo ? 'Núcleo Todo (Rateio)' : (item.galpoes||[]).join(', ');
+  const [ano,mes,dia] = item.dataSolicitacao.split('-');
+  const meses = ['janeiro','fevereiro','março','abril','maio','junho','julho','agosto','setembro','outubro','novembro','dezembro'];
+  document.getElementById('comb-ticketData').textContent = `${parseInt(dia)} de ${meses[parseInt(mes)-1]} de ${ano}`;
+  document.getElementById('comb-ticketSolicitante').textContent = item.nomeSolicitante;
+  document.getElementById('comb-ticketQuantidade').textContent = item.quantidade;
+  document.getElementById('comb-ticketMotivo').textContent = item.motivo;
+  document.getElementById('comb-ticketAno').textContent = new Date().getFullYear();
+  document.getElementById('comb-ticketImpressoEm').textContent = 'Impresso em ' + new Date().toLocaleString('pt-BR', {day:'2-digit',month:'2-digit',year:'numeric',hour:'2-digit',minute:'2-digit',second:'2-digit'});
+  document.getElementById('comb-modalTicket').style.display = 'flex';
+}
+
+function combustivelFecharTicket(){
+  document.getElementById('comb-modalTicket').style.display = 'none';
+}
+
+function combustivelRenderHistorico(){
+  const tabela = document.getElementById('comb-tabelaHistorico');
+  const info = document.getElementById('comb-infoHistorico');
+  const termo = document.getElementById('comb-buscaHistorico').value.trim().toLowerCase();
+  const filtrados = !termo ? combustivelDados : combustivelDados.filter(d=>
+    (d.nomeSolicitante||'').toLowerCase().includes(termo) ||
+    (d.nucleo||'').toLowerCase().includes(termo) ||
+    (d.motivo||'').toLowerCase().includes(termo)
+  );
+  info.textContent = `${filtrados.length} requisição(ões)`;
+  if(!filtrados.length){ tabela.innerHTML = '<tbody><tr><td style="padding:14px;">Nenhuma requisição encontrada.</td></tr></tbody>'; return; }
+  tabela.innerHTML = `<thead><tr><th>Ticket</th><th class="rowhead">Núcleo</th><th>Distribuição</th><th>Data</th><th>Solicitante</th><th>Combustível</th><th>Qtd. (L)</th><th></th>${window.souAdminPrincipal?'<th></th><th></th>':''}</tr></thead>
+    <tbody>${filtrados.map(d=>`<tr>
+      <td style="font-weight:800;color:var(--vermelho);">#${d.ticketId}</td>
+      <th class="rowhead">${d.nucleo}</th>
+      <td style="font-size:11px;">${d.rateioNucleo ? 'Núcleo Todo' : (d.galpoes||[]).join(', ')}</td>
+      <td>${reg_formatarDataBR(d.dataSolicitacao)}</td>
+      <td>${d.nomeSolicitante}</td>
+      <td>${d.tipoCombustivel||'Gasolina'}</td>
+      <td style="font-weight:700;">${Number(d.quantidade).toLocaleString('pt-BR',{minimumFractionDigits:1})}</td>
+      <td><button class="quadro-btn-remover-posto" data-comb-reimprimir="${d.id}" title="Reimprimir ticket">🖨️</button></td>
+      ${window.souAdminPrincipal?`<td><button class="quadro-btn-remover-posto" data-comb-editar="${d.id}" title="Editar">✏️</button></td><td><button class="quadro-btn-remover-posto" data-comb-excluir="${d.id}" title="Excluir">✕</button></td>`:''}
+    </tr>`).join('')}</tbody>`;
+
+  tabela.querySelectorAll('[data-comb-reimprimir]').forEach(btn=>{
+    btn.addEventListener('click', ()=>{
+      const item = combustivelDados.find(d=>d.id===btn.dataset.combReimprimir);
+      if(item) combustivelAbrirTicket(item);
+    });
+  });
+  tabela.querySelectorAll('[data-comb-editar]').forEach(btn=>{
+    btn.addEventListener('click', ()=>{
+      const item = combustivelDados.find(d=>d.id===btn.dataset.combEditar);
+      if(item) combustivelEntrarModoEdicao(item);
+    });
+  });
+  tabela.querySelectorAll('[data-comb-excluir]').forEach(btn=>{
+    btn.addEventListener('click', ()=> combustivelExcluir(btn.dataset.combExcluir));
+  });
+}
+
+function combustivelRenderGraficos(){
+  if(!combustivelDados.length) return;
+  const porSolicitante = new Map();
+  const porNucleo = new Map();
+  const porMes = new Map();
+  combustivelDados.forEach(d=>{
+    porSolicitante.set(d.nomeSolicitante, (porSolicitante.get(d.nomeSolicitante)||0) + Number(d.quantidade||0));
+    porNucleo.set(d.nucleo, (porNucleo.get(d.nucleo)||0) + Number(d.quantidade||0));
+    const chaveMes = d.dataSolicitacao ? d.dataSolicitacao.slice(0,7) : null;
+    if(chaveMes) porMes.set(chaveMes, (porMes.get(chaveMes)||0) + Number(d.quantidade||0));
+  });
+
+  const solicitantesOrdenados = Array.from(porSolicitante.entries()).sort((a,b)=>b[1]-a[1]).slice(0,12);
+  const ctxSol = document.getElementById('comb-graficoSolicitante');
+  if(ctxSol){
+    if(window.chartCombSolicitante) window.chartCombSolicitante.destroy();
+    window.chartCombSolicitante = new Chart(ctxSol.getContext('2d'), {
+      type:'bar',
+      data:{ labels: solicitantesOrdenados.map(s=>s[0]), datasets:[{label:'Litros', data: solicitantesOrdenados.map(s=>Math.round(s[1]*10)/10), backgroundColor:'#C1272D'}] },
+      options:{ indexAxis:'y', responsive:true, maintainAspectRatio:false, plugins:{legend:{display:false}}, scales:{x:{beginAtZero:true, title:{display:true,text:'litros'}}} }
+    });
+  }
+
+  const nucleosOrdenados = Array.from(porNucleo.entries()).sort((a,b)=>b[1]-a[1]);
+  const ctxNuc = document.getElementById('comb-graficoNucleo');
+  if(ctxNuc){
+    if(window.chartCombNucleo) window.chartCombNucleo.destroy();
+    window.chartCombNucleo = new Chart(ctxNuc.getContext('2d'), {
+      type:'bar',
+      data:{ labels: nucleosOrdenados.map(n=>nomeNucleo(n[0])), datasets:[{label:'Litros', data: nucleosOrdenados.map(n=>Math.round(n[1]*10)/10), backgroundColor:'#F2A900'}] },
+      options:{ responsive:true, maintainAspectRatio:false, plugins:{legend:{display:false}}, scales:{y:{beginAtZero:true, title:{display:true,text:'litros'}}} }
+    });
+  }
+
+  const mesesOrdenados = Array.from(porMes.keys()).sort();
+  const ctxMes = document.getElementById('comb-graficoMes');
+  if(ctxMes){
+    if(window.chartCombMes) window.chartCombMes.destroy();
+    window.chartCombMes = new Chart(ctxMes.getContext('2d'), {
+      type:'bar',
+      data:{ labels: mesesOrdenados.map(m=>{const [a,mm]=m.split('-'); return mm+'/'+a.slice(2);}), datasets:[{label:'Litros', data: mesesOrdenados.map(m=>Math.round(porMes.get(m)*10)/10), backgroundColor:'#1D5A96'}] },
+      options:{ responsive:true, maintainAspectRatio:false, plugins:{legend:{display:false}}, scales:{y:{beginAtZero:true, title:{display:true,text:'litros'}}} }
+    });
+  }
+}
+
+function combustivelExportarExcel(){
+  if(typeof XLSX === 'undefined'){ alert('Não foi possível carregar o gerador de Excel.'); return; }
+  if(!combustivelDados.length){ alert('Nenhuma requisição pra exportar.'); return; }
+  const linhas = [['Ticket','Núcleo','Distribuição','Data','Solicitante','Combustível','Quantidade (L)','Motivo']];
+  combustivelDados.forEach(d=>{
+    linhas.push([d.ticketId, d.nucleo, d.rateioNucleo?'Núcleo Todo':(d.galpoes||[]).join(', '), reg_formatarDataBR(d.dataSolicitacao), d.nomeSolicitante, d.tipoCombustivel||'Gasolina', d.quantidade, d.motivo]);
+  });
+  const ws = XLSX.utils.aoa_to_sheet(linhas);
+  const wb = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb, ws, 'Requisições de Combustível');
+  XLSX.writeFile(wb, `requisicoes_combustivel_${new Date().toISOString().slice(0,10)}.xlsx`);
+}
+
+async function combustivelImportarHistoricoManus(){
+  const btn = document.getElementById('comb-btnImportarHistorico');
+  if(!confirm('Importar o histórico de 93 requisições do Manus? Isso só deve ser feito uma vez.')) return;
+  btn.disabled = true; btn.textContent = 'Importando...';
+  const historico = window.COMBUSTIVEL_HISTORICO_MANUS || [];
+  try{
+    for(const item of historico){
+      await db.collection('registros_combustivel').add(item);
+    }
+    await combustivelCarregarDados();
+    combustivelRenderHistorico();
+    combustivelRenderGraficos();
+    btn.style.display = 'none';
+    alert(`Importação concluída! ${historico.length} requisições adicionadas.`);
+  }catch(e){
+    alert('Erro ao importar: ' + e.message);
+    btn.disabled = false; btn.textContent = 'Importar histórico do Manus (uma vez)';
+  }
+}
+
 function reg_escapar(txt){
   const div = document.createElement('div');
   div.textContent = txt==null ? '' : String(txt);
@@ -7389,6 +7801,51 @@ if(regPinForm){
   });
 }
 </script>
+
+<div id="comb-modalTicket" class="comb-modal-fundo" style="display:none;">
+  <div class="comb-ticket" id="comb-ticketConteudo">
+    <div class="comb-ticket-header">
+      <img src="logo.png" alt="Qualitti" class="comb-ticket-logo">
+      <div class="comb-ticket-titulos">
+        <h2 id="comb-ticketTitulo">Requisição de Combustível</h2>
+        <p>Qualitti Alimentos — Sistema de Controle</p>
+      </div>
+      <div class="comb-ticket-numero">
+        <div class="comb-ticket-numero-label">TICKET</div>
+        <div class="comb-ticket-numero-valor" id="comb-ticketId">#0000000</div>
+      </div>
+      <button class="comb-ticket-fechar" id="comb-btnFecharTicket" type="button">✕</button>
+    </div>
+    <div class="comb-ticket-confirmacao" id="comb-ticketConfirmacao"></div>
+    <div class="comb-ticket-corpo">
+      <div class="comb-ticket-secao-titulo">Localização</div>
+      <div class="comb-ticket-grid">
+        <div><div class="comb-ticket-label">Núcleo</div><span class="comb-ticket-tag" id="comb-ticketNucleo"></span></div>
+        <div><div class="comb-ticket-label">Distribuição</div><span class="comb-ticket-tag" id="comb-ticketDistribuicao"></span></div>
+      </div>
+      <hr class="comb-ticket-linha">
+      <div class="comb-ticket-secao-titulo">Dados da Solicitação</div>
+      <div class="comb-ticket-grid">
+        <div><div class="comb-ticket-label">Data</div><div class="comb-ticket-valor" id="comb-ticketData"></div></div>
+        <div><div class="comb-ticket-label">Solicitante</div><div class="comb-ticket-valor" id="comb-ticketSolicitante"></div></div>
+      </div>
+      <hr class="comb-ticket-linha">
+      <div class="comb-ticket-secao-titulo" id="comb-ticketTituloCombustivel">Combustível</div>
+      <div class="comb-ticket-quantidade"><span id="comb-ticketQuantidade">0</span> litros</div>
+      <hr class="comb-ticket-linha">
+      <div class="comb-ticket-secao-titulo">Motivo da Solicitação</div>
+      <div class="comb-ticket-motivo" id="comb-ticketMotivo"></div>
+    </div>
+    <div class="comb-ticket-rodape">
+      <span>Qualitti Alimentos © <span id="comb-ticketAno"></span></span>
+      <span id="comb-ticketImpressoEm"></span>
+    </div>
+    <div class="comb-ticket-acoes">
+      <button class="btn-recolher" id="comb-btnFecharTicket2" type="button">✕ Fechar</button>
+      <button class="btn-recolher" id="comb-btnImprimirTicket" type="button" style="background:var(--vermelho);color:#fff;border-color:var(--vermelho);">🖨️ Imprimir Ticket</button>
+    </div>
+  </div>
+</div>
 
 <button id="btnSubirTopo" type="button" aria-label="Subir ao topo" style="position:fixed;bottom:22px;right:18px;width:46px;height:46px;border-radius:50%;background:var(--vermelho);color:#fff;border:none;box-shadow:0 4px 14px rgba(193,39,45,.4);font-size:20px;cursor:pointer;display:none;z-index:500;align-items:center;justify-content:center;">↑</button>
 <script>
