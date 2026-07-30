@@ -212,6 +212,11 @@
   .qf-card-detalhe-aviario{ font-weight:700; color:var(--texto-suave); min-width:90px; }
   .qf-card-toggle-icon{ transition:.15s; display:inline-block; }
   .quadro-nome-saindo{ text-decoration:line-through; color:var(--vermelho-alerta); }
+  .painel-importar-zona{ display:flex; gap:14px; align-items:center; flex-wrap:wrap; }
+  .painel-importar-label{ flex:1; min-width:240px; display:flex; align-items:center; gap:12px; padding:16px 18px; border:2px dashed var(--borda); border-radius:12px; cursor:pointer; background:var(--bg); transition:.15s; }
+  .painel-importar-label:hover{ border-color:var(--vermelho); background:#FDF4F4; }
+  .painel-importar-icone{ font-size:26px; }
+  .painel-importar-texto{ font-size:13px; color:var(--texto-suave); font-weight:600; }
   #mod-admin > div[id^="admin-secao-"]{ margin-bottom:36px; padding-bottom:8px; }
   #mod-admin > div[id^="admin-secao-"]:last-child{ margin-bottom:0; }
   .admin-secao-titulo{ font-family:'Sora',sans-serif; font-size:13px; font-weight:800; text-transform:uppercase; letter-spacing:.05em; color:var(--vermelho); margin-bottom:14px; padding-bottom:8px; border-bottom:2px solid var(--dourado); display:flex; align-items:center; gap:8px; }
@@ -1439,12 +1444,16 @@
         <h2>📥 Importar base de produtos</h2>
         <span class="info" id="produtos-infoUltimaImportacao"></span>
       </div>
-      <p class="nota" style="margin:12px 0 14px;">Selecione o arquivo Excel (.xlsx) do Almoxarifado. O sistema considera as colunas <strong>Produto</strong>, <strong>Cód. Produto</strong>, <strong>Un. Pedido</strong> e <strong>Controle</strong>, agrupando tudo por produto.</p>
-      <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;">
-        <input type="file" id="produtos-inputArquivo" accept=".xlsx,.xls" style="font-size:13px;">
-        <button class="btn-recolher" id="produtos-btnImportar" type="button" style="background:var(--vermelho);color:#fff;border-color:var(--vermelho);">Importar</button>
+      <p class="nota" style="margin:12px 0 16px;">Selecione o arquivo Excel (.xlsx) do Almoxarifado. O sistema considera as colunas <strong>Produto</strong>, <strong>Cód. Produto</strong>, <strong>Un. Pedido</strong> e <strong>Controle</strong>, agrupando tudo por produto.</p>
+      <div class="painel-importar-zona">
+        <label for="produtos-inputArquivo" class="painel-importar-label">
+          <span class="painel-importar-icone">📄</span>
+          <span class="painel-importar-texto" id="produtos-nomeArquivo">Clique pra escolher o arquivo Excel...</span>
+        </label>
+        <input type="file" id="produtos-inputArquivo" accept=".xlsx,.xls" style="display:none;">
+        <button class="btn-recolher" id="produtos-btnImportar" type="button" style="background:var(--vermelho);color:#fff;border-color:var(--vermelho);white-space:nowrap;">Importar</button>
       </div>
-      <p class="nota" id="produtos-erroImportar" style="min-height:16px;margin-top:10px;"></p>
+      <p class="nota" id="produtos-erroImportar" style="min-height:16px;margin-top:12px;"></p>
     </div>
 
     <div class="quadro">
@@ -1452,35 +1461,69 @@
         <h2>Buscar produto</h2>
         <span class="info" id="produtos-infoResultados"></span>
       </div>
-      <input type="text" id="produtos-inputBusca" placeholder="Digite o nome ou código do produto..." style="width:100%;padding:14px 16px;border-radius:10px;border:1.5px solid var(--borda);font-size:15px;font-family:inherit;box-sizing:border-box;margin:14px 0 18px;">
+      <input type="text" id="produtos-inputBusca" placeholder="Digite o nome ou código do produto..." style="width:100%;padding:14px 16px;border-radius:10px;border:1.5px solid var(--borda);font-size:15px;font-family:inherit;box-sizing:border-box;margin:14px 0 14px;">
+      <p class="nota" style="margin:0 0 18px;color:#8A6200;background:#FFF4E1;border:1px solid #F0CB7A;border-radius:9px;padding:10px 14px;font-size:12px;">⚠️ Os códigos podem sofrer alterações constantes. Caso tenha dúvida em algum código, o ideal é consultar o almoxarifado para confirmação. Não nos responsabilizamos por pedidos incorretos.</p>
       <div id="produtos-listaResultados"></div>
     </div>
   </div>
 
   <div data-modulo-view="energiasolar" style="display:none;">
     <h1>Energia Solar</h1>
-    <p class="nota" style="margin:16px 0 18px;">Produção das usinas solares por núcleo — comparada com a estimativa esperada.</p>
+    <p class="nota" style="margin:16px 0 18px;">Produção das usinas solares por núcleo — comparada com a estimativa esperada. Produção considerada ideal a partir de <strong>80% da estimativa</strong>.</p>
 
     <div class="quadro" id="energiasolar-painel-importar">
       <div class="quadro-header">
         <h2>📥 Importar dados de produção</h2>
         <span class="info" id="energiasolar-infoUltimaImportacao"></span>
       </div>
-      <p class="nota" style="margin:12px 0 14px;">Selecione o arquivo Excel (.xlsx) de Energia Solar atualizado.</p>
-      <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;">
-        <input type="file" id="energiasolar-inputArquivo" accept=".xlsx,.xls" style="font-size:13px;">
-        <button class="btn-recolher" id="energiasolar-btnImportar" type="button" style="background:var(--vermelho);color:#fff;border-color:var(--vermelho);">Importar</button>
+      <p class="nota" style="margin:12px 0 16px;">Selecione o arquivo Excel (.xlsx) de Energia Solar atualizado.</p>
+      <div class="painel-importar-zona">
+        <label for="energiasolar-inputArquivo" class="painel-importar-label">
+          <span class="painel-importar-icone">☀️</span>
+          <span class="painel-importar-texto" id="energiasolar-nomeArquivo">Clique pra escolher o arquivo Excel...</span>
+        </label>
+        <input type="file" id="energiasolar-inputArquivo" accept=".xlsx,.xls" style="display:none;">
+        <button class="btn-recolher" id="energiasolar-btnImportar" type="button" style="background:var(--vermelho);color:#fff;border-color:var(--vermelho);white-space:nowrap;">Importar</button>
       </div>
-      <p class="nota" id="energiasolar-erroImportar" style="min-height:16px;margin-top:10px;"></p>
+      <p class="nota" id="energiasolar-erroImportar" style="min-height:16px;margin-top:12px;"></p>
+    </div>
+
+    <div class="quadro" id="energiasolar-painel-filtros">
+      <div style="display:flex;gap:14px;flex-wrap:wrap;align-items:flex-end;">
+        <div class="campo"><label>Ano</label><select id="energiasolar-fAno" style="min-width:110px;"></select></div>
+        <div class="campo"><label>Mês</label><select id="energiasolar-fMes" style="min-width:150px;"></select></div>
+        <div class="campo"><label>Usina</label><select id="energiasolar-fUsina" style="min-width:190px;"></select></div>
+        <button class="btn-recolher" id="energiasolar-btnRelatorio" type="button">📊 Relatório diário (Excel)</button>
+      </div>
     </div>
 
     <div class="cards" id="energiasolar-cards"></div>
+
+    <div class="quadro" id="energiasolar-painel-alertas" style="display:none;">
+      <div class="quadro-header"><h2>⚠️ Alertas</h2></div>
+      <div id="energiasolar-listaAlertas"></div>
+    </div>
 
     <div class="painel-grafico">
       <div class="painel-grafico-header">
         <h2>Produção vs. Estimativa por mês</h2>
       </div>
       <div class="chart-wrap" style="height:300px;"><canvas id="energiasolar-graficoMensal"></canvas></div>
+    </div>
+
+    <div class="painel-grafico">
+      <div class="painel-grafico-header">
+        <h2>Evolução diária — mês atual</h2>
+        <span class="info" id="energiasolar-infoEvolucaoDiaria"></span>
+      </div>
+      <div class="chart-wrap" style="height:280px;"><canvas id="energiasolar-graficoEvolucaoDiaria"></canvas></div>
+    </div>
+
+    <div class="painel-grafico">
+      <div class="painel-grafico-header">
+        <h2>Comparativo por Granja</h2>
+      </div>
+      <div class="chart-wrap" style="height:300px;"><canvas id="energiasolar-graficoGranja"></canvas></div>
     </div>
 
     <div class="quadro">
@@ -6468,10 +6511,15 @@ async function iniciarProdutos(){
 
   const input = document.getElementById('produtos-inputBusca');
   input.addEventListener('input', ()=> produtosRenderResultados(input.value));
-  produtosRenderResultados('');
+  document.getElementById('produtos-listaResultados').innerHTML = '<div class="vazio">Digite algo pra buscar um produto.</div>';
 
   const btnImportar = document.getElementById('produtos-btnImportar');
   if(btnImportar) btnImportar.addEventListener('click', produtosImportarArquivo);
+
+  const inputArquivo = document.getElementById('produtos-inputArquivo');
+  if(inputArquivo) inputArquivo.addEventListener('change', ()=>{
+    document.getElementById('produtos-nomeArquivo').textContent = inputArquivo.files[0] ? inputArquivo.files[0].name : 'Clique pra escolher o arquivo Excel...';
+  });
 }
 window.iniciarProdutos = iniciarProdutos;
 
@@ -6492,20 +6540,32 @@ function produtosRenderResultados(termo){
   const info = document.getElementById('produtos-infoResultados');
   if(!produtosCatalogo || !produtosCatalogo.length){
     cont.innerHTML = '<div class="vazio">Nenhum produto importado ainda. Peça pro administrador importar a base.</div>';
+    info.textContent = '';
     return;
   }
   const t = termo.trim().toLowerCase();
-  const filtrados = !t ? produtosCatalogo : produtosCatalogo.filter(p =>
+  if(!t){
+    cont.innerHTML = '<div class="vazio">Digite algo pra buscar um produto.</div>';
+    info.textContent = '';
+    return;
+  }
+  const filtrados = produtosCatalogo.filter(p =>
     p.nome.toLowerCase().includes(t) || String(p.codigo).includes(t)
   );
   info.textContent = `${filtrados.length} produto(s)`;
+  if(!filtrados.length){ cont.innerHTML = '<div class="vazio">Nenhum produto encontrado com esse termo.</div>'; return; }
   const lista = filtrados.slice(0, 200); // limita a exibição pra não travar com uma busca muito genérica
   cont.innerHTML = lista.map(p => `
-    <div class="rank-card" style="grid-template-columns:auto 1fr auto;align-items:center;gap:14px;">
-      <div style="font-family:'Sora',sans-serif;font-weight:800;color:var(--vermelho);font-size:13px;background:var(--bg);border-radius:8px;padding:6px 10px;">#${p.codigo}</div>
+    <div class="rank-card" style="grid-template-columns:auto 1fr;align-items:start;gap:16px;padding:16px 18px;">
+      <div style="font-family:'Sora',sans-serif;font-weight:800;color:var(--vermelho);font-size:13px;background:var(--bg);border-radius:8px;padding:6px 10px;white-space:nowrap;">#${p.codigo}</div>
       <div>
-        <div style="font-weight:700;">${p.nome}</div>
-        <div style="font-size:11.5px;color:var(--texto-suave);margin-top:3px;">Unidade: ${p.unidade || '–'}${p.controles && p.controles.length ? ' &nbsp;·&nbsp; Controles: ' + p.controles.join(', ') : ''}</div>
+        <div style="font-size:11px;color:var(--texto-suave);text-transform:uppercase;letter-spacing:.03em;font-weight:700;">Produto</div>
+        <div style="font-weight:700;font-size:15px;margin-bottom:10px;">${p.nome} <span style="font-weight:500;color:var(--texto-suave);font-size:12.5px;">(${p.unidade || 'sem unidade'})</span></div>
+        ${p.controles && p.controles.length ? `
+          <div style="font-size:11px;color:var(--texto-suave);text-transform:uppercase;letter-spacing:.03em;font-weight:700;margin-bottom:4px;">Controles</div>
+          <div style="display:flex;flex-direction:column;gap:3px;">
+            ${p.controles.map(c=>`<div style="font-size:13px;padding:3px 0 3px 10px;border-left:2px solid var(--dourado);">${c}</div>`).join('')}
+          </div>` : '<div style="font-size:12px;color:var(--texto-suave);font-style:italic;">Sem controle específico</div>'}
       </div>
     </div>`).join('');
   if(filtrados.length > 200) cont.innerHTML += `<p class="nota" style="text-align:center;">Mostrando 200 de ${filtrados.length} resultados — refine a busca pra ver os demais.</p>`;
@@ -6583,6 +6643,12 @@ function energiaSolarFormatarDataImportacao(iso){
   return 'Última importação: ' + d.toLocaleString('pt-BR', {day:'2-digit',month:'2-digit',year:'numeric',hour:'2-digit',minute:'2-digit'});
 }
 
+function energiaSolarGranjaDe(planta){
+  return String(planta||'').replace(/\s*\d+(\s*\/\s*\d+)?$/,'').trim(); // "Aroeira 1" -> "Aroeira", "Vinagre 3/1" -> "Vinagre"
+}
+
+window.energiaSolarFiltro = { ano:'Todos', mes:'Todos', usina:'Todas' };
+
 async function iniciarEnergiaSolar(){
   try{
     const doc = await db.collection('configuracoes').doc('energia_solar_meta').get();
@@ -6590,12 +6656,44 @@ async function iniciarEnergiaSolar(){
   }catch(e){ /* silencioso */ }
 
   await energiaSolarCarregarDados();
+  energiaSolarPopularFiltros();
   energiaSolarRenderTudo();
 
   const btnImportar = document.getElementById('energiasolar-btnImportar');
   if(btnImportar) btnImportar.addEventListener('click', energiaSolarImportarArquivo);
+
+  const inputArquivo = document.getElementById('energiasolar-inputArquivo');
+  if(inputArquivo) inputArquivo.addEventListener('change', ()=>{
+    document.getElementById('energiasolar-nomeArquivo').textContent = inputArquivo.files[0] ? inputArquivo.files[0].name : 'Clique pra escolher o arquivo Excel...';
+  });
+
+  ['fAno','fMes','fUsina'].forEach(id=>{
+    const sel = document.getElementById('energiasolar-'+id);
+    if(sel) sel.addEventListener('change', ()=>{
+      window.energiaSolarFiltro.ano = document.getElementById('energiasolar-fAno').value;
+      window.energiaSolarFiltro.mes = document.getElementById('energiasolar-fMes').value;
+      window.energiaSolarFiltro.usina = document.getElementById('energiasolar-fUsina').value;
+      energiaSolarRenderTudo();
+    });
+  });
+
+  const btnRelatorio = document.getElementById('energiasolar-btnRelatorio');
+  if(btnRelatorio) btnRelatorio.addEventListener('click', energiaSolarGerarRelatorio);
 }
 window.iniciarEnergiaSolar = iniciarEnergiaSolar;
+
+function energiaSolarPopularFiltros(){
+  const selAno = document.getElementById('energiasolar-fAno');
+  const selMes = document.getElementById('energiasolar-fMes');
+  const selUsina = document.getElementById('energiasolar-fUsina');
+  if(!energiaSolarDados || !energiaSolarDados.length) return;
+  const anos = Array.from(new Set(energiaSolarDados.map(d=>d.ano))).sort();
+  const usinas = Array.from(new Set(energiaSolarDados.map(d=>d.planta))).sort();
+  const meses = ['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'];
+  selAno.innerHTML = '<option value="Todos">Todos os anos</option>' + anos.map(a=>`<option value="${a}">${a}</option>`).join('');
+  selMes.innerHTML = '<option value="Todos">Todos os meses</option>' + meses.map((m,i)=>`<option value="${i+1}">${m}</option>`).join('');
+  selUsina.innerHTML = '<option value="Todas">Todas as usinas</option>' + usinas.map(u=>`<option value="${u}">${u}</option>`).join('');
+}
 
 const ENERGIA_SOLAR_TAMANHO_PEDACO = 3000; // registros por documento — fica bem abaixo do limite de 1MB do Firestore
 
@@ -6613,36 +6711,54 @@ async function energiaSolarCarregarDados(){
   }
 }
 
+const ENERGIA_SOLAR_LIMIAR_IDEAL = 0.8; // produção considerada ideal a partir de 80% da estimativa
+
+function energiaSolarDadosFiltrados(){
+  const f = window.energiaSolarFiltro;
+  return energiaSolarDados.filter(d=>{
+    if(f.ano!=='Todos' && String(d.ano)!==String(f.ano)) return false;
+    if(f.mes!=='Todos' && String(d.mes)!==String(f.mes) && !(d.dia && Number(d.dia.slice(5,7))===Number(f.mes))) return false;
+    if(f.usina!=='Todas' && d.planta!==f.usina) return false;
+    return true;
+  });
+}
+
 function energiaSolarRenderTudo(){
   const cardsEl = document.getElementById('energiasolar-cards');
   const tabelaEl = document.getElementById('energiasolar-tabelaUsinas');
   const infoUsinas = document.getElementById('energiasolar-infoUsinas');
+  const painelFiltros = document.getElementById('energiasolar-painel-filtros');
   if(!energiaSolarDados || !energiaSolarDados.length){
     cardsEl.innerHTML = '<div class="vazio">Nenhum dado importado ainda.</div>';
     tabelaEl.innerHTML = '';
     if(infoUsinas) infoUsinas.textContent = '';
+    if(painelFiltros) painelFiltros.style.display = 'none';
+    document.getElementById('energiasolar-painel-alertas').style.display = 'none';
     return;
   }
+  if(painelFiltros) painelFiltros.style.display = '';
 
-  // considera só os últimos 12 meses com dado, pra não misturar 2025/2026 inteiros num só card
+  const filtrados = energiaSolarDadosFiltrados();
   const hoje = new Date();
   const mesAtualStr = hoje.toISOString().slice(0,7); // YYYY-MM
-  const doMesAtual = energiaSolarDados.filter(d => d.dia && d.dia.slice(0,7) === mesAtualStr);
-  const somaProdMes = doMesAtual.reduce((s,d)=>s+(d.producao||0),0);
-  const somaEstMes = doMesAtual.reduce((s,d)=>s+(d.estimativa||0),0);
+
+  const doMesAtual = filtrados.filter(d => d.dia && d.dia.slice(0,7) === mesAtualStr);
+  const baseCards = doMesAtual.length ? doMesAtual : filtrados; // se o filtro tirar o mês atual do jogo, usa a base filtrada mesmo
+  const somaProdMes = baseCards.reduce((s,d)=>s+(d.producao||0),0);
+  const somaEstMes = baseCards.reduce((s,d)=>s+(d.estimativa||0),0);
   const diffMesPct = somaEstMes ? ((somaProdMes-somaEstMes)/somaEstMes*100) : 0;
-  const usinas = new Set(energiaSolarDados.map(d=>d.planta));
+  const usinas = new Set(filtrados.map(d=>d.planta));
 
   cardsEl.innerHTML = `
-    <div class="card"><div class="label">Usinas monitoradas</div><div class="valor">${usinas.size}</div></div>
-    <div class="card"><div class="label">Produção — mês atual</div><div class="valor">${somaProdMes.toLocaleString('pt-BR',{maximumFractionDigits:0})} kWh</div></div>
-    <div class="card"><div class="label">Estimativa — mês atual</div><div class="valor">${somaEstMes.toLocaleString('pt-BR',{maximumFractionDigits:0})} kWh</div></div>
+    <div class="card"><div class="label">Usinas no filtro</div><div class="valor">${usinas.size}</div></div>
+    <div class="card"><div class="label">Produção</div><div class="valor">${somaProdMes.toLocaleString('pt-BR',{maximumFractionDigits:0})} kWh</div></div>
+    <div class="card"><div class="label">Estimativa</div><div class="valor">${somaEstMes.toLocaleString('pt-BR',{maximumFractionDigits:0})} kWh</div></div>
     <div class="card"><div class="label">Diferença vs. estimativa</div><div class="valor" style="color:${diffMesPct>=0?'var(--verde-ok)':'var(--vermelho-alerta)'};">${diffMesPct>=0?'+':''}${diffMesPct.toFixed(1)}%</div></div>
   `;
 
-  // agregação mensal (todas as usinas somadas), pro gráfico
+  // agregação mensal (respeitando o filtro), pro gráfico de barras
   const porMes = new Map();
-  energiaSolarDados.forEach(d=>{
+  filtrados.forEach(d=>{
     if(!d.dia) return;
     const chave = d.dia.slice(0,7);
     if(!porMes.has(chave)) porMes.set(chave, {producao:0, estimativa:0});
@@ -6650,10 +6766,10 @@ function energiaSolarRenderTudo(){
     m.producao += (d.producao||0); m.estimativa += (d.estimativa||0);
   });
   const mesesOrdenados = Array.from(porMes.keys()).sort();
-  const ctx = document.getElementById('energiasolar-graficoMensal');
-  if(ctx){
+  const ctxMensal = document.getElementById('energiasolar-graficoMensal');
+  if(ctxMensal){
     if(window.chartEnergiaSolarMensal) window.chartEnergiaSolarMensal.destroy();
-    window.chartEnergiaSolarMensal = new Chart(ctx.getContext('2d'), {
+    window.chartEnergiaSolarMensal = new Chart(ctxMensal.getContext('2d'), {
       type: 'bar',
       data: {
         labels: mesesOrdenados.map(m=>{ const [a,mm]=m.split('-'); return mm+'/'+a.slice(2); }),
@@ -6666,11 +6782,64 @@ function energiaSolarRenderTudo(){
     });
   }
 
-  // resumo por usina (últimos 30 dias com dado, pra ficar relevante e não diluir num ano inteiro)
+  // Evolução diária: sempre o mês atual de verdade, independente do filtro de Ano/Mês (só respeita o filtro de Usina)
+  const filtradosPorUsinaSo = window.energiaSolarFiltro.usina==='Todas' ? energiaSolarDados : energiaSolarDados.filter(d=>d.planta===window.energiaSolarFiltro.usina);
+  const doMesAtualEvolucao = filtradosPorUsinaSo.filter(d => d.dia && d.dia.slice(0,7) === mesAtualStr);
+  const porDia = new Map();
+  doMesAtualEvolucao.forEach(d=>{
+    if(!porDia.has(d.dia)) porDia.set(d.dia, {producao:0, estimativa:0});
+    const x = porDia.get(d.dia);
+    x.producao += (d.producao||0); x.estimativa += (d.estimativa||0);
+  });
+  const diasOrdenados = Array.from(porDia.keys()).sort();
+  const infoEvolucao = document.getElementById('energiasolar-infoEvolucaoDiaria');
+  if(infoEvolucao) infoEvolucao.textContent = window.energiaSolarFiltro.usina==='Todas' ? 'Todas as usinas' : window.energiaSolarFiltro.usina;
+  const ctxDiaria = document.getElementById('energiasolar-graficoEvolucaoDiaria');
+  if(ctxDiaria){
+    if(window.chartEnergiaSolarDiaria) window.chartEnergiaSolarDiaria.destroy();
+    window.chartEnergiaSolarDiaria = new Chart(ctxDiaria.getContext('2d'), {
+      type: 'line',
+      data: {
+        labels: diasOrdenados.map(d=>d.slice(8,10)+'/'+d.slice(5,7)),
+        datasets: [
+          { label: 'Produção (kWh)', data: diasOrdenados.map(d=>Math.round(porDia.get(d).producao)), borderColor:'#F2A900', backgroundColor:'rgba(242,169,0,.15)', fill:true, tension:.25 },
+          { label: 'Estimativa (kWh)', data: diasOrdenados.map(d=>Math.round(porDia.get(d).estimativa)), borderColor:'#C1272D', borderDash:[5,4], fill:false, tension:.25 }
+        ]
+      },
+      options: { responsive:true, maintainAspectRatio:false, scales:{ y:{ beginAtZero:true, title:{display:true,text:'kWh'} } } }
+    });
+  }
+
+  // Comparativo por Granja (agrupa usinas do mesmo núcleo, tipo "Aroeira 1-5" viram só "Aroeira")
+  const porGranja = new Map();
+  filtrados.forEach(d=>{
+    const granja = energiaSolarGranjaDe(d.planta);
+    if(!porGranja.has(granja)) porGranja.set(granja, {producao:0, estimativa:0});
+    const g = porGranja.get(granja);
+    g.producao += (d.producao||0); g.estimativa += (d.estimativa||0);
+  });
+  const granjasOrdenadas = Array.from(porGranja.keys()).sort((a,b)=>porGranja.get(b).producao-porGranja.get(a).producao);
+  const ctxGranja = document.getElementById('energiasolar-graficoGranja');
+  if(ctxGranja){
+    if(window.chartEnergiaSolarGranja) window.chartEnergiaSolarGranja.destroy();
+    window.chartEnergiaSolarGranja = new Chart(ctxGranja.getContext('2d'), {
+      type: 'bar',
+      data: {
+        labels: granjasOrdenadas,
+        datasets: [
+          { label: 'Produção (kWh)', data: granjasOrdenadas.map(g=>Math.round(porGranja.get(g).producao)), backgroundColor: '#F2A900' },
+          { label: 'Estimativa (kWh)', data: granjasOrdenadas.map(g=>Math.round(porGranja.get(g).estimativa)), backgroundColor: '#C1272D' }
+        ]
+      },
+      options: { responsive:true, maintainAspectRatio:false, scales:{ y:{ beginAtZero:true, title:{display:true,text:'kWh'} } } }
+    });
+  }
+
+  // resumo por usina (respeitando o filtro), últimos 30 dias com dado
   const dataLimite = new Date(); dataLimite.setDate(dataLimite.getDate()-30);
   const dataLimiteStr = dataLimite.toISOString().slice(0,10);
   const porUsina = new Map();
-  energiaSolarDados.forEach(d=>{
+  filtrados.forEach(d=>{
     if(!d.dia || d.dia < dataLimiteStr) return;
     if(!porUsina.has(d.planta)) porUsina.set(d.planta, {producao:0, estimativa:0, galpoes:d.galpoes});
     const u = porUsina.get(d.planta);
@@ -6684,6 +6853,78 @@ function energiaSolarRenderTudo(){
       const diffPct = u.estimativa ? ((u.producao-u.estimativa)/u.estimativa*100) : 0;
       return `<tr><th class="rowhead">${nome}</th><td>${u.galpoes||'–'}</td><td>${u.producao.toLocaleString('pt-BR',{maximumFractionDigits:0})}</td><td>${u.estimativa.toLocaleString('pt-BR',{maximumFractionDigits:0})}</td><td style="color:${diffPct>=0?'var(--verde-ok)':'var(--vermelho-alerta)'};font-weight:700;">${diffPct>=0?'+':''}${diffPct.toFixed(1)}%</td></tr>`;
     }).join('')}</tbody>`;
+
+  energiaSolarRenderAlertas();
+}
+
+function energiaSolarRenderAlertas(){
+  const painel = document.getElementById('energiasolar-painel-alertas');
+  const lista = document.getElementById('energiasolar-listaAlertas');
+  if(!energiaSolarDados.length){ painel.style.display = 'none'; return; }
+
+  // pega a data mais recente com dado, pra checar produção zerada
+  const diasComDado = Array.from(new Set(energiaSolarDados.map(d=>d.dia))).sort();
+  const ultimoDia = diasComDado[diasComDado.length-1];
+  const registrosUltimoDia = energiaSolarDados.filter(d=>d.dia===ultimoDia);
+  const zeradas = registrosUltimoDia.filter(d=>(d.producao||0)===0 && (d.estimativa||0)>0);
+
+  // tendência de baixa: média dos últimos 7 dias com dado abaixo de 80% da estimativa
+  const seteDiasAtras = diasComDado.slice(-7);
+  const porUsinaRecente = new Map();
+  energiaSolarDados.filter(d=>seteDiasAtras.includes(d.dia)).forEach(d=>{
+    if(!porUsinaRecente.has(d.planta)) porUsinaRecente.set(d.planta, {producao:0, estimativa:0});
+    const u = porUsinaRecente.get(d.planta);
+    u.producao += (d.producao||0); u.estimativa += (d.estimativa||0);
+  });
+  const baixaTendencia = Array.from(porUsinaRecente.entries())
+    .filter(([nome,u]) => u.estimativa>0 && (u.producao/u.estimativa) < ENERGIA_SOLAR_LIMIAR_IDEAL)
+    .map(([nome,u]) => ({nome, pct: u.producao/u.estimativa*100}))
+    .sort((a,b)=>a.pct-b.pct);
+
+  if(!zeradas.length && !baixaTendencia.length){ painel.style.display = 'none'; return; }
+  painel.style.display = '';
+  let html = '';
+  if(zeradas.length){
+    html += `<p class="nota" style="color:#8A1F1F;background:#FDECEC;border:1px solid #F0A0A0;border-radius:9px;padding:10px 14px;margin-bottom:10px;">
+      🔴 <strong>Produção zerada em ${energiaSolarFormatarDataBR(ultimoDia)}:</strong> ${zeradas.map(d=>d.planta).join(', ')}
+    </p>`;
+  }
+  if(baixaTendencia.length){
+    html += `<p class="nota" style="color:#8A6200;background:#FFF4E1;border:1px solid #F0CB7A;border-radius:9px;padding:10px 14px;">
+      🟡 <strong>Tendência de baixa produção (últimos 7 dias, abaixo de ${(ENERGIA_SOLAR_LIMIAR_IDEAL*100).toFixed(0)}% da estimativa):</strong> ${baixaTendencia.map(d=>`${d.nome} (${d.pct.toFixed(0)}%)`).join(', ')}
+    </p>`;
+  }
+  lista.innerHTML = html;
+}
+
+function energiaSolarFormatarDataBR(iso){
+  if(!iso) return '–';
+  const [a,m,d] = iso.split('-');
+  return `${d}/${m}/${a}`;
+}
+
+function energiaSolarGerarRelatorio(){
+  if(typeof XLSX === 'undefined'){ alert('Não foi possível carregar o gerador de Excel.'); return; }
+  if(!energiaSolarDados.length){ alert('Nenhum dado importado ainda.'); return; }
+  const diasComDado = Array.from(new Set(energiaSolarDados.map(d=>d.dia))).sort();
+  const ultimoDia = diasComDado[diasComDado.length-1];
+  const diaAnterior = diasComDado[diasComDado.length-2];
+  const usinas = Array.from(new Set(energiaSolarDados.map(d=>d.planta))).sort();
+
+  const linhas = [['Usina', 'Produção '+energiaSolarFormatarDataBR(ultimoDia)+' (kWh)', 'Produção '+energiaSolarFormatarDataBR(diaAnterior)+' (kWh)', 'Variação (%)']];
+  usinas.forEach(nome=>{
+    const hoje = energiaSolarDados.find(d=>d.planta===nome && d.dia===ultimoDia);
+    const ontem = energiaSolarDados.find(d=>d.planta===nome && d.dia===diaAnterior);
+    const prodHoje = hoje ? (hoje.producao||0) : 0;
+    const prodOntem = ontem ? (ontem.producao||0) : 0;
+    const variacao = prodOntem ? ((prodHoje-prodOntem)/prodOntem*100) : null;
+    linhas.push([nome, prodHoje.toFixed(1), prodOntem.toFixed(1), variacao!=null ? variacao.toFixed(1)+'%' : '–']);
+  });
+
+  const ws = XLSX.utils.aoa_to_sheet(linhas);
+  const wb = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb, ws, 'Relatório Diário');
+  XLSX.writeFile(wb, `energia_solar_relatorio_${ultimoDia}.xlsx`);
 }
 
 async function energiaSolarImportarArquivo(){
