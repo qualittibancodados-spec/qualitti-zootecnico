@@ -39,8 +39,8 @@
     --sidebar-w: 250px;
   }
   *{box-sizing:border-box; margin:0; padding:0;}
-  html{ overscroll-behavior-y:none; background:var(--side-bg); }
-  body{ font-family:'Plus Jakarta Sans','Inter',system-ui,sans-serif; background:var(--bg); color:var(--texto); -webkit-font-smoothing:antialiased; overscroll-behavior-y:none; }
+  html{ background:var(--side-bg); }
+  body{ font-family:'Plus Jakarta Sans','Inter',system-ui,sans-serif; background:var(--bg); color:var(--texto); -webkit-font-smoothing:antialiased; }
   h1,h2,h3,.display{ font-family:'Sora','Plus Jakarta Sans',sans-serif; }
 
   /* ===================== SIDEBAR ===================== */
@@ -1688,13 +1688,15 @@
           <h2>Comparativo — últimos 2 dias</h2>
           <span class="info" id="energiasolar-infoRelatorio"></span>
         </div>
-        <div class="legenda-tendencia" style="margin:12px 0 14px;">
-          <span class="leg-item">✅ <strong>Ideal</strong> = produção do dia igual ou acima de 80% da meta</span>
-          <span class="leg-item">🟡 <strong>Abaixo do ideal (7d)</strong> = média dos últimos 7 dias abaixo de 80% da meta</span>
-          <span class="leg-item">🔴 <strong>Zerada</strong> = nenhuma produção registrada no dia, com meta prevista</span>
-        </div>
         <button class="btn-recolher" id="energiasolar-btnCompartilhar" type="button" style="margin-bottom:14px;">📤 Compartilhar</button>
-        <div class="tabela-scroll"><table class="matriz-diaria" id="energiasolar-tabelaRelatorio"></table></div>
+        <div id="energiasolar-relatorioCompartilhavel" style="background:#fff;padding:4px;">
+          <div class="legenda-tendencia" style="margin:12px 0 14px;">
+            <span class="leg-item">✅ <strong>Ideal</strong> = produção somada dos 2 dias igual ou acima de 80% da meta somada</span>
+            <span class="leg-item">🟡 <strong>Abaixo do ideal</strong> = produção somada dos 2 dias abaixo de 80% da meta somada</span>
+            <span class="leg-item">🔴 <strong>Zerada hoje</strong> = nenhuma produção registrada no dia mais recente, com meta prevista</span>
+          </div>
+          <div class="tabela-scroll"><table class="matriz-diaria" id="energiasolar-tabelaRelatorio"></table></div>
+        </div>
       </div>
     </div>
   </div>
@@ -7103,30 +7105,6 @@ function energiaSolarRenderTudo(){
     }).join('')}</tbody>`;
 }
 
-function energiaSolarCalcularStatusUsinas(){
-  // retorna um Map: nome da usina -> {zerada: bool, mediaPct7d: number|null}
-  const resultado = new Map();
-  if(!energiaSolarDados.length) return resultado;
-  const diasComDado = Array.from(new Set(energiaSolarDados.map(d=>d.dia))).sort();
-  const ultimoDia = diasComDado[diasComDado.length-1];
-  const seteDiasAtras = diasComDado.slice(-7);
-
-  const porUsinaRecente = new Map();
-  energiaSolarDados.filter(d=>seteDiasAtras.includes(d.dia)).forEach(d=>{
-    if(!porUsinaRecente.has(d.planta)) porUsinaRecente.set(d.planta, {producao:0, estimativa:0});
-    const u = porUsinaRecente.get(d.planta);
-    u.producao += (d.producao||0); u.estimativa += (d.estimativa||0);
-  });
-  const registrosUltimoDia = energiaSolarDados.filter(d=>d.dia===ultimoDia);
-  registrosUltimoDia.forEach(d=>{
-    const zerada = (d.producao||0)===0 && (d.estimativa||0)>0;
-    const rec = porUsinaRecente.get(d.planta);
-    const mediaPct7d = (rec && rec.estimativa>0) ? (rec.producao/rec.estimativa*100) : null;
-    resultado.set(d.planta, {zerada, mediaPct7d});
-  });
-  return resultado;
-}
-
 function energiaSolarFormatarDataBR(iso){
   if(!iso) return '–';
   const [a,m,d] = iso.split('-');
@@ -7143,7 +7121,6 @@ function energiaSolarRenderRelatorio(){
   const diaAnterior = diasComDado[diasComDado.length-2];
   const usinas = Array.from(new Set(energiaSolarDados.map(d=>d.planta))).sort();
   info.textContent = `${energiaSolarFormatarDataBR(diaAnterior)} → ${energiaSolarFormatarDataBR(ultimoDia)}`;
-  const statusPorUsina = energiaSolarCalcularStatusUsinas();
 
   const linhas = usinas.map(nome=>{
     const hoje = energiaSolarDados.find(d=>d.planta===nome && d.dia===ultimoDia);
@@ -7151,11 +7128,16 @@ function energiaSolarRenderRelatorio(){
     const prodHoje = hoje ? (hoje.producao||0) : 0;
     const prodOntem = ontem ? (ontem.producao||0) : 0;
     const metaHoje = hoje ? (hoje.estimativa||0) : 0;
+    const metaOntem = ontem ? (ontem.estimativa||0) : 0;
     const variacao = prodOntem ? ((prodHoje-prodOntem)/prodOntem*100) : null;
-    const status = statusPorUsina.get(nome);
+
+    // status comparando só os 2 dias desse relatório (não uma média de vários dias)
+    const producaoTotal2Dias = prodHoje + prodOntem;
+    const metaTotal2Dias = metaHoje + metaOntem;
+    const pct2Dias = metaTotal2Dias>0 ? (producaoTotal2Dias/metaTotal2Dias*100) : null;
     let statusHtml = '<span style="color:var(--verde-ok);font-weight:700;">✅ Ideal</span>';
-    if(status && status.zerada) statusHtml = '<span style="color:#8A1F1F;background:#FDECEC;border-radius:20px;padding:3px 10px;font-weight:700;">🔴 Zerada</span>';
-    else if(status && status.mediaPct7d!=null && status.mediaPct7d < ENERGIA_SOLAR_LIMIAR_IDEAL*100) statusHtml = `<span style="color:#8A6200;background:#FFF4E1;border-radius:20px;padding:3px 10px;font-weight:700;">🟡 ${status.mediaPct7d.toFixed(0)}% (7d)</span>`;
+    if(metaHoje>0 && prodHoje===0) statusHtml = '<span style="color:#8A1F1F;background:#FDECEC;border-radius:20px;padding:3px 10px;font-weight:700;">🔴 Zerada hoje</span>';
+    else if(pct2Dias!=null && pct2Dias < ENERGIA_SOLAR_LIMIAR_IDEAL*100) statusHtml = `<span style="color:#8A6200;background:#FFF4E1;border-radius:20px;padding:3px 10px;font-weight:700;">🟡 ${pct2Dias.toFixed(0)}%</span>`;
     return `<tr>
       <th class="rowhead">${nome}</th>
       <td>${prodOntem.toLocaleString('pt-BR',{maximumFractionDigits:1})} kWh</td>
@@ -7170,7 +7152,7 @@ function energiaSolarRenderRelatorio(){
 }
 
 function energiaSolarCompartilharRelatorio(){
-  compartilharTabelaWhatsApp('energiasolar-tabelaRelatorio', `energia_solar_${new Date().toISOString().slice(0,10)}.png`, document.getElementById('energiasolar-btnCompartilhar'));
+  compartilharTabelaWhatsApp('energiasolar-relatorioCompartilhavel', `energia_solar_${new Date().toISOString().slice(0,10)}.png`, document.getElementById('energiasolar-btnCompartilhar'));
 }
 
 async function energiaSolarImportarArquivo(){
