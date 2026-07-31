@@ -189,34 +189,6 @@
   .qf-totais-grid .qf-stat-valor small{ font-size:13px; font-weight:600; opacity:.8; }
   .qf-totais-grid .qf-stat.qf-stat-falta-zero{ background:var(--verde-ok); box-shadow:0 4px 14px rgba(46,155,103,.25); }
 
-  /* ===== Quadro Consolidado: lista de núcleos com detalhe expansível ===== */
-  .qf-lista-nucleos{ display:flex; flex-direction:column; gap:10px; }
-  .qf-nucleo-bloco{ background:var(--card); border:1px solid var(--borda); border-radius:14px; overflow:hidden; transition:.15s; }
-  .qf-nucleo-bloco.expandido{ box-shadow:var(--sombra); border-color:#DDD3BE; }
-  .qf-nucleo-cabecalho{ display:flex; align-items:center; gap:12px; padding:15px 18px; cursor:pointer; }
-  .qf-nucleo-cabecalho:hover{ background:#FBF9F4; }
-  .qf-nucleo-seta{ font-size:13px; color:var(--texto-suave); width:14px; flex-shrink:0; }
-  .qf-nucleo-nome{ font-family:'Sora',sans-serif; font-weight:800; font-size:15.5px; color:var(--texto); min-width:130px; }
-  .qf-nucleo-selos{ display:flex; gap:8px; flex-wrap:wrap; margin-left:auto; }
-  .qf-selo{ font-size:12px; font-weight:700; padding:5px 12px; border-radius:20px; white-space:nowrap; }
-  .qf-selo-ok{ background:#E8F7EC; color:var(--verde-ok); }
-  .qf-selo-falta{ background:#FDF1DC; color:#A9720A; box-shadow:inset 0 0 0 1px #F0CB7A; }
-  .qf-nucleo-detalhe{ padding:4px 18px 18px; border-top:1px solid var(--borda); background:#FCFBF8; }
-  .qf-num-grid{ display:flex; gap:12px; flex-wrap:wrap; margin:16px 0; }
-  .qf-num-bloco{ flex:1; min-width:120px; background:#fff; border:1px solid var(--borda); border-radius:12px; padding:12px 14px; text-align:center; }
-  .qf-num-bloco.atual{ background:#F5FAFF; border-color:#CFE3F7; }
-  .qf-num-bloco.futuro{ background:#FFFBF2; border-color:#F0DFB0; }
-  .qf-num-label{ font-size:10px; font-weight:700; text-transform:uppercase; letter-spacing:.03em; color:var(--texto-suave); margin-bottom:6px; }
-  .qf-num-bloco.atual .qf-num-label{ color:#1D5A96; }
-  .qf-num-bloco.futuro .qf-num-label{ color:#8A6200; }
-  .qf-num-valor{ font-family:'Sora',sans-serif; font-weight:800; font-size:20px; color:var(--texto); }
-  .qf-num-valor span{ font-size:13px; font-weight:600; color:var(--texto-suave); }
-  .qf-aviarios-lista{ display:flex; flex-direction:column; border-top:1px solid var(--borda); }
-  .qf-aviario-item{ display:flex; gap:14px; flex-wrap:wrap; align-items:baseline; padding:10px 4px; border-bottom:1px dashed var(--borda); font-size:13px; }
-  .qf-aviario-item:last-child{ border-bottom:none; }
-  .qf-aviario-nome{ font-weight:700; color:var(--texto-suave); min-width:110px; }
-  .qf-aviario-info{ color:var(--texto); }
-  .qf-aviario-papel{ font-weight:700; color:var(--texto-suave); font-size:11px; text-transform:uppercase; margin-right:2px; }
   .quadro-nome-saindo{ text-decoration:line-through; color:var(--vermelho-alerta); }
   .painel-importar-zona{ display:flex; gap:14px; align-items:center; flex-wrap:wrap; }
   .painel-importar-label{ flex:1; min-width:240px; display:flex; align-items:center; gap:12px; padding:16px 18px; border:2px dashed var(--borda); border-radius:12px; cursor:pointer; background:var(--bg); transition:.15s; }
@@ -779,18 +751,15 @@
   #qf-print-header .qf-print-titulos h1{ font-size:16px; margin:0; font-family:'Sora',sans-serif; }
   #qf-print-header .qf-print-titulos p{ font-size:10px; margin:2px 0 0; color:#666; }
   #qf-scrollConsolidada{ overflow:visible !important; width:100% !important; }
-  .qf-lista-nucleos{ gap:6px !important; }
-  .qf-nucleo-bloco{ box-shadow:none !important; border:1px solid #999 !important; page-break-inside:avoid; }
-  .qf-nucleo-cabecalho{ cursor:default !important; padding:8px 12px !important; border-bottom:1.5px solid #333 !important; }
-  .qf-nucleo-detalhe{ padding:4px 12px 10px !important; }
-  .qf-num-grid{ margin:8px 0 !important; gap:6px !important; }
-  .qf-num-bloco{ padding:6px 8px !important; box-shadow:none !important; }
-  .qf-aviario-item{ padding:5px 4px !important; font-size:11px !important; }
-  .qf-totais-grid .qf-stat{ box-shadow:none !important; border:1.5px solid #333 !important; }
-  .qf-totais-grid .qf-stat, .qf-totais-grid .qf-stat.qf-stat-falta-zero{ background:#fff !important; color:#000 !important; }
+  #qf-tabelaConsolidada{ width:100% !important; table-layout:fixed; font-size:9px; }
+  #qf-tabelaConsolidada th, #qf-tabelaConsolidada td{ padding:4px 5px !important; overflow-wrap:break-word; word-break:break-word; }
+  #qf-tabelaConsolidada th:first-child, #qf-tabelaConsolidada td:first-child{ width:20%; text-align:left !important; }
   /* reforço estrutural (funciona mesmo se a impressora não reproduzir cor) */
   .qf-linha-nucleo-resumo th, .qf-linha-nucleo-resumo td{ border-top:2px solid #333 !important; font-weight:800 !important; }
   .qf-linha-aviario-detalhe td{ font-style:italic; }
+  .qf-linha-total-geral th, .qf-linha-total-geral td{ border-top:2px solid #333 !important; }
+  #qf-tabelaConsolidada tr{ page-break-inside:avoid; }
+  thead{ display:table-header-group; }
 }
 
 #mapl_print_header{ display:none; }
@@ -6225,6 +6194,7 @@ function renderQuadroConsolidado(){
   const totaisEl = document.getElementById('qf-resumoTotais');
   const gridEl = document.getElementById('qf-scrollConsolidada');
   if(!gridEl) return;
+  if(totaisEl) totaisEl.innerHTML = ''; // sem cards soltos no topo — os totais ficam na própria tabela
   const visao = window.qfVisaoAtiva;
   const mostraAtual = visao==='ambos' || visao==='atual';
   const mostraFuturo = visao==='ambos' || visao==='futuro';
@@ -6236,71 +6206,94 @@ function renderQuadroConsolidado(){
   });
   const nucleosOrdenados = Array.from(porNucleo.keys()).sort();
   if(!nucleosOrdenados.length){
-    if(totaisEl) totaisEl.innerHTML = '';
     gridEl.innerHTML = '<div class="vazio">Nenhum posto cadastrado ainda.</div>';
     return;
   }
 
   let totNecessidadeG=0, totNecessidadeA=0, totAtualG=0, totAtualA=0, totFutG=0, totFutA=0;
 
-  const linhasHtml = nucleosOrdenados.map(nuc=>{
+  const colsAtual = mostraAtual ? `<th colspan="3" class="qf-grupo-atual-th">Quadro Atual (hoje)</th>` : '';
+  const colsFuturo = mostraFuturo ? `<th colspan="3" class="qf-grupo-futuro-th">Quadro Futuro (pós-saídas)</th>` : '';
+  const thead = `<thead>
+    <tr>
+      <th class="rowhead" rowspan="2">Núcleo</th>
+      <th rowspan="2">Necessidade</th>
+      ${colsAtual}
+      ${colsFuturo}
+    </tr>
+    <tr>
+      ${mostraAtual?'<th class="qf-grupo-atual-th">Granjeiros</th><th class="qf-grupo-atual-th">Ajudantes</th><th class="qf-grupo-atual-th">Falta</th>':''}
+      ${mostraFuturo?'<th class="qf-grupo-futuro-th">Granjeiros</th><th class="qf-grupo-futuro-th">Ajudantes</th><th class="qf-grupo-futuro-th">Falta</th>':''}
+    </tr>
+  </thead>`;
+
+  const linhas = nucleosOrdenados.map(nuc=>{
     const postos = porNucleo.get(nuc);
     const r = calcularResumoNucleo(nuc, postos);
     totNecessidadeG += r.necessidadeGranjeiro; totNecessidadeA += r.necessidadeAjudante; totAtualG += r.atualGranj; totAtualA += r.atualAjud; totFutG += r.futuroGranj; totFutA += r.futuroAjud;
     const faltaAtual = Math.max(0,r.necessidadeGranjeiro-r.atualGranj) + Math.max(0,r.necessidadeAjudante-r.atualAjud);
     const faltaFuturo = Math.max(0,r.necessidadeGranjeiro-r.futuroGranj) + Math.max(0,r.necessidadeAjudante-r.futuroAjud);
     const expandido = window.qfConsolidadoExpandido.has(nuc);
+    const necessidadeTexto = r.necessidadeGranjeiro===r.necessidadeAjudante ? r.necessidadeGranjeiro : `${r.necessidadeGranjeiro}g / ${r.necessidadeAjudante}a`;
 
-    // status: um selo por dimensão visível (Atual e/ou Futuro), pra dar de cara a resposta "tá completo?"
-    const selos = [];
-    if(mostraAtual) selos.push(faltaAtual>0
-      ? `<span class="qf-selo qf-selo-falta">⚠️ Atual: faltam ${faltaAtual}</span>`
-      : `<span class="qf-selo qf-selo-ok">✅ Atual completo</span>`);
-    if(mostraFuturo) selos.push(faltaFuturo>0
-      ? `<span class="qf-selo qf-selo-falta">⚠️ Futuro: faltam ${faltaFuturo}</span>`
-      : `<span class="qf-selo qf-selo-ok">✅ Futuro completo</span>`);
+    const celAtual = mostraAtual ? `
+      <td class="${r.atualGranj>=r.necessidadeGranjeiro?'qf-cons-ok':'qf-cons-falta'}">${r.atualGranj}/${r.necessidadeGranjeiro}</td>
+      <td class="${r.atualAjud>=r.necessidadeAjudante?'qf-cons-ok':'qf-cons-falta'}">${r.atualAjud}/${r.necessidadeAjudante}</td>
+      <td class="${faltaAtual>0?'qf-cons-falta':'qf-cons-ok'}" style="font-weight:800;">${faltaAtual}</td>` : '';
+    const celFuturo = mostraFuturo ? `
+      <td class="${r.futuroGranj>=r.necessidadeGranjeiro?'qf-cons-ok':'qf-cons-falta'}">${r.futuroGranj}/${r.necessidadeGranjeiro}</td>
+      <td class="${r.futuroAjud>=r.necessidadeAjudante?'qf-cons-ok':'qf-cons-falta'}">${r.futuroAjud}/${r.necessidadeAjudante}</td>
+      <td class="${faltaFuturo>0?'qf-cons-falta':'qf-cons-ok'}" style="font-weight:800;">${faltaFuturo}</td>` : '';
 
-    // números detalhados, só renderizados quando expandido (evita poluir a tela toda quando recolhido)
-    let blocosNumeros = '';
-    let listaAviarios = '';
+    const linhaPrincipal = `<tr class="qf-linha-nucleo-resumo">
+      <th class="rowhead qf-nucleo-toggle" data-toggle-nucleo-cons="${nuc}">${expandido?'▾':'▸'} ${nomeNucleo(nuc)}</th>
+      <td>${necessidadeTexto}</td>
+      ${celAtual}
+      ${celFuturo}
+    </tr>`;
+
+    let linhasDetalhe = '';
     if(expandido){
-      const blocos = [`<div class="qf-num-bloco"><div class="qf-num-label">Necessidade</div><div class="qf-num-valor">${r.necessidadeGranjeiro===r.necessidadeAjudante?r.necessidadeGranjeiro:r.necessidadeGranjeiro+'g/'+r.necessidadeAjudante+'a'}</div></div>`];
-      if(mostraAtual){
-        blocos.push(`<div class="qf-num-bloco atual"><div class="qf-num-label">Atual · Granjeiros</div><div class="qf-num-valor">${r.atualGranj}<span>/${r.necessidadeGranjeiro}</span></div></div>`);
-        blocos.push(`<div class="qf-num-bloco atual"><div class="qf-num-label">Atual · Ajudantes</div><div class="qf-num-valor">${r.atualAjud}<span>/${r.necessidadeAjudante}</span></div></div>`);
-      }
-      if(mostraFuturo){
-        blocos.push(`<div class="qf-num-bloco futuro"><div class="qf-num-label">Futuro · Granjeiros</div><div class="qf-num-valor">${r.futuroGranj}<span>/${r.necessidadeGranjeiro}</span></div></div>`);
-        blocos.push(`<div class="qf-num-bloco futuro"><div class="qf-num-label">Futuro · Ajudantes</div><div class="qf-num-valor">${r.futuroAjud}<span>/${r.necessidadeAjudante}</span></div></div>`);
-      }
-      blocosNumeros = `<div class="qf-num-grid">${blocos.join('')}</div>`;
-
       const postosOrdenados = postos.slice().sort((a,b)=>String(a.aviarios).localeCompare(String(b.aviarios), undefined, {numeric:true}));
-      listaAviarios = `<div class="qf-aviarios-lista">` + postosOrdenados.map(p=>{
+      linhasDetalhe = postosOrdenados.map(p=>{
         const temG = p.granjeiro && p.granjeiro.trim();
         const temA = p.ajudante && p.ajudante.trim();
         const gAtualTxt = temG ? p.granjeiro : '<span class="qf-nome-vago">vago</span>';
         const aAtualTxt = temA ? p.ajudante : '<span class="qf-nome-vago">vago</span>';
-        const gFuturoTxt = temG ? (p.granjeiroSaindo ? `<span class="qf-nome-saindo-detalhe">${p.granjeiro} (saindo)</span>` : p.granjeiro) : '<span class="qf-nome-vago">vago</span>';
-        const aFuturoTxt = temA ? (p.ajudanteSaindo ? `<span class="qf-nome-saindo-detalhe">${p.ajudante} (saindo)</span>` : p.ajudante) : '<span class="qf-nome-vago">vago</span>';
-        const partes = [];
-        if(mostraAtual) partes.push(`<span class="qf-aviario-papel">Atual:</span> ${gAtualTxt} · ${aAtualTxt}`);
-        if(mostraFuturo) partes.push(`<span class="qf-aviario-papel">Futuro:</span> ${gFuturoTxt} · ${aFuturoTxt}`);
-        return `<div class="qf-aviario-item"><div class="qf-aviario-nome">Aviários ${p.aviarios}</div><div class="qf-aviario-info">${partes.join(' &nbsp;|&nbsp; ')}</div></div>`;
-      }).join('') + `</div>`;
+        const gFuturoTxt = temG ? (p.granjeiroSaindo ? `<span class="qf-nome-saindo-detalhe">${p.granjeiro}</span>` : p.granjeiro) : '<span class="qf-nome-vago">vago</span>';
+        const aFuturoTxt = temA ? (p.ajudanteSaindo ? `<span class="qf-nome-saindo-detalhe">${p.ajudante}</span>` : p.ajudante) : '<span class="qf-nome-vago">vago</span>';
+        const detAtual = mostraAtual ? `<td class="qf-cel-nome" colspan="2">${gAtualTxt} · ${aAtualTxt}</td><td></td>` : '';
+        const detFuturo = mostraFuturo ? `<td class="qf-cel-nome" colspan="2">${gFuturoTxt} · ${aFuturoTxt}</td><td></td>` : '';
+        return `<tr class="qf-linha-aviario-detalhe">
+          <td>Aviários ${p.aviarios}</td>
+          <td></td>
+          ${detAtual}
+          ${detFuturo}
+        </tr>`;
+      }).join('');
     }
-
-    return `<div class="qf-nucleo-bloco ${expandido?'expandido':''}">
-      <div class="qf-nucleo-cabecalho" data-toggle-nucleo-cons="${nuc}">
-        <span class="qf-nucleo-seta">${expandido?'▾':'▸'}</span>
-        <span class="qf-nucleo-nome">${nomeNucleo(nuc)}</span>
-        <span class="qf-nucleo-selos">${selos.join('')}</span>
-      </div>
-      ${expandido ? `<div class="qf-nucleo-detalhe">${blocosNumeros}${listaAviarios}</div>` : ''}
-    </div>`;
+    return linhaPrincipal + linhasDetalhe;
   }).join('');
 
-  gridEl.innerHTML = `<div class="qf-lista-nucleos">${linhasHtml}</div>`;
+  const faltaAtualTotal = Math.max(0,totNecessidadeG-totAtualG) + Math.max(0,totNecessidadeA-totAtualA);
+  const faltaFuturoTotal = Math.max(0,totNecessidadeG-totFutG) + Math.max(0,totNecessidadeA-totFutA);
+  const necessidadeTotalTexto = totNecessidadeG===totNecessidadeA ? totNecessidadeG : `${totNecessidadeG}g / ${totNecessidadeA}a`;
+  const totCelAtual = mostraAtual ? `
+    <td style="font-weight:800;">${totAtualG}/${totNecessidadeG}</td>
+    <td style="font-weight:800;">${totAtualA}/${totNecessidadeA}</td>
+    <td style="font-weight:800;">${faltaAtualTotal}</td>` : '';
+  const totCelFuturo = mostraFuturo ? `
+    <td style="font-weight:800;">${totFutG}/${totNecessidadeG}</td>
+    <td style="font-weight:800;">${totFutA}/${totNecessidadeA}</td>
+    <td style="font-weight:800;">${faltaFuturoTotal}</td>` : '';
+  const linhaTotal = `<tr class="qf-linha-total-geral">
+    <th class="rowhead">TOTAL GERAL (${nucleosOrdenados.length} núcleos)</th>
+    <td style="font-weight:800;">${necessidadeTotalTexto}</td>
+    ${totCelAtual}
+    ${totCelFuturo}
+  </tr>`;
+
+  gridEl.innerHTML = `<div class="tabela-scroll arrastavel"><table class="matriz-diaria" id="qf-tabelaConsolidada">${thead}<tbody>${linhas}${linhaTotal}</tbody></table></div>`;
   gridEl.querySelectorAll('[data-toggle-nucleo-cons]').forEach(el=>{
     el.addEventListener('click', ()=>{
       const n = el.dataset.toggleNucleoCons;
@@ -6310,21 +6303,6 @@ function renderQuadroConsolidado(){
     });
   });
 
-  // resumo geral (totais), em destaque acima da lista
-  const faltaAtualTotal = Math.max(0,totNecessidadeG-totAtualG) + Math.max(0,totNecessidadeA-totAtualA);
-  const faltaFuturoTotal = Math.max(0,totNecessidadeG-totFutG) + Math.max(0,totNecessidadeA-totFutA);
-  if(totaisEl){
-    const stats = [];
-    stats.push(`<div class="qf-stat"><div class="qf-stat-label">Núcleos</div><div class="qf-stat-valor">${nucleosOrdenados.length}</div></div>`);
-    if(mostraAtual) stats.push(`<div class="qf-stat"><div class="qf-stat-label">Atual — Granjeiros</div><div class="qf-stat-valor">${totAtualG}<small>/${totNecessidadeG}</small></div></div>`);
-    if(mostraAtual) stats.push(`<div class="qf-stat"><div class="qf-stat-label">Atual — Ajudantes</div><div class="qf-stat-valor">${totAtualA}<small>/${totNecessidadeA}</small></div></div>`);
-    if(mostraAtual) stats.push(`<div class="qf-stat ${faltaAtualTotal===0?'qf-stat-falta-zero':''}"><div class="qf-stat-label">Falta hoje</div><div class="qf-stat-valor">${faltaAtualTotal}</div></div>`);
-    if(mostraFuturo) stats.push(`<div class="qf-stat"><div class="qf-stat-label">Futuro — Granjeiros</div><div class="qf-stat-valor">${totFutG}<small>/${totNecessidadeG}</small></div></div>`);
-    if(mostraFuturo) stats.push(`<div class="qf-stat"><div class="qf-stat-label">Futuro — Ajudantes</div><div class="qf-stat-valor">${totFutA}<small>/${totNecessidadeA}</small></div></div>`);
-    if(mostraFuturo) stats.push(`<div class="qf-stat ${faltaFuturoTotal===0?'qf-stat-falta-zero':''}"><div class="qf-stat-label">Falta futuro</div><div class="qf-stat-valor">${faltaFuturoTotal}</div></div>`);
-    totaisEl.innerHTML = stats.join('');
-  }
-
   const btnExp = document.getElementById('qf-btnExpandirTodos');
   if(btnExp){
     const todosExpandidos = nucleosOrdenados.length>0 && nucleosOrdenados.every(n=>window.qfConsolidadoExpandido.has(n));
@@ -6332,6 +6310,7 @@ function renderQuadroConsolidado(){
   }
   const dataEl = document.getElementById('qf-print-data');
   if(dataEl) dataEl.textContent = 'Gerado em ' + new Date().toLocaleString('pt-BR');
+  if(typeof ativarArrastar==='function') ativarArrastar(gridEl.querySelector('.tabela-scroll'));
 }
 window.renderQuadroConsolidado = renderQuadroConsolidado;
 
@@ -6376,8 +6355,16 @@ if(btnImprimirQf){
     let estilo = document.getElementById('qf-print-orientacao-dinamica');
     if(!estilo){ estilo = document.createElement('style'); estilo.id = 'qf-print-orientacao-dinamica'; document.head.appendChild(estilo); }
     estilo.textContent = ehAmbos
-      ? `@media print{ @page{ size: landscape; margin: 10mm; } }`
-      : `@media print{ @page{ size: portrait; margin: 12mm; } }`;
+      ? `@media print{
+           @page{ size: landscape; margin: 10mm; }
+           #qf-tabelaConsolidada{ font-size: 8.5px !important; }
+           #qf-tabelaConsolidada th, #qf-tabelaConsolidada td{ padding: 3px 4px !important; }
+         }`
+      : `@media print{
+           @page{ size: portrait; margin: 12mm; }
+           #qf-tabelaConsolidada{ font-size: 11px !important; }
+           #qf-tabelaConsolidada th, #qf-tabelaConsolidada td{ padding: 6px 8px !important; }
+         }`;
     setTimeout(()=>window.print(), 150);
   });
 }
