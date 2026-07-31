@@ -948,7 +948,6 @@
   </nav>
 
   <div class="sidebar-rodape">
-    <div id="txtUsuarioLogado" style="font-size:11px;font-weight:700;color:#fff;margin-bottom:4px;word-break:break-word;"></div>
     <div id="txtUltimaAtualizacaoReal" style="font-size:9.5px;opacity:.85;margin-bottom:6px;line-height:1.4;"></div>
     Qualitti Alimentos
     <button class="logout-btn" id="btnSairApp" type="button">Sair</button>
@@ -1867,33 +1866,6 @@
       <div id="containerMortSemanal"></div>
     </div>
 
-    <div class="quadro">
-      <div class="quadro-header">
-        <h2>Lotes em andamento</h2>
-        <span class="info" id="infoQuadro"></span>
-      </div>
-      <div class="legenda-tendencia">
-        <strong>Tendência do aviário:</strong> compara este lote com a <em>média dos até 3 ciclos anteriores do mesmo aviário, na mesma idade em que este lote está agora</em> (não o resultado final do ciclo deles). Passe o mouse sobre o selo pra ver os detalhes.
-        <span class="leg-item"><span class="tendencia subiu">▲ subiu</span> = pior que a média recente</span>
-        <span class="leg-item"><span class="tendencia desceu">▼ caiu</span> = melhor que a média recente</span>
-        <span class="leg-item">em pontos percentuais (p.p.)</span>
-      </div>
-      <div class="tabela-scroll">
-        <table class="matriz-diaria">
-          <thead>
-            <tr>
-              <th></th>
-              <th>Núcleo</th>
-              <th>Aviário</th>
-              <th>Idade atual</th>
-              <th>% Mortalidade</th>
-              <th>Tendência do aviário</th>
-            </tr>
-          </thead>
-          <tbody id="corpoQuadro"></tbody>
-        </table>
-      </div>
-    </div>
 
     <div class="painel-grafico">
       <div class="painel-grafico-header">
@@ -1916,6 +1888,12 @@
       <div class="quadro-header">
         <h2>Ranking de mortalidade por granja</h2>
         <span class="info" id="infoRankingAndamento"></span>
+      </div>
+      <div class="legenda-tendencia">
+        <strong>Tendência do aviário:</strong> compara este lote com a <em>média dos até 3 ciclos anteriores do mesmo aviário, na mesma idade em que este lote está agora</em> (não o resultado final do ciclo deles). Passe o mouse sobre o selo pra ver os detalhes.
+        <span class="leg-item"><span class="tendencia subiu">▲ subiu</span> = pior que a média recente</span>
+        <span class="leg-item"><span class="tendencia desceu">▼ caiu</span> = melhor que a média recente</span>
+        <span class="leg-item">em pontos percentuais (p.p.)</span>
       </div>
       <div id="rankingNucleosAndamento" class="ranking-lista"></div>
     </div>
@@ -2401,75 +2379,6 @@ function selecionarPadrao(){
   lotesSelecionados = new Set(lotes.slice(0,6).map(l => l.loteId));
 }
 
-let nucleosRecolhidosQuadro = new Set();
-function renderQuadro(lotes){
-  const corpo = document.getElementById('corpoQuadro');
-  document.getElementById('infoQuadro').textContent = `${lotes.length} aviário(s) · lote mais recente de cada um · ordenado por maior % (${metricaLabel[metricaAtiva]}) · clique numa linha para incluir/remover do gráfico`;
-
-  if(lotes.length === 0){
-    corpo.innerHTML = `<tr><td colspan="6" style="text-align:center;color:var(--texto-suave);padding:24px;">Nenhum aviário encontrado com esse filtro.</td></tr>`;
-    return;
-  }
-
-  const porNucleo = new Map();
-  lotes.forEach(l => { if(!porNucleo.has(l.nucleo)) porNucleo.set(l.nucleo, []); porNucleo.get(l.nucleo).push(l); });
-
-  corpo.innerHTML = Array.from(porNucleo.keys()).map(nuc => {
-    const lotesNuc = porNucleo.get(nuc);
-    const rec = nucleosRecolhidosQuadro.has(nuc);
-    const mediaNuc = lotesNuc.reduce((s,l)=>s+l[metricaAtiva],0) / lotesNuc.length;
-    const linhaNucleo = `<tr class="linha-nucleo">
-      <td colspan="4"><span class="nuc-toggle" data-toggle-quadro-nucleo="${nuc}" style="cursor:pointer;">${rec?'▸':'▾'}</span> ${nomeNucleo(nuc)} <span style="font-weight:400;color:var(--texto-suave);">(${lotesNuc.length})</span></td>
-      <td colspan="2" style="text-align:right;font-weight:800;">${mediaNuc.toFixed(2)}% méd.</td>
-    </tr>`;
-    if(rec) return linhaNucleo;
-
-    const linhasLotes = lotesNuc.map((l, i) => {
-      const selecionado = lotesSelecionados.has(l.loteId);
-      const cor = selecionado ? corPorIndice(Array.from(lotesSelecionados).indexOf(l.loteId)) : '#D8D2C6';
-      const pct = l[metricaAtiva];
-      const tend = tendenciaDoLote(l, metricaAtiva);
-      let tendHtml;
-      if(!tend){
-        tendHtml = `<span class="tend-badge neutro" title="Primeiro ciclo desse aviário — ainda não há histórico pra comparar.">— 1º ciclo</span>`;
-      } else {
-        const tituloRef = `vs média ${tend.mediaAnterior.toFixed(2)}% dos últimos ${tend.nCiclos} ciclo${tend.nCiclos>1?'s':''} (na mesma idade)`;
-        if(tend.delta > 0.01){
-          tendHtml = `<span class="tend-badge subiu" title="${tituloRef}">▲ +${tend.delta.toFixed(2)} p.p.</span>`;
-        } else if(tend.delta < -0.01){
-          tendHtml = `<span class="tend-badge desceu" title="${tituloRef}">▼ ${tend.delta.toFixed(2)} p.p.</span>`;
-        } else {
-          tendHtml = `<span class="tend-badge neutro" title="${tituloRef}">≈ estável</span>`;
-        }
-      }
-      return `<tr class="${selecionado?'selecionada':''}" data-lote="${l.loteId}">
-        <td><span class="dotcor" style="background:${cor}"></span></td>
-        <td>${nomeNucleo(l.nucleo)}</td>
-        <td class="nome-lote">${l.aviario}</td>
-        <td>${l.idadeFinal}d</td>
-        <td><span class="pct-valor">${pct.toFixed(2)}%</span></td>
-        <td>${tendHtml}</td>
-      </tr>`;
-    }).join('');
-    return linhaNucleo + linhasLotes;
-  }).join('');
-
-  corpo.querySelectorAll('[data-toggle-quadro-nucleo]').forEach(el => {
-    el.addEventListener('click', () => {
-      const nuc = el.dataset.toggleQuadroNucleo;
-      if(nucleosRecolhidosQuadro.has(nuc)) nucleosRecolhidosQuadro.delete(nuc); else nucleosRecolhidosQuadro.add(nuc);
-      renderQuadro(lotes);
-    });
-  });
-  corpo.querySelectorAll('tr[data-lote]').forEach(tr => {
-    tr.addEventListener('click', () => {
-      const loteId = tr.dataset.lote;
-      if(lotesSelecionados.has(loteId)) lotesSelecionados.delete(loteId); else lotesSelecionados.add(loteId);
-      render();
-    });
-  });
-}
-
 const MORT_SEMANAL_CHECKPOINTS = [7,14,21,28,35];
 let mortSemanalRecolhidos = new Set();
 let mortSemanalPrimeiraRenderizacao = true; // por padrão, começa tudo recolhido
@@ -2879,7 +2788,7 @@ function calcularNucleosAndamento(){
     const somaContagem = lotes.reduce((s,l) => s + l[campo], 0);
     const somaAlojadas = lotes.reduce((s,l) => s + l.alojadas, 0);
     const media = somaContagem / somaAlojadas * 100;
-    const aviarios = lotes.map(l => ({ aviario:l.aviario, idade:l.idadeFinal, media:l[metricaAtiva] }))
+    const aviarios = lotes.map(l => ({ aviario:l.aviario, idade:l.idadeFinal, media:l[metricaAtiva], lote:l }))
       .sort((x,y) => y.media - x.media);
     return { nucleo, media, aviarios, nLotes: lotes.length };
   }).sort((a,b) => b.media - a.media);
@@ -2912,11 +2821,26 @@ function renderRankingNucleosAndamento(){
 
     const filhos = expandido ? `
       <div class="rank-filhos">
-        ${n.aviarios.map(a => `
+        ${n.aviarios.map(a => {
+          const tend = tendenciaDoLote(a.lote, metricaAtiva);
+          let tendHtml;
+          if(!tend){
+            tendHtml = `<span class="tend-badge neutro" title="Primeiro ciclo desse aviário — ainda não há histórico pra comparar.">— 1º ciclo</span>`;
+          } else {
+            const tituloRef = `vs média ${tend.mediaAnterior.toFixed(2)}% dos últimos ${tend.nCiclos} ciclo${tend.nCiclos>1?'s':''} (na mesma idade)`;
+            if(tend.delta > 0.01) tendHtml = `<span class="tend-badge subiu" title="${tituloRef}">▲ +${tend.delta.toFixed(2)} p.p.</span>`;
+            else if(tend.delta < -0.01) tendHtml = `<span class="tend-badge desceu" title="${tituloRef}">▼ ${tend.delta.toFixed(2)} p.p.</span>`;
+            else tendHtml = `<span class="tend-badge neutro" title="${tituloRef}">≈ estável</span>`;
+          }
+          return `
           <div class="rank-filho">
             <div><span class="rf-nome">${a.aviario}</span> <span class="rf-sub">· ${a.idade}d</span></div>
-            <span class="rf-pct" style="color:${corPorSeveridade(a.media, mediaEmpresa)}">${a.media.toFixed(2)}%</span>
-          </div>`).join('')}
+            <div style="display:flex;align-items:center;gap:10px;">
+              <span class="rf-pct" style="color:${corPorSeveridade(a.media, mediaEmpresa)}">${a.media.toFixed(2)}%</span>
+              ${tendHtml}
+            </div>
+          </div>`;
+        }).join('')}
       </div>` : '';
 
     return `
@@ -3703,7 +3627,6 @@ function renderCurvaNucleo(){
 function render(){
   if(abaAtiva === 'andamento'){
     const lotes = lotesFiltrados();
-    renderQuadro(lotes);
     const lotesAtivos = lotes.filter(l => lotesSelecionados.has(l.loteId));
     renderCards();
     renderMatrizDiaria();
@@ -5729,8 +5652,6 @@ function processarEstadoAuth(user){
           atualizarVisibilidadeSecoesAdmin();
         }).catch(()=>{ atualizarBotoesModulosPermissao(); });
       }
-      const elUsuario = document.getElementById('txtUsuarioLogado');
-      if(elUsuario) elUsuario.textContent = window.souAdminPrincipal ? '👤 ' + user.email + ' (admin)' : '👤 ' + user.email;
       registrarAcesso(user);
       setTimeout(()=>window.dispatchEvent(new Event('resize')), 80);
     });
