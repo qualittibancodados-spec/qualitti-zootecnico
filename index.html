@@ -183,6 +183,8 @@
   .qf-grupo-futuro-th{ background:#FFF4E1 !important; color:#8A6200 !important; }
   .qf-grupo-atual-td{ background:#F5FAFF; }
   .qf-grupo-futuro-td{ background:#FFFBF2; }
+  .qf-col-total-final{ background:#FBE3E1 !important; color:var(--vermelho-escuro) !important; border-left:2px solid var(--vermelho) !important; font-family:'Sora',sans-serif; }
+  th.qf-col-total-final{ font-weight:800; }
 
   /* ===== Quadro de Funcionários — tabela nova, mais enxuta e à prova de impressão ===== */
   .qf-tabela-nova{ table-layout:fixed; width:100%; }
@@ -2496,8 +2498,8 @@ function renderMortalidadesSemanal(){
     ${subColsNatural}
     <th class="qf-grupo-futuro-th" style="cursor:pointer;" id="mortSemToggleElim">Eliminada <span style="font-weight:900;">${mortSemanalElimExpandido?'−':'+'}</span></th>
     ${subColsElim}
-    <th style="cursor:pointer;" id="mortSemToggleTotal">Total <span style="font-weight:900;">${mortSemanalTotalExpandido?'−':'+'}</span></th>
     ${subColsTotal}
+    <th class="qf-col-total-final" style="cursor:pointer;" id="mortSemToggleTotal">Total <span style="font-weight:900;">${mortSemanalTotalExpandido?'−':'+'}</span></th>
   </tr></thead><tbody>`;
 
   Array.from(porNucleo.keys()).sort().forEach(nuc=>{
@@ -2536,8 +2538,8 @@ function renderMortalidadesSemanal(){
       ${subValoresNaturalNuc}
       <td class="qf-grupo-futuro-td" style="font-weight:800;${!naturalDominaNuc?'color:var(--vermelho-alerta);':''}">${mediaElim.toFixed(2)}%${!naturalDominaNuc?' ▲':''}</td>
       ${subValoresElimNuc}
-      <td style="font-weight:800;">${mediaNuc.toFixed(2)}%</td>
       ${subValoresTotalNuc}
+      <td class="qf-col-total-final" style="font-weight:800;">${mediaNuc.toFixed(2)}%</td>
     </tr>`;
 
     if(!rec){
@@ -2563,8 +2565,8 @@ function renderMortalidadesSemanal(){
           ${subValoresNatural}
           <td class="qf-grupo-futuro-td" style="${!naturalDomina?'color:var(--vermelho-alerta);font-weight:700;':''}">${calc.pctElim.toFixed(2)}%${!naturalDomina?' ▲':''}</td>
           ${subValoresElim}
-          <td style="font-weight:700;">${calc.totalGeral.toFixed(2).replace('.',',')}%</td>
           ${subValoresTotal}
+          <td class="qf-col-total-final" style="font-weight:700;">${calc.totalGeral.toFixed(2).replace('.',',')}%</td>
         </tr>`;
       });
     }
