@@ -978,6 +978,7 @@
   </nav>
 
   <div class="sidebar-rodape">
+    <div id="txtUsuarioLogado" style="font-size:11px;font-weight:700;color:#fff;margin-bottom:4px;word-break:break-word;"></div>
     <div id="txtUltimaAtualizacaoReal" style="font-size:9.5px;opacity:.85;margin-bottom:6px;line-height:1.4;"></div>
     Qualitti Alimentos
     <button class="logout-btn" id="btnSairApp" type="button">Sair</button>
@@ -1504,7 +1505,7 @@
       <div data-aba-reg-view="combustivel" style="display:none;">
         <button class="btn-recolher" id="comb-btnImportarHistorico" type="button" style="display:none;margin-bottom:16px;background:var(--dourado);border-color:var(--dourado);">Importar histórico do Manus (uma vez)</button>
 
-        <div class="painel comb-card">
+        <div class="painel comb-card" id="comb-painelFormulario">
           <div class="comb-secao">
             <div class="comb-secao-titulo">📍 Localização</div>
             <div class="campo"><label>Núcleo <span style="color:var(--vermelho-alerta);">*</span></label><select id="comb-nucleo" required><option value="">Selecione o núcleo...</option></select></div>
@@ -1598,7 +1599,10 @@
         <h2>Buscar produto</h2>
         <span class="info" id="produtos-infoResultados"></span>
       </div>
-      <input type="text" id="produtos-inputBusca" placeholder="Digite o nome ou código do produto..." style="width:100%;padding:14px 16px;border-radius:10px;border:1.5px solid var(--borda);font-size:15px;font-family:inherit;box-sizing:border-box;margin:14px 0 14px;">
+      <div style="display:flex;gap:10px;margin:14px 0 14px;">
+        <input type="text" id="produtos-inputBusca" placeholder="Digite o nome ou código do produto..." style="flex:1;padding:14px 16px;border-radius:10px;border:1.5px solid var(--borda);font-size:15px;font-family:inherit;box-sizing:border-box;">
+        <button class="btn-recolher" id="produtos-btnLimparBusca" type="button">Limpar</button>
+      </div>
       <p class="nota" style="margin:0 0 18px;color:#8A6200;background:#FFF4E1;border:1px solid #F0CB7A;border-radius:9px;padding:10px 14px;font-size:12px;">⚠️ Os códigos podem sofrer alterações constantes. Caso tenha dúvida em algum código, o ideal é consultar o almoxarifado para confirmação. Não nos responsabilizamos por pedidos incorretos.</p>
       <div id="produtos-listaResultados"></div>
     </div>
@@ -1754,6 +1758,7 @@
             <div class="campo" style="flex:1;min-width:220px;"><label>E-mail (já cadastrado em "E-mails autorizados")</label><select id="emailPromover" required style="width:100%;padding:10px 12px;border-radius:9px;border:1.5px solid var(--borda);font-size:14px;font-family:inherit;box-sizing:border-box;"><option value="">Selecione...</option></select></div>
             <label style="display:flex;align-items:center;gap:6px;font-size:13px;font-weight:600;"><input type="checkbox" id="permMetas" style="width:16px;height:16px;"> Pode gerenciar metas</label>
             <label style="display:flex;align-items:center;gap:6px;font-size:13px;font-weight:600;"><input type="checkbox" id="permUsuarios" style="width:16px;height:16px;"> Pode gerenciar usuários</label>
+            <label style="display:flex;align-items:center;gap:6px;font-size:13px;font-weight:600;"><input type="checkbox" id="permCombustivel" style="width:16px;height:16px;"> Pode lançar Requisição de Combustível</label>
             <div style="width:100%;">
               <label style="display:block;font-size:11.5px;font-weight:700;color:var(--texto-suave);text-transform:uppercase;letter-spacing:.03em;margin-bottom:6px;">Pode editar o Quadro de Funcionários destes núcleos:</label>
               <div id="permNucleosQuadro" style="display:flex;flex-wrap:wrap;gap:10px;"></div>
@@ -2205,6 +2210,11 @@ async function compartilharTabelaWhatsApp(tabelaId, nomeArquivo, btnClicado){
   const textoOriginal = btnClicado ? btnClicado.innerHTML : null;
   if(btnClicado) btnClicado.innerHTML = 'Gerando imagem...';
 
+  // remove temporariamente qualquer rolagem interna (ex: .tabela-scroll) que esconderia parte do conteúdo da "foto"
+  const scrollsInternos = Array.from(tabela.querySelectorAll('.tabela-scroll'));
+  const estilosOriginais = scrollsInternos.map(el => ({ overflow: el.style.overflow, width: el.style.width }));
+  scrollsInternos.forEach(el => { el.style.overflow = 'visible'; el.style.width = 'max-content'; });
+
   try{
     const canvas = await html2canvas(tabela, {
       backgroundColor:'#ffffff', scale:2,
@@ -2229,6 +2239,9 @@ async function compartilharTabelaWhatsApp(tabelaId, nomeArquivo, btnClicado){
   }catch(e){
     if(btnClicado) btnClicado.innerHTML = textoOriginal;
     alert('Não foi possível gerar a imagem: ' + e.message);
+  }finally{
+    // restaura a rolagem normal da tela depois da captura
+    scrollsInternos.forEach((el,i) => { el.style.overflow = estilosOriginais[i].overflow; el.style.width = estilosOriginais[i].width; });
   }
 }
 
@@ -5543,7 +5556,7 @@ const appRoot = document.getElementById('appRoot');
 const ADMIN_EMAIL = 'avicultura05@qualitti.com.br';
 const NUCLEOS_QUADRO = ['Aeroporto','Aroeira','Engopa','Flamboyant','Paraiso 01','Paraiso 02','Paraiso 03','Paraiso 04','Santa Rosa','Valzinho','Vinagre 01','Vinagre 02','Vinagre 03'];
 window.souAdminPrincipal = false;
-window.minhasPermissoes = {metas:false, usuarios:false, produtos:false, energiaSolar:false, funcionariosNucleos:[], modulosPermitidos: null};
+window.minhasPermissoes = {metas:false, usuarios:false, produtos:false, energiaSolar:false, combustivel:false, funcionariosNucleos:[], modulosPermitidos: null};
 window.qfConsolidadoExpandido = new Set();
 
 function mensagemErroAuth(err){
@@ -5729,7 +5742,7 @@ function processarEstadoAuth(user){
       appRoot.style.display = '';
 
       if(window.souAdminPrincipal){
-        window.minhasPermissoes = {metas:true, usuarios:true, produtos:true, energiaSolar:true, funcionariosNucleos: NUCLEOS_QUADRO.slice(), modulosPermitidos: null};
+        window.minhasPermissoes = {metas:true, usuarios:true, produtos:true, energiaSolar:true, combustivel:true, funcionariosNucleos: NUCLEOS_QUADRO.slice(), modulosPermitidos: null};
         atualizarBotoesModulosPermissao();
         atualizarVisibilidadeSecoesAdmin();
       } else {
@@ -5738,14 +5751,16 @@ function processarEstadoAuth(user){
             const perm = doc.data().permissoes || {};
             // modulosPermitidos: null = sem restrição (vê tudo, comportamento padrão). Array com itens = só vê o que estiver na lista.
             const modulos = (perm.modulosPermitidos && perm.modulosPermitidos.length) ? perm.modulosPermitidos : null;
-            window.minhasPermissoes = {metas: !!perm.metas, usuarios: !!perm.usuarios, produtos: !!perm.produtos, energiaSolar: !!perm.energiaSolar, funcionariosNucleos: perm.funcionariosNucleos || [], modulosPermitidos: modulos};
+            window.minhasPermissoes = {metas: !!perm.metas, usuarios: !!perm.usuarios, produtos: !!perm.produtos, energiaSolar: !!perm.energiaSolar, combustivel: !!perm.combustivel, funcionariosNucleos: perm.funcionariosNucleos || [], modulosPermitidos: modulos};
           } else {
-            window.minhasPermissoes = {metas:false, usuarios:false, produtos:false, energiaSolar:false, funcionariosNucleos:[], modulosPermitidos: null};
+            window.minhasPermissoes = {metas:false, usuarios:false, produtos:false, energiaSolar:false, combustivel:false, funcionariosNucleos:[], modulosPermitidos: null};
           }
           atualizarBotoesModulosPermissao();
           atualizarVisibilidadeSecoesAdmin();
         }).catch(()=>{ atualizarBotoesModulosPermissao(); });
       }
+      const elUsuario = document.getElementById('txtUsuarioLogado');
+      if(elUsuario) elUsuario.textContent = window.souAdminPrincipal ? '👤 ' + user.email + ' (admin)' : '👤 ' + user.email;
       registrarAcesso(user);
       setTimeout(()=>window.dispatchEvent(new Event('resize')), 80);
     });
@@ -6055,20 +6070,22 @@ if(formPromoverAdmin){
     const email = document.getElementById('emailPromover').value.trim().toLowerCase();
     const permMetas = document.getElementById('permMetas').checked;
     const permUsuarios = document.getElementById('permUsuarios').checked;
+    const permCombustivel = document.getElementById('permCombustivel').checked;
     const nucleosSelecionados = Array.from(document.querySelectorAll('.qf-perm-nucleo-check:checked')).map(el=>el.value);
     const modulosSelecionados = Array.from(document.querySelectorAll('.perm-modulo-check:checked')).map(el=>el.value);
     if(!email){ erroEl.textContent = 'Selecione um e-mail.'; return; }
     if(email === ADMIN_EMAIL){ erroEl.textContent = 'Esse já é o e-mail do administrador principal.'; return; }
-    if(!permMetas && !permUsuarios && nucleosSelecionados.length===0 && modulosSelecionados.length===0){ erroEl.textContent = 'Marque ao menos uma permissão ou módulo.'; return; }
+    if(!permMetas && !permUsuarios && !permCombustivel && nucleosSelecionados.length===0 && modulosSelecionados.length===0){ erroEl.textContent = 'Marque ao menos uma permissão ou módulo.'; return; }
     const btn = formPromoverAdmin.querySelector('button[type="submit"]');
     btn.disabled = true; btn.textContent = 'Salvando...';
     try{
-      await db.collection('admins').doc(email).set({ email, permissoes: {metas: permMetas, usuarios: permUsuarios, funcionariosNucleos: nucleosSelecionados, modulosPermitidos: modulosSelecionados} });
+      await db.collection('admins').doc(email).set({ email, permissoes: {metas: permMetas, usuarios: permUsuarios, combustivel: permCombustivel, funcionariosNucleos: nucleosSelecionados, modulosPermitidos: modulosSelecionados} });
       erroEl.style.color = 'var(--verde-ok)';
       erroEl.textContent = 'Permissões salvas com sucesso!';
       document.getElementById('emailPromover').value='';
       document.getElementById('permMetas').checked=false;
       document.getElementById('permUsuarios').checked=false;
+      document.getElementById('permCombustivel').checked=false;
       document.querySelectorAll('.qf-perm-nucleo-check').forEach(el=>el.checked=false);
       document.querySelectorAll('.perm-modulo-check').forEach(el=>el.checked=false);
       carregarListaAdmins();
@@ -6715,6 +6732,11 @@ async function iniciarProdutos(){
 
   const input = document.getElementById('produtos-inputBusca');
   input.addEventListener('input', ()=> produtosRenderResultados(input.value));
+  document.getElementById('produtos-btnLimparBusca').addEventListener('click', ()=>{
+    input.value = '';
+    produtosRenderResultados('');
+    input.focus();
+  });
   document.getElementById('produtos-listaResultados').innerHTML = '<div class="vazio">Digite algo pra buscar um produto.</div>';
 
   const btnImportar = document.getElementById('produtos-btnImportar');
@@ -7135,7 +7157,7 @@ function energiaSolarRenderRelatorio(){
     const producaoTotal2Dias = prodHoje + prodOntem;
     const metaTotal2Dias = metaHoje + metaOntem;
     const pct2Dias = metaTotal2Dias>0 ? (producaoTotal2Dias/metaTotal2Dias*100) : null;
-    let statusHtml = '<span style="color:var(--verde-ok);font-weight:700;">✅ Ideal</span>';
+    let statusHtml = `<span style="color:var(--verde-ok);font-weight:700;">✅ Ideal ${pct2Dias!=null?pct2Dias.toFixed(0)+'%':''}</span>`;
     if(metaHoje>0 && prodHoje===0) statusHtml = '<span style="color:#8A1F1F;background:#FDECEC;border-radius:20px;padding:3px 10px;font-weight:700;">🔴 Zerada hoje</span>';
     else if(pct2Dias!=null && pct2Dias < ENERGIA_SOLAR_LIMIAR_IDEAL*100) statusHtml = `<span style="color:#8A6200;background:#FFF4E1;border-radius:20px;padding:3px 10px;font-weight:700;">🟡 ${pct2Dias.toFixed(0)}%</span>`;
     return `<tr>
@@ -7224,15 +7246,23 @@ let combustivelDados = [];
 let combustivelGalpoesEscolhidos = new Set();
 
 async function iniciarCombustivel(){
-  const selNucleo = document.getElementById('comb-nucleo');
-  selNucleo.innerHTML = '<option value="">Selecione o núcleo...</option>' + NUCLEOS_QUADRO.map(n=>`<option value="${n}">${n}</option>`).join('');
-  const dataEl = document.getElementById('comb-data');
-  if(!dataEl.value) dataEl.value = new Date().toISOString().slice(0,10);
+  const podeLancar = window.souAdminPrincipal || window.minhasPermissoes.combustivel;
+  const painelForm = document.getElementById('comb-painelFormulario');
 
-  selNucleo.addEventListener('change', ()=> combustivelAtualizarGalpoes());
-  document.getElementById('comb-ratear').addEventListener('change', ()=> combustivelAtualizarGalpoes());
-  document.getElementById('comb-btnRegistrar').addEventListener('click', combustivelRegistrar);
-  document.getElementById('comb-btnCancelarEdicao').addEventListener('click', combustivelSairModoEdicao);
+  if(podeLancar){
+    const selNucleo = document.getElementById('comb-nucleo');
+    selNucleo.innerHTML = '<option value="">Selecione o núcleo...</option>' + NUCLEOS_QUADRO.map(n=>`<option value="${n}">${n}</option>`).join('');
+    const dataEl = document.getElementById('comb-data');
+    if(!dataEl.value) dataEl.value = new Date().toISOString().slice(0,10);
+
+    selNucleo.addEventListener('change', ()=> combustivelAtualizarGalpoes());
+    document.getElementById('comb-ratear').addEventListener('change', ()=> combustivelAtualizarGalpoes());
+    document.getElementById('comb-btnRegistrar').addEventListener('click', combustivelRegistrar);
+    document.getElementById('comb-btnCancelarEdicao').addEventListener('click', combustivelSairModoEdicao);
+  } else {
+    painelForm.innerHTML = '<p class="nota" style="margin:0;">🔒 Só quem foi autorizado pelo administrador pode lançar uma nova requisição. Fale com o administrador do painel se precisar desse acesso.</p>';
+  }
+
   document.getElementById('comb-btnFecharTicket').addEventListener('click', combustivelFecharTicket);
   document.getElementById('comb-btnFecharTicket2').addEventListener('click', combustivelFecharTicket);
   document.getElementById('comb-btnImprimirTicket').addEventListener('click', ()=> window.print());
