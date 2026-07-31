@@ -183,6 +183,27 @@
   .qf-grupo-futuro-th{ background:#FFF4E1 !important; color:#8A6200 !important; }
   .qf-grupo-atual-td{ background:#F5FAFF; }
   .qf-grupo-futuro-td{ background:#FFFBF2; }
+
+  /* ===== Quadro de Funcionários — tabela nova, mais enxuta e à prova de impressão ===== */
+  .qf-tabela-nova{ table-layout:fixed; width:100%; }
+  .qf-tabela-nova th, .qf-tabela-nova td{ white-space:normal !important; word-break:break-word; vertical-align:middle; }
+  .qf-tabela-nova th.rowhead{ width:16%; text-align:left; }
+  .qf-tabela-nova th:nth-child(2), .qf-tabela-nova td:nth-child(2){ width:11%; }
+  .qf-tabela-nova th.qf-col-atual, .qf-tabela-nova td.qf-col-atual{ border-left:2px solid #CFE3F7; }
+  .qf-tabela-nova th.qf-col-futuro, .qf-tabela-nova td.qf-col-futuro{ border-left:2px solid #F0DFB0; }
+  .qf-tabela-nova th.qf-col-atual{ color:#1D5A96; background:#F5FAFF; }
+  .qf-tabela-nova th.qf-col-futuro{ color:#8A6200; background:#FFFBF2; }
+  .qf-tabela-nova td.qf-cel-nome{ text-align:left; line-height:1.7; }
+  .qf-tabela-nova td.qf-cel-aviario{ text-align:left; font-weight:700; color:var(--texto-suave); background:#FAFAF8; }
+  .qf-tabela-nova .qf-cons-ok{ color:var(--verde-ok); font-weight:700; }
+  .qf-tabela-nova .qf-cons-falta{ color:var(--vermelho-alerta); font-weight:800; }
+  .qf-tabela-nova .qf-linha-nucleo-resumo th.rowhead{ background:#FFF4E1; color:var(--vermelho-escuro); border-left:3px solid #D9A441; }
+  .qf-tabela-nova .qf-linha-nucleo-resumo td{ font-weight:700; }
+  .qf-tabela-nova .qf-linha-total-geral th, .qf-tabela-nova .qf-linha-total-geral td{ border-top:2.5px solid var(--vermelho); font-weight:800; }
+  .qf-tabela-nova .qf-linha-total-geral th.rowhead{ background:#FBE3E1; color:var(--vermelho-escuro); }
+  .qf-tabela-nova .qf-linha-aviario-detalhe td{ font-size:12.5px; padding-top:8px; padding-bottom:8px; }
+  .qf-nome-vago{ color:var(--texto-suave); font-style:italic; }
+  .qf-nome-saindo-detalhe{ text-decoration:line-through; color:var(--vermelho-alerta); }
   .qf-legenda-atual-futuro{ display:flex; gap:10px; align-items:center; margin-bottom:14px; flex-wrap:wrap; }
   .qf-toggle-visao{ display:flex; align-items:center; gap:7px; font-size:12.5px; font-weight:700; padding:9px 16px; border-radius:10px; border:1.5px solid var(--borda); background:var(--card); color:var(--texto-suave); cursor:pointer; transition:.15s; }
   .qf-toggle-visao:hover{ border-color:var(--dourado); }
@@ -768,10 +789,11 @@
   #qf-print-header .qf-print-titulos h1{ font-size:16px; margin:0; font-family:'Sora',sans-serif; }
   #qf-print-header .qf-print-titulos p{ font-size:10px; margin:2px 0 0; color:#666; }
   #qf-scrollConsolidada{ overflow:visible !important; width:100% !important; }
-  #qf-tabelaConsolidada{ width:100% !important; table-layout:fixed; font-size:9px; }
-  #qf-tabelaConsolidada th, #qf-tabelaConsolidada td{ padding:4px 5px !important; overflow-wrap:break-word; word-break:break-word; white-space:normal !important; vertical-align:top; }
-  #qf-tabelaConsolidada th:first-child, #qf-tabelaConsolidada td:first-child{ width:16%; text-align:left !important; white-space:normal !important; }
-  #qf-tabelaConsolidada .qf-cel-nome{ text-align:left !important; font-size:8px !important; line-height:1.3; }
+  #qf-tabelaConsolidada{ width:100% !important; table-layout:fixed; font-size:10px; }
+  #qf-tabelaConsolidada th, #qf-tabelaConsolidada td{ padding:5px 6px !important; overflow-wrap:break-word; word-break:break-word; white-space:normal !important; vertical-align:top; }
+  #qf-tabelaConsolidada th:first-child, #qf-tabelaConsolidada td:first-child{ width:15%; text-align:left !important; white-space:normal !important; }
+  #qf-tabelaConsolidada .qf-cel-nome{ text-align:left !important; font-size:9.5px !important; line-height:1.5; }
+  #qf-tabelaConsolidada .qf-cel-aviario{ text-align:left !important; font-size:9.5px !important; }
   /* reforço estrutural (funciona mesmo se a impressora não reproduzir cor) */
   .qf-linha-nucleo-resumo th, .qf-linha-nucleo-resumo td{ border-top:2px solid #333 !important; font-weight:800 !important; }
   .qf-linha-aviario-detalhe td{ font-style:italic; }
@@ -2430,6 +2452,14 @@ let mortSemanalNaturalExpandido = false;
 let mortSemanalElimExpandido = false;
 let mortSemanalTotalExpandido = true;
 
+function mortSemanal_mapaIncubatorios(){
+  const mapa = new Map();
+  RESUMO_LOTES.filter(l => l.situacao === 'Aberto').forEach(l => {
+    mapa.set(l.nucleo + '|' + l.aviario, l.incubatorio || '—');
+  });
+  return mapa;
+}
+
 function renderMortalidadesSemanal(){
   const nucSel = document.getElementById('fNucleo').value;
   const lotes = MORT_DIARIA.filter(l => {
@@ -2441,7 +2471,8 @@ function renderMortalidadesSemanal(){
   const info = document.getElementById('infoMortSemanal');
   if(!lotes.length){ cont.innerHTML = '<div class="vazio">Nenhum aviário em andamento com esse filtro.</div>'; info.textContent=''; return; }
 
-  const calculados = lotes.map(l => ({ l, calc: mortSemanal_calcularPorLote(l) }));
+  const mapaIncub = mortSemanal_mapaIncubatorios();
+  const calculados = lotes.map(l => ({ l, calc: mortSemanal_calcularPorLote(l), incubatorio: mapaIncub.get(l.nucleo + '|' + l.aviario) || '—' }));
   info.textContent = `${calculados.length} aviário(s)`;
 
   const porNucleo = new Map();
@@ -2458,6 +2489,8 @@ function renderMortalidadesSemanal(){
 
   let html = `<div class="tabela-scroll"><table class="matriz-diaria"><thead><tr>
     <th class="rowhead">Núcleo / Aviário</th>
+    <th>Incubatório</th>
+
     <th>Idade atual</th>
     <th class="qf-grupo-atual-th" style="cursor:pointer;" id="mortSemToggleNatural">Natural <span style="font-weight:900;">${mortSemanalNaturalExpandido?'−':'+'}</span></th>
     ${subColsNatural}
@@ -2492,8 +2525,12 @@ function renderMortalidadesSemanal(){
       return `<td style="font-weight:800;">${media!=null?media.toFixed(2).replace('.',',')+'%':'–'}</td>`;
     }).join('') : '';
 
+    const incubatoriosNuc = Array.from(new Set(itens.map(c=>c.incubatorio)));
+    const textoIncubNuc = incubatoriosNuc.length===1 ? incubatoriosNuc[0] : `${incubatoriosNuc.length} incubatórios`;
+
     html += `<tr class="linha-nucleo">
       <th class="rowhead"><span class="nuc-toggle" data-toggle-mort-sem="${nuc}" style="cursor:pointer;">${rec?'▸':'▾'}</span> ${nomeNucleo(nuc)} (${itens.length})</th>
+      <td style="font-size:11px;color:var(--texto-suave);">${textoIncubNuc}</td>
       <td style="font-weight:800;">${mediaIdade.toFixed(0)}d</td>
       <td class="qf-grupo-atual-td" style="font-weight:800;${naturalDominaNuc?'color:var(--vermelho-alerta);':''}">${mediaNatural.toFixed(2)}%${naturalDominaNuc?' ▲':''}</td>
       ${subValoresNaturalNuc}
@@ -2504,7 +2541,7 @@ function renderMortalidadesSemanal(){
     </tr>`;
 
     if(!rec){
-      itens.forEach(({l, calc})=>{
+      itens.forEach(({l, calc, incubatorio})=>{
         const naturalDomina = calc.pctMorteNatural >= calc.pctElim;
         const subValoresNatural = mortSemanalNaturalExpandido ? MORT_SEMANAL_CHECKPOINTS.map(d=>{
           const v = calc.porCheckpointNatural[d];
@@ -2520,6 +2557,7 @@ function renderMortalidadesSemanal(){
         }).join('') : '';
         html += `<tr>
           <th class="rowhead av">${l.aviario}</th>
+          <td style="font-size:11px;color:var(--texto-suave);">${incubatorio}</td>
           <td>${calc.idadeAtual}d</td>
           <td class="qf-grupo-atual-td" style="${naturalDomina?'color:var(--vermelho-alerta);font-weight:700;':''}">${calc.pctMorteNatural.toFixed(2)}%${naturalDomina?' ▲':''}</td>
           ${subValoresNatural}
@@ -6196,7 +6234,7 @@ function renderQuadroConsolidado(){
   const totaisEl = document.getElementById('qf-resumoTotais');
   const gridEl = document.getElementById('qf-scrollConsolidada');
   if(!gridEl) return;
-  if(totaisEl) totaisEl.innerHTML = ''; // sem cards soltos no topo — os totais ficam na própria tabela
+  if(totaisEl) totaisEl.innerHTML = '';
   const visao = window.qfVisaoAtiva;
   const mostraAtual = visao==='ambos' || visao==='atual';
   const mostraFuturo = visao==='ambos' || visao==='futuro';
@@ -6214,20 +6252,13 @@ function renderQuadroConsolidado(){
 
   let totNecessidadeG=0, totNecessidadeA=0, totAtualG=0, totAtualA=0, totFutG=0, totFutA=0;
 
-  const colsAtual = mostraAtual ? `<th colspan="3" class="qf-grupo-atual-th">Quadro Atual (hoje)</th>` : '';
-  const colsFuturo = mostraFuturo ? `<th colspan="3" class="qf-grupo-futuro-th">Quadro Futuro (pós-saídas)</th>` : '';
-  const thead = `<thead>
-    <tr>
-      <th class="rowhead" rowspan="2">Núcleo</th>
-      <th rowspan="2">Necessidade</th>
-      ${colsAtual}
-      ${colsFuturo}
-    </tr>
-    <tr>
-      ${mostraAtual?'<th class="qf-grupo-atual-th">Granjeiros</th><th class="qf-grupo-atual-th">Ajudantes</th><th class="qf-grupo-atual-th">Falta</th>':''}
-      ${mostraFuturo?'<th class="qf-grupo-futuro-th">Granjeiros</th><th class="qf-grupo-futuro-th">Ajudantes</th><th class="qf-grupo-futuro-th">Falta</th>':''}
-    </tr>
-  </thead>`;
+  // cabeçalho enxuto: uma coluna por bloco (Atual/Futuro), texto combinado "G x/y · A x/y" em vez de 3 colunas cada
+  const thead = `<thead><tr>
+    <th class="rowhead">Núcleo</th>
+    <th>Necessidade</th>
+    ${mostraAtual?'<th class="qf-col-atual">Quadro Atual (hoje)</th><th class="qf-col-atual">Falta hoje</th>':''}
+    ${mostraFuturo?'<th class="qf-col-futuro">Quadro Futuro (pós-saídas)</th><th class="qf-col-futuro">Falta futuro</th>':''}
+  </tr></thead>`;
 
   const linhas = nucleosOrdenados.map(nuc=>{
     const postos = porNucleo.get(nuc);
@@ -6238,14 +6269,21 @@ function renderQuadroConsolidado(){
     const expandido = window.qfConsolidadoExpandido.has(nuc);
     const necessidadeTexto = r.necessidadeGranjeiro===r.necessidadeAjudante ? r.necessidadeGranjeiro : `${r.necessidadeGranjeiro}g / ${r.necessidadeAjudante}a`;
 
+    const gAtualOk = r.atualGranj>=r.necessidadeGranjeiro, aAtualOk = r.atualAjud>=r.necessidadeAjudante;
+    const gFutOk = r.futuroGranj>=r.necessidadeGranjeiro, aFutOk = r.futuroAjud>=r.necessidadeAjudante;
+
     const celAtual = mostraAtual ? `
-      <td class="${r.atualGranj>=r.necessidadeGranjeiro?'qf-cons-ok':'qf-cons-falta'}">${r.atualGranj}/${r.necessidadeGranjeiro}${r.atualGranj<r.necessidadeGranjeiro?' ▲':''}</td>
-      <td class="${r.atualAjud>=r.necessidadeAjudante?'qf-cons-ok':'qf-cons-falta'}">${r.atualAjud}/${r.necessidadeAjudante}${r.atualAjud<r.necessidadeAjudante?' ▲':''}</td>
-      <td class="${faltaAtual>0?'qf-cons-falta':'qf-cons-ok'}" style="font-weight:800;">${faltaAtual}</td>` : '';
+      <td class="qf-col-atual">
+        <span class="${gAtualOk?'qf-cons-ok':'qf-cons-falta'}">G ${r.atualGranj}/${r.necessidadeGranjeiro}</span> ·
+        <span class="${aAtualOk?'qf-cons-ok':'qf-cons-falta'}">A ${r.atualAjud}/${r.necessidadeAjudante}</span>
+      </td>
+      <td class="qf-col-atual ${faltaAtual>0?'qf-cons-falta':'qf-cons-ok'}" style="font-weight:800;">${faltaAtual}</td>` : '';
     const celFuturo = mostraFuturo ? `
-      <td class="${r.futuroGranj>=r.necessidadeGranjeiro?'qf-cons-ok':'qf-cons-falta'}">${r.futuroGranj}/${r.necessidadeGranjeiro}${r.futuroGranj<r.necessidadeGranjeiro?' ▲':''}</td>
-      <td class="${r.futuroAjud>=r.necessidadeAjudante?'qf-cons-ok':'qf-cons-falta'}">${r.futuroAjud}/${r.necessidadeAjudante}${r.futuroAjud<r.necessidadeAjudante?' ▲':''}</td>
-      <td class="${faltaFuturo>0?'qf-cons-falta':'qf-cons-ok'}" style="font-weight:800;">${faltaFuturo}</td>` : '';
+      <td class="qf-col-futuro">
+        <span class="${gFutOk?'qf-cons-ok':'qf-cons-falta'}">G ${r.futuroGranj}/${r.necessidadeGranjeiro}</span> ·
+        <span class="${aFutOk?'qf-cons-ok':'qf-cons-falta'}">A ${r.futuroAjud}/${r.necessidadeAjudante}</span>
+      </td>
+      <td class="qf-col-futuro ${faltaFuturo>0?'qf-cons-falta':'qf-cons-ok'}" style="font-weight:800;">${faltaFuturo}</td>` : '';
 
     const linhaPrincipal = `<tr class="qf-linha-nucleo-resumo">
       <th class="rowhead qf-nucleo-toggle" data-toggle-nucleo-cons="${nuc}">${expandido?'▾':'▸'} ${nomeNucleo(nuc)}</th>
@@ -6264,11 +6302,10 @@ function renderQuadroConsolidado(){
         const aAtualTxt = temA ? p.ajudante : '<span class="qf-nome-vago">vago</span>';
         const gFuturoTxt = temG ? (p.granjeiroSaindo ? `<span class="qf-nome-saindo-detalhe">${p.granjeiro}</span>` : p.granjeiro) : '<span class="qf-nome-vago">vago</span>';
         const aFuturoTxt = temA ? (p.ajudanteSaindo ? `<span class="qf-nome-saindo-detalhe">${p.ajudante}</span>` : p.ajudante) : '<span class="qf-nome-vago">vago</span>';
-        const detAtual = mostraAtual ? `<td class="qf-cel-nome qf-grupo-atual-td" colspan="2">${gAtualTxt} · ${aAtualTxt}</td><td class="qf-grupo-atual-td"></td>` : '';
-        const detFuturo = mostraFuturo ? `<td class="qf-cel-nome qf-grupo-futuro-td" colspan="2">${gFuturoTxt} · ${aFuturoTxt}</td><td class="qf-grupo-futuro-td"></td>` : '';
+        const detAtual = mostraAtual ? `<td class="qf-cel-nome qf-col-atual" colspan="2">Granjeiro: ${gAtualTxt}<br>Ajudante: ${aAtualTxt}</td>` : '';
+        const detFuturo = mostraFuturo ? `<td class="qf-cel-nome qf-col-futuro" colspan="2">Granjeiro: ${gFuturoTxt}<br>Ajudante: ${aFuturoTxt}</td>` : '';
         return `<tr class="qf-linha-aviario-detalhe">
-          <td>Aviários ${p.aviarios}</td>
-          <td></td>
+          <td class="qf-cel-aviario" colspan="2">Aviários ${p.aviarios}</td>
           ${detAtual}
           ${detFuturo}
         </tr>`;
@@ -6281,13 +6318,11 @@ function renderQuadroConsolidado(){
   const faltaFuturoTotal = Math.max(0,totNecessidadeG-totFutG) + Math.max(0,totNecessidadeA-totFutA);
   const necessidadeTotalTexto = totNecessidadeG===totNecessidadeA ? totNecessidadeG : `${totNecessidadeG}g / ${totNecessidadeA}a`;
   const totCelAtual = mostraAtual ? `
-    <td class="qf-grupo-atual-td" style="font-weight:800;">${totAtualG}/${totNecessidadeG}</td>
-    <td class="qf-grupo-atual-td" style="font-weight:800;">${totAtualA}/${totNecessidadeA}</td>
-    <td class="qf-grupo-atual-td" style="font-weight:800;">${faltaAtualTotal}</td>` : '';
+    <td class="qf-col-atual" style="font-weight:800;">G ${totAtualG}/${totNecessidadeG} · A ${totAtualA}/${totNecessidadeA}</td>
+    <td class="qf-col-atual" style="font-weight:800;">${faltaAtualTotal}</td>` : '';
   const totCelFuturo = mostraFuturo ? `
-    <td class="qf-grupo-futuro-td" style="font-weight:800;">${totFutG}/${totNecessidadeG}</td>
-    <td class="qf-grupo-futuro-td" style="font-weight:800;">${totFutA}/${totNecessidadeA}</td>
-    <td class="qf-grupo-futuro-td" style="font-weight:800;">${faltaFuturoTotal}</td>` : '';
+    <td class="qf-col-futuro" style="font-weight:800;">G ${totFutG}/${totNecessidadeG} · A ${totFutA}/${totNecessidadeA}</td>
+    <td class="qf-col-futuro" style="font-weight:800;">${faltaFuturoTotal}</td>` : '';
   const linhaTotal = `<tr class="qf-linha-total-geral">
     <th class="rowhead">TOTAL GERAL (${nucleosOrdenados.length} núcleos)</th>
     <td style="font-weight:800;">${necessidadeTotalTexto}</td>
@@ -6295,7 +6330,7 @@ function renderQuadroConsolidado(){
     ${totCelFuturo}
   </tr>`;
 
-  gridEl.innerHTML = `<div class="tabela-scroll arrastavel"><table class="matriz-diaria" id="qf-tabelaConsolidada">${thead}<tbody>${linhas}${linhaTotal}</tbody></table></div>`;
+  gridEl.innerHTML = `<div class="tabela-scroll arrastavel"><table class="matriz-diaria qf-tabela-nova" id="qf-tabelaConsolidada">${thead}<tbody>${linhas}${linhaTotal}</tbody></table></div>`;
   gridEl.querySelectorAll('[data-toggle-nucleo-cons]').forEach(el=>{
     el.addEventListener('click', ()=>{
       const n = el.dataset.toggleNucleoCons;
