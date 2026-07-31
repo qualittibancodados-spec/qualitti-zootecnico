@@ -2411,8 +2411,8 @@ function mortSemanal_calcularPorLote(l){
   return { idadeAtual, porCheckpoint, porCheckpointNatural, porCheckpointElim, totalGeral, pctMorteNatural, pctElim };
 }
 
-let mortSemanalNaturalExpandido = false;
-let mortSemanalElimExpandido = false;
+let mortSemanalNaturalExpandido = true;
+let mortSemanalElimExpandido = true;
 
 function renderMortalidadesSemanal(){
   const nucSel = document.getElementById('fNucleo').value;
@@ -2471,12 +2471,12 @@ function renderMortalidadesSemanal(){
 
     html += `<tr class="linha-nucleo">
       <th class="rowhead"><span class="nuc-toggle" data-toggle-mort-sem="${nuc}" style="cursor:pointer;">${rec?'▸':'▾'}</span> ${nomeNucleo(nuc)} (${itens.length})</th>
-      <td style="font-weight:800;">${mediaIdade.toFixed(0)}d méd.</td>
+      <td style="font-weight:800;">${mediaIdade.toFixed(0)}d</td>
       <td class="qf-grupo-atual-td" style="font-weight:800;${naturalDominaNuc?'color:var(--vermelho-alerta);':''}">${mediaNatural.toFixed(2)}%${naturalDominaNuc?' ▲':''}</td>
       ${subValoresNaturalNuc}
       <td class="qf-grupo-futuro-td" style="font-weight:800;${!naturalDominaNuc?'color:var(--vermelho-alerta);':''}">${mediaElim.toFixed(2)}%${!naturalDominaNuc?' ▲':''}</td>
       ${subValoresElimNuc}
-      <td style="font-weight:800;">${mediaNuc.toFixed(2)}% méd.</td>
+      <td style="font-weight:800;">${mediaNuc.toFixed(2)}%</td>
     </tr>`;
 
     if(!rec){
