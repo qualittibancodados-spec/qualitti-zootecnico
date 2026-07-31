@@ -285,14 +285,24 @@
   .comb-ticket-acoes{ display:flex; gap:10px; padding:14px 20px 20px; }
   .comb-ticket-acoes button{ flex:1; }
   @media print{
+    /* só entra em ação quando o JS marca body.comb-imprimindo-ticket — evita concorrência com
+       os outros blocos de impressão do arquivo (cada módulo tem o seu próprio @media print) */
+    body.comb-imprimindo-ticket > *:not(#comb-modalTicket){ display:none !important; }
+    body.comb-imprimindo-ticket #comb-modalTicket{
+      display:block !important; position:static !important; inset:auto !important;
+      background:#fff !important; padding:0 !important; z-index:auto !important;
+    }
+    body.comb-imprimindo-ticket #comb-ticketConteudo{
+      position:static !important; max-width:none !important; width:100% !important;
+      box-shadow:none !important; border-radius:0 !important; margin:0 !important;
+    }
+    body.comb-imprimindo-ticket .comb-ticket-header{ padding:20px 26px; }
+    body.comb-imprimindo-ticket .comb-ticket-corpo{ padding:24px 26px; }
+    body.comb-imprimindo-ticket .comb-ticket-quantidade{ font-size:56px !important; }
+    body.comb-imprimindo-ticket .comb-ticket-quantidade span:last-child{ font-size:22px !important; }
+    body.comb-imprimindo-ticket .comb-ticket-acoes,
+    body.comb-imprimindo-ticket .comb-ticket-fechar{ display:none !important; }
     @page{ size: portrait; margin: 14mm; }
-    body *{ visibility:hidden; }
-    #comb-ticketConteudo, #comb-ticketConteudo *{ visibility:visible; }
-    #comb-ticketConteudo{ position:fixed; top:0; left:0; width:100% !important; max-width:none !important; box-shadow:none; border-radius:0; }
-    .comb-ticket-header{ padding:24px 30px; }
-    .comb-ticket-corpo{ padding:26px 30px; }
-    .comb-ticket-quantidade{ font-size:44px; }
-    .comb-ticket-acoes, .comb-ticket-fechar{ display:none !important; }
   }
   #mod-admin > div[id^="admin-secao-"]{ margin-bottom:36px; padding-bottom:8px; }
   #mod-admin > div[id^="admin-secao-"]:last-child{ margin-bottom:0; }
@@ -7290,7 +7300,7 @@ async function iniciarCombustivel(){
 
   document.getElementById('comb-btnFecharTicket').addEventListener('click', combustivelFecharTicket);
   document.getElementById('comb-btnFecharTicket2').addEventListener('click', combustivelFecharTicket);
-  document.getElementById('comb-btnImprimirTicket').addEventListener('click', ()=> window.print());
+  document.getElementById('comb-btnImprimirTicket').addEventListener('click', combustivelImprimirTicket);
   document.getElementById('comb-buscaHistorico').addEventListener('input', ()=>{ combustivelPaginaAtual = 1; combustivelRenderHistorico(); });
   document.getElementById('comb-btnExcel').addEventListener('click', combustivelExportarExcel);
 
@@ -7463,6 +7473,15 @@ function combustivelAbrirTicket(item){
 
 function combustivelFecharTicket(){
   document.getElementById('comb-modalTicket').style.display = 'none';
+}
+
+function combustivelImprimirTicket(){
+  // isola o ticket via classe dedicada em vez de depender só do @media print —
+  // o arquivo tem vários blocos de impressão (um por módulo) que competem entre si
+  // se a impressão for disparada só pela regra "body * visibility:hidden" genérica.
+  document.body.classList.add('comb-imprimindo-ticket');
+  window.print();
+  setTimeout(()=> document.body.classList.remove('comb-imprimindo-ticket'), 500);
 }
 
 let combustivelPaginaAtual = 1;
