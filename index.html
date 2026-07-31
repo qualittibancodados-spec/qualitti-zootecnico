@@ -148,6 +148,21 @@
   .quadro-stat-valor.falta{ color:var(--vermelho-alerta); }
   .quadro-tabela-wrap{ overflow-x:auto; border:1px solid var(--borda); border-radius:12px; }
   .quadro-tabela{ width:100%; border-collapse:collapse; font-size:12.5px; }
+
+  /* No celular, cada linha da tabela de Atualizar Funcionários vira um "cartão" empilhado — bem mais fácil de tocar/editar do que rolar uma tabela larga */
+  @media (max-width:720px){
+    .quadro-tabela-wrap{ overflow-x:visible !important; }
+    .quadro-tabela thead{ display:none; }
+    .quadro-tabela, .quadro-tabela tbody, .quadro-tabela tr{ display:block; width:100%; }
+    .quadro-tabela tr{ background:#fff; border:1.5px solid var(--borda); border-radius:14px; padding:12px 14px; margin-bottom:12px; box-shadow:var(--sombra); }
+    .quadro-tabela tr.qf-linha-folguista{ background:#FFF9E6; }
+    .quadro-tabela td{ display:flex; align-items:center; justify-content:space-between; gap:10px; padding:8px 2px; border:none; border-bottom:1px dashed var(--borda); }
+    .quadro-tabela td:last-child{ border-bottom:none; }
+    .quadro-tabela td[data-label]:not([data-label=""])::before{ content:attr(data-label); font-size:10.5px; font-weight:800; color:var(--texto-suave); text-transform:uppercase; letter-spacing:.03em; flex-shrink:0; }
+    .quadro-tabela td[data-label=""]{ justify-content:flex-end; }
+    .quadro-tabela td input[type="text"], .quadro-tabela td input[type="number"], .quadro-tabela td select{ flex:1; max-width:220px; text-align:right; }
+    .quadro-tabela td:first-child input{ text-align:right !important; }
+  }
   .quadro-tabela th{ text-align:left; font-size:10.5px; color:var(--texto-suave); font-weight:700; text-transform:uppercase; letter-spacing:.02em; padding:9px 10px; border-bottom:2px solid var(--borda); background:var(--bg); }
   .quadro-tabela td{ padding:9px 10px; border-bottom:1px solid var(--borda); border-right:1px solid #F1EDE3; vertical-align:middle; }
   .quadro-tabela td:last-child{ border-right:none; }
@@ -255,7 +270,7 @@
   .qf-linha-total-geral th, .qf-linha-total-geral td{ font-weight:800; padding-top:10px; padding-bottom:10px; }
   .qf-linha-total-geral th, .qf-linha-total-geral > td:first-of-type{ background:#FBE3E1 !important; color:var(--vermelho-escuro) !important; }
   .qf-linha-nucleo-resumo th, .qf-linha-nucleo-resumo td{ font-weight:800 !important; }
-  .qf-linha-nucleo-resumo th{ background:#FCEBEA !important; color:var(--vermelho-escuro) !important; }
+  .qf-linha-nucleo-resumo th{ background:#FFF4E1 !important; color:var(--vermelho-escuro) !important; border-left:3px solid #D9A441 !important; }
   .qf-linha-nucleo-resumo .qf-cons-ok, .qf-linha-nucleo-resumo .qf-cons-falta{ box-shadow:none !important; }
   .qf-linha-nucleo-resumo .qf-nucleo-toggle{ color:var(--vermelho-escuro) !important; }
   .qf-linha-total-geral .qf-cons-ok, .qf-linha-total-geral .qf-cons-falta{ box-shadow:none !important; }
@@ -1524,7 +1539,7 @@
         <div class="painel">
           <div class="painel-header"><h2>Histórico</h2><span class="info" id="comb-infoHistorico"></span></div>
           <input type="text" id="comb-buscaHistorico" placeholder="Buscar por solicitante, núcleo ou motivo..." style="width:100%;padding:10px 12px;border-radius:9px;border:1.5px solid var(--borda);font-size:13.5px;font-family:inherit;box-sizing:border-box;margin-bottom:12px;">
-          <div class="tabela-scroll"><table class="matriz-diaria" id="comb-tabelaHistorico"></table></div>
+          <div class="tabela-scroll arrastavel" id="comb-tabelaScrollWrap"><table class="matriz-diaria" id="comb-tabelaHistorico"></table></div>
           <div id="comb-paginacao" style="display:flex;gap:6px;justify-content:center;margin-top:14px;flex-wrap:wrap;"></div>
         </div>
 
@@ -1864,7 +1879,7 @@
         <h2>Mortalidades por Aviário — semanal</h2>
         <span class="info" id="infoMortSemanal"></span>
       </div>
-      <p class="nota-grafico" style="margin:12px 0 14px;">As colunas <strong>Natural</strong> e <strong>Eliminada</strong> mostram o acumulado total do lote por tipo — a seta ▲ marca qual dos dois domina. Clique no título de cada uma pra abrir o detalhamento por idade (7/14/21/28/35 dias). Clique no núcleo para expandir e ver o detalhamento por aviário.</p>
+      <p class="nota-grafico" style="margin:12px 0 14px;">As colunas <strong>Natural</strong>, <strong>Eliminada</strong> e <strong>Total</strong> mostram o acumulado do lote — a seta ▲ marca qual dos dois tipos (natural/eliminada) domina. Clique no título de cada uma pra abrir/fechar o detalhamento por idade (7/14/21/28/35 dias). Clique no núcleo para expandir e ver o detalhamento por aviário.</p>
       <button class="btn-recolher" id="btnExpandirMortSemanal" type="button" style="margin-bottom:14px;">Expandir todos</button>
       <div id="containerMortSemanal"></div>
     </div>
@@ -2411,8 +2426,9 @@ function mortSemanal_calcularPorLote(l){
   return { idadeAtual, porCheckpoint, porCheckpointNatural, porCheckpointElim, totalGeral, pctMorteNatural, pctElim };
 }
 
-let mortSemanalNaturalExpandido = true;
-let mortSemanalElimExpandido = true;
+let mortSemanalNaturalExpandido = false;
+let mortSemanalElimExpandido = false;
+let mortSemanalTotalExpandido = true;
 
 function renderMortalidadesSemanal(){
   const nucSel = document.getElementById('fNucleo').value;
@@ -2438,6 +2454,7 @@ function renderMortalidadesSemanal(){
 
   const subColsNatural = mortSemanalNaturalExpandido ? MORT_SEMANAL_CHECKPOINTS.map(d=>`<th class="qf-grupo-atual-th">${d}d</th>`).join('') : '';
   const subColsElim = mortSemanalElimExpandido ? MORT_SEMANAL_CHECKPOINTS.map(d=>`<th class="qf-grupo-futuro-th">${d}d</th>`).join('') : '';
+  const subColsTotal = mortSemanalTotalExpandido ? MORT_SEMANAL_CHECKPOINTS.map(d=>`<th>${d}d</th>`).join('') : '';
 
   let html = `<div class="tabela-scroll"><table class="matriz-diaria"><thead><tr>
     <th class="rowhead">Núcleo / Aviário</th>
@@ -2446,7 +2463,8 @@ function renderMortalidadesSemanal(){
     ${subColsNatural}
     <th class="qf-grupo-futuro-th" style="cursor:pointer;" id="mortSemToggleElim">Eliminada <span style="font-weight:900;">${mortSemanalElimExpandido?'−':'+'}</span></th>
     ${subColsElim}
-    <th>Total</th>
+    <th style="cursor:pointer;" id="mortSemToggleTotal">Total <span style="font-weight:900;">${mortSemanalTotalExpandido?'−':'+'}</span></th>
+    ${subColsTotal}
   </tr></thead><tbody>`;
 
   Array.from(porNucleo.keys()).sort().forEach(nuc=>{
@@ -2468,6 +2486,11 @@ function renderMortalidadesSemanal(){
       const media = valores.length ? valores.reduce((s,v)=>s+v,0)/valores.length : null;
       return `<td class="qf-grupo-futuro-td" style="font-weight:800;">${media!=null?media.toFixed(2).replace('.',',')+'%':'–'}</td>`;
     }).join('') : '';
+    const subValoresTotalNuc = mortSemanalTotalExpandido ? MORT_SEMANAL_CHECKPOINTS.map(d=>{
+      const valores = itens.map(c=>c.calc.porCheckpoint[d]).filter(v=>v!=null);
+      const media = valores.length ? valores.reduce((s,v)=>s+v,0)/valores.length : null;
+      return `<td style="font-weight:800;">${media!=null?media.toFixed(2).replace('.',',')+'%':'–'}</td>`;
+    }).join('') : '';
 
     html += `<tr class="linha-nucleo">
       <th class="rowhead"><span class="nuc-toggle" data-toggle-mort-sem="${nuc}" style="cursor:pointer;">${rec?'▸':'▾'}</span> ${nomeNucleo(nuc)} (${itens.length})</th>
@@ -2477,6 +2500,7 @@ function renderMortalidadesSemanal(){
       <td class="qf-grupo-futuro-td" style="font-weight:800;${!naturalDominaNuc?'color:var(--vermelho-alerta);':''}">${mediaElim.toFixed(2)}%${!naturalDominaNuc?' ▲':''}</td>
       ${subValoresElimNuc}
       <td style="font-weight:800;">${mediaNuc.toFixed(2)}%</td>
+      ${subValoresTotalNuc}
     </tr>`;
 
     if(!rec){
@@ -2490,6 +2514,10 @@ function renderMortalidadesSemanal(){
           const v = calc.porCheckpointElim[d];
           return `<td class="qf-grupo-futuro-td">${v!=null ? v.toFixed(2).replace('.',',')+'%' : '–'}</td>`;
         }).join('') : '';
+        const subValoresTotal = mortSemanalTotalExpandido ? MORT_SEMANAL_CHECKPOINTS.map(d=>{
+          const v = calc.porCheckpoint[d];
+          return `<td>${v!=null ? v.toFixed(2).replace('.',',')+'%' : '–'}</td>`;
+        }).join('') : '';
         html += `<tr>
           <th class="rowhead av">${l.aviario}</th>
           <td>${calc.idadeAtual}d</td>
@@ -2498,6 +2526,7 @@ function renderMortalidadesSemanal(){
           <td class="qf-grupo-futuro-td" style="${!naturalDomina?'color:var(--vermelho-alerta);font-weight:700;':''}">${calc.pctElim.toFixed(2)}%${!naturalDomina?' ▲':''}</td>
           ${subValoresElim}
           <td style="font-weight:700;">${calc.totalGeral.toFixed(2).replace('.',',')}%</td>
+          ${subValoresTotal}
         </tr>`;
       });
     }
@@ -2509,6 +2538,8 @@ function renderMortalidadesSemanal(){
   if(btnNatural) btnNatural.addEventListener('click', ()=>{ mortSemanalNaturalExpandido = !mortSemanalNaturalExpandido; renderMortalidadesSemanal(); });
   const btnElim = document.getElementById('mortSemToggleElim');
   if(btnElim) btnElim.addEventListener('click', ()=>{ mortSemanalElimExpandido = !mortSemanalElimExpandido; renderMortalidadesSemanal(); });
+  const btnTotal = document.getElementById('mortSemToggleTotal');
+  if(btnTotal) btnTotal.addEventListener('click', ()=>{ mortSemanalTotalExpandido = !mortSemanalTotalExpandido; renderMortalidadesSemanal(); });
 
   cont.querySelectorAll('[data-toggle-mort-sem]').forEach(el=>{
     el.addEventListener('click', ()=>{
@@ -6208,12 +6239,12 @@ function renderQuadroConsolidado(){
     const necessidadeTexto = r.necessidadeGranjeiro===r.necessidadeAjudante ? r.necessidadeGranjeiro : `${r.necessidadeGranjeiro}g / ${r.necessidadeAjudante}a`;
 
     const celAtual = mostraAtual ? `
-      <td class="${r.atualGranj>=r.necessidadeGranjeiro?'qf-cons-ok':'qf-cons-falta'}">${r.atualGranj}/${r.necessidadeGranjeiro}</td>
-      <td class="${r.atualAjud>=r.necessidadeAjudante?'qf-cons-ok':'qf-cons-falta'}">${r.atualAjud}/${r.necessidadeAjudante}</td>
+      <td class="${r.atualGranj>=r.necessidadeGranjeiro?'qf-cons-ok':'qf-cons-falta'}">${r.atualGranj}/${r.necessidadeGranjeiro}${r.atualGranj<r.necessidadeGranjeiro?' ▲':''}</td>
+      <td class="${r.atualAjud>=r.necessidadeAjudante?'qf-cons-ok':'qf-cons-falta'}">${r.atualAjud}/${r.necessidadeAjudante}${r.atualAjud<r.necessidadeAjudante?' ▲':''}</td>
       <td class="${faltaAtual>0?'qf-cons-falta':'qf-cons-ok'}" style="font-weight:800;">${faltaAtual}</td>` : '';
     const celFuturo = mostraFuturo ? `
-      <td class="${r.futuroGranj>=r.necessidadeGranjeiro?'qf-cons-ok':'qf-cons-falta'}">${r.futuroGranj}/${r.necessidadeGranjeiro}</td>
-      <td class="${r.futuroAjud>=r.necessidadeAjudante?'qf-cons-ok':'qf-cons-falta'}">${r.futuroAjud}/${r.necessidadeAjudante}</td>
+      <td class="${r.futuroGranj>=r.necessidadeGranjeiro?'qf-cons-ok':'qf-cons-falta'}">${r.futuroGranj}/${r.necessidadeGranjeiro}${r.futuroGranj<r.necessidadeGranjeiro?' ▲':''}</td>
+      <td class="${r.futuroAjud>=r.necessidadeAjudante?'qf-cons-ok':'qf-cons-falta'}">${r.futuroAjud}/${r.necessidadeAjudante}${r.futuroAjud<r.necessidadeAjudante?' ▲':''}</td>
       <td class="${faltaFuturo>0?'qf-cons-falta':'qf-cons-ok'}" style="font-weight:800;">${faltaFuturo}</td>` : '';
 
     const linhaPrincipal = `<tr class="qf-linha-nucleo-resumo">
@@ -6366,24 +6397,24 @@ function renderQuadroFuncionarios(){
       const gSai = !!p.granjeiroSaindo, aSai = !!p.ajudanteSaindo, folguista = !!p.folguista;
       const extraPapel = qfExtraPapel(p), extraNome = qfExtraNome(p), extraSai = qfExtraSaindo(p);
       const celExtra = `
-        <td class="${extraSai&&extraNome?'qf-cel-saindo':''}">
+        <td data-label="Pessoa extra" class="${extraSai&&extraNome?'qf-cel-saindo':''}">
           <select class="qf-select-extra-papel" ${editavel?'':'disabled'} style="font-size:11px;padding:4px;">
             <option value="" ${!extraPapel?'selected':''}>+ pessoa extra…</option>
             <option value="granjeiro" ${extraPapel==='granjeiro'?'selected':''}>Granjeiro extra</option>
             <option value="ajudante" ${extraPapel==='ajudante'?'selected':''}>Ajudante extra</option>
           </select>
         </td>
-        <td class="${extraSai&&extraNome?'qf-cel-saindo':''}"><input type="text" class="qf-input-extra-nome ${extraSai&&extraNome?'quadro-nome-saindo':''}" value="${(extraNome||'').replace(/"/g,'&quot;')}" placeholder="Nome" ${editavel&&extraPapel?'':'disabled'} style="font-size:11.5px;"></td>
-        <td class="${extraSai&&extraNome?'qf-cel-saindo':''}"><label class="quadro-saindo-label"><input type="checkbox" class="qf-check-extra-sai" ${extraSai?'checked':''} ${editavel&&extraPapel?'':'disabled'}> sai</label></td>`;
+        <td data-label="Nome (extra)" class="${extraSai&&extraNome?'qf-cel-saindo':''}"><input type="text" class="qf-input-extra-nome ${extraSai&&extraNome?'quadro-nome-saindo':''}" value="${(extraNome||'').replace(/"/g,'&quot;')}" placeholder="Nome" ${editavel&&extraPapel?'':'disabled'} style="font-size:11.5px;"></td>
+        <td data-label="" class="${extraSai&&extraNome?'qf-cel-saindo':''}"><label class="quadro-saindo-label"><input type="checkbox" class="qf-check-extra-sai" ${extraSai?'checked':''} ${editavel&&extraPapel?'':'disabled'}> sai</label></td>`;
       return `<tr data-posto-id="${p.id}" class="${folguista?'qf-linha-folguista':''}">
-        <td><input type="text" class="qf-input-aviarios" value="${(p.aviarios||'').replace(/"/g,'&quot;')}" placeholder="ex: 87-88" ${editavel?'':'disabled'} style="width:90px;text-align:center;"></td>
-        <td class="${gSai?'qf-cel-saindo':''}"><input type="text" class="qf-input-granjeiro ${gSai?'quadro-nome-saindo':''}" value="${(p.granjeiro||'').replace(/"/g,'&quot;')}" placeholder="Vago" ${editavel?'':'disabled'}></td>
-        <td class="${gSai?'qf-cel-saindo':''}"><label class="quadro-saindo-label"><input type="checkbox" class="qf-check-granjeiro-sai" ${gSai?'checked':''} ${editavel?'':'disabled'}> sai</label></td>
-        <td class="${aSai?'qf-cel-saindo':''}"><input type="text" class="qf-input-ajudante ${aSai?'quadro-nome-saindo':''}" value="${(p.ajudante||'').replace(/"/g,'&quot;')}" placeholder="Vago" ${editavel?'':'disabled'}></td>
-        <td class="${aSai?'qf-cel-saindo':''}"><label class="quadro-saindo-label"><input type="checkbox" class="qf-check-ajudante-sai" ${aSai?'checked':''} ${editavel?'':'disabled'}> sai</label></td>
+        <td data-label="Aviários"><input type="text" class="qf-input-aviarios" value="${(p.aviarios||'').replace(/"/g,'&quot;')}" placeholder="ex: 87-88" ${editavel?'':'disabled'} style="width:90px;text-align:center;"></td>
+        <td data-label="Granjeiro" class="${gSai?'qf-cel-saindo':''}"><input type="text" class="qf-input-granjeiro ${gSai?'quadro-nome-saindo':''}" value="${(p.granjeiro||'').replace(/"/g,'&quot;')}" placeholder="Vago" ${editavel?'':'disabled'}></td>
+        <td data-label="" class="${gSai?'qf-cel-saindo':''}"><label class="quadro-saindo-label"><input type="checkbox" class="qf-check-granjeiro-sai" ${gSai?'checked':''} ${editavel?'':'disabled'}> sai</label></td>
+        <td data-label="Ajudante" class="${aSai?'qf-cel-saindo':''}"><input type="text" class="qf-input-ajudante ${aSai?'quadro-nome-saindo':''}" value="${(p.ajudante||'').replace(/"/g,'&quot;')}" placeholder="Vago" ${editavel?'':'disabled'}></td>
+        <td data-label="" class="${aSai?'qf-cel-saindo':''}"><label class="quadro-saindo-label"><input type="checkbox" class="qf-check-ajudante-sai" ${aSai?'checked':''} ${editavel?'':'disabled'}> sai</label></td>
         ${celExtra}
-        <td><label class="quadro-saindo-label" title="A dupla está temporariamente coberta por folguista(s), mas continua contando normal no quadro."><input type="checkbox" class="qf-check-folguista" ${folguista?'checked':''} ${editavel?'':'disabled'}> folguista</label></td>
-        <td>${editavel?`<button class="quadro-btn-remover-posto" data-remover-posto="${p.id}" title="Remover posto">✕</button>`:''}</td>
+        <td data-label="Folguista"><label class="quadro-saindo-label" title="A dupla está temporariamente coberta por folguista(s), mas continua contando normal no quadro."><input type="checkbox" class="qf-check-folguista" ${folguista?'checked':''} ${editavel?'':'disabled'}> folguista</label></td>
+        <td data-label="">${editavel?`<button class="quadro-btn-remover-posto" data-remover-posto="${p.id}" title="Remover posto">✕</button>`:''}</td>
       </tr>`;
     }).join('');
 
@@ -7388,6 +7419,7 @@ function combustivelRenderHistorico(){
   const tabela = document.getElementById('comb-tabelaHistorico');
   const info = document.getElementById('comb-infoHistorico');
   const paginacaoEl = document.getElementById('comb-paginacao');
+  if(typeof ativarArrastar==='function') ativarArrastar(document.getElementById('comb-tabelaScrollWrap'));
   const termo = document.getElementById('comb-buscaHistorico').value.trim().toLowerCase();
   const filtrados = !termo ? combustivelDados : combustivelDados.filter(d=>
     (d.nomeSolicitante||'').toLowerCase().includes(termo) ||
