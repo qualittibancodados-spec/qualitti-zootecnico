@@ -236,6 +236,11 @@
 
   /* ===== Requisição de Combustível ===== */
   .comb-card{ display:flex; flex-direction:column; gap:18px; }
+  .comb-autocomplete-lista{ display:none; position:absolute; top:100%; left:0; right:0; margin-top:4px; background:#fff; border:1.5px solid var(--borda); border-radius:10px; box-shadow:0 8px 20px rgba(0,0,0,.12); max-height:220px; overflow-y:auto; z-index:50; }
+  .comb-autocomplete-lista.aberta{ display:block; }
+  .comb-autocomplete-item{ padding:10px 14px; font-size:13.5px; cursor:pointer; border-bottom:1px solid var(--borda); }
+  .comb-autocomplete-item:last-child{ border-bottom:none; }
+  .comb-autocomplete-item:hover, .comb-autocomplete-item.ativo{ background:var(--bg); }
   .comb-secao{ background:var(--bg); border:1px solid var(--borda); border-radius:14px; padding:18px; display:flex; flex-direction:column; gap:12px; }
   .comb-secao-titulo{ font-family:'Sora',sans-serif; font-weight:800; font-size:13px; color:var(--vermelho); text-transform:uppercase; letter-spacing:.03em; }
   .comb-secao .campo{ margin-bottom:2px; }
@@ -280,9 +285,13 @@
   .comb-ticket-acoes{ display:flex; gap:10px; padding:14px 20px 20px; }
   .comb-ticket-acoes button{ flex:1; }
   @media print{
+    @page{ size: portrait; margin: 14mm; }
     body *{ visibility:hidden; }
     #comb-ticketConteudo, #comb-ticketConteudo *{ visibility:visible; }
-    #comb-ticketConteudo{ position:fixed; top:0; left:0; width:100%; box-shadow:none; }
+    #comb-ticketConteudo{ position:fixed; top:0; left:0; width:100% !important; max-width:none !important; box-shadow:none; border-radius:0; }
+    .comb-ticket-header{ padding:24px 30px; }
+    .comb-ticket-corpo{ padding:26px 30px; }
+    .comb-ticket-quantidade{ font-size:44px; }
     .comb-ticket-acoes, .comb-ticket-fechar{ display:none !important; }
   }
   #mod-admin > div[id^="admin-secao-"]{ margin-bottom:36px; padding-bottom:8px; }
@@ -1531,7 +1540,7 @@
             <div class="comb-secao-titulo">📄 Dados da Solicitação</div>
             <input type="hidden" id="comb-editandoId" value="">
             <div class="campo"><label>Data da Solicitação <span style="color:var(--vermelho-alerta);">*</span></label><input type="date" id="comb-data" required></div>
-            <div class="campo"><label>Nome do Solicitante <span style="color:var(--vermelho-alerta);">*</span></label><input type="text" id="comb-solicitante" list="comb-listaNomes" placeholder="Digite o nome completo" required autocomplete="off"><datalist id="comb-listaNomes"></datalist></div>
+            <div class="campo" style="position:relative;"><label>Nome do Solicitante <span style="color:var(--vermelho-alerta);">*</span></label><input type="text" id="comb-solicitante" placeholder="Digite o nome completo" required autocomplete="off"><div id="comb-sugestoesNomes" class="comb-autocomplete-lista"></div></div>
             <div class="campo"><label>Tipo de Combustível <span style="color:var(--vermelho-alerta);">*</span></label>
               <select id="comb-tipo" required>
                 <option value="Gasolina">Gasolina</option>
@@ -7267,6 +7276,13 @@ async function iniciarCombustivel(){
     selNucleo.addEventListener('change', ()=> combustivelAtualizarGalpoes());
     document.getElementById('comb-ratear').addEventListener('change', ()=> combustivelAtualizarGalpoes());
     document.getElementById('comb-btnRegistrar').addEventListener('click', combustivelRegistrar);
+    const inputSolicitante = document.getElementById('comb-solicitante');
+    inputSolicitante.addEventListener('input', combustivelFiltrarSugestoesNomes);
+    inputSolicitante.addEventListener('focus', combustivelFiltrarSugestoesNomes);
+    inputSolicitante.addEventListener('blur', ()=>{
+      const lista = document.getElementById('comb-sugestoesNomes');
+      if(lista) lista.classList.remove('aberta');
+    });
     document.getElementById('comb-btnCancelarEdicao').addEventListener('click', combustivelSairModoEdicao);
   } else {
     painelForm.innerHTML = '<p class="nota" style="margin:0;">🔒 Só quem foi autorizado pelo administrador pode lançar uma nova requisição. Fale com o administrador do painel se precisar desse acesso.</p>';
@@ -7560,11 +7576,27 @@ function combustivelRenderGraficos(){
   }
 }
 
+let combustivelNomesConhecidos = [];
 function combustivelPopularListaNomes(){
-  const lista = document.getElementById('comb-listaNomes');
-  if(!lista) return;
-  const nomes = Array.from(new Set(combustivelDados.map(d=>d.nomeSolicitante).filter(Boolean))).sort();
-  lista.innerHTML = nomes.map(n=>`<option value="${n}">`).join('');
+  combustivelNomesConhecidos = Array.from(new Set(combustivelDados.map(d=>d.nomeSolicitante).filter(Boolean))).sort();
+}
+
+function combustivelFiltrarSugestoesNomes(){
+  const input = document.getElementById('comb-solicitante');
+  const lista = document.getElementById('comb-sugestoesNomes');
+  if(!input || !lista) return;
+  const termo = input.value.trim().toLowerCase();
+  const filtrados = !termo ? combustivelNomesConhecidos : combustivelNomesConhecidos.filter(n => n.toLowerCase().includes(termo));
+  if(!filtrados.length){ lista.classList.remove('aberta'); lista.innerHTML=''; return; }
+  lista.innerHTML = filtrados.slice(0,8).map(n => `<div class="comb-autocomplete-item">${n}</div>`).join('');
+  lista.classList.add('aberta');
+  lista.querySelectorAll('.comb-autocomplete-item').forEach(item=>{
+    item.addEventListener('mousedown', (e)=>{ // mousedown (não click) pra disparar antes do blur fechar a lista
+      e.preventDefault();
+      input.value = item.textContent;
+      lista.classList.remove('aberta');
+    });
+  });
 }
 
 function combustivelPopularFiltrosExportacao(){
