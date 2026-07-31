@@ -5747,7 +5747,7 @@ async function carregarListaEmails(){
     const migracoes = [];
     snap.forEach(doc => {
       const email = (doc.data().email||'').toLowerCase();
-      docs.push({id: doc.id, email});
+      docs.push({id: doc.id, email, pularConfirmacaoEmail: doc.data().pularConfirmacaoEmail === true});
       // migração automática e transparente: cadastros antigos tinham ID gerado aleatório; agora o ID é o próprio e-mail
       // (isso é o que permite checar 1 e-mail específico sem dar pra listar todos os outros — ver auditoria de segurança)
       if(email && doc.id !== email) migracoes.push({idAntigo: doc.id, email});
@@ -5763,10 +5763,24 @@ async function carregarListaEmails(){
     info.textContent = `${docs.length} e-mail(s) autorizado(s)`;
     if(!docs.length){ cont.innerHTML = '<p class="nota">Nenhum e-mail cadastrado ainda.</p>'; return; }
     cont.innerHTML = docs.map(d => `
-      <div class="rank-card" style="grid-template-columns:1fr auto;align-items:center;">
+      <div class="rank-card" style="grid-template-columns:1fr auto auto;align-items:center;gap:12px;">
         <div class="rank-nome">${d.email}</div>
+        <label style="display:flex;align-items:center;gap:5px;font-size:11.5px;color:var(--texto-suave);white-space:nowrap;cursor:pointer;" title="Marque se essa pessoa está tendo problema com a confirmação de e-mail e você já conhece ela pessoalmente">
+          <input type="checkbox" class="chk-pular-confirmacao" data-email-pular="${d.id}" ${d.pularConfirmacaoEmail?'checked':''} style="width:15px;height:15px;">
+          Dispensar confirmação
+        </label>
         <button class="btn-recolher" data-remover="${d.id}" data-email="${d.email}" style="border-color:var(--vermelho-alerta);color:var(--vermelho-alerta);">Remover</button>
       </div>`).join('');
+    cont.querySelectorAll('.chk-pular-confirmacao').forEach(chk => {
+      chk.addEventListener('change', async () => {
+        try{
+          await db.collection('emails_autorizados').doc(chk.dataset.emailPular).set({pularConfirmacaoEmail: chk.checked}, {merge:true});
+        }catch(e){
+          alert('Erro ao salvar: ' + e.message);
+          chk.checked = !chk.checked;
+        }
+      });
+    });
     cont.querySelectorAll('[data-remover]').forEach(btn => {
       btn.addEventListener('click', async () => {
         if(btn.dataset.email === ADMIN_EMAIL){ alert('Esse é o seu próprio e-mail de administrador — não é possível remover.'); return; }
