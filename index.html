@@ -252,11 +252,13 @@
   .admin-secao-titulo{ font-family:'Sora',sans-serif; font-size:13px; font-weight:800; text-transform:uppercase; letter-spacing:.05em; color:var(--vermelho); margin-bottom:14px; padding-bottom:8px; border-bottom:2px solid var(--dourado); display:flex; align-items:center; gap:8px; }
 
   .qf-linha-total-geral{ border-top:3px solid var(--vermelho); }
-  .qf-linha-total-geral th, .qf-linha-total-geral td{ background:#FBE3E1 !important; color:var(--vermelho-escuro) !important; font-weight:800; padding-top:10px; padding-bottom:10px; }
-  .qf-linha-nucleo-resumo th, .qf-linha-nucleo-resumo td{ background:#FCEBEA !important; color:var(--vermelho-escuro) !important; font-weight:800 !important; }
-  .qf-linha-nucleo-resumo .qf-cons-ok, .qf-linha-nucleo-resumo .qf-cons-falta{ background:transparent !important; box-shadow:none !important; color:var(--vermelho-escuro) !important; }
+  .qf-linha-total-geral th, .qf-linha-total-geral td{ font-weight:800; padding-top:10px; padding-bottom:10px; }
+  .qf-linha-total-geral th, .qf-linha-total-geral > td:first-of-type{ background:#FBE3E1 !important; color:var(--vermelho-escuro) !important; }
+  .qf-linha-nucleo-resumo th, .qf-linha-nucleo-resumo td{ font-weight:800 !important; }
+  .qf-linha-nucleo-resumo th{ background:#FCEBEA !important; color:var(--vermelho-escuro) !important; }
+  .qf-linha-nucleo-resumo .qf-cons-ok, .qf-linha-nucleo-resumo .qf-cons-falta{ box-shadow:none !important; }
   .qf-linha-nucleo-resumo .qf-nucleo-toggle{ color:var(--vermelho-escuro) !important; }
-  .qf-linha-total-geral .qf-cons-ok, .qf-linha-total-geral .qf-cons-falta{ background:transparent !important; box-shadow:none !important; color:var(--vermelho-escuro) !important; }
+  .qf-linha-total-geral .qf-cons-ok, .qf-linha-total-geral .qf-cons-falta{ box-shadow:none !important; }
   .quadro-tabela tr.qf-linha-folguista td{ background:#EAE3FB !important; }
   .quadro-tabela tr.qf-linha-folguista td:first-child{ box-shadow:inset 3px 0 0 #8B6FD6; }
   .quadro-btn-remover-posto{ background:none; border:none; color:var(--vermelho-alerta); cursor:pointer; font-size:16px; padding:2px 6px; }
@@ -752,8 +754,9 @@
   #qf-print-header .qf-print-titulos p{ font-size:10px; margin:2px 0 0; color:#666; }
   #qf-scrollConsolidada{ overflow:visible !important; width:100% !important; }
   #qf-tabelaConsolidada{ width:100% !important; table-layout:fixed; font-size:9px; }
-  #qf-tabelaConsolidada th, #qf-tabelaConsolidada td{ padding:4px 5px !important; overflow-wrap:break-word; word-break:break-word; }
-  #qf-tabelaConsolidada th:first-child, #qf-tabelaConsolidada td:first-child{ width:20%; text-align:left !important; }
+  #qf-tabelaConsolidada th, #qf-tabelaConsolidada td{ padding:4px 5px !important; overflow-wrap:break-word; word-break:break-word; white-space:normal !important; vertical-align:top; }
+  #qf-tabelaConsolidada th:first-child, #qf-tabelaConsolidada td:first-child{ width:16%; text-align:left !important; white-space:normal !important; }
+  #qf-tabelaConsolidada .qf-cel-nome{ text-align:left !important; font-size:8px !important; line-height:1.3; }
   /* reforço estrutural (funciona mesmo se a impressora não reproduzir cor) */
   .qf-linha-nucleo-resumo th, .qf-linha-nucleo-resumo td{ border-top:2px solid #333 !important; font-weight:800 !important; }
   .qf-linha-aviario-detalhe td{ font-style:italic; }
@@ -1861,7 +1864,7 @@
         <h2>Mortalidades por Aviário — semanal</h2>
         <span class="info" id="infoMortSemanal"></span>
       </div>
-      <p class="nota-grafico" style="margin:12px 0 14px;">Mortalidade acumulada em cada checkpoint (7/14/21/28/35 dias) e o total de <strong>35+</strong> (do dia 36 até a idade atual). Clique no núcleo para expandir e ver o detalhamento por aviário.</p>
+      <p class="nota-grafico" style="margin:12px 0 14px;">Mortalidade acumulada em cada checkpoint (7/14/21/28/35 dias) e o total de <strong>35+</strong> (do dia 36 até a idade atual). As colunas <strong>Natural</strong> e <strong>Eliminada</strong> mostram o acumulado total do lote separado por tipo — a seta ▲ marca qual dos dois representa a maior parte da mortalidade. Clique no núcleo para expandir e ver o detalhamento por aviário.</p>
       <button class="btn-recolher" id="btnExpandirMortSemanal" type="button" style="margin-bottom:14px;">Expandir todos</button>
       <div id="containerMortSemanal"></div>
     </div>
@@ -2381,18 +2384,20 @@ function selecionarPadrao(){
 
 const MORT_SEMANAL_CHECKPOINTS = [7,14,21,28,35];
 let mortSemanalRecolhidos = new Set();
-let mortSemanalPrimeiraRenderizacao = true; // por padrão, começa tudo recolhido
+let mortSemanalPrimeiraRenderizacao = true; // controla só a 1ª renderização (agora começa tudo expandido)
 
 function mortSemanal_calcularPorLote(l){
   // l vem de MORT_DIARIA: {nucleo, aviario, sexo, alojadas, dataAloj, dias:{'0':{total,morte,elim}, ...}}
   const idadeAtual = Math.floor((new Date().setHours(0,0,0,0) - new Date(l.dataAloj+'T00:00:00')) / 86400000);
   const diasOrdenados = Object.keys(l.dias).map(Number).sort((a,b)=>a-b);
-  let acumulado = 0, idxCheck = 0;
+  let acumulado = 0, acumMorte = 0, acumElim = 0, idxCheck = 0;
   const porCheckpoint = {};
   diasOrdenados.forEach(dia=>{
     if(dia > idadeAtual) return; // não conta dias futuros/inexistentes
     const reg = l.dias[dia];
-    acumulado += (reg.total!=null ? reg.total : ((reg.morte||0)+(reg.elim||0)));
+    const morteDia = reg.morte || 0, elimDia = reg.elim || 0;
+    acumulado += (reg.total!=null ? reg.total : (morteDia+elimDia));
+    acumMorte += morteDia; acumElim += elimDia;
     while(idxCheck < MORT_SEMANAL_CHECKPOINTS.length && dia >= MORT_SEMANAL_CHECKPOINTS[idxCheck]){
       porCheckpoint[MORT_SEMANAL_CHECKPOINTS[idxCheck]] = acumulado / l.alojadas * 100;
       idxCheck++;
@@ -2408,7 +2413,9 @@ function mortSemanal_calcularPorLote(l){
     mais35 = acumMais35 / l.alojadas * 100;
   }
   const totalGeral = acumulado / l.alojadas * 100;
-  return { idadeAtual, porCheckpoint, mais35, totalGeral };
+  const pctMorteNatural = acumMorte / l.alojadas * 100;
+  const pctElim = acumElim / l.alojadas * 100;
+  return { idadeAtual, porCheckpoint, mais35, totalGeral, pctMorteNatural, pctElim };
 }
 
 function renderMortalidadesSemanal(){
@@ -2430,10 +2437,10 @@ function renderMortalidadesSemanal(){
 
   if(mortSemanalPrimeiraRenderizacao){
     mortSemanalPrimeiraRenderizacao = false;
-    Array.from(porNucleo.keys()).forEach(n => mortSemanalRecolhidos.add(n));
+    // fica tudo expandido por padrão agora — nada a recolher aqui
   }
 
-  const theadCols = MORT_SEMANAL_CHECKPOINTS.map(d=>`<th>Mort. ${d}d</th>`).join('') + '<th>Mort. 35+</th>';
+  const theadCols = MORT_SEMANAL_CHECKPOINTS.map(d=>`<th>Mort. ${d}d</th>`).join('') + '<th>Mort. 35+</th><th>Natural</th><th>Eliminada</th>';
 
   let html = `<div class="tabela-scroll"><table class="matriz-diaria"><thead><tr>
     <th class="rowhead">Núcleo / Aviário</th><th>Idade atual</th>${theadCols}
@@ -2448,12 +2455,17 @@ function renderMortalidadesSemanal(){
       const valores = itens.map(c=>c.calc.porCheckpoint[d]).filter(v=>v!=null);
       return valores.length ? valores.reduce((s,v)=>s+v,0)/valores.length : null;
     });
+    const mediaNatural = itens.reduce((s,c)=>s+c.calc.pctMorteNatural,0) / itens.length;
+    const mediaElim = itens.reduce((s,c)=>s+c.calc.pctElim,0) / itens.length;
+    const naturalDominaNuc = mediaNatural >= mediaElim;
 
     html += `<tr class="linha-nucleo">
       <th class="rowhead"><span class="nuc-toggle" data-toggle-mort-sem="${nuc}" style="cursor:pointer;">${rec?'▸':'▾'}</span> ${nomeNucleo(nuc)} (${itens.length})</th>
       <td style="font-weight:800;">${mediaIdade.toFixed(0)}d méd.</td>
       ${mediasCheckpoint.map(v=>`<td style="font-weight:800;">${v!=null?v.toFixed(2).replace('.',',')+'%':'–'}</td>`).join('')}
       <td style="font-weight:800;">${mediaNuc.toFixed(2)}% méd.</td>
+      <td style="font-weight:800;${naturalDominaNuc?'color:var(--vermelho-alerta);':''}">${mediaNatural.toFixed(2)}%${naturalDominaNuc?' ▲':''}</td>
+      <td style="font-weight:800;${!naturalDominaNuc?'color:var(--vermelho-alerta);':''}">${mediaElim.toFixed(2)}%${!naturalDominaNuc?' ▲':''}</td>
     </tr>`;
 
     if(!rec){
@@ -2462,11 +2474,14 @@ function renderMortalidadesSemanal(){
           const v = calc.porCheckpoint[d];
           return `<td>${v!=null ? v.toFixed(2).replace('.',',')+'%' : '–'}</td>`;
         }).join('');
+        const naturalDomina = calc.pctMorteNatural >= calc.pctElim;
         html += `<tr>
           <th class="rowhead av">${l.aviario}</th>
           <td>${calc.idadeAtual}d</td>
           ${celulas}
           <td style="font-weight:700;">${calc.mais35!=null ? calc.mais35.toFixed(2).replace('.',',')+'%' : '–'}</td>
+          <td style="${naturalDomina?'color:var(--vermelho-alerta);font-weight:700;':''}">${calc.pctMorteNatural.toFixed(2)}%${naturalDomina?' ▲':''}</td>
+          <td style="${!naturalDomina?'color:var(--vermelho-alerta);font-weight:700;':''}">${calc.pctElim.toFixed(2)}%${!naturalDomina?' ▲':''}</td>
         </tr>`;
       });
     }
@@ -6183,8 +6198,8 @@ function renderQuadroConsolidado(){
         const aAtualTxt = temA ? p.ajudante : '<span class="qf-nome-vago">vago</span>';
         const gFuturoTxt = temG ? (p.granjeiroSaindo ? `<span class="qf-nome-saindo-detalhe">${p.granjeiro}</span>` : p.granjeiro) : '<span class="qf-nome-vago">vago</span>';
         const aFuturoTxt = temA ? (p.ajudanteSaindo ? `<span class="qf-nome-saindo-detalhe">${p.ajudante}</span>` : p.ajudante) : '<span class="qf-nome-vago">vago</span>';
-        const detAtual = mostraAtual ? `<td class="qf-cel-nome" colspan="2">${gAtualTxt} · ${aAtualTxt}</td><td></td>` : '';
-        const detFuturo = mostraFuturo ? `<td class="qf-cel-nome" colspan="2">${gFuturoTxt} · ${aFuturoTxt}</td><td></td>` : '';
+        const detAtual = mostraAtual ? `<td class="qf-cel-nome qf-grupo-atual-td" colspan="2">${gAtualTxt} · ${aAtualTxt}</td><td class="qf-grupo-atual-td"></td>` : '';
+        const detFuturo = mostraFuturo ? `<td class="qf-cel-nome qf-grupo-futuro-td" colspan="2">${gFuturoTxt} · ${aFuturoTxt}</td><td class="qf-grupo-futuro-td"></td>` : '';
         return `<tr class="qf-linha-aviario-detalhe">
           <td>Aviários ${p.aviarios}</td>
           <td></td>
@@ -6200,13 +6215,13 @@ function renderQuadroConsolidado(){
   const faltaFuturoTotal = Math.max(0,totNecessidadeG-totFutG) + Math.max(0,totNecessidadeA-totFutA);
   const necessidadeTotalTexto = totNecessidadeG===totNecessidadeA ? totNecessidadeG : `${totNecessidadeG}g / ${totNecessidadeA}a`;
   const totCelAtual = mostraAtual ? `
-    <td style="font-weight:800;">${totAtualG}/${totNecessidadeG}</td>
-    <td style="font-weight:800;">${totAtualA}/${totNecessidadeA}</td>
-    <td style="font-weight:800;">${faltaAtualTotal}</td>` : '';
+    <td class="qf-grupo-atual-td" style="font-weight:800;">${totAtualG}/${totNecessidadeG}</td>
+    <td class="qf-grupo-atual-td" style="font-weight:800;">${totAtualA}/${totNecessidadeA}</td>
+    <td class="qf-grupo-atual-td" style="font-weight:800;">${faltaAtualTotal}</td>` : '';
   const totCelFuturo = mostraFuturo ? `
-    <td style="font-weight:800;">${totFutG}/${totNecessidadeG}</td>
-    <td style="font-weight:800;">${totFutA}/${totNecessidadeA}</td>
-    <td style="font-weight:800;">${faltaFuturoTotal}</td>` : '';
+    <td class="qf-grupo-futuro-td" style="font-weight:800;">${totFutG}/${totNecessidadeG}</td>
+    <td class="qf-grupo-futuro-td" style="font-weight:800;">${totFutA}/${totNecessidadeA}</td>
+    <td class="qf-grupo-futuro-td" style="font-weight:800;">${faltaFuturoTotal}</td>` : '';
   const linhaTotal = `<tr class="qf-linha-total-geral">
     <th class="rowhead">TOTAL GERAL (${nucleosOrdenados.length} núcleos)</th>
     <td style="font-weight:800;">${necessidadeTotalTexto}</td>
