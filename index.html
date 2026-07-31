@@ -5772,6 +5772,13 @@ function processarEstadoAuth(user){
       const el = document.getElementById(id);
       if(el) el.style.display = 'none';
     });
+    // reseta as flags de "já carregado uma vez" — sem isso, se alguém trocar de conta sem recarregar a página,
+    // as abas com restrição de permissão (ex: lançar combustível) continuariam mostrando o que a conta anterior via.
+    window.quadroFuncionariosCarregado = false;
+    window.registrosCarregado = false;
+    window.produtosCarregado = false;
+    window.energiaSolarCarregado = false;
+    window.combustivelCarregado = false;
   }
 }
 auth.onAuthStateChanged(processarEstadoAuth);
