@@ -4402,9 +4402,12 @@ function renderMatrizPeso(){
   if(!dados.length){ tabela.innerHTML=''; return; }
   const porNucleo = new Map();
   dados.forEach(l=>{ if(!porNucleo.has(l.nucleo)) porNucleo.set(l.nucleo, []); porNucleo.get(l.nucleo).push(l); });
-  const campos = [7,14,21,28,35,42];
+  const campos = [1,7,14,21,28,35,42];
   let thead = '<thead><tr><th class="rowhead">Núcleo / Aviário</th><th class="aloj">Alojadas</th><th class="idade-atual">Idade<br>atual</th>';
-  campos.forEach(c => thead += `<th class="col-idade">${c}d<br><span style="font-weight:600;font-size:9px;">peso</span></th><th class="col-idade">${c}d<br><span style="font-weight:600;font-size:9px;">relação</span></th>`);
+  campos.forEach(c => {
+    const rotulo = c===1 ? 'Chegada' : c+'d';
+    thead += `<th class="col-idade">${rotulo}<br><span style="font-weight:600;font-size:9px;">peso</span></th><th class="col-idade">${rotulo}<br><span style="font-weight:600;font-size:9px;">relação</span></th>`;
+  });
   thead += '</tr></thead>';
   let corpo='';
   Array.from(porNucleo.keys()).sort().forEach(nuc=>{
@@ -4435,13 +4438,14 @@ function renderMatrizPeso(){
         campos.forEach(c=>{
           const v=l['pm'+c];
           const r=l['r'+c];
-          // não sinaliza falta de peso aos 42d — nem sempre existe (lote pode abater antes ou alguns dias depois)
-          const faltando = (v==null && idade!=null && idade >= c+1 && c !== 42);
+          const rotulo = c===1 ? 'Chegada' : c+'d';
+          // não sinaliza falta de peso na Chegada (1d) nem aos 42d — chegada é opcional pra muita gente registrar, e 42d nem sempre existe (lote pode abater antes ou alguns dias depois)
+          const faltando = (v==null && idade!=null && idade >= c+1 && c !== 42 && c !== 1);
           const meta = (window.METAS_PESO && window.METAS_PESO[c]!=null) ? window.METAS_PESO[c] : null;
           let classeMeta = '';
           if(v!=null && meta!=null) classeMeta = v >= meta ? 'peso-acima-meta' : 'peso-abaixo-meta';
-          const tituloMeta = (v!=null && meta!=null) ? `title="Meta ${c}d: ${meta.toFixed(3)}kg — ${v>=meta?'dentro da meta':'abaixo da meta'}"` : '';
-          tds += `<td class="cel ${faltando?'peso-falta':''} ${classeMeta}" ${faltando?`title="Sem peso da checagem de ${c}d — o lote já está com ${idade} dias"`:tituloMeta}>${v!=null?v.toFixed(3):'–'}</td>`;
+          const tituloMeta = (v!=null && meta!=null) ? `title="Meta ${rotulo}: ${meta.toFixed(3)}kg — ${v>=meta?'dentro da meta':'abaixo da meta'}"` : '';
+          tds += `<td class="cel ${faltando?'peso-falta':''} ${classeMeta}" ${faltando?`title="Sem peso da checagem de ${rotulo} — o lote já está com ${idade} dias"`:tituloMeta}>${v!=null?v.toFixed(3):'–'}</td>`;
           tds += `<td class="cel cel-relacao-col">${(v!=null && r!=null)?r.toFixed(2)+'x':'–'}</td>`;
         });
         corpo += `<tr>
@@ -4557,8 +4561,8 @@ function renderRankingPeso(dados){
 
 let nucleosCurvaSelecionadosPw = null;
 let chartCurvaNucleoPw = null;
-const idadesPesoPw=[7,14,21,28,35,42];
-const campoPesoPw={7:'pm7',14:'pm14',21:'pm21',28:'pm28',35:'pm35',42:'pm42'};
+const idadesPesoPw=[1,7,14,21,28,35,42];
+const campoPesoPw={1:'pm1',7:'pm7',14:'pm14',21:'pm21',28:'pm28',35:'pm35',42:'pm42'};
 
 function renderCurvaNucleo(dados){
   const fechados = dados.filter(l=>l.situacao==='Fechado');
@@ -4600,7 +4604,7 @@ function renderCurvaNucleo(dados){
 
   const ctx = document.getElementById('pw_chartCurvaNucleo').getContext('2d');
   if(chartCurvaNucleoPw) chartCurvaNucleoPw.destroy();
-  chartCurvaNucleoPw = new Chart(ctx, { type:'line', data:{ labels:idadesPesoPw.map(i=>i+'d'), datasets },
+  chartCurvaNucleoPw = new Chart(ctx, { type:'line', data:{ labels:idadesPesoPw.map(i=>i===1?'Chegada':i+'d'), datasets },
     options:{ responsive:true, maintainAspectRatio:false, interaction:{mode:'index',intersect:false},
       plugins:{ legend:{display:false}, tooltip:{ callbacks:{
         title: items=>`Idade ${items[0].label}`,
@@ -4830,8 +4834,8 @@ function renderRanking(dados){
 
 // ================= Curva de crescimento =================
 let chartCresc=null;
-const idadesPeso=[7,14,21,28,35,42];
-const campoPeso={7:'pm7',14:'pm14',21:'pm21',28:'pm28',35:'pm35',42:'pm42'};
+const idadesPeso=[1,7,14,21,28,35,42];
+const campoPeso={1:'pm1',7:'pm7',14:'pm14',21:'pm21',28:'pm28',35:'pm35',42:'pm42'};
 function renderChipsLinhagem(){
   const linhas=Array.from(new Set(LOTES.map(l=>l.linhagem).filter(Boolean))).sort();
   const cont=document.getElementById('rz_chipsLinhagem');
@@ -4858,7 +4862,7 @@ function renderCrescimento(dados){
   });
   const ctx=document.getElementById('rz_chartCrescimento').getContext('2d');
   if(chartCresc)chartCresc.destroy();
-  chartCresc=new Chart(ctx,{type:'line',data:{labels:idadesPeso.map(i=>`${i}d`),datasets},
+  chartCresc=new Chart(ctx,{type:'line',data:{labels:idadesPeso.map(i=>i===1?'Chegada':`${i}d`),datasets},
     options:{responsive:true,maintainAspectRatio:false,interaction:{mode:'index',intersect:false},
       plugins:{legend:{display:true,position:'top',labels:{font:{weight:600},usePointStyle:true}},
         tooltip:{callbacks:{label:c=>`${c.dataset.label}: ${c.parsed.y!=null?c.parsed.y.toFixed(3)+' kg':'—'}`}}},
