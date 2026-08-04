@@ -191,6 +191,10 @@
   .qf-grupo-futuro-td{ background:#FFFBF2; }
   .qf-col-total-final{ background:#FBE3E1 !important; color:var(--vermelho-escuro) !important; border-left:2px solid var(--vermelho) !important; font-family:'Sora',sans-serif; }
   th.qf-col-total-final{ font-weight:800; }
+  .qf-resumo-rapido{ padding:12px 16px; border-radius:10px; font-size:13px; margin-bottom:14px; line-height:1.5; }
+  .qf-resumo-ok{ background:#E8F7EC; color:#1E6B35; font-weight:700; }
+  .qf-resumo-alerta{ background:#FFF4E1; color:#8A6200; }
+  .qf-resumo-alerta strong{ color:#A9720A; }
 
   /* ===== Quadro de Funcionários — tabela nova, mais enxuta e à prova de impressão ===== */
   .qf-tabela-nova{ table-layout:fixed; width:100%; }
@@ -6324,7 +6328,22 @@ function renderQuadroConsolidado(){
     if(!porNucleo.has(p.nucleo)) porNucleo.set(p.nucleo, []);
     porNucleo.get(p.nucleo).push(p);
   });
-  const nucleosOrdenados = Array.from(porNucleo.keys()).sort();
+  // pré-calcula o resumo de cada núcleo primeiro, pra poder ordenar por quem precisa de mais atenção
+  const resumosPorNucleo = Array.from(porNucleo.keys()).map(nuc=>{
+    const postos = porNucleo.get(nuc);
+    const r = calcularResumoNucleo(nuc, postos);
+    const faltaAtual = Math.max(0,r.necessidadeGranjeiro-r.atualGranj) + Math.max(0,r.necessidadeAjudante-r.atualAjud);
+    const faltaFuturo = Math.max(0,r.necessidadeGranjeiro-r.futuroGranj) + Math.max(0,r.necessidadeAjudante-r.futuroAjud);
+    return {nuc, postos, r, faltaAtual, faltaFuturo};
+  });
+  // núcleos com falta aparecem primeiro (do maior problema pro menor); entre os completos, ordem alfabética
+  resumosPorNucleo.sort((a,b)=>{
+    const faltaA = mostraAtual ? a.faltaAtual : a.faltaFuturo;
+    const faltaB = mostraAtual ? b.faltaAtual : b.faltaFuturo;
+    if(faltaB !== faltaA) return faltaB - faltaA;
+    return nomeNucleo(a.nuc).localeCompare(nomeNucleo(b.nuc));
+  });
+  const nucleosOrdenados = resumosPorNucleo.map(x=>x.nuc);
   if(!nucleosOrdenados.length){
     gridEl.innerHTML = '<div class="vazio">Nenhum posto cadastrado ainda.</div>';
     return;
@@ -6340,12 +6359,8 @@ function renderQuadroConsolidado(){
     ${mostraFuturo?'<th class="qf-col-futuro">Quadro Futuro (pós-saídas)</th><th class="qf-col-futuro">Falta futuro</th>':''}
   </tr></thead>`;
 
-  const linhas = nucleosOrdenados.map(nuc=>{
-    const postos = porNucleo.get(nuc);
-    const r = calcularResumoNucleo(nuc, postos);
+  const linhas = resumosPorNucleo.map(({nuc, postos, r, faltaAtual, faltaFuturo})=>{
     totNecessidadeG += r.necessidadeGranjeiro; totNecessidadeA += r.necessidadeAjudante; totAtualG += r.atualGranj; totAtualA += r.atualAjud; totFutG += r.futuroGranj; totFutA += r.futuroAjud;
-    const faltaAtual = Math.max(0,r.necessidadeGranjeiro-r.atualGranj) + Math.max(0,r.necessidadeAjudante-r.atualAjud);
-    const faltaFuturo = Math.max(0,r.necessidadeGranjeiro-r.futuroGranj) + Math.max(0,r.necessidadeAjudante-r.futuroAjud);
     const expandido = window.qfConsolidadoExpandido.has(nuc);
     const necessidadeTexto = r.necessidadeGranjeiro===r.necessidadeAjudante ? r.necessidadeGranjeiro : `${r.necessidadeGranjeiro}g / ${r.necessidadeAjudante}a`;
 
@@ -6409,6 +6424,19 @@ function renderQuadroConsolidado(){
     ${totCelAtual}
     ${totCelFuturo}
   </tr>`;
+
+  // resumo rápido no topo: de cara já dá pra ver quantos núcleos estão OK e quantos precisam de atenção,
+  // sem precisar escanear a tabela inteira — os que têm falta já aparecem primeiro nela também.
+  if(totaisEl){
+    const campoFalta = mostraAtual ? 'faltaAtual' : 'faltaFuturo';
+    const nucleosComFalta = resumosPorNucleo.filter(x=>x[campoFalta]>0);
+    const nucleosOk = resumosPorNucleo.length - nucleosComFalta.length;
+    if(nucleosComFalta.length===0){
+      totaisEl.innerHTML = `<div class="qf-resumo-rapido qf-resumo-ok">✅ Todos os ${resumosPorNucleo.length} núcleos completos${visao==='ambos'?' (atual e futuro)':''}</div>`;
+    } else {
+      totaisEl.innerHTML = `<div class="qf-resumo-rapido qf-resumo-alerta">⚠️ ${nucleosComFalta.length} de ${resumosPorNucleo.length} núcleo(s) com falta agora: <strong>${nucleosComFalta.map(x=>nomeNucleo(x.nuc)).join(', ')}</strong> ${nucleosOk>0?`· ${nucleosOk} completo(s)`:''}</div>`;
+    }
+  }
 
   gridEl.innerHTML = `<div class="tabela-scroll arrastavel"><table class="matriz-diaria qf-tabela-nova" id="qf-tabelaConsolidada">${thead}<tbody>${linhas}${linhaTotal}</tbody></table></div>`;
   gridEl.querySelectorAll('[data-toggle-nucleo-cons]').forEach(el=>{
