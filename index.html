@@ -295,6 +295,13 @@
   .comb-ticket-acoes{ display:flex; gap:10px; padding:14px 20px 20px; }
   .comb-ticket-acoes button{ flex:1; }
   @media print{
+    body.cl-imprimindo > *:not(#cl_areaImpressao){ display:none !important; }
+    body.cl-imprimindo #cl_areaImpressao{ display:block !important; }
+    body.cl-imprimindo #cl_tabelaImpressao{ font-size:10px; }
+    body.cl-imprimindo #cl_tabelaImpressao th, body.cl-imprimindo #cl_tabelaImpressao td{ padding:5px 6px !important; }
+    @page{ size: portrait; margin: 14mm; }
+  }
+  @media print{
     /* só entra em ação quando o JS marca body.comb-imprimindo-ticket — evita concorrência com
        os outros blocos de impressão do arquivo (cada módulo tem o seu próprio @media print) */
     body.comb-imprimindo-ticket > *:not(#comb-modalTicket){ display:none !important; }
@@ -1331,8 +1338,20 @@
 
     <div class="painel">
       <div class="painel-header"><h2>Detalhamento por dia</h2><span class="info" id="cl_infoTabela"></span></div>
+      <button class="btn-recolher" id="cl_btnExportarPdf" type="button" style="margin-bottom:12px;">📄 Exportar PDF</button>
       <div class="tabela-scroll"><table class="matriz-diaria" id="cl_tabela"></table></div>
       <div id="cl_paginacao" style="display:flex;gap:6px;justify-content:center;margin-top:14px;flex-wrap:wrap;"></div>
+    </div>
+
+    <div id="cl_areaImpressao" style="display:none;">
+      <div id="cl_print-header" style="display:flex;align-items:center;gap:14px;margin-bottom:14px;border-bottom:2px solid #C1272D;padding-bottom:12px;">
+        <img src="logo.png" alt="Qualitti" style="height:44px;">
+        <div>
+          <h1 style="font-size:16px;margin:0;font-family:'Sora',sans-serif;">Calos de Pé — Detalhamento por dia</h1>
+          <p style="font-size:10px;margin:2px 0 0;color:#666;" id="cl_print-data"></p>
+        </div>
+      </div>
+      <table class="matriz-diaria" id="cl_tabelaImpressao" style="width:100%;"></table>
     </div>
   </div>
 
@@ -3939,6 +3958,40 @@ function clPopularFiltros(){
       renderCalosPe();
     });
   });
+  document.getElementById('cl_btnExportarPdf').addEventListener('click', clExportarPdf);
+}
+
+function clExportarPdf(){
+  const dados = clDadosFiltrados().slice().sort((a,b)=>b.data.localeCompare(a.data)); // todos os dias do filtro, não só a página atual
+  if(!dados.length){ alert('Nenhum dado pra exportar com esse filtro.'); return; }
+
+  const tabelaImp = document.getElementById('cl_tabelaImpressao');
+  tabelaImp.innerHTML = `<thead><tr><th class="rowhead">Data</th><th>Peso Balança</th><th>Calo Pé/Frango</th><th>Rend. Esperado</th><th>Rend. Real</th><th>Descarte</th><th>Rendimento</th></tr></thead>
+    <tbody>${dados.map(d=>`<tr>
+      <th class="rowhead">${reg_formatarDataBR(d.data)}</th>
+      <td>${d.pesoBalanca!=null?d.pesoBalanca.toLocaleString('pt-BR'):'–'}</td>
+      <td>${d.caloPeFrango!=null?d.caloPeFrango.toLocaleString('pt-BR',{maximumFractionDigits:2}):'–'}</td>
+      <td>${d.rendEsperado!=null?d.rendEsperado.toLocaleString('pt-BR',{maximumFractionDigits:2}):'–'}</td>
+      <td>${d.rendReal!=null?d.rendReal.toLocaleString('pt-BR',{maximumFractionDigits:2}):'–'}</td>
+      <td>${d.descarteReal!=null?(d.descarteReal*100).toFixed(2)+'%':'–'}</td>
+      <td>${d.rendimentoReal!=null?(d.rendimentoReal*100).toFixed(2)+'%':'–'}</td>
+    </tr>`).join('')}</tbody>`;
+  document.getElementById('cl_print-data').textContent = `${dados.length} dia(s) · ${reg_formatarDataBR(dados[dados.length-1].data)} a ${reg_formatarDataBR(dados[0].data)} · gerado em ${new Date().toLocaleString('pt-BR')}`;
+
+  // a área de impressão fica bem aninhada na estrutura normal — move ela pra ser filha direta do
+  // body só durante a impressão (mesma técnica usada no ticket de combustível), evitando qualquer
+  // conflito com os outros blocos de impressão do arquivo, e devolve pro lugar de origem depois
+  const area = document.getElementById('cl_areaImpressao');
+  const marcador = document.createComment('cl_areaImpressao volta aqui');
+  area.parentNode.insertBefore(marcador, area);
+  document.body.appendChild(area);
+  document.body.classList.add('cl-imprimindo');
+  window.print();
+  setTimeout(()=>{
+    document.body.classList.remove('cl-imprimindo');
+    marcador.parentNode.insertBefore(area, marcador);
+    marcador.remove();
+  }, 500);
 }
 
 function clDadosFiltrados(){
@@ -4062,7 +4115,8 @@ function renderCalosPe(){
 window.renderCalosPe = renderCalosPe;
 
 document.querySelectorAll('#mod-condenas .tab-int').forEach(b=>b.addEventListener('click',()=>{
-  document.querySelectorAll('#mod-condenas .tab-int').forEach(x=>x.classList.remove('ativo'));
+  if(!b.dataset.aba) return; // ex: os botões Diário/Mensal/Anual de Calos de Pé também usam .tab-int, mas não são troca de módulo
+  document.querySelectorAll('#mod-condenas .tab-int[data-aba]').forEach(x=>x.classList.remove('ativo'));
   b.classList.add('ativo'); abaAtiva=b.dataset.aba;
   ['geral','tipo','calos','matriz'].forEach(a=>document.querySelector(`#mod-condenas [data-aba-view="${a}"]`).style.display=(a===abaAtiva)?'':'none');
   const painelFiltros = document.getElementById('cd_painelFiltros');
