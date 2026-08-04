@@ -1234,6 +1234,7 @@
   <div class="tabs-internas">
     <button class="tab-int ativo" data-aba="geral">Visão geral</button>
     <button class="tab-int" data-aba="tipo">Por tipo</button>
+    <button class="tab-int" data-aba="calos">Calos de Pé</button>
     <button class="tab-int" data-aba="matriz">Matriz</button>
   </div>
 
@@ -1286,6 +1287,35 @@
       <div class="painel-header"><h2 id="cd_tituloTipo">Condena por tipo</h2><span class="info" id="cd_infoTipo"></span></div>
       <div class="tipo-lista" id="cd_tipoLista"></div>
       <p class="nota">Participação de cada tipo no total condenado (em peso ou aves, conforme o seletor). Use os filtros de Núcleo/Aviário para ver o que puxa a condena num lugar específico.</p>
+    </div>
+  </div>
+
+  <!-- CALOS DE PÉ -->
+  <div data-aba-view="calos" style="display:none;">
+    <div class="painel" style="background:#FFF9E6;border-color:#F0DFB0;">
+      <div class="painel-header"><h2>🚧 Prévia — aguardando a planilha real</h2></div>
+      <p class="nota" style="margin-top:0;">Essa aba ainda está com <strong>dados de exemplo</strong>, só pra a gente combinar o formato antes de eu conectar com a base de verdade. Assim que você me confirmar (ou subir aqui) a planilha <strong>Relatório_Calos</strong>, aba <strong>bd_calos</strong>, do Google Drive, eu troco pelos dados reais.</p>
+      <p class="nota">Preciso confirmar 2 coisas pra montar certinho: <strong>1)</strong> como o escore de calo é lançado na planilha (ex: nota 0/1/2, percentual, ou outra escala?) e <strong>2)</strong> em que nível o dado vem — por lote, por núcleo, por aviário?</p>
+    </div>
+
+    <div class="cards" id="cl_cards">
+      <div class="card"><div class="label">Média geral</div><div class="valor">1,8%</div></div>
+      <div class="card"><div class="label">Núcleo mais crítico</div><div class="valor" style="font-size:16px;">Aroeira</div></div>
+      <div class="card"><div class="label">Núcleo melhor colocado</div><div class="valor" style="font-size:16px;">Flamboyant</div></div>
+      <div class="card"><div class="label">Lotes avaliados</div><div class="valor">—</div></div>
+    </div>
+
+    <div class="painel">
+      <div class="painel-header"><h2>Ranking por núcleo (exemplo)</h2><span class="info">Dados ilustrativos</span></div>
+      <div class="tabela-scroll"><table class="matriz-diaria">
+        <thead><tr><th class="rowhead">Núcleo</th><th>Score 0 (sem calo)</th><th>Score 1 (leve)</th><th>Score 2 (severo)</th><th>Média</th></tr></thead>
+        <tbody>
+          <tr><th class="rowhead">Aroeira</th><td>78%</td><td>16%</td><td>6%</td><td style="color:var(--vermelho-alerta);font-weight:700;">2,9%</td></tr>
+          <tr><th class="rowhead">Vinagre 02</th><td>85%</td><td>11%</td><td>4%</td><td>2,1%</td></tr>
+          <tr><th class="rowhead">Santa Rosa</th><td>90%</td><td>8%</td><td>2%</td><td>1,3%</td></tr>
+          <tr><th class="rowhead">Flamboyant</th><td>96%</td><td>3%</td><td>1%</td><td style="color:var(--verde-ok);font-weight:700;">0,7%</td></tr>
+        </tbody>
+      </table></div>
     </div>
   </div>
 
@@ -3863,8 +3893,9 @@ document.getElementById('btnLimparFiltrosCd').addEventListener('click', () => {
 document.querySelectorAll('#mod-condenas .tab-int').forEach(b=>b.addEventListener('click',()=>{
   document.querySelectorAll('#mod-condenas .tab-int').forEach(x=>x.classList.remove('ativo'));
   b.classList.add('ativo'); abaAtiva=b.dataset.aba;
-  ['geral','tipo','matriz'].forEach(a=>document.querySelector(`#mod-condenas [data-aba-view="${a}"]`).style.display=(a===abaAtiva)?'':'none');
+  ['geral','tipo','calos','matriz'].forEach(a=>document.querySelector(`#mod-condenas [data-aba-view="${a}"]`).style.display=(a===abaAtiva)?'':'none');
   render();
+  if(abaAtiva==='calos' && typeof renderCalosPe==='function') renderCalosPe();
 }));
 document.querySelectorAll('#cd_segMetrica button').forEach(b=>b.addEventListener('click',()=>{
   document.querySelectorAll('#cd_segMetrica button').forEach(x=>x.classList.remove('ativo'));
