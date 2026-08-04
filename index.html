@@ -4406,7 +4406,8 @@ function renderMatrizPeso(){
   let thead = '<thead><tr><th class="rowhead">Núcleo / Aviário</th><th class="aloj">Alojadas</th><th class="idade-atual">Idade<br>atual</th>';
   campos.forEach(c => {
     const rotulo = c===1 ? 'Chegada' : c+'d';
-    thead += `<th class="col-idade">${rotulo}<br><span style="font-weight:600;font-size:9px;">peso</span></th><th class="col-idade">${rotulo}<br><span style="font-weight:600;font-size:9px;">relação</span></th>`;
+    thead += `<th class="col-idade">${rotulo}<br><span style="font-weight:600;font-size:9px;">peso</span></th>`;
+    if(c!==1) thead += `<th class="col-idade">${rotulo}<br><span style="font-weight:600;font-size:9px;">relação</span></th>`;
   });
   thead += '</tr></thead>';
   let corpo='';
@@ -4423,7 +4424,8 @@ function renderMatrizPeso(){
       const meta = (window.METAS_PESO && window.METAS_PESO[c]!=null) ? window.METAS_PESO[c] : null;
       let classeMeta = '';
       if(med!=null && meta!=null) classeMeta = med >= meta ? 'peso-acima-meta' : 'peso-abaixo-meta';
-      tdsNuc += `<td class="cel ${classeMeta}">${med!=null?med.toFixed(3):'–'}</td><td class="cel cel-relacao-col">${medR!=null?medR.toFixed(2)+'x':'–'}</td>`;
+      tdsNuc += `<td class="cel ${classeMeta}">${med!=null?med.toFixed(3):'–'}</td>`;
+      if(c!==1) tdsNuc += `<td class="cel cel-relacao-col">${medR!=null?medR.toFixed(2)+'x':'–'}</td>`;
     });
     corpo += `<tr class="linha-nuc">
       <th class="rowhead"><span class="nuc-toggle" data-nuc-toggle-pw="${nuc}">${rec?'▸':'▾'}</span> ${nomeNucleo(nuc)}</th>
@@ -4446,7 +4448,7 @@ function renderMatrizPeso(){
           if(v!=null && meta!=null) classeMeta = v >= meta ? 'peso-acima-meta' : 'peso-abaixo-meta';
           const tituloMeta = (v!=null && meta!=null) ? `title="Meta ${rotulo}: ${meta.toFixed(3)}kg — ${v>=meta?'dentro da meta':'abaixo da meta'}"` : '';
           tds += `<td class="cel ${faltando?'peso-falta':''} ${classeMeta}" ${faltando?`title="Sem peso da checagem de ${rotulo} — o lote já está com ${idade} dias"`:tituloMeta}>${v!=null?v.toFixed(3):'–'}</td>`;
-          tds += `<td class="cel cel-relacao-col">${(v!=null && r!=null)?r.toFixed(2)+'x':'–'}</td>`;
+          if(c!==1) tds += `<td class="cel cel-relacao-col">${(v!=null && r!=null)?r.toFixed(2)+'x':'–'}</td>`;
         });
         corpo += `<tr>
           <th class="rowhead av">${l.aviario}</th>
