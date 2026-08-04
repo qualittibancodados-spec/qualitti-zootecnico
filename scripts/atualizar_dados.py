@@ -81,6 +81,8 @@ def identificar_planilha(xls_bytes):
         return 'resultado', xl
     if 'Bd_Condenas' in abas:
         return 'condenas', xl
+    if 'bd_calos' in abas:
+        return 'calos', xl
     return None, xl
 
 
@@ -314,6 +316,28 @@ def salvar(nome_arquivo, dados):
         json.dump(dados, f, ensure_ascii=False, separators=(',', ':'))
 
 
+# ============================================================
+# CALOS DE PÉ (relatório diário do abate)
+# ============================================================
+def processar_calos(xl):
+    df = pd.read_excel(xl, sheet_name='bd_calos')
+    df = df.dropna(subset=['Data']).copy()
+    registros = []
+    for _, r in df.iterrows():
+        registros.append({
+            'data': pd.to_datetime(r['Data']).strftime('%Y-%m-%d'),
+            'pesoBalanca': clean(r.get('Peso Líquido Balança')),
+            'caloPeFrango': round(float(r['Calo Pé/Frango']), 2) if pd.notna(r.get('Calo Pé/Frango')) else None,
+            'rendEsperado': round(float(r['Rend. Esperado']), 3) if pd.notna(r.get('Rend. Esperado')) else None,
+            'rendReal': round(float(r['Rend. Real']), 3) if pd.notna(r.get('Rend. Real')) else None,
+            'descarteReal': round(float(r['Descarte Real']), 5) if pd.notna(r.get('Descarte Real')) else None,
+            'rendimentoReal': round(float(r['Rendimento Real']), 5) if pd.notna(r.get('Rendimento Real')) else None,
+        })
+    registros.sort(key=lambda x: x['data'])
+    salvar('calos_pe.json', registros)
+    print(f"  Calos de Pé: {len(registros)} dia(s)")
+
+
 def main():
     print("Conectando ao Google Drive...")
     servico = conectar_drive()
@@ -324,6 +348,7 @@ def main():
         'mortalidade': processar_mortalidade,
         'resultado': processar_resultado,
         'condenas': processar_condenas,
+        'calos': processar_calos,
     }
     encontrados = set()
 
