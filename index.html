@@ -1304,16 +1304,35 @@
       </div>
     </div>
 
+    <div class="filtros">
+      <div class="filtros-grid">
+        <div class="campo"><label>Ano Abate</label><select id="cl_fAno"><option value="Todos">Todos</option></select></div>
+        <div class="campo"><label>Mês Abate</label><select id="cl_fMes"><option value="Todos">Todos</option></select></div>
+      </div>
+      <div style="display:flex;justify-content:flex-end;margin-top:10px;">
+        <button class="btn-recolher" id="cl_btnLimparFiltros" style="border-color:var(--vermelho);color:var(--vermelho);width:fit-content;">Limpar filtros</button>
+      </div>
+    </div>
+
     <div class="cards" id="cl_cards"></div>
 
     <div class="painel-grafico">
-      <div class="painel-grafico-header"><h2>Descarte por calo de pé — evolução diária</h2><span class="info" id="cl_infoGrafico"></span></div>
+      <div class="painel-grafico-header">
+        <h2>Rendimento — evolução</h2>
+        <div class="tabs-internas" id="cl_segGranularidade" style="margin:0;">
+          <button class="tab-int ativo" data-gran="diario">Diário</button>
+          <button class="tab-int" data-gran="mensal">Mensal</button>
+          <button class="tab-int" data-gran="anual">Anual</button>
+        </div>
+        <span class="info" id="cl_infoGrafico"></span>
+      </div>
       <div class="chart-wrap" style="height:280px;"><canvas id="cl_graficoDiario"></canvas></div>
     </div>
 
     <div class="painel">
       <div class="painel-header"><h2>Detalhamento por dia</h2><span class="info" id="cl_infoTabela"></span></div>
       <div class="tabela-scroll"><table class="matriz-diaria" id="cl_tabela"></table></div>
+      <div id="cl_paginacao" style="display:flex;gap:6px;justify-content:center;margin-top:14px;flex-wrap:wrap;"></div>
     </div>
   </div>
 
@@ -3893,24 +3912,71 @@ document.getElementById('btnLimparFiltrosCd').addEventListener('click', () => {
 
 // tabs
 let chartCalosDiario = null;
+window.clFiltro = { ano:'Todos', mes:'Todos' };
+window.clGranularidade = 'diario';
+let clPaginaAtual = 1;
+const CL_ITENS_POR_PAGINA = 10;
+const CL_NOMES_MESES = ['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'];
+
+function clPopularFiltros(){
+  const selAno = document.getElementById('cl_fAno');
+  const selMes = document.getElementById('cl_fMes');
+  if(!selAno || selAno.dataset.populado) return; // só popula uma vez
+  const anos = Array.from(new Set(CALOS_PE.map(d=>d.data.slice(0,4)))).sort();
+  selAno.innerHTML = '<option value="Todos">Todos</option>' + anos.map(a=>`<option value="${a}">${a}</option>`).join('');
+  selMes.innerHTML = '<option value="Todos">Todos</option>' + CL_NOMES_MESES.map((m,i)=>`<option value="${String(i+1).padStart(2,'0')}">${m}</option>`).join('');
+  selAno.dataset.populado = '1';
+  selAno.addEventListener('change', ()=>{ window.clFiltro.ano = selAno.value; clPaginaAtual=1; renderCalosPe(); });
+  selMes.addEventListener('change', ()=>{ window.clFiltro.mes = selMes.value; clPaginaAtual=1; renderCalosPe(); });
+  document.getElementById('cl_btnLimparFiltros').addEventListener('click', ()=>{
+    window.clFiltro = {ano:'Todos', mes:'Todos'}; selAno.value='Todos'; selMes.value='Todos'; clPaginaAtual=1; renderCalosPe();
+  });
+  document.querySelectorAll('#cl_segGranularidade .tab-int').forEach(btn=>{
+    btn.addEventListener('click', ()=>{
+      document.querySelectorAll('#cl_segGranularidade .tab-int').forEach(b=>b.classList.remove('ativo'));
+      btn.classList.add('ativo');
+      window.clGranularidade = btn.dataset.gran;
+      renderCalosPe();
+    });
+  });
+}
+
+function clDadosFiltrados(){
+  return CALOS_PE.filter(d=>{
+    if(window.clFiltro.ano!=='Todos' && d.data.slice(0,4)!==window.clFiltro.ano) return false;
+    if(window.clFiltro.mes!=='Todos' && d.data.slice(5,7)!==window.clFiltro.mes) return false;
+    return true;
+  });
+}
+
 function renderCalosPe(){
   const cardsEl = document.getElementById('cl_cards');
   const tabelaEl = document.getElementById('cl_tabela');
   const infoTabela = document.getElementById('cl_infoTabela');
   const infoGrafico = document.getElementById('cl_infoGrafico');
+  const paginacaoEl = document.getElementById('cl_paginacao');
   if(!cardsEl) return;
 
   if(!CALOS_PE || !CALOS_PE.length){
     cardsEl.innerHTML = '<div class="vazio">Nenhum dado de Calos de Pé disponível ainda — assim que o pipeline rodar com a base nova, essa aba já vem preenchida sozinha.</div>';
-    tabelaEl.innerHTML = ''; if(infoTabela) infoTabela.textContent=''; if(infoGrafico) infoGrafico.textContent='';
+    tabelaEl.innerHTML = ''; if(infoTabela) infoTabela.textContent=''; if(infoGrafico) infoGrafico.textContent=''; if(paginacaoEl) paginacaoEl.innerHTML='';
+    return;
+  }
+  clPopularFiltros();
+
+  const dados = clDadosFiltrados();
+  if(!dados.length){
+    cardsEl.innerHTML = '<div class="vazio">Nenhum dia encontrado com esse filtro.</div>';
+    tabelaEl.innerHTML = ''; if(infoTabela) infoTabela.textContent=''; if(paginacaoEl) paginacaoEl.innerHTML='';
+    if(chartCalosDiario){ chartCalosDiario.destroy(); chartCalosDiario=null; }
     return;
   }
 
-  const validos = CALOS_PE.filter(d=>d.descarteReal!=null);
+  const validos = dados.filter(d=>d.descarteReal!=null);
   const mediaDescarte = validos.reduce((s,d)=>s+d.descarteReal,0)/validos.length;
   const piorDia = validos.reduce((a,b)=>b.descarteReal>a.descarteReal?b:a);
   const melhorDia = validos.reduce((a,b)=>b.descarteReal<a.descarteReal?b:a);
-  const totalCalo = CALOS_PE.reduce((s,d)=>s+(d.caloPeFrango||0),0);
+  const totalCalo = dados.reduce((s,d)=>s+(d.caloPeFrango||0),0);
 
   cardsEl.innerHTML = `
     <div class="card"><div class="label">Descarte médio no período</div><div class="valor">${(mediaDescarte*100).toFixed(1)}%</div></div>
@@ -3919,25 +3985,58 @@ function renderCalosPe(){
     <div class="card"><div class="label">Total perdido no período</div><div class="valor">${totalCalo.toLocaleString('pt-BR',{maximumFractionDigits:0})} kg</div></div>
   `;
 
-  if(infoGrafico) infoGrafico.textContent = `${CALOS_PE.length} dia(s) · ${reg_formatarDataBR(CALOS_PE[0].data)} a ${reg_formatarDataBR(CALOS_PE[CALOS_PE.length-1].data)}`;
+  // ---- gráfico: agrega conforme a granularidade escolhida (diário/mensal/anual) ----
+  let labels, serieRendimento, serieDescarte;
+  if(window.clGranularidade === 'diario'){
+    const ordenado = dados.slice().sort((a,b)=>a.data.localeCompare(b.data));
+    labels = ordenado.map(d=>reg_formatarDataBR(d.data).slice(0,5));
+    serieRendimento = ordenado.map(d=>d.rendimentoReal!=null?+(d.rendimentoReal*100).toFixed(2):null);
+    serieDescarte = ordenado.map(d=>d.descarteReal!=null?+(d.descarteReal*100).toFixed(2):null);
+  } else {
+    const chaveFn = window.clGranularidade === 'mensal' ? (d=>d.data.slice(0,7)) : (d=>d.data.slice(0,4));
+    const grupos = new Map();
+    dados.forEach(d=>{
+      const chave = chaveFn(d);
+      if(!grupos.has(chave)) grupos.set(chave, {esperado:0, real:0, calo:0});
+      const g = grupos.get(chave);
+      g.esperado += (d.rendEsperado||0); g.real += (d.rendReal||0); g.calo += (d.caloPeFrango||0);
+    });
+    const chaves = Array.from(grupos.keys()).sort();
+    labels = chaves.map(c=>{
+      if(window.clGranularidade === 'mensal'){ const [a,m]=c.split('-'); return CL_NOMES_MESES[+m-1].slice(0,3)+'/'+a.slice(2); }
+      return c;
+    });
+    serieRendimento = chaves.map(c=>{ const g=grupos.get(c); return g.esperado>0 ? +(g.real/g.esperado*100).toFixed(2) : null; });
+    serieDescarte = chaves.map(c=>{ const g=grupos.get(c); return g.esperado>0 ? +(g.calo/g.esperado*100).toFixed(2) : null; });
+  }
+
+  if(infoGrafico) infoGrafico.textContent = `${dados.length} dia(s) no filtro · ${reg_formatarDataBR(dados[0].data)} a ${reg_formatarDataBR(dados[dados.length-1].data)}`;
   const ctx = document.getElementById('cl_graficoDiario');
   if(ctx){
     if(chartCalosDiario) chartCalosDiario.destroy();
     chartCalosDiario = new Chart(ctx.getContext('2d'), {
-      type:'line',
+      type: window.clGranularidade === 'diario' ? 'line' : 'bar',
       data:{
-        labels: CALOS_PE.map(d=>reg_formatarDataBR(d.data).slice(0,5)),
+        labels,
         datasets:[
-          { label:'Descarte por calo (%)', data: CALOS_PE.map(d=>d.descarteReal!=null?+(d.descarteReal*100).toFixed(2):null), borderColor:'#C1272D', backgroundColor:'rgba(193,39,45,.12)', fill:true, tension:.25 }
+          { label:'Rendimento Real (%)', data: serieRendimento, borderColor:'#3A7D44', backgroundColor: window.clGranularidade==='diario'?'rgba(58,125,68,.12)':'#3A7D44', fill: window.clGranularidade==='diario', tension:.25 },
+          { label:'Descarte por calo (%)', data: serieDescarte, borderColor:'#C1272D', backgroundColor: window.clGranularidade==='diario'?'rgba(193,39,45,.12)':'#C1272D', fill: window.clGranularidade==='diario', tension:.25 }
         ]
       },
-      options:{ responsive:true, maintainAspectRatio:false, scales:{ y:{ beginAtZero:true, title:{display:true,text:'% descarte'} } } }
+      options:{ responsive:true, maintainAspectRatio:false, scales:{ y:{ beginAtZero:true, max:100, title:{display:true,text:'%'} } } }
     });
   }
 
-  if(infoTabela) infoTabela.textContent = `${CALOS_PE.length} dia(s)`;
+  // ---- tabela paginada ----
+  const ordenadoDesc = dados.slice().sort((a,b)=>b.data.localeCompare(a.data)); // mais recente primeiro
+  const totalPaginas = Math.max(1, Math.ceil(ordenadoDesc.length / CL_ITENS_POR_PAGINA));
+  if(clPaginaAtual > totalPaginas) clPaginaAtual = totalPaginas;
+  const inicio = (clPaginaAtual-1) * CL_ITENS_POR_PAGINA;
+  const paginaAtualItens = ordenadoDesc.slice(inicio, inicio + CL_ITENS_POR_PAGINA);
+
+  if(infoTabela) infoTabela.textContent = `${ordenadoDesc.length} dia(s)`;
   tabelaEl.innerHTML = `<thead><tr><th class="rowhead">Data</th><th>Peso Balança</th><th>Calo Pé/Frango</th><th>Rend. Esperado</th><th>Rend. Real</th><th>Descarte</th><th>Rendimento</th></tr></thead>
-    <tbody>${CALOS_PE.slice().reverse().map(d=>`<tr>
+    <tbody>${paginaAtualItens.map(d=>`<tr>
       <th class="rowhead">${reg_formatarDataBR(d.data)}</th>
       <td>${d.pesoBalanca!=null?d.pesoBalanca.toLocaleString('pt-BR'):'–'}</td>
       <td>${d.caloPeFrango!=null?d.caloPeFrango.toLocaleString('pt-BR',{maximumFractionDigits:2}):'–'}</td>
@@ -3946,6 +4045,19 @@ function renderCalosPe(){
       <td style="font-weight:700;color:${d.descarteReal>0.2?'var(--vermelho-alerta)':'inherit'};">${d.descarteReal!=null?(d.descarteReal*100).toFixed(2)+'%':'–'}</td>
       <td style="font-weight:700;">${d.rendimentoReal!=null?(d.rendimentoReal*100).toFixed(2)+'%':'–'}</td>
     </tr>`).join('')}</tbody>`;
+
+  if(paginacaoEl){
+    if(totalPaginas>1){
+      paginacaoEl.innerHTML = `
+        <button class="comb-btn-pagina" id="cl_btnPaginaAnterior" ${clPaginaAtual===1?'disabled':''}>‹</button>
+        <span class="comb-pagina-indicador">Página ${clPaginaAtual} de ${totalPaginas}</span>
+        <button class="comb-btn-pagina" id="cl_btnPaginaProxima" ${clPaginaAtual===totalPaginas?'disabled':''}>›</button>`;
+      document.getElementById('cl_btnPaginaAnterior').addEventListener('click', ()=>{ clPaginaAtual--; renderCalosPe(); });
+      document.getElementById('cl_btnPaginaProxima').addEventListener('click', ()=>{ clPaginaAtual++; renderCalosPe(); });
+    } else {
+      paginacaoEl.innerHTML = '';
+    }
+  }
 }
 window.renderCalosPe = renderCalosPe;
 
