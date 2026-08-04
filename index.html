@@ -1238,7 +1238,7 @@
     <button class="tab-int" data-aba="matriz">Matriz</button>
   </div>
 
-  <div class="filtros">
+  <div class="filtros" id="cd_painelFiltros">
     <div class="filtros-grid">
       <div class="campo"><label>Ano</label><select id="cd_fAno"></select></div>
       <div class="campo"><label>Núcleo</label><select id="cd_fNucleo"></select></div>
@@ -1292,30 +1292,18 @@
 
   <!-- CALOS DE PÉ -->
   <div data-aba-view="calos" style="display:none;">
-    <div class="painel" style="background:#FFF9E6;border-color:#F0DFB0;">
-      <div class="painel-header"><h2>🚧 Prévia — aguardando a planilha real</h2></div>
-      <p class="nota" style="margin-top:0;">Essa aba ainda está com <strong>dados de exemplo</strong>, só pra a gente combinar o formato antes de eu conectar com a base de verdade. Assim que você me confirmar (ou subir aqui) a planilha <strong>Relatório_Calos</strong>, aba <strong>bd_calos</strong>, do Google Drive, eu troco pelos dados reais.</p>
-      <p class="nota">Preciso confirmar 2 coisas pra montar certinho: <strong>1)</strong> como o escore de calo é lançado na planilha (ex: nota 0/1/2, percentual, ou outra escala?) e <strong>2)</strong> em que nível o dado vem — por lote, por núcleo, por aviário?</p>
-    </div>
+    <p class="nota" style="margin:0 0 16px;">Relatório diário do abate — quanto do rendimento esperado se perde por causa de calo de pé. <strong>Descarte</strong> é a fatia perdida; <strong>Rendimento</strong> é a fatia que efetivamente virou produto bom.</p>
 
-    <div class="cards" id="cl_cards">
-      <div class="card"><div class="label">Média geral</div><div class="valor">1,8%</div></div>
-      <div class="card"><div class="label">Núcleo mais crítico</div><div class="valor" style="font-size:16px;">Aroeira</div></div>
-      <div class="card"><div class="label">Núcleo melhor colocado</div><div class="valor" style="font-size:16px;">Flamboyant</div></div>
-      <div class="card"><div class="label">Lotes avaliados</div><div class="valor">—</div></div>
+    <div class="cards" id="cl_cards"></div>
+
+    <div class="painel-grafico">
+      <div class="painel-grafico-header"><h2>Descarte por calo de pé — evolução diária</h2><span class="info" id="cl_infoGrafico"></span></div>
+      <div class="chart-wrap" style="height:280px;"><canvas id="cl_graficoDiario"></canvas></div>
     </div>
 
     <div class="painel">
-      <div class="painel-header"><h2>Ranking por núcleo (exemplo)</h2><span class="info">Dados ilustrativos</span></div>
-      <div class="tabela-scroll"><table class="matriz-diaria">
-        <thead><tr><th class="rowhead">Núcleo</th><th>Score 0 (sem calo)</th><th>Score 1 (leve)</th><th>Score 2 (severo)</th><th>Média</th></tr></thead>
-        <tbody>
-          <tr><th class="rowhead">Aroeira</th><td>78%</td><td>16%</td><td>6%</td><td style="color:var(--vermelho-alerta);font-weight:700;">2,9%</td></tr>
-          <tr><th class="rowhead">Vinagre 02</th><td>85%</td><td>11%</td><td>4%</td><td>2,1%</td></tr>
-          <tr><th class="rowhead">Santa Rosa</th><td>90%</td><td>8%</td><td>2%</td><td>1,3%</td></tr>
-          <tr><th class="rowhead">Flamboyant</th><td>96%</td><td>3%</td><td>1%</td><td style="color:var(--verde-ok);font-weight:700;">0,7%</td></tr>
-        </tbody>
-      </table></div>
+      <div class="painel-header"><h2>Detalhamento por dia</h2><span class="info" id="cl_infoTabela"></span></div>
+      <div class="tabela-scroll"><table class="matriz-diaria" id="cl_tabela"></table></div>
     </div>
   </div>
 
@@ -2101,16 +2089,20 @@
 </div><!-- fim appRoot -->
 
 <script>
-function fetchJSONSync(url){
+function fetchJSONSync(url, valorPadraoSeNaoExistir){
   const xhr = new XMLHttpRequest();
   const semCache = url + (url.includes('?') ? '&' : '?') + '_cb=' + Date.now();
   xhr.open('GET', semCache, false);
   xhr.send(null);
-  if(xhr.status !== 200 && xhr.status !== 0) throw new Error('Falha ao carregar '+url+': HTTP '+xhr.status);
+  if(xhr.status !== 200 && xhr.status !== 0){
+    if(valorPadraoSeNaoExistir !== undefined) return valorPadraoSeNaoExistir; // ex: arquivo novo que o pipeline ainda não gerou — não trava o site inteiro
+    throw new Error('Falha ao carregar '+url+': HTTP '+xhr.status);
+  }
   return JSON.parse(xhr.responseText);
 }
 const RAW_DATA = fetchJSONSync('./data/mortalidade_data.json');
 const RESUMO_LOTES = fetchJSONSync('./data/resumo_lotes.json');
+const CALOS_PE = fetchJSONSync('./data/calos_pe.json', []); // 2º argumento = valor padrão, caso o arquivo ainda não exista (pipeline não rodou)
 const AGG_IDADE = fetchJSONSync('./data/agg_idade.json');
 const AGG_NUCLEO = fetchJSONSync('./data/agg_nucleo_idade.json');
 const MORT_DIARIA = fetchJSONSync('./data/mort_diaria_abertos.json');
@@ -3890,10 +3882,69 @@ document.getElementById('btnLimparFiltrosCd').addEventListener('click', () => {
 });
 
 // tabs
+let chartCalosDiario = null;
+function renderCalosPe(){
+  const cardsEl = document.getElementById('cl_cards');
+  const tabelaEl = document.getElementById('cl_tabela');
+  const infoTabela = document.getElementById('cl_infoTabela');
+  const infoGrafico = document.getElementById('cl_infoGrafico');
+  if(!cardsEl) return;
+
+  if(!CALOS_PE || !CALOS_PE.length){
+    cardsEl.innerHTML = '<div class="vazio">Nenhum dado de Calos de Pé disponível ainda — assim que o pipeline rodar com a base nova, essa aba já vem preenchida sozinha.</div>';
+    tabelaEl.innerHTML = ''; if(infoTabela) infoTabela.textContent=''; if(infoGrafico) infoGrafico.textContent='';
+    return;
+  }
+
+  const validos = CALOS_PE.filter(d=>d.descarteReal!=null);
+  const mediaDescarte = validos.reduce((s,d)=>s+d.descarteReal,0)/validos.length;
+  const piorDia = validos.reduce((a,b)=>b.descarteReal>a.descarteReal?b:a);
+  const melhorDia = validos.reduce((a,b)=>b.descarteReal<a.descarteReal?b:a);
+  const totalCalo = CALOS_PE.reduce((s,d)=>s+(d.caloPeFrango||0),0);
+
+  cardsEl.innerHTML = `
+    <div class="card"><div class="label">Descarte médio no período</div><div class="valor">${(mediaDescarte*100).toFixed(1)}%</div></div>
+    <div class="card"><div class="label">Pior dia</div><div class="valor" style="color:var(--vermelho-alerta);">${(piorDia.descarteReal*100).toFixed(1)}%</div><div style="font-size:11px;color:var(--texto-suave);margin-top:2px;">${reg_formatarDataBR(piorDia.data)}</div></div>
+    <div class="card"><div class="label">Melhor dia</div><div class="valor" style="color:var(--verde-ok);">${(melhorDia.descarteReal*100).toFixed(1)}%</div><div style="font-size:11px;color:var(--texto-suave);margin-top:2px;">${reg_formatarDataBR(melhorDia.data)}</div></div>
+    <div class="card"><div class="label">Total perdido no período</div><div class="valor">${totalCalo.toLocaleString('pt-BR',{maximumFractionDigits:0})} kg</div></div>
+  `;
+
+  if(infoGrafico) infoGrafico.textContent = `${CALOS_PE.length} dia(s) · ${reg_formatarDataBR(CALOS_PE[0].data)} a ${reg_formatarDataBR(CALOS_PE[CALOS_PE.length-1].data)}`;
+  const ctx = document.getElementById('cl_graficoDiario');
+  if(ctx){
+    if(chartCalosDiario) chartCalosDiario.destroy();
+    chartCalosDiario = new Chart(ctx.getContext('2d'), {
+      type:'line',
+      data:{
+        labels: CALOS_PE.map(d=>reg_formatarDataBR(d.data).slice(0,5)),
+        datasets:[
+          { label:'Descarte por calo (%)', data: CALOS_PE.map(d=>d.descarteReal!=null?+(d.descarteReal*100).toFixed(2):null), borderColor:'#C1272D', backgroundColor:'rgba(193,39,45,.12)', fill:true, tension:.25 }
+        ]
+      },
+      options:{ responsive:true, maintainAspectRatio:false, scales:{ y:{ beginAtZero:true, title:{display:true,text:'% descarte'} } } }
+    });
+  }
+
+  if(infoTabela) infoTabela.textContent = `${CALOS_PE.length} dia(s)`;
+  tabelaEl.innerHTML = `<thead><tr><th class="rowhead">Data</th><th>Peso Balança</th><th>Calo Pé/Frango</th><th>Rend. Esperado</th><th>Rend. Real</th><th>Descarte</th><th>Rendimento</th></tr></thead>
+    <tbody>${CALOS_PE.slice().reverse().map(d=>`<tr>
+      <th class="rowhead">${reg_formatarDataBR(d.data)}</th>
+      <td>${d.pesoBalanca!=null?d.pesoBalanca.toLocaleString('pt-BR'):'–'}</td>
+      <td>${d.caloPeFrango!=null?d.caloPeFrango.toLocaleString('pt-BR',{maximumFractionDigits:2}):'–'}</td>
+      <td>${d.rendEsperado!=null?d.rendEsperado.toLocaleString('pt-BR',{maximumFractionDigits:2}):'–'}</td>
+      <td>${d.rendReal!=null?d.rendReal.toLocaleString('pt-BR',{maximumFractionDigits:2}):'–'}</td>
+      <td style="font-weight:700;color:${d.descarteReal>0.2?'var(--vermelho-alerta)':'inherit'};">${d.descarteReal!=null?(d.descarteReal*100).toFixed(2)+'%':'–'}</td>
+      <td style="font-weight:700;">${d.rendimentoReal!=null?(d.rendimentoReal*100).toFixed(2)+'%':'–'}</td>
+    </tr>`).join('')}</tbody>`;
+}
+window.renderCalosPe = renderCalosPe;
+
 document.querySelectorAll('#mod-condenas .tab-int').forEach(b=>b.addEventListener('click',()=>{
   document.querySelectorAll('#mod-condenas .tab-int').forEach(x=>x.classList.remove('ativo'));
   b.classList.add('ativo'); abaAtiva=b.dataset.aba;
   ['geral','tipo','calos','matriz'].forEach(a=>document.querySelector(`#mod-condenas [data-aba-view="${a}"]`).style.display=(a===abaAtiva)?'':'none');
+  const painelFiltros = document.getElementById('cd_painelFiltros');
+  if(painelFiltros) painelFiltros.style.display = (abaAtiva==='calos') ? 'none' : '';
   render();
   if(abaAtiva==='calos' && typeof renderCalosPe==='function') renderCalosPe();
 }));
