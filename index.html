@@ -295,6 +295,8 @@
   .comb-ticket-acoes{ display:flex; gap:10px; padding:14px 20px 20px; }
   .comb-ticket-acoes button{ flex:1; }
   @media print{
+    body.cl-imprimindo #cl_areaImpressao,
+    body.cl-imprimindo #cl_areaImpressao *{ visibility:visible !important; }
     body.cl-imprimindo > *:not(#cl_areaImpressao){ display:none !important; }
     body.cl-imprimindo #cl_areaImpressao{ display:block !important; }
     body.cl-imprimindo #cl_tabelaImpressao{ font-size:10px; }
@@ -303,7 +305,12 @@
   }
   @media print{
     /* só entra em ação quando o JS marca body.comb-imprimindo-ticket — evita concorrência com
-       os outros blocos de impressão do arquivo (cada módulo tem o seu próprio @media print) */
+       os outros blocos de impressão do arquivo (cada módulo tem o seu próprio @media print).
+       IMPORTANTE: outro bloco de impressão do arquivo aplica "body * { visibility:hidden }" sem
+       condicional nenhuma — por isso aqui precisa reafirmar visibility:visible explicitamente,
+       não basta controlar o display. */
+    body.comb-imprimindo-ticket #comb-modalTicket,
+    body.comb-imprimindo-ticket #comb-modalTicket *{ visibility:visible !important; }
     body.comb-imprimindo-ticket > *:not(#comb-modalTicket){ display:none !important; }
     body.comb-imprimindo-ticket #comb-modalTicket{
       display:block !important; position:static !important; inset:auto !important;
@@ -1653,22 +1660,26 @@
         </div>
 
         <div class="painel">
-          <div class="painel-header"><h2>📊 Exportar relatório</h2></div>
-          <p class="nota" style="margin-top:0;">Filtre o que quer exportar — deixe em "Todos" pra incluir tudo.</p>
+          <div class="painel-header"><h2>Histórico</h2><span class="info" id="comb-infoHistorico"></span></div>
+          <input type="text" id="comb-buscaHistorico" placeholder="Buscar por solicitante, núcleo ou motivo..." style="width:100%;padding:10px 12px;border-radius:9px;border:1.5px solid var(--borda);font-size:13.5px;font-family:inherit;box-sizing:border-box;margin-bottom:12px;">
+          <p class="nota" style="margin:0 0 10px;">Os filtros abaixo valem tanto pra tabela quanto pra exportação — o que estiver filtrado na tela é exatamente o que sai no Excel.</p>
           <div style="display:flex;gap:12px;flex-wrap:wrap;align-items:flex-end;margin-bottom:14px;">
             <div class="campo"><label>Núcleo</label><select id="comb-exportNucleo" style="min-width:150px;"><option value="Todos">Todos</option></select></div>
             <div class="campo"><label>Solicitante</label><select id="comb-exportSolicitante" style="min-width:170px;"><option value="Todos">Todos</option></select></div>
             <div class="campo"><label>Mês</label><select id="comb-exportMes" style="min-width:140px;"><option value="Todos">Todos os meses</option></select></div>
             <div class="campo"><label>Ano</label><select id="comb-exportAno" style="min-width:100px;"><option value="Todos">Todos</option></select></div>
+            <div class="campo"><label>Rodada</label><select id="comb-exportRodada" style="min-width:130px;"><option value="Todos">Todas</option></select></div>
+            <button class="btn-recolher" id="comb-btnLimparFiltrosHist" type="button" style="border-color:var(--vermelho);color:var(--vermelho);">Limpar filtros</button>
             <button class="btn-recolher" id="comb-btnExcel" type="button">📊 Exportar Excel</button>
           </div>
-        </div>
-
-        <div class="painel">
-          <div class="painel-header"><h2>Histórico</h2><span class="info" id="comb-infoHistorico"></span></div>
-          <input type="text" id="comb-buscaHistorico" placeholder="Buscar por solicitante, núcleo ou motivo..." style="width:100%;padding:10px 12px;border-radius:9px;border:1.5px solid var(--borda);font-size:13.5px;font-family:inherit;box-sizing:border-box;margin-bottom:12px;">
+          <p class="nota" style="margin:0 0 12px;font-size:11.5px;" id="comb-notaRodada">🛈 <strong>Rodada</strong> é estimada cruzando o núcleo e a data da solicitação com a base de lotes (alojamento até abate) — pode não bater exatamente quando duas rodadas se sobrepõem no mesmo núcleo.</p>
           <div class="tabela-scroll arrastavel" id="comb-tabelaScrollWrap"><table class="matriz-diaria" id="comb-tabelaHistorico"></table></div>
           <div id="comb-paginacao" style="display:flex;gap:6px;justify-content:center;margin-top:14px;flex-wrap:wrap;"></div>
+        </div>
+
+        <div class="painel-grafico">
+          <div class="painel-grafico-header"><h2>Consumo por rodada — núcleo</h2><span class="info" id="comb-infoRodada"></span></div>
+          <div class="tabela-scroll"><table class="matriz-diaria" id="comb-tabelaRodada"></table></div>
         </div>
 
         <div class="painel-grafico">
@@ -7653,6 +7664,15 @@ async function iniciarCombustivel(){
   document.getElementById('comb-btnFecharTicket2').addEventListener('click', combustivelFecharTicket);
   document.getElementById('comb-btnImprimirTicket').addEventListener('click', combustivelImprimirTicket);
   document.getElementById('comb-buscaHistorico').addEventListener('input', ()=>{ combustivelPaginaAtual = 1; combustivelRenderHistorico(); });
+  ['comb-exportNucleo','comb-exportSolicitante','comb-exportMes','comb-exportAno','comb-exportRodada'].forEach(id=>{
+    document.getElementById(id).addEventListener('change', ()=>{ combustivelPaginaAtual = 1; combustivelRenderHistorico(); });
+  });
+  document.getElementById('comb-btnLimparFiltrosHist').addEventListener('click', ()=>{
+    document.getElementById('comb-buscaHistorico').value = '';
+    ['comb-exportNucleo','comb-exportSolicitante','comb-exportMes','comb-exportAno','comb-exportRodada'].forEach(id=>{ document.getElementById(id).value = 'Todos'; });
+    combustivelPaginaAtual = 1;
+    combustivelRenderHistorico();
+  });
   document.getElementById('comb-btnExcel').addEventListener('click', combustivelExportarExcel);
 
   const btnImportarHist = document.getElementById('comb-btnImportarHistorico');
@@ -7661,8 +7681,8 @@ async function iniciarCombustivel(){
     btnImportarHist.style.display = '';
     btnImportarHist.addEventListener('click', combustivelImportarHistoricoManus);
   }
-  combustivelRenderHistorico();
   combustivelPopularFiltrosExportacao();
+  combustivelRenderHistorico();
   combustivelPopularListaNomes();
   combustivelRenderGraficos();
 }
@@ -7693,9 +7713,43 @@ async function combustivelCarregarDados(){
     combustivelDados = [];
     snap.forEach(doc => combustivelDados.push({id: doc.id, ...doc.data()}));
     combustivelDados.sort((a,b) => (b.ticketId||0) - (a.ticketId||0));
+    combustivelDados.forEach(d => { d.rodada = combustivelAcharRodada(d.nucleo, d.dataSolicitacao); });
   }catch(e){
     combustivelDados = [];
   }
+}
+
+// ---- correlação Núcleo + Data da Solicitação × base de lotes, pra estimar em qual rodada caiu ----
+function combustivelNormalizarNucleo(nome){
+  let n = (nome||'').toUpperCase().replace('NÚCLEO ','').trim();
+  n = n.normalize('NFD').replace(/[\u0300-\u036f]/g,''); // remove acentos (ex: PARAÍSO -> PARAISO)
+  n = n.replace(/\s+0*\d+$/,''); // remove sufixo numérico de sub-núcleo (ex: "AEROPORTO 01" -> "AEROPORTO")
+  if(n === 'VAUZINHO') n = 'VALZINHO'; // grafias diferentes entre as duas bases de dados
+  return n;
+}
+
+function combustivelAcharRodada(nucleoComb, dataSolicitacao){
+  if(!nucleoComb || !dataSolicitacao) return null;
+  let lotes;
+  try{ lotes = fetchResultadoLotesCache(); }catch(e){ return null; }
+  if(!lotes || !lotes.length) return null;
+  const nucNorm = combustivelNormalizarNucleo(nucleoComb);
+  const hoje = new Date().toISOString().slice(0,10);
+  const candidatos = lotes.filter(l=>{
+    if(!l.dataAloj || combustivelNormalizarNucleo(l.nucleo) !== nucNorm) return false;
+    const fimData = (l.situacao==='Fechado' && l.idadeAbate!=null)
+      ? new Date(new Date(l.dataAloj+'T00:00:00').getTime() + l.idadeAbate*86400000).toISOString().slice(0,10)
+      : hoje; // lote ainda aberto: considera em aberto até hoje
+    return dataSolicitacao >= l.dataAloj && dataSolicitacao <= fimData;
+  });
+  if(!candidatos.length) return null;
+  // vários aviários do núcleo podem bater — pega a rodada mais frequente entre eles (moda)
+  const contagem = new Map();
+  candidatos.forEach(l=>{ if(l.rodada!=null) contagem.set(l.rodada, (contagem.get(l.rodada)||0)+1); });
+  if(!contagem.size) return null;
+  let melhorRodada=null, melhorContagem=0;
+  contagem.forEach((c,r)=>{ if(c>melhorContagem){ melhorContagem=c; melhorRodada=r; } });
+  return melhorRodada;
 }
 
 function combustivelProximoTicketId(){
@@ -7742,8 +7796,8 @@ async function combustivelRegistrar(){
       docId = ref.id;
     }
     await combustivelCarregarDados();
-    combustivelRenderHistorico();
     combustivelPopularFiltrosExportacao();
+    combustivelRenderHistorico();
   combustivelPopularListaNomes();
     combustivelRenderGraficos();
     combustivelSairModoEdicao();
@@ -7796,8 +7850,8 @@ async function combustivelExcluir(id){
   try{
     await db.collection('registros_combustivel').doc(id).delete();
     await combustivelCarregarDados();
-    combustivelRenderHistorico();
     combustivelPopularFiltrosExportacao();
+    combustivelRenderHistorico();
   combustivelPopularListaNomes();
     combustivelRenderGraficos();
   }catch(e){ alert('Erro ao excluir: ' + e.message); }
@@ -7843,24 +7897,20 @@ function combustivelRenderHistorico(){
   const info = document.getElementById('comb-infoHistorico');
   const paginacaoEl = document.getElementById('comb-paginacao');
   if(typeof ativarArrastar==='function') ativarArrastar(document.getElementById('comb-tabelaScrollWrap'));
-  const termo = document.getElementById('comb-buscaHistorico').value.trim().toLowerCase();
-  const filtrados = !termo ? combustivelDados : combustivelDados.filter(d=>
-    (d.nomeSolicitante||'').toLowerCase().includes(termo) ||
-    (d.nucleo||'').toLowerCase().includes(termo) ||
-    (d.motivo||'').toLowerCase().includes(termo)
-  );
+  const filtrados = combustivelDadosFiltrados();
   info.textContent = `${filtrados.length} requisição(ões)`;
-  if(!filtrados.length){ tabela.innerHTML = '<tbody><tr><td style="padding:14px;">Nenhuma requisição encontrada.</td></tr></tbody>'; if(paginacaoEl) paginacaoEl.innerHTML=''; return; }
+  if(!filtrados.length){ tabela.innerHTML = '<tbody><tr><td style="padding:14px;">Nenhuma requisição encontrada.</td></tr></tbody>'; if(paginacaoEl) paginacaoEl.innerHTML=''; combustivelRenderTabelaRodada(filtrados); return; }
 
   const totalPaginas = Math.max(1, Math.ceil(filtrados.length / COMBUSTIVEL_ITENS_POR_PAGINA));
   if(combustivelPaginaAtual > totalPaginas) combustivelPaginaAtual = totalPaginas;
   const inicio = (combustivelPaginaAtual-1) * COMBUSTIVEL_ITENS_POR_PAGINA;
   const paginaAtualItens = filtrados.slice(inicio, inicio + COMBUSTIVEL_ITENS_POR_PAGINA);
 
-  tabela.innerHTML = `<thead><tr><th>Ticket</th><th class="rowhead">Núcleo</th><th>Distribuição</th><th>Data</th><th>Solicitante</th><th>Combustível</th><th>Qtd. (L)</th><th></th>${window.souAdminPrincipal?'<th></th><th></th>':''}</tr></thead>
+  tabela.innerHTML = `<thead><tr><th>Ticket</th><th class="rowhead">Núcleo</th><th>Rodada</th><th>Distribuição</th><th>Data</th><th>Solicitante</th><th>Combustível</th><th>Qtd. (L)</th><th></th>${window.souAdminPrincipal?'<th></th><th></th>':''}</tr></thead>
     <tbody>${paginaAtualItens.map(d=>`<tr>
       <td style="font-weight:800;color:var(--vermelho);">#${d.ticketId}</td>
       <th class="rowhead">${d.nucleo}</th>
+      <td style="text-align:center;">${d.rodada!=null?d.rodada:'<span style="color:var(--texto-suave);" title="Não foi possível cruzar com a base de lotes pra essa data/núcleo">—</span>'}</td>
       <td style="font-size:11px;">${d.rateioNucleo ? 'Núcleo Todo' : (d.galpoes||[]).join(', ')}</td>
       <td>${reg_formatarDataBR(d.dataSolicitacao)}</td>
       <td>${d.nomeSolicitante}</td>
@@ -7904,6 +7954,37 @@ function combustivelRenderHistorico(){
       combustivelExcluir(btn.dataset.combExcluir);
     });
   });
+  combustivelRenderTabelaRodada(filtrados);
+}
+
+function combustivelRenderTabelaRodada(dados){
+  const tabela = document.getElementById('comb-tabelaRodada');
+  const info = document.getElementById('comb-infoRodada');
+  if(!tabela) return;
+  const comRodada = dados.filter(d=>d.rodada!=null);
+  if(!comRodada.length){
+    tabela.innerHTML = '<tbody><tr><td style="padding:14px;">Nenhuma requisição do filtro atual tem rodada identificada.</td></tr></tbody>';
+    if(info) info.textContent = '';
+    return;
+  }
+  // agrupa por núcleo × rodada, somando litros e contando requisições
+  const grupos = new Map(); // chave "nucleo|rodada"
+  comRodada.forEach(d=>{
+    const chave = d.nucleo + '|' + d.rodada;
+    if(!grupos.has(chave)) grupos.set(chave, {nucleo:d.nucleo, rodada:d.rodada, litros:0, qtdReq:0});
+    const g = grupos.get(chave);
+    g.litros += Number(d.quantidade)||0;
+    g.qtdReq += 1;
+  });
+  const linhas = Array.from(grupos.values()).sort((a,b)=> a.nucleo.localeCompare(b.nucleo) || a.rodada-b.rodada);
+  if(info) info.textContent = `${linhas.length} combinação(ões) núcleo × rodada`;
+  tabela.innerHTML = `<thead><tr><th class="rowhead">Núcleo</th><th>Rodada</th><th>Requisições</th><th>Total (L)</th></tr></thead>
+    <tbody>${linhas.map(g=>`<tr>
+      <th class="rowhead">${g.nucleo}</th>
+      <td style="text-align:center;">${g.rodada}</td>
+      <td style="text-align:center;">${g.qtdReq}</td>
+      <td style="font-weight:700;">${g.litros.toLocaleString('pt-BR',{minimumFractionDigits:1})}</td>
+    </tr>`).join('')}</tbody>`;
 }
 
 function combustivelRenderGraficos(){
@@ -7975,36 +8056,61 @@ function combustivelFiltrarSugestoesNomes(){
   });
 }
 
+function combustivelDadosFiltrados(){
+  const termo = document.getElementById('comb-buscaHistorico').value.trim().toLowerCase();
+  const fNucleo = document.getElementById('comb-exportNucleo').value;
+  const fSolicitante = document.getElementById('comb-exportSolicitante').value;
+  const fMes = document.getElementById('comb-exportMes').value;
+  const fAno = document.getElementById('comb-exportAno').value;
+  const fRodada = document.getElementById('comb-exportRodada').value;
+  return combustivelDados.filter(d=>{
+    if(termo && !(
+      (d.nomeSolicitante||'').toLowerCase().includes(termo) ||
+      (d.nucleo||'').toLowerCase().includes(termo) ||
+      (d.motivo||'').toLowerCase().includes(termo)
+    )) return false;
+    if(fNucleo!=='Todos' && d.nucleo!==fNucleo) return false;
+    if(fSolicitante!=='Todos' && d.nomeSolicitante!==fSolicitante) return false;
+    if(fMes!=='Todos' && (!d.dataSolicitacao || d.dataSolicitacao.slice(5,7)!==fMes)) return false;
+    if(fAno!=='Todos' && (!d.dataSolicitacao || d.dataSolicitacao.slice(0,4)!==fAno)) return false;
+    if(fRodada!=='Todos'){
+      if(fRodada==='sem-rodada'){ if(d.rodada!=null) return false; }
+      else if(String(d.rodada)!==fRodada) return false;
+    }
+    return true;
+  });
+}
+
 function combustivelPopularFiltrosExportacao(){
   const nucleos = Array.from(new Set(combustivelDados.map(d=>d.nucleo))).sort();
   const solicitantes = Array.from(new Set(combustivelDados.map(d=>d.nomeSolicitante))).sort();
   const anos = Array.from(new Set(combustivelDados.map(d=>d.dataSolicitacao ? d.dataSolicitacao.slice(0,4) : null).filter(Boolean))).sort();
+  const rodadas = Array.from(new Set(combustivelDados.map(d=>d.rodada).filter(v=>v!=null))).sort((a,b)=>a-b);
   const meses = ['01','02','03','04','05','06','07','08','09','10','11','12'];
   const nomesMeses = ['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'];
-  document.getElementById('comb-exportNucleo').innerHTML = '<option value="Todos">Todos</option>' + nucleos.map(n=>`<option value="${n}">${n}</option>`).join('');
-  document.getElementById('comb-exportSolicitante').innerHTML = '<option value="Todos">Todos</option>' + solicitantes.map(s=>`<option value="${s}">${s}</option>`).join('');
+  const selNucleo = document.getElementById('comb-exportNucleo');
+  const selSolicitante = document.getElementById('comb-exportSolicitante');
+  const selRodada = document.getElementById('comb-exportRodada');
+  const valorAtualNucleo = selNucleo.value, valorAtualSolicitante = selSolicitante.value, valorAtualRodada = selRodada.value;
+  selNucleo.innerHTML = '<option value="Todos">Todos</option>' + nucleos.map(n=>`<option value="${n}">${n}</option>`).join('');
+  selSolicitante.innerHTML = '<option value="Todos">Todos</option>' + solicitantes.map(s=>`<option value="${s}">${s}</option>`).join('');
   document.getElementById('comb-exportMes').innerHTML = '<option value="Todos">Todos os meses</option>' + meses.map((m,i)=>`<option value="${m}">${nomesMeses[i]}</option>`).join('');
   document.getElementById('comb-exportAno').innerHTML = '<option value="Todos">Todos</option>' + anos.map(a=>`<option value="${a}">${a}</option>`).join('');
+  selRodada.innerHTML = '<option value="Todos">Todas</option>' + rodadas.map(r=>`<option value="${r}">Rodada ${r}</option>`).join('') + '<option value="sem-rodada">Sem rodada identificada</option>';
+  // preserva a seleção anterior se ainda existir na lista nova (evita resetar o filtro toda hora que os dados recarregam)
+  if(nucleos.includes(valorAtualNucleo)) selNucleo.value = valorAtualNucleo;
+  if(solicitantes.includes(valorAtualSolicitante)) selSolicitante.value = valorAtualSolicitante;
+  if(valorAtualRodada==='sem-rodada' || rodadas.map(String).includes(valorAtualRodada)) selRodada.value = valorAtualRodada;
 }
 
 function combustivelExportarExcel(){
   if(typeof XLSX === 'undefined'){ alert('Não foi possível carregar o gerador de Excel.'); return; }
   if(!combustivelDados.length){ alert('Nenhuma requisição pra exportar.'); return; }
-  const fNucleo = document.getElementById('comb-exportNucleo').value;
-  const fSolicitante = document.getElementById('comb-exportSolicitante').value;
-  const fMes = document.getElementById('comb-exportMes').value;
-  const fAno = document.getElementById('comb-exportAno').value;
-  const filtrados = combustivelDados.filter(d=>{
-    if(fNucleo!=='Todos' && d.nucleo!==fNucleo) return false;
-    if(fSolicitante!=='Todos' && d.nomeSolicitante!==fSolicitante) return false;
-    if(fMes!=='Todos' && (!d.dataSolicitacao || d.dataSolicitacao.slice(5,7)!==fMes)) return false;
-    if(fAno!=='Todos' && (!d.dataSolicitacao || d.dataSolicitacao.slice(0,4)!==fAno)) return false;
-    return true;
-  });
+  const filtrados = combustivelDadosFiltrados();
   if(!filtrados.length){ alert('Nenhuma requisição encontrada com esses filtros.'); return; }
-  const linhas = [['Ticket','Núcleo','Distribuição','Data','Solicitante','Combustível','Quantidade (L)','Motivo']];
+  const linhas = [['Ticket','Núcleo','Rodada','Distribuição','Data','Solicitante','Combustível','Quantidade (L)','Motivo']];
   filtrados.forEach(d=>{
-    linhas.push([d.ticketId, d.nucleo, d.rateioNucleo?'Núcleo Todo':(d.galpoes||[]).join(', '), reg_formatarDataBR(d.dataSolicitacao), d.nomeSolicitante, d.tipoCombustivel||'Gasolina', d.quantidade, d.motivo]);
+    linhas.push([d.ticketId, d.nucleo, d.rodada!=null?d.rodada:'—', d.rateioNucleo?'Núcleo Todo':(d.galpoes||[]).join(', '), reg_formatarDataBR(d.dataSolicitacao), d.nomeSolicitante, d.tipoCombustivel||'Gasolina', d.quantidade, d.motivo]);
   });
   const ws = XLSX.utils.aoa_to_sheet(linhas);
   const wb = XLSX.utils.book_new();
@@ -8022,8 +8128,8 @@ async function combustivelImportarHistoricoManus(){
       await db.collection('registros_combustivel').add(item);
     }
     await combustivelCarregarDados();
-    combustivelRenderHistorico();
     combustivelPopularFiltrosExportacao();
+    combustivelRenderHistorico();
   combustivelPopularListaNomes();
     combustivelRenderGraficos();
     btn.style.display = 'none';
