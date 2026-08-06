@@ -207,8 +207,8 @@
   .qf-tabela-nova th.qf-col-futuro{ color:#8A6200; background:#FFFBF2; }
   .qf-tabela-nova td.qf-cel-nome{ text-align:left; line-height:1.7; }
   .qf-tabela-nova td.qf-cel-aviario{ text-align:left; font-weight:700; color:var(--texto-suave); background:#FAFAF8; }
-  .qf-tabela-nova .qf-cons-ok{ color:var(--verde-ok); font-weight:700; }
-  .qf-tabela-nova .qf-cons-falta{ color:var(--vermelho-alerta); font-weight:800; }
+  .qf-tabela-nova .qf-cons-ok{ color:#1E6B35; font-weight:700; background:#E8F7EC; padding:3px 10px; border-radius:12px; display:inline-block; }
+  .qf-tabela-nova .qf-cons-falta{ color:#C1272D; font-weight:800; background:#FBE3E1; padding:3px 10px; border-radius:12px; display:inline-block; }
   .qf-tabela-nova .qf-linha-nucleo-resumo th.rowhead{ background:#FFF4E1; color:var(--vermelho-escuro); border-left:3px solid #D9A441; }
   .qf-tabela-nova .qf-linha-nucleo-resumo td{ font-weight:700; }
   .qf-tabela-nova .qf-linha-total-geral th, .qf-tabela-nova .qf-linha-total-geral td{ border-top:2.5px solid var(--vermelho); font-weight:800; }
@@ -1503,6 +1503,7 @@
       <div class="tabs-internas">
         <button class="tab-int ativo" data-aba-qf="consolidado">Visão Consolidada</button>
         <button class="tab-int" data-aba-qf="atualizar">Atualizar Funcionários</button>
+        <button class="tab-int" data-aba-qf="ferias">Planejamento de Férias</button>
       </div>
 
       <div data-aba-qf-view="consolidado">
@@ -1535,6 +1536,39 @@
         <p class="nota" style="margin:0 0 18px;color:var(--texto-suave);">🛈 Você só edita os núcleos para os quais tem autorização — os demais não aparecem aqui. Marque quem está <strong>saindo/em aviso</strong> assim que o desligamento for confirmado: isso não altera o quadro Atual, só atualiza a projeção <strong>Futuro</strong> na Visão Consolidada, que os gestores usam pra planejar reposição.</p>
         <button class="btn-recolher" id="btnImportarQuadroInicial" style="display:none;margin-bottom:18px;">Importar lista inicial (uma vez)</button>
         <div id="quadroNucleosContainer"></div>
+      </div>
+
+      <div data-aba-qf-view="ferias" style="display:none;">
+        <p class="nota" style="margin:16px 0 18px;">Cadastre o período aquisitivo e as férias de cada funcionário — o calendário mensal abaixo é montado sozinho a partir disso, mostrando quem está de férias em cada mês e quem está cobrindo.</p>
+
+        <div class="painel" style="margin-bottom:18px;">
+          <div class="painel-header"><h2 id="fer-tituloForm">Novo funcionário / férias</h2></div>
+          <div class="filtros-grid" style="margin-bottom:12px;">
+            <div class="campo"><label>Núcleo</label><select id="fer-nucleo"><option value="">Selecione...</option></select></div>
+            <div class="campo"><label>Nome</label><input type="text" id="fer-nome" placeholder="Nome completo"></div>
+            <div class="campo"><label>Cargo</label><select id="fer-cargo"><option value="Granjeiro">Granjeiro</option><option value="Ajudante">Ajudante</option></select></div>
+            <div class="campo"><label>Início do Período Aquisitivo</label><input type="date" id="fer-inicioAquisitivo"></div>
+            <div class="campo"><label>Início das Férias <span style="font-weight:400;color:var(--texto-suave);">(deixe vazio se ainda não marcou)</span></label><input type="date" id="fer-inicioFerias"></div>
+            <div class="campo"><label>Dias de Férias</label><input type="number" id="fer-dias" value="30" min="1" max="30"></div>
+            <div class="campo"><label>Substituto</label><input type="text" id="fer-substituto" placeholder="Quem vai cobrir"></div>
+          </div>
+          <button type="button" class="comb-btn-registrar" id="fer-btnSalvar">+ Salvar</button>
+          <button type="button" class="btn-recolher" id="fer-btnCancelarEdicao" style="display:none;margin-left:10px;">Cancelar edição</button>
+          <p class="nota" id="fer-erro" style="min-height:16px;"></p>
+        </div>
+
+        <div class="painel" style="margin-bottom:18px;">
+          <div class="painel-header"><h2>Calendário de férias por ano</h2><span class="info" id="fer-infoCalendario"></span></div>
+          <div class="filtros-grid" style="margin-bottom:14px;">
+            <div class="campo"><label>Ano</label><select id="fer-anoFiltro"></select></div>
+          </div>
+          <div class="tabela-scroll arrastavel" id="fer-calendarioScrollWrap"><table class="matriz-diaria" id="fer-tabelaCalendario"></table></div>
+        </div>
+
+        <div class="painel">
+          <div class="painel-header"><h2>Lista de funcionários cadastrados</h2><span class="info" id="fer-infoLista"></span></div>
+          <div class="tabela-scroll"><table class="matriz-diaria" id="fer-tabelaLista"></table></div>
+        </div>
       </div>
     </div>
   </div>
@@ -6156,12 +6190,237 @@ document.addEventListener('click', (e)=>{
   }
 });
 
+// ================= PLANEJAMENTO DE FÉRIAS =================
+let feriasDados = [];
+let feriasEditandoId = null;
+const FERIAS_NOMES_MESES = ['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez'];
+
+async function iniciarFerias(){
+  const selNucleo = document.getElementById('fer-nucleo');
+  if(!selNucleo.dataset.populado){
+    selNucleo.innerHTML = '<option value="">Selecione...</option>' + NUCLEOS_QUADRO.map(n=>`<option value="${n}">${n}</option>`).join('');
+    selNucleo.dataset.populado = '1';
+    document.getElementById('fer-btnSalvar').addEventListener('click', feriasSalvar);
+    document.getElementById('fer-btnCancelarEdicao').addEventListener('click', feriasSairModoEdicao);
+    document.getElementById('fer-anoFiltro').addEventListener('change', feriasRenderCalendario);
+  }
+  await feriasCarregarDados();
+  feriasPopularAnoFiltro();
+  feriasRenderLista();
+  feriasRenderCalendario();
+}
+window.iniciarFerias = iniciarFerias;
+
+async function feriasCarregarDados(){
+  try{
+    const snap = await db.collection('ferias_funcionarios').get();
+    feriasDados = [];
+    snap.forEach(doc => feriasDados.push({id: doc.id, ...doc.data()}));
+    feriasDados.sort((a,b) => (a.nome||'').localeCompare(b.nome||''));
+  }catch(e){
+    feriasDados = [];
+  }
+}
+
+function feriasCalcularStatus(item){
+  const hoje = new Date().toISOString().slice(0,10);
+  if(!item.inicioFerias){
+    // prazo limite = fim do período aquisitivo (início + 365 dias) + 335 dias (~11 meses, regra CLT)
+    if(!item.inicioAquisitivo) return {texto:'⚪ Sem dados', cor:'var(--texto-suave)'};
+    const fimAquisitivo = new Date(new Date(item.inicioAquisitivo+'T00:00:00').getTime() + 365*86400000);
+    const prazoLimite = new Date(fimAquisitivo.getTime() + 335*86400000).toISOString().slice(0,10);
+    return hoje > prazoLimite ? {texto:'🔴 Vencidas', cor:'var(--vermelho-alerta)'} : {texto:'⚪ Não agendadas', cor:'var(--texto-suave)'};
+  }
+  const fimFerias = new Date(new Date(item.inicioFerias+'T00:00:00').getTime() + ((item.dias||30)-1)*86400000).toISOString().slice(0,10);
+  if(hoje < item.inicioFerias) return {texto:'🟡 Agendadas', cor:'#8A6200'};
+  if(hoje <= fimFerias) return {texto:'🟢 Em andamento', cor:'var(--verde-ok)'};
+  return {texto:'✅ Concluídas', cor:'var(--verde-ok)'};
+}
+
+async function feriasSalvar(){
+  const erroEl = document.getElementById('fer-erro');
+  erroEl.style.color=''; erroEl.textContent='';
+  const nucleo = document.getElementById('fer-nucleo').value;
+  const nome = document.getElementById('fer-nome').value.trim();
+  const cargo = document.getElementById('fer-cargo').value;
+  const inicioAquisitivo = document.getElementById('fer-inicioAquisitivo').value;
+  const inicioFerias = document.getElementById('fer-inicioFerias').value;
+  const dias = Number(document.getElementById('fer-dias').value) || 30;
+  const substituto = document.getElementById('fer-substituto').value.trim();
+
+  if(!nucleo || !nome || !inicioAquisitivo){ erroEl.style.color='var(--vermelho-alerta)'; erroEl.textContent = 'Preencha ao menos Núcleo, Nome e Início do Período Aquisitivo.'; return; }
+
+  const dados = { nucleo, nome, cargo, inicioAquisitivo, inicioFerias: inicioFerias||null, dias, substituto: substituto||null };
+  const btn = document.getElementById('fer-btnSalvar');
+  btn.disabled = true; btn.textContent = 'Salvando...';
+  try{
+    if(feriasEditandoId){
+      await db.collection('ferias_funcionarios').doc(feriasEditandoId).set(dados, {merge:true});
+    } else {
+      await db.collection('ferias_funcionarios').add(dados);
+    }
+    feriasSairModoEdicao();
+    await feriasCarregarDados();
+    feriasPopularAnoFiltro();
+    feriasRenderLista();
+    feriasRenderCalendario();
+  }catch(err){
+    erroEl.style.color='var(--vermelho-alerta)'; erroEl.textContent = 'Erro ao salvar: ' + err.message;
+  }finally{
+    btn.disabled = false; btn.textContent = '+ Salvar';
+  }
+}
+
+function feriasEntrarModoEdicao(item){
+  feriasEditandoId = item.id;
+  document.getElementById('fer-tituloForm').textContent = 'Editando: ' + item.nome;
+  document.getElementById('fer-nucleo').value = item.nucleo||'';
+  document.getElementById('fer-nome').value = item.nome||'';
+  document.getElementById('fer-cargo').value = item.cargo||'Granjeiro';
+  document.getElementById('fer-inicioAquisitivo').value = item.inicioAquisitivo||'';
+  document.getElementById('fer-inicioFerias').value = item.inicioFerias||'';
+  document.getElementById('fer-dias').value = item.dias||30;
+  document.getElementById('fer-substituto').value = item.substituto||'';
+  document.getElementById('fer-btnSalvar').textContent = 'Salvar edição';
+  document.getElementById('fer-btnCancelarEdicao').style.display = '';
+  document.getElementById('fer-tituloForm').scrollIntoView({behavior:'smooth', block:'center'});
+}
+
+function feriasSairModoEdicao(){
+  feriasEditandoId = null;
+  document.getElementById('fer-tituloForm').textContent = 'Novo funcionário / férias';
+  ['fer-nucleo','fer-nome','fer-inicioAquisitivo','fer-inicioFerias','fer-substituto'].forEach(id=>document.getElementById(id).value='');
+  document.getElementById('fer-cargo').value = 'Granjeiro';
+  document.getElementById('fer-dias').value = 30;
+  document.getElementById('fer-btnSalvar').textContent = '+ Salvar';
+  document.getElementById('fer-btnCancelarEdicao').style.display = 'none';
+  document.getElementById('fer-erro').textContent = '';
+}
+
+async function feriasExcluir(id){
+  const item = feriasDados.find(d=>d.id===id);
+  if(!item) return;
+  if(!confirm(`Remover "${item.nome}" do planejamento de férias?`)) return;
+  try{
+    await db.collection('ferias_funcionarios').doc(id).delete();
+    await feriasCarregarDados();
+    feriasPopularAnoFiltro();
+    feriasRenderLista();
+    feriasRenderCalendario();
+  }catch(e){ alert('Erro ao remover: ' + e.message); }
+}
+
+function feriasRenderLista(){
+  const tabela = document.getElementById('fer-tabelaLista');
+  const info = document.getElementById('fer-infoLista');
+  if(!tabela) return;
+  info.textContent = `${feriasDados.length} funcionário(s)`;
+  if(!feriasDados.length){ tabela.innerHTML = '<tbody><tr><td style="padding:14px;">Nenhum funcionário cadastrado ainda.</td></tr></tbody>'; return; }
+
+  tabela.innerHTML = `<thead><tr><th class="rowhead">Nome</th><th>Núcleo</th><th>Cargo</th><th>Período Aquisitivo</th><th>Férias</th><th>Substituto</th><th>Status</th><th></th><th></th></tr></thead>
+    <tbody>${feriasDados.map(d=>{
+      const status = feriasCalcularStatus(d);
+      const fimFerias = d.inicioFerias ? new Date(new Date(d.inicioFerias+'T00:00:00').getTime() + ((d.dias||30)-1)*86400000).toISOString().slice(0,10) : null;
+      return `<tr>
+        <th class="rowhead">${d.nome}</th>
+        <td>${d.nucleo}</td>
+        <td style="font-size:11px;color:var(--texto-suave);">${d.cargo||'–'}</td>
+        <td style="font-size:11px;">${reg_formatarDataBR(d.inicioAquisitivo)}</td>
+        <td style="font-size:11px;">${d.inicioFerias ? reg_formatarDataBR(d.inicioFerias)+' a '+reg_formatarDataBR(fimFerias) : '<span style="color:var(--texto-suave);">–</span>'}</td>
+        <td style="font-size:11px;">${d.substituto || '<span style="color:var(--texto-suave);">–</span>'}</td>
+        <td style="text-align:center;"><span style="color:${status.cor};font-weight:700;font-size:11.5px;">${status.texto}</span></td>
+        <td><button class="comb-btn-acao editar" data-fer-editar="${d.id}" title="Editar">✏️</button></td>
+        <td><button class="comb-btn-acao excluir" data-fer-excluir="${d.id}" title="Excluir">✕</button></td>
+      </tr>`;
+    }).join('')}</tbody>`;
+
+  tabela.querySelectorAll('[data-fer-editar]').forEach(btn=>{
+    btn.addEventListener('click', ()=>{
+      const item = feriasDados.find(d=>d.id===btn.dataset.ferEditar);
+      if(item) feriasEntrarModoEdicao(item);
+    });
+  });
+  tabela.querySelectorAll('[data-fer-excluir]').forEach(btn=>{
+    btn.addEventListener('click', ()=> feriasExcluir(btn.dataset.ferExcluir));
+  });
+}
+
+function feriasPopularAnoFiltro(){
+  const sel = document.getElementById('fer-anoFiltro');
+  const anoAtual = new Date().getFullYear();
+  const anosDosDados = feriasDados.map(d=>d.inicioFerias ? Number(d.inicioFerias.slice(0,4)) : null).filter(Boolean);
+  const anos = Array.from(new Set([anoAtual, anoAtual+1, ...anosDosDados])).sort((a,b)=>a-b);
+  const valorAtual = sel.value;
+  sel.innerHTML = anos.map(a=>`<option value="${a}">${a}</option>`).join('');
+  sel.value = anos.includes(Number(valorAtual)) ? valorAtual : String(anoAtual);
+}
+
+function feriasRenderCalendario(){
+  const tabela = document.getElementById('fer-tabelaCalendario');
+  const info = document.getElementById('fer-infoCalendario');
+  if(!tabela) return;
+  if(typeof ativarArrastar==='function') ativarArrastar(document.getElementById('fer-calendarioScrollWrap'));
+  const ano = Number(document.getElementById('fer-anoFiltro').value) || new Date().getFullYear();
+  if(!feriasDados.length){ tabela.innerHTML = '<tbody><tr><td style="padding:14px;">Nenhum funcionário cadastrado ainda.</td></tr></tbody>'; if(info) info.textContent=''; return; }
+  if(info) info.textContent = `${feriasDados.length} funcionário(s) · ano ${ano}`;
+
+  // pra cada mês do ano filtrado, calcula status (Férias/–) e substituto por funcionário
+  const primeiroDiaDoMes = m => `${ano}-${String(m+1).padStart(2,'0')}-01`;
+  const ultimoDiaDoMes = m => { const prox = m===11 ? `${ano+1}-01-01` : primeiroDiaDoMes(m+1); return new Date(new Date(prox+'T00:00:00').getTime()-86400000).toISOString().slice(0,10); };
+
+  const linhasPorFuncionario = feriasDados.map(d=>{
+    if(!d.inicioFerias) return {item:d, meses: FERIAS_NOMES_MESES.map(()=>({status:'', substituto:''}))};
+    const fimFerias = new Date(new Date(d.inicioFerias+'T00:00:00').getTime() + ((d.dias||30)-1)*86400000).toISOString().slice(0,10);
+    const meses = FERIAS_NOMES_MESES.map((_,m)=>{
+      const cruza = d.inicioFerias <= ultimoDiaDoMes(m) && fimFerias >= primeiroDiaDoMes(m);
+      if(!cruza) return {status:'', substituto:''};
+      return {status:'Férias', substituto: d.substituto || '⚠️ sem substituto'};
+    });
+    return {item:d, meses};
+  });
+
+  const theadMeses = FERIAS_NOMES_MESES.map(m=>`<th class="col-idade">${m}</th><th class="col-idade" style="font-size:9px;">Substituto</th>`).join('');
+  let html = `<thead><tr><th class="rowhead">Núcleo</th><th>Nome</th><th>Cargo</th>${theadMeses}</tr></thead><tbody>`;
+
+  linhasPorFuncionario.forEach(({item, meses})=>{
+    html += `<tr><th class="rowhead">${item.nucleo}</th><td style="text-align:left;">${item.nome}</td><td style="font-size:11px;color:var(--texto-suave);">${item.cargo||'–'}</td>`;
+    meses.forEach(mes=>{
+      const temFerias = mes.status === 'Férias';
+      const semSubstituto = temFerias && mes.substituto.includes('sem substituto');
+      html += `<td style="${temFerias?'font-weight:700;color:#8A6200;':'color:#ccc;'}">${temFerias?'Férias':'–'}</td>`;
+      html += `<td style="font-size:10.5px;${semSubstituto?'color:var(--vermelho-alerta);font-weight:700;':''}">${temFerias?mes.substituto:'–'}</td>`;
+    });
+    html += '</tr>';
+  });
+
+  // linhas de subtotal por mês
+  const totaisPorMes = FERIAS_NOMES_MESES.map((_,m)=> linhasPorFuncionario.filter(l=>l.meses[m].status==='Férias').length);
+  const semSubstitutoPorMes = FERIAS_NOMES_MESES.map((_,m)=> linhasPorFuncionario.filter(l=>l.meses[m].status==='Férias' && l.meses[m].substituto.includes('sem substituto')).length);
+
+  html += `<tr class="qf-linha-total-geral"><th class="rowhead" colspan="3">De férias no mês</th>`;
+  totaisPorMes.forEach(t=> html += `<td colspan="2" style="font-weight:800;">${t}</td>`);
+  html += '</tr>';
+
+  html += `<tr class="linha-nucleo"><th class="rowhead" colspan="3">Cobertura do mês</th>`;
+  semSubstitutoPorMes.forEach(s=>{
+    const texto = s>0 ? `⚠️ Falta cobertura (${s})` : '✅ OK';
+    const cor = s>0 ? 'var(--vermelho-alerta)' : 'var(--verde-ok)';
+    html += `<td colspan="2" style="font-weight:700;font-size:10.5px;color:${cor};">${texto}</td>`;
+  });
+  html += '</tr>';
+
+  html += '</tbody>';
+  tabela.innerHTML = html;
+}
+
 document.querySelectorAll('#mod-quadro .tab-int').forEach(b=>b.addEventListener('click',()=>{
   document.querySelectorAll('#mod-quadro .tab-int').forEach(x=>x.classList.remove('ativo'));
   b.classList.add('ativo');
   const aba = b.dataset.abaQf;
   document.querySelector('#mod-quadro [data-aba-qf-view="consolidado"]').style.display = (aba==='consolidado') ? '' : 'none';
   document.querySelector('#mod-quadro [data-aba-qf-view="atualizar"]').style.display = (aba==='atualizar') ? '' : 'none';
+  document.querySelector('#mod-quadro [data-aba-qf-view="ferias"]').style.display = (aba==='ferias') ? '' : 'none';
+  if(aba==='ferias' && typeof iniciarFerias==='function') iniciarFerias();
 }));
 
 async function carregarListaEmails(){
@@ -6647,13 +6906,13 @@ function renderQuadroConsolidado(){
         <span class="${gAtualOk?'qf-cons-ok':'qf-cons-falta'}">G ${r.atualGranj}/${r.necessidadeGranjeiro}</span> ·
         <span class="${aAtualOk?'qf-cons-ok':'qf-cons-falta'}">A ${r.atualAjud}/${r.necessidadeAjudante}</span>
       </td>
-      <td class="qf-col-atual ${faltaAtual>0?'qf-cons-falta':'qf-cons-ok'}" style="font-weight:800;">${faltaAtual}</td>` : '';
+      <td class="qf-col-atual"><span class="${faltaAtual>0?'qf-cons-falta':'qf-cons-ok'}">${faltaAtual>0?`⚠️ Falta ${faltaAtual}`:'✅ OK'}</span></td>` : '';
     const celFuturo = mostraFuturo ? `
       <td class="qf-col-futuro">
         <span class="${gFutOk?'qf-cons-ok':'qf-cons-falta'}">G ${r.futuroGranj}/${r.necessidadeGranjeiro}</span> ·
         <span class="${aFutOk?'qf-cons-ok':'qf-cons-falta'}">A ${r.futuroAjud}/${r.necessidadeAjudante}</span>
       </td>
-      <td class="qf-col-futuro ${faltaFuturo>0?'qf-cons-falta':'qf-cons-ok'}" style="font-weight:800;">${faltaFuturo}</td>` : '';
+      <td class="qf-col-futuro"><span class="${faltaFuturo>0?'qf-cons-falta':'qf-cons-ok'}">${faltaFuturo>0?`⚠️ Falta ${faltaFuturo}`:'✅ OK'}</span></td>` : '';
 
     const linhaPrincipal = `<tr class="qf-linha-nucleo-resumo">
       <th class="rowhead qf-nucleo-toggle" data-toggle-nucleo-cons="${nuc}">${expandido?'▾':'▸'} ${nomeNucleo(nuc)}</th>
@@ -6689,10 +6948,10 @@ function renderQuadroConsolidado(){
   const necessidadeTotalTexto = totNecessidadeG===totNecessidadeA ? totNecessidadeG : `${totNecessidadeG}g / ${totNecessidadeA}a`;
   const totCelAtual = mostraAtual ? `
     <td class="qf-col-atual" style="font-weight:800;">G ${totAtualG}/${totNecessidadeG} · A ${totAtualA}/${totNecessidadeA}</td>
-    <td class="qf-col-atual" style="font-weight:800;">${faltaAtualTotal}</td>` : '';
+    <td class="qf-col-atual"><span class="${faltaAtualTotal>0?'qf-cons-falta':'qf-cons-ok'}">${faltaAtualTotal>0?`⚠️ Falta ${faltaAtualTotal}`:'✅ OK'}</span></td>` : '';
   const totCelFuturo = mostraFuturo ? `
     <td class="qf-col-futuro" style="font-weight:800;">G ${totFutG}/${totNecessidadeG} · A ${totFutA}/${totNecessidadeA}</td>
-    <td class="qf-col-futuro" style="font-weight:800;">${faltaFuturoTotal}</td>` : '';
+    <td class="qf-col-futuro"><span class="${faltaFuturoTotal>0?'qf-cons-falta':'qf-cons-ok'}">${faltaFuturoTotal>0?`⚠️ Falta ${faltaFuturoTotal}`:'✅ OK'}</span></td>` : '';
   const linhaTotal = `<tr class="qf-linha-total-geral">
     <th class="rowhead">TOTAL GERAL (${nucleosOrdenados.length} núcleos)</th>
     <td style="font-weight:800;">${necessidadeTotalTexto}</td>
