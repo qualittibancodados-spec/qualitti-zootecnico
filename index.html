@@ -5278,12 +5278,25 @@ bindSeg('rz_segMatriz', d=>{ indicadorMatriz=d.k; renderMatriz(filtrar()); });
 bindSeg('rz_segGranularidade', d=>{ rz_granularidade=d.g; anosInicializados=false; anosRecolhidos=new Set(); matrizSort={key:'media_geral',dir:'desc'}; renderMatriz(filtrar()); });
 
 const RZ_MESES_ABREV = ['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez'];
+function rz_dataAbate(l){
+  if(!l.dataAloj || l.idadeAbate==null) return null;
+  return new Date(new Date(l.dataAloj+'T00:00:00').getTime() + l.idadeAbate*86400000);
+}
 function rz_unidadeDe(l){
   if(rz_granularidade==='mes'){
-    if(!l.dataAloj) return null;
-    return new Date(l.dataAloj+'T00:00:00').getMonth()+1;
+    const d = rz_dataAbate(l);
+    return d ? d.getMonth()+1 : null;
   }
   return l.rodada;
+}
+function rz_anoDe(l){
+  // no modo Mês, o "ano" da coluna acompanha o ano do abate (não o ano/rodada de alojamento) —
+  // assim um lote alojado em dez/25 e abatido em jan/26 entra na coluna de 2026, mês Jan, que é quando o resultado saiu.
+  if(rz_granularidade==='mes'){
+    const d = rz_dataAbate(l);
+    return d ? d.getFullYear() : null;
+  }
+  return l.ano;
 }
 function rz_labelUnidade(u){
   return rz_granularidade==='mes' ? RZ_MESES_ABREV[u-1] : ('R'+u);
@@ -5555,10 +5568,10 @@ function renderMatriz(dados){
   const infoEl = document.getElementById('rz_infoMatriz');
   if(infoEl) infoEl.textContent = rz_granularidade==='mes' ? 'Colunas: ano › mês · Linhas: núcleo › aviário' : 'Colunas: ano › rodada · Linhas: núcleo › aviário';
 
-  const anos = Array.from(new Set(dados.map(l=>l.ano).filter(v=>v!=null))).sort((a,b)=>a-b);
+  const anos = Array.from(new Set(dados.map(l=>rz_anoDe(l)).filter(v=>v!=null))).sort((a,b)=>a-b);
   const rodadasPorAno = {};
   anos.forEach(a=>{
-    rodadasPorAno[a] = Array.from(new Set(dados.filter(l=>l.ano===a).map(l=>rz_unidadeDe(l)).filter(v=>v!=null))).sort((x,y)=>x-y);
+    rodadasPorAno[a] = Array.from(new Set(dados.filter(l=>rz_anoDe(l)===a).map(l=>rz_unidadeDe(l)).filter(v=>v!=null))).sort((x,y)=>x-y);
   });
 
   if(!anosInicializados && anos.length){
@@ -5587,9 +5600,9 @@ function renderMatriz(dados){
   function valorDaChave(filtroBase, key){
     if(key==='media_geral') return val(dados.filter(filtroBase));
     const mSub = key.match(/^sub_(\d+)$/);
-    if(mSub){ const a=+mSub[1]; return val(dados.filter(l=>filtroBase(l) && l.ano===a)); }
+    if(mSub){ const a=+mSub[1]; return val(dados.filter(l=>filtroBase(l) && rz_anoDe(l)===a)); }
     const mCel = key.match(/^cel_(\d+)_(-?\d+)$/);
-    if(mCel){ const a=+mCel[1], r=+mCel[2]; return val(dados.filter(l=>filtroBase(l) && l.ano===a && rz_unidadeDe(l)===r)); }
+    if(mCel){ const a=+mCel[1], r=+mCel[2]; return val(dados.filter(l=>filtroBase(l) && rz_anoDe(l)===a && rz_unidadeDe(l)===r)); }
     return null;
   }
   function ordenar(itens, filtroDe){
@@ -5636,11 +5649,11 @@ function renderMatriz(dados){
       const recolhido = anosRecolhidos.has(a);
       if(!recolhido){
         rodadasPorAno[a].forEach((r,i)=>{
-          const v = val(dados.filter(l=>filtroBase(l) && l.ano===a && rz_unidadeDe(l)===r));
+          const v = val(dados.filter(l=>filtroBase(l) && rz_anoDe(l)===a && rz_unidadeDe(l)===r));
           tds += `<td class="cel ${i===0 && idx>0?'sep':''}">${fmt(v)}</td>`;
         });
       }
-      const vSub = val(dados.filter(l=>filtroBase(l) && l.ano===a));
+      const vSub = val(dados.filter(l=>filtroBase(l) && rz_anoDe(l)===a));
       tds += `<td class="subano ${recolhido && idx>0?'sep':''}">${fmt(vSub)}</td>`;
     });
     return tds;
