@@ -1987,6 +1987,10 @@
           <option value="Mistos">Mistos</option>
         </select>
       </div>
+      <div class="campo">
+        <label for="fIncubatorio">Incubatório</label>
+        <select id="fIncubatorio"></select>
+      </div>
     </div>
     <div style="display:flex;justify-content:flex-end;margin-top:10px;">
       <button class="btn-recolher" id="btnLimparFiltrosMort" style="border-color:var(--vermelho);color:var(--vermelho);display:inline-flex;align-items:center;gap:5px;width:fit-content;"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round"><path d="M3 6h18M8 6V4a1 1 0 011-1h6a1 1 0 011 1v2m3 0l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6"/></svg>Limpar</button>
@@ -2296,6 +2300,7 @@ let situacaoAtiva = 'Aberto';
 let abaAtiva = 'andamento'; // andamento | historico
 let metricaAtiva = 'pctTotal';
 let sexoAtivo = 'Todos';
+let incubatorioAtivo = 'Todos';
 let modoLinha = 'acumulada'; // acumulada | periodo
 let lotesSelecionados = new Set();
 
@@ -2329,6 +2334,15 @@ function popularNucleos(){
   // preserva a seleção se ainda existir na nova aba; senão volta pra Todos
   selNucleo.value = nucleos.includes(anterior) ? anterior : 'Todos';
 }
+const selIncubatorio = document.getElementById('fIncubatorio');
+function popularIncubatorios(){
+  const anterior = selIncubatorio.value;
+  const incubatorios = Array.from(new Set(
+    lotesExibiveis.filter(l => l.situacao === situacaoAtiva).map(l => l.incubatorio).filter(Boolean)
+  )).sort();
+  selIncubatorio.innerHTML = '<option value="Todos">Todos</option>' + incubatorios.map(i => `<option value="${i}">${i}</option>`).join('');
+  selIncubatorio.value = incubatorios.includes(anterior) ? anterior : 'Todos';
+}
 function popularAviarios(){
   const mapa = mapaFiltro();
   const nucleoSel = selNucleo.value;
@@ -2340,7 +2354,7 @@ function popularAviarios(){
   selAviario.innerHTML = '<option value="Todos">Todos os aviários</option>' + aviarios.map(a => `<option value="${a}">${a}</option>`).join('');
   selAviario.value = aviarios.includes(anterior) ? anterior : 'Todos';
 }
-popularNucleos(); popularAviarios();
+popularNucleos(); popularAviarios(); popularIncubatorios();
 
 // transforma uma tabela HTML (por id) em imagem e abre o menu nativo de compartilhamento
 // (no celular, o WhatsApp já aparece como opção — a imagem vai bonitinha, formatada, sem virar texto corrido)
@@ -2493,7 +2507,7 @@ document.querySelectorAll('.tab-visao').forEach(btn => {
     situacaoAtiva = btn.dataset.situacao;
     abaAtiva = (situacaoAtiva === 'Aberto') ? 'andamento' : 'historico';
     // repopula os filtros conforme a aba (andamento = só núcleos com lote aberto)
-    popularNucleos(); popularAviarios();
+    popularNucleos(); popularAviarios(); popularIncubatorios();
     document.querySelector('[data-view="andamento"]').style.display = (abaAtiva==='andamento') ? '' : 'none';
     document.querySelector('[data-view="historico"]').style.display = (abaAtiva==='historico') ? '' : 'none';
     if(abaAtiva==='andamento') selecionarPadrao();
@@ -2522,11 +2536,20 @@ document.getElementById('fSexo').addEventListener('change', (e) => {
   render();
 });
 
+// filtro de incubatório (afeta tudo)
+document.getElementById('fIncubatorio').addEventListener('change', (e) => {
+  incubatorioAtivo = e.target.value;
+  if(abaAtiva==='andamento') selecionarPadrao();
+  render();
+});
+
 document.getElementById('btnLimparFiltrosMort').addEventListener('click', () => {
   document.getElementById('fNucleo').value = 'Todos';
   document.getElementById('fAviario').value = 'Todos';
   document.getElementById('fSexo').value = 'Todos';
+  document.getElementById('fIncubatorio').value = 'Todos';
   sexoAtivo = 'Todos';
+  incubatorioAtivo = 'Todos';
   popularAviarios();
   if(abaAtiva==='andamento') selecionarPadrao();
   render();
@@ -2557,6 +2580,7 @@ function deduplicarPorAviario(lista){
 }
 
 function passaSexo(l){ return sexoAtivo === 'Todos' || l.sexo === sexoAtivo; }
+function passaIncubatorio(l){ return incubatorioAtivo === 'Todos' || l.incubatorio === incubatorioAtivo; }
 
 function lotesFiltrados(){
   const nucleoSel = selNucleo.value, aviarioSel = selAviario.value;
@@ -2565,6 +2589,7 @@ function lotesFiltrados(){
     if(nucleoSel !== 'Todos' && l.nucleo !== nucleoSel) return false;
     if(aviarioSel !== 'Todos' && l.aviario !== aviarioSel) return false;
     if(!passaSexo(l)) return false;
+    if(!passaIncubatorio(l)) return false;
     return true;
   });
   return deduplicarPorAviario(base).sort((a,b) => b[metricaAtiva] - a[metricaAtiva]);
@@ -2933,7 +2958,8 @@ function getLotesHistorico(){
   return lotesHistoricoAll.filter(l => {
     if(nucleoSel !== 'Todos' && l.nucleo !== nucleoSel) return false;
     if(aviarioSel !== 'Todos' && l.aviario !== aviarioSel) return false;
-    return passaSexo(l);
+    if(!passaSexo(l)) return false;
+    return passaIncubatorio(l);
   });
 }
 
