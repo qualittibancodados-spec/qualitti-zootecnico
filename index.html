@@ -873,7 +873,7 @@
   #mapl_print_header .qf-print-titulos p{ font-size:10px; margin:2px 0 0; color:#666; }
   #mapl_scroll{ overflow:visible !important; width:100% !important; }
   #mapl_tabela{ width:100% !important; table-layout:fixed; font-size:8.5px; }
-  #mapl_tabela th, #mapl_tabela td{ padding:3px 4px !important; overflow-wrap:break-word; }
+  #mapl_tabela th, #mapl_tabela td{ padding:3px 4px !important; white-space:normal !important; overflow-wrap:break-word; word-break:break-word; font-size:8.5px !important; }
   .nuc-toggle::before{ content:''; }
   #mapl_tabela tr{ page-break-inside:avoid; }
   thead{ display:table-header-group; }
@@ -1195,9 +1195,13 @@
     <div class="painel">
       <div class="painel-header">
         <h2 id="rz_tituloMatriz">Matriz de Fator de Produção</h2>
-        <span class="info">Colunas: ano › rodada · Linhas: núcleo › aviário</span>
+        <span class="info" id="rz_infoMatriz">Colunas: ano › rodada · Linhas: núcleo › aviário</span>
       </div>
-      <div class="matriz-controles">
+      <div style="display:flex;flex-direction:column;gap:10px;margin-bottom:14px;">
+        <div class="segmented" id="rz_segGranularidade">
+          <button data-g="rodada" class="ativo">Rodada</button>
+          <button data-g="mes">Mês</button>
+        </div>
         <div class="segmented" id="rz_segMatriz">
           <button data-k="fp" class="ativo">Fator Produção</button>
           <button data-k="gmd">GMD</button>
@@ -1207,6 +1211,8 @@
           <button data-k="pmAbate">Peso abate</button>
           <button data-k="condenas">% Condenas</button>
         </div>
+      </div>
+      <div class="matriz-controles">
         <button class="btn-recolher" id="rz_btnRecolher">Expandir todos</button>
       </div>
       <div class="tabela-scroll arrastavel" id="rz_scrollMatriz">
@@ -5262,12 +5268,26 @@ function renderEficiencia(dados){
 
 // ================= Matriz =================
 let indicadorMatriz='fp';
+let rz_granularidade='rodada'; // 'rodada' ou 'mes' — define como as colunas de cada ano são quebradas
 let anosRecolhidos = new Set();
 let anosInicializados = false;
 let nucleosRecolhidos = new Set();
 let nucleosInicializados = false;
 let matrizSort = { key:'media_geral', dir:'desc' };
 bindSeg('rz_segMatriz', d=>{ indicadorMatriz=d.k; renderMatriz(filtrar()); });
+bindSeg('rz_segGranularidade', d=>{ rz_granularidade=d.g; anosInicializados=false; anosRecolhidos=new Set(); matrizSort={key:'media_geral',dir:'desc'}; renderMatriz(filtrar()); });
+
+const RZ_MESES_ABREV = ['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez'];
+function rz_unidadeDe(l){
+  if(rz_granularidade==='mes'){
+    if(!l.dataAloj) return null;
+    return new Date(l.dataAloj+'T00:00:00').getMonth()+1;
+  }
+  return l.rodada;
+}
+function rz_labelUnidade(u){
+  return rz_granularidade==='mes' ? RZ_MESES_ABREV[u-1] : ('R'+u);
+}
 
 function atualizarBotaoRecolher(){
   const btn = document.getElementById('rz_btnRecolher');
@@ -5532,11 +5552,13 @@ document.getElementById('mapl_btnExcel').addEventListener('click', ()=>{
 function renderMatriz(dados){
   const cfg = IND[indicadorMatriz];
   document.getElementById('rz_tituloMatriz').textContent = `Matriz de ${cfg.nome}`;
+  const infoEl = document.getElementById('rz_infoMatriz');
+  if(infoEl) infoEl.textContent = rz_granularidade==='mes' ? 'Colunas: ano › mês · Linhas: núcleo › aviário' : 'Colunas: ano › rodada · Linhas: núcleo › aviário';
 
   const anos = Array.from(new Set(dados.map(l=>l.ano).filter(v=>v!=null))).sort((a,b)=>a-b);
   const rodadasPorAno = {};
   anos.forEach(a=>{
-    rodadasPorAno[a] = Array.from(new Set(dados.filter(l=>l.ano===a).map(l=>l.rodada).filter(v=>v!=null))).sort((x,y)=>x-y);
+    rodadasPorAno[a] = Array.from(new Set(dados.filter(l=>l.ano===a).map(l=>rz_unidadeDe(l)).filter(v=>v!=null))).sort((x,y)=>x-y);
   });
 
   if(!anosInicializados && anos.length){
@@ -5566,8 +5588,8 @@ function renderMatriz(dados){
     if(key==='media_geral') return val(dados.filter(filtroBase));
     const mSub = key.match(/^sub_(\d+)$/);
     if(mSub){ const a=+mSub[1]; return val(dados.filter(l=>filtroBase(l) && l.ano===a)); }
-    const mCel = key.match(/^cel_(\d+)_(\d+)$/);
-    if(mCel){ const a=+mCel[1], r=+mCel[2]; return val(dados.filter(l=>filtroBase(l) && l.ano===a && l.rodada===r)); }
+    const mCel = key.match(/^cel_(\d+)_(-?\d+)$/);
+    if(mCel){ const a=+mCel[1], r=+mCel[2]; return val(dados.filter(l=>filtroBase(l) && l.ano===a && rz_unidadeDe(l)===r)); }
     return null;
   }
   function ordenar(itens, filtroDe){
@@ -5589,7 +5611,8 @@ function renderMatriz(dados){
     const nRod = recolhido ? 0 : rodadasPorAno[a].length;
     const colspan = nRod + 1;
     const icone = recolhido ? '▸' : '▾';
-    thAno += `<th colspan="${colspan}" class="${idx>0?'sep':''} th-ano" data-ano-toggle="${a}" title="${recolhido?'Expandir':'Recolher'} rodadas de ${a}">
+    const rotuloUnidade = rz_granularidade==='mes' ? 'meses' : 'rodadas';
+    thAno += `<th colspan="${colspan}" class="${idx>0?'sep':''} th-ano" data-ano-toggle="${a}" title="${recolhido?'Expandir':'Recolher'} ${rotuloUnidade} de ${a}">
       <span class="ano-toggle">${icone}</span> ${a}</th>`;
   });
   thAno += `<th class="media th-sort" data-sortkey="media_geral" rowspan="2" title="Ordenar pela média geral">Média<br>geral${setaDe('media_geral')}</th>`;
@@ -5600,7 +5623,7 @@ function renderMatriz(dados){
     if(!recolhido){
       rodadasPorAno[a].forEach((r,i)=>{
         const key=`cel_${a}_${r}`;
-        thSub += `<th class="th-sort ${i===0 && idx>0?'sep':''}" data-sortkey="${key}" title="Ordenar por R${r}/${a}">R${r}${setaDe(key)}</th>`;
+        thSub += `<th class="th-sort ${i===0 && idx>0?'sep':''}" data-sortkey="${key}" title="Ordenar por ${rz_labelUnidade(r)}/${a}">${rz_labelUnidade(r)}${setaDe(key)}</th>`;
       });
     }
     const key=`sub_${a}`;
@@ -5613,7 +5636,7 @@ function renderMatriz(dados){
       const recolhido = anosRecolhidos.has(a);
       if(!recolhido){
         rodadasPorAno[a].forEach((r,i)=>{
-          const v = val(dados.filter(l=>filtroBase(l) && l.ano===a && l.rodada===r));
+          const v = val(dados.filter(l=>filtroBase(l) && l.ano===a && rz_unidadeDe(l)===r));
           tds += `<td class="cel ${i===0 && idx>0?'sep':''}">${fmt(v)}</td>`;
         });
       }
@@ -5682,10 +5705,10 @@ function renderMatriz(dados){
   });
 
   document.getElementById('rz_notaMatriz').innerHTML =
-    `Cada célula é a média de ${cfg.nome} dos lotes daquele aviário na rodada/ano. ` +
+    `Cada célula é a média de ${cfg.nome} dos lotes daquele aviário na ${rz_granularidade==='mes'?'combinação mês/ano':'rodada/ano'}. ` +
     `A linha destacada é a <strong>média do núcleo</strong> (clique na <strong>seta ▸/▾</strong> para ver ou ocultar os aviários). ` +
     `"Méd [ano]" = subtotal do ano · "Média geral" = todo o período · "–" = sem lote abatido. ` +
-    `Clique no <strong>ano</strong> para recolher/expandir as rodadas; clique numa <strong>coluna</strong> para ordenar — clicar de novo inverte.`;
+    `Clique no <strong>ano</strong> para recolher/expandir as ${rz_granularidade==='mes'?'colunas de mês':'rodadas'}; clique numa <strong>coluna</strong> para ordenar — clicar de novo inverte.`;
 
   if(typeof ativarArrastar==='function') ativarArrastar(document.getElementById('rz_scrollMatriz'));
 }
