@@ -312,9 +312,11 @@
     body.comb-imprimindo-ticket #comb-modalTicket,
     body.comb-imprimindo-ticket #comb-modalTicket *{ visibility:visible !important; }
     body.comb-imprimindo-ticket > *:not(#comb-modalTicket){ display:none !important; }
+    body.comb-imprimindo-ticket{ background:#fff !important; }
     body.comb-imprimindo-ticket #comb-modalTicket{
       display:block !important; position:static !important; inset:auto !important;
       background:#fff !important; padding:0 !important; z-index:auto !important;
+      min-height:0 !important; height:auto !important; max-height:none !important; overflow:visible !important;
     }
     body.comb-imprimindo-ticket #comb-ticketConteudo{
       position:static !important; max-width:none !important; width:100% !important;
@@ -1546,7 +1548,18 @@
           <div class="filtros-grid" style="margin-bottom:12px;">
             <div class="campo"><label>Núcleo</label><select id="fer-nucleo"><option value="">Selecione...</option></select></div>
             <div class="campo"><label>Nome</label><input type="text" id="fer-nome" placeholder="Nome completo"></div>
-            <div class="campo"><label>Cargo</label><select id="fer-cargo"><option value="Granjeiro">Granjeiro</option><option value="Ajudante">Ajudante</option></select></div>
+            <div class="campo"><label>Cargo</label><select id="fer-cargo">
+              <option value="Ajudante de Granjeiro">Ajudante de Granjeiro</option>
+              <option value="Granjeiro Líder">Granjeiro Líder</option>
+              <option value="Técnico em Agropecuária I">Técnico em Agropecuária I</option>
+              <option value="Técnico em Agropecuária II">Técnico em Agropecuária II</option>
+              <option value="Auxiliar de Manutenção Granja I">Auxiliar de Manutenção Granja I</option>
+              <option value="Eletricista Manutenção I">Eletricista Manutenção I</option>
+              <option value="Líder de Manutenção Júnior">Líder de Manutenção Júnior</option>
+              <option value="Tratorista Agrícola I">Tratorista Agrícola I</option>
+              <option value="Auxiliar Administrativo Júnior">Auxiliar Administrativo Júnior</option>
+              <option value="Outro">Outro</option>
+            </select></div>
             <div class="campo"><label>Início do Período Aquisitivo</label><input type="date" id="fer-inicioAquisitivo"></div>
             <div class="campo"><label>Início das Férias <span style="font-weight:400;color:var(--texto-suave);">(deixe vazio se ainda não marcou)</span></label><input type="date" id="fer-inicioFerias"></div>
             <div class="campo"><label>Dias de Férias</label><input type="number" id="fer-dias" value="30" min="1" max="30"></div>
@@ -1556,6 +1569,15 @@
           <button type="button" class="btn-recolher" id="fer-btnCancelarEdicao" style="display:none;margin-left:10px;">Cancelar edição</button>
           <p class="nota" id="fer-erro" style="min-height:16px;"></p>
         </div>
+
+        <div class="painel" style="margin-bottom:18px;">
+          <div class="painel-header"><h2>Importar planilha</h2></div>
+          <p class="nota" style="margin:0 0 12px;">Importa NOMEFUNC, DESCRDEP, DESCRCARGO, INICIOAQUISICAO e AGENDAMENTO (quando preenchido) direto da planilha do RH. Registros já cadastrados com o mesmo nome são atualizados, não duplicados.</p>
+          <button type="button" class="btn-recolher" id="fer-btnImportar">📥 Selecionar planilha (.xls/.xlsx)</button>
+          <input type="file" id="fer-inputImportar" accept=".xls,.xlsx" style="display:none;">
+          <p class="nota" id="fer-erroImportar" style="min-height:16px;"></p>
+        </div>
+
 
         <div class="painel" style="margin-bottom:18px;">
           <div class="painel-header"><h2>Calendário de férias por ano</h2><span class="info" id="fer-infoCalendario"></span></div>
@@ -6220,15 +6242,24 @@ document.addEventListener('click', (e)=>{
 let feriasDados = [];
 let feriasEditandoId = null;
 const FERIAS_NOMES_MESES = ['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez'];
+// núcleos de granja + setores de apoio que também entram no planejamento de férias
+// (só usada aqui — não altera a lista NUCLEOS_QUADRO usada no resto do Quadro de Funcionários)
+const FERIAS_NUCLEOS = [...NUCLEOS_QUADRO, 'Manutenção Granja', 'Núcleos (Administrativo)', 'Transporte Máq. Pesadas'];
 
 async function iniciarFerias(){
   const selNucleo = document.getElementById('fer-nucleo');
   if(!selNucleo.dataset.populado){
-    selNucleo.innerHTML = '<option value="">Selecione...</option>' + NUCLEOS_QUADRO.map(n=>`<option value="${n}">${n}</option>`).join('');
+    selNucleo.innerHTML = '<option value="">Selecione...</option>' + FERIAS_NUCLEOS.map(n=>`<option value="${n}">${n}</option>`).join('');
     selNucleo.dataset.populado = '1';
     document.getElementById('fer-btnSalvar').addEventListener('click', feriasSalvar);
     document.getElementById('fer-btnCancelarEdicao').addEventListener('click', feriasSairModoEdicao);
     document.getElementById('fer-anoFiltro').addEventListener('change', feriasRenderCalendario);
+    const btnImportar = document.getElementById('fer-btnImportar');
+    const inputImportar = document.getElementById('fer-inputImportar');
+    if(btnImportar && inputImportar){
+      btnImportar.addEventListener('click', ()=> inputImportar.click());
+      inputImportar.addEventListener('change', feriasImportarPlanilha);
+    }
   }
   await feriasCarregarDados();
   feriasPopularAnoFiltro();
@@ -6316,7 +6347,7 @@ function feriasSairModoEdicao(){
   feriasEditandoId = null;
   document.getElementById('fer-tituloForm').textContent = 'Novo funcionário / férias';
   ['fer-nucleo','fer-nome','fer-inicioAquisitivo','fer-inicioFerias','fer-substituto'].forEach(id=>document.getElementById(id).value='');
-  document.getElementById('fer-cargo').value = 'Granjeiro';
+  document.getElementById('fer-cargo').value = 'Ajudante de Granjeiro';
   document.getElementById('fer-dias').value = 30;
   document.getElementById('fer-btnSalvar').textContent = '+ Salvar';
   document.getElementById('fer-btnCancelarEdicao').style.display = 'none';
@@ -6334,6 +6365,135 @@ async function feriasExcluir(id){
     feriasRenderLista();
     feriasRenderCalendario();
   }catch(e){ alert('Erro ao remover: ' + e.message); }
+}
+
+// ---- Importação da planilha do RH (Quadro de Férias) ----
+// Mapeia os nomes de núcleo/setor exatamente como vêm na planilha (DESCRDEP) para o
+// nome padrão usado no sistema. Os 3 setores de apoio (Núcleos, Manutenção Granja,
+// Transporte Máq Pesadas) não existem nos 13 núcleos de granja — entram como opções extra.
+const FERIAS_MAPA_NUCLEO = {
+  'AEROPORTO 1':'Aeroporto', 'AEROPORTO':'Aeroporto',
+  'AROEIRA':'Aroeira',
+  'ENGOPA':'Engopa',
+  'FLAMBOYANT':'Flamboyant',
+  'PARAISO 1':'Paraiso 01', 'PARAISO 2':'Paraiso 02', 'PARAISO 3':'Paraiso 03', 'PARAISO 4':'Paraiso 04',
+  'SANTA ROSA':'Santa Rosa',
+  'VAUZINHO':'Valzinho', 'VALZINHO':'Valzinho',
+  'VINAGRE 1':'Vinagre 01', 'VINAGRE 2':'Vinagre 02', 'VINAGRE 3':'Vinagre 03',
+  'NUCLEOS':'Núcleos (Administrativo)',
+  'MANUTENÇÃO GRANJA':'Manutenção Granja', 'MANUTENCAO GRANJA':'Manutenção Granja',
+  'TRANSPORTE MAQ PES':'Transporte Máq. Pesadas',
+};
+// Mapeia DESCRCARGO (como vem na planilha, sem acento) para as opções do select de Cargo.
+const FERIAS_MAPA_CARGO = {
+  'AJUDANTE DE GRANJEIRO':'Ajudante de Granjeiro',
+  'GRANJEIRO LIDER':'Granjeiro Líder',
+  'TECNICO EM AGROPECUARIA I':'Técnico em Agropecuária I',
+  'TECNICO EM AGROPECUARIA II':'Técnico em Agropecuária II',
+  'AUXILIAR DE MANUT GRANJA I':'Auxiliar de Manutenção Granja I',
+  'ELETRICISTA MANUTENCAO I':'Eletricista Manutenção I',
+  'LIDER DE MANUTENCAO JUNIOR':'Líder de Manutenção Júnior',
+  'TRATORISTA AGRICOLA I':'Tratorista Agrícola I',
+  'AUXILIAR ADMINSTRATIVO JUNIOR':'Auxiliar Administrativo Júnior',
+};
+
+function feriasParseDataExcel(valor){
+  // cellDates:true já entrega objeto Date pra colunas de data; cobre string ISO como reforço
+  if(!valor) return null;
+  if(valor instanceof Date) return isNaN(valor) ? null : valor.toISOString().slice(0,10);
+  const s = String(valor).trim();
+  const isoMatch = s.match(/^(\d{4}-\d{2}-\d{2})/);
+  if(isoMatch) return isoMatch[1];
+  const brMatch = s.match(/^(\d{2})\/(\d{2})\/(\d{4})/);
+  if(brMatch) return `${brMatch[3]}-${brMatch[2]}-${brMatch[1]}`;
+  return null;
+}
+
+function feriasParseAgendamento(valor){
+  // formato da planilha: "Data de Inicio: 21/09/2026 -  Data de Retorno: 01/10/2026"
+  if(!valor) return {inicioFerias:null, dias:null};
+  const m = String(valor).match(/Data de Inicio:\s*(\d{2}\/\d{2}\/\d{4}).*Data de Retorno:\s*(\d{2}\/\d{2}\/\d{4})/i);
+  if(!m) return {inicioFerias:null, dias:null};
+  const [, iniBR, fimBR] = m;
+  const converter = br => { const [d,mo,a] = br.split('/'); return `${a}-${mo}-${d}`; };
+  const inicioFerias = converter(iniBR);
+  const fimFerias = converter(fimBR);
+  const dias = Math.round((new Date(fimFerias+'T00:00:00') - new Date(inicioFerias+'T00:00:00')) / 86400000);
+  return {inicioFerias, dias: dias>0 ? dias : 30};
+}
+
+async function feriasImportarPlanilha(){
+  const input = document.getElementById('fer-inputImportar');
+  const btn = document.getElementById('fer-btnImportar');
+  const erroEl = document.getElementById('fer-erroImportar');
+  erroEl.style.color = ''; erroEl.textContent = '';
+  if(!input.files || !input.files[0]){ return; }
+  btn.disabled = true; btn.textContent = 'Processando...';
+  try{
+    const arrayBuffer = await input.files[0].arrayBuffer();
+    const wb = XLSX.read(arrayBuffer, {type:'array', cellDates:true});
+    const ws = wb.Sheets[wb.SheetNames[0]];
+    const linhas = XLSX.utils.sheet_to_json(ws, {defval:null});
+    if(!linhas.length) throw new Error('A planilha está vazia.');
+
+    const camposNecessarios = ['NOMEFUNC','DESCRDEP','DESCRCARGO','INICIOAQUISICAO'];
+    const faltando = camposNecessarios.filter(c => !(c in linhas[0]));
+    if(faltando.length) throw new Error('Colunas não encontradas na planilha: ' + faltando.join(', '));
+
+    const naoMapeados = new Set();
+    const registros = linhas.filter(l => l['NOMEFUNC']).map(l => {
+      const depOriginal = String(l['DESCRDEP']||'').trim().toUpperCase();
+      const cargoOriginal = String(l['DESCRCARGO']||'').trim().toUpperCase();
+      const nucleo = FERIAS_MAPA_NUCLEO[depOriginal];
+      const cargo = FERIAS_MAPA_CARGO[cargoOriginal];
+      if(!nucleo) naoMapeados.add('núcleo/setor: ' + l['DESCRDEP']);
+      if(!cargo) naoMapeados.add('cargo: ' + l['DESCRCARGO']);
+      const {inicioFerias, dias} = feriasParseAgendamento(l['AGENDAMENTO']);
+      return {
+        nome: String(l['NOMEFUNC']).trim(),
+        nucleo: nucleo || String(l['DESCRDEP']||'').trim(),
+        cargo: cargo || 'Outro',
+        inicioAquisitivo: feriasParseDataExcel(l['INICIOAQUISICAO']),
+        inicioFerias,
+        dias: dias || 30,
+        substituto: null,
+      };
+    }).filter(r => r.nome && r.inicioAquisitivo);
+
+    if(!registros.length) throw new Error('Nenhum registro válido encontrado (confira Nome e Início do Período Aquisitivo).');
+
+    // casa por nome (normalizado) com quem já está cadastrado -> atualiza em vez de duplicar
+    const existentesPorNome = new Map(feriasDados.map(d => [String(d.nome||'').trim().toUpperCase(), d]));
+    let criados = 0, atualizados = 0;
+    const lote = db.batch();
+    registros.forEach(r => {
+      const chave = r.nome.toUpperCase();
+      const existente = existentesPorNome.get(chave);
+      if(existente){
+        lote.set(db.collection('ferias_funcionarios').doc(existente.id), r, {merge:true});
+        atualizados++;
+      } else {
+        lote.set(db.collection('ferias_funcionarios').doc(), r);
+        criados++;
+      }
+    });
+    await lote.commit();
+
+    await feriasCarregarDados();
+    feriasPopularAnoFiltro();
+    feriasRenderLista();
+    feriasRenderCalendario();
+
+    erroEl.style.color = 'var(--verde-ok)';
+    erroEl.textContent = `Importação concluída: ${criados} novo(s), ${atualizados} atualizado(s).` +
+      (naoMapeados.size ? ` ⚠️ Não mapeados automaticamente (usados como veio na planilha): ${Array.from(naoMapeados).join('; ')}` : '');
+  }catch(err){
+    erroEl.style.color = 'var(--vermelho-alerta)';
+    erroEl.textContent = 'Erro ao importar: ' + err.message;
+  }finally{
+    btn.disabled = false; btn.textContent = '📥 Selecionar planilha (.xls/.xlsx)';
+    input.value = '';
+  }
 }
 
 function feriasRenderLista(){
@@ -8170,8 +8330,30 @@ function combustivelImprimirTicket(){
   // o arquivo tem vários blocos de impressão (um por módulo) que competem entre si
   // se a impressão for disparada só pela regra "body * visibility:hidden" genérica.
   document.body.classList.add('comb-imprimindo-ticket');
+  const modal = document.getElementById('comb-modalTicket');
+  const styleOriginalModal = modal.getAttribute('style') || '';
+  const styleOriginalHtml = document.documentElement.getAttribute('style') || '';
+  const styleOriginalBody = document.body.getAttribute('style') || '';
+  // reforço direto via JS (além do @media print) pra garantir fundo branco na impressão —
+  // em alguns navegadores mobile o fundo escuro do overlay (rgba) "vaza" atrás do ticket
+  // quando o @media print não é aplicado a tempo antes do snapshot de impressão.
+  modal.style.background = '#fff';
+  modal.style.position = 'static';
+  modal.style.inset = 'auto';
+  modal.style.minHeight = '0';
+  modal.style.height = 'auto';
+  modal.style.maxHeight = 'none';
+  modal.style.overflow = 'visible';
+  modal.style.padding = '0';
+  document.documentElement.style.background = '#fff';
+  document.body.style.background = '#fff';
   window.print();
-  setTimeout(()=> document.body.classList.remove('comb-imprimindo-ticket'), 500);
+  setTimeout(()=>{
+    document.body.classList.remove('comb-imprimindo-ticket');
+    modal.setAttribute('style', styleOriginalModal);
+    document.documentElement.setAttribute('style', styleOriginalHtml);
+    document.body.setAttribute('style', styleOriginalBody);
+  }, 500);
 }
 
 let combustivelPaginaAtual = 1;
