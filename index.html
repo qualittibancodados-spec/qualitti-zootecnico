@@ -594,6 +594,12 @@
   #mod-resultado table.matriz tr.linha-nucleo:hover{ background:#FDECCB; }
   #mod-resultado table.matriz tr.linha-nucleo th.rowhead{ font-weight:800; color:var(--vermelho-escuro); background:#FBE7C2; box-shadow:inset 3px 0 0 var(--dourado); }
   #mod-resultado table.matriz tr.linha-nucleo td{ font-weight:700; background:#FFF4E1; }
+  #mod-resultado table.matriz tr.linha-total-geral{ background:#F6DCDD; }
+  #mod-resultado table.matriz tr.linha-total-geral:hover{ background:#F0C7C9; }
+  #mod-resultado table.matriz tr.linha-total-geral th.rowhead{ font-weight:800; color:#fff; background:var(--vermelho); box-shadow:inset 3px 0 0 var(--vermelho-escuro); }
+  #mod-resultado table.matriz tr.linha-total-geral td{ font-weight:800; background:#F6DCDD; border-top:2px solid var(--vermelho); }
+  #mod-resultado table.matriz tr.linha-total-geral td.subano{ background:#F0C7C9; }
+  #mod-resultado table.matriz tr.linha-total-geral td.media{ background:#EEB9BB; border-left:2px solid var(--vermelho-escuro); }
   #mod-resultado table.matriz th.th-sort{ cursor:pointer; user-select:none; }
   #mod-resultado table.matriz th.th-sort:hover{ background:#F0E7D3; color:var(--vermelho); }
   #mod-resultado .matriz-controles{ display:flex; align-items:center; justify-content:space-between; gap:12px; margin-bottom:12px; flex-wrap:wrap; }
@@ -5687,6 +5693,14 @@ function renderMatriz(dados){
       </tr>`;
     });
   });
+
+  const filtroTudo = () => true;
+  const mediaGeralTudo = val(dados.filter(filtroTudo));
+  corpo += `<tr class="linha-total-geral">
+    <th class="rowhead">Total geral (todos os núcleos)</th>
+    ${montarCelulas(filtroTudo)}
+    <td class="media">${fmt(mediaGeralTudo)}</td>
+  </tr>`;
 
   document.getElementById('rz_tabelaMatriz').innerHTML =
     `<thead><tr>${thAno}</tr><tr>${thSub}</tr></thead><tbody>${corpo}</tbody>`;
