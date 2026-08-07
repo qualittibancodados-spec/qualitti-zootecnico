@@ -1545,10 +1545,10 @@
 
         <div class="painel" style="margin-bottom:18px;">
           <div class="painel-header"><h2 id="fer-tituloForm">Novo funcionário / férias</h2></div>
-          <div class="filtros-grid" style="margin-bottom:12px;">
+          <div class="reg-form" style="margin-bottom:12px;">
             <div class="campo"><label>Núcleo</label><select id="fer-nucleo"><option value="">Selecione...</option></select></div>
             <div class="campo"><label>Nome</label><input type="text" id="fer-nome" placeholder="Nome completo"></div>
-            <div class="campo"><label>Cargo</label><select id="fer-cargo">
+            <div class="campo" style="grid-column:span 2;"><label>Cargo</label><select id="fer-cargo">
               <option value="Ajudante de Granjeiro">Ajudante de Granjeiro</option>
               <option value="Granjeiro Líder">Granjeiro Líder</option>
               <option value="Técnico em Agropecuária I">Técnico em Agropecuária I</option>
@@ -1568,14 +1568,6 @@
           <button type="button" class="comb-btn-registrar" id="fer-btnSalvar">+ Salvar</button>
           <button type="button" class="btn-recolher" id="fer-btnCancelarEdicao" style="display:none;margin-left:10px;">Cancelar edição</button>
           <p class="nota" id="fer-erro" style="min-height:16px;"></p>
-        </div>
-
-        <div class="painel" style="margin-bottom:18px;">
-          <div class="painel-header"><h2>Importar planilha</h2></div>
-          <p class="nota" style="margin:0 0 12px;">Importa NOMEFUNC, DESCRDEP, DESCRCARGO, INICIOAQUISICAO e AGENDAMENTO (quando preenchido) direto da planilha do RH. Registros já cadastrados com o mesmo nome são atualizados, não duplicados.</p>
-          <button type="button" class="btn-recolher" id="fer-btnImportar">📥 Selecionar planilha (.xls/.xlsx)</button>
-          <input type="file" id="fer-inputImportar" accept=".xls,.xlsx" style="display:none;">
-          <p class="nota" id="fer-erroImportar" style="min-height:16px;"></p>
         </div>
 
 
@@ -6254,14 +6246,9 @@ async function iniciarFerias(){
     document.getElementById('fer-btnSalvar').addEventListener('click', feriasSalvar);
     document.getElementById('fer-btnCancelarEdicao').addEventListener('click', feriasSairModoEdicao);
     document.getElementById('fer-anoFiltro').addEventListener('change', feriasRenderCalendario);
-    const btnImportar = document.getElementById('fer-btnImportar');
-    const inputImportar = document.getElementById('fer-inputImportar');
-    if(btnImportar && inputImportar){
-      btnImportar.addEventListener('click', ()=> inputImportar.click());
-      inputImportar.addEventListener('change', feriasImportarPlanilha);
-    }
   }
   await feriasCarregarDados();
+  await feriasSeedInicialSeVazio();
   feriasPopularAnoFiltro();
   feriasRenderLista();
   feriasRenderCalendario();
@@ -6333,7 +6320,7 @@ function feriasEntrarModoEdicao(item){
   document.getElementById('fer-tituloForm').textContent = 'Editando: ' + item.nome;
   document.getElementById('fer-nucleo').value = item.nucleo||'';
   document.getElementById('fer-nome').value = item.nome||'';
-  document.getElementById('fer-cargo').value = item.cargo||'Granjeiro';
+  document.getElementById('fer-cargo').value = item.cargo||'Ajudante de Granjeiro';
   document.getElementById('fer-inicioAquisitivo').value = item.inicioAquisitivo||'';
   document.getElementById('fer-inicioFerias').value = item.inicioFerias||'';
   document.getElementById('fer-dias').value = item.dias||30;
@@ -6367,132 +6354,21 @@ async function feriasExcluir(id){
   }catch(e){ alert('Erro ao remover: ' + e.message); }
 }
 
-// ---- Importação da planilha do RH (Quadro de Férias) ----
-// Mapeia os nomes de núcleo/setor exatamente como vêm na planilha (DESCRDEP) para o
-// nome padrão usado no sistema. Os 3 setores de apoio (Núcleos, Manutenção Granja,
-// Transporte Máq Pesadas) não existem nos 13 núcleos de granja — entram como opções extra.
-const FERIAS_MAPA_NUCLEO = {
-  'AEROPORTO 1':'Aeroporto', 'AEROPORTO':'Aeroporto',
-  'AROEIRA':'Aroeira',
-  'ENGOPA':'Engopa',
-  'FLAMBOYANT':'Flamboyant',
-  'PARAISO 1':'Paraiso 01', 'PARAISO 2':'Paraiso 02', 'PARAISO 3':'Paraiso 03', 'PARAISO 4':'Paraiso 04',
-  'SANTA ROSA':'Santa Rosa',
-  'VAUZINHO':'Valzinho', 'VALZINHO':'Valzinho',
-  'VINAGRE 1':'Vinagre 01', 'VINAGRE 2':'Vinagre 02', 'VINAGRE 3':'Vinagre 03',
-  'NUCLEOS':'Núcleos (Administrativo)',
-  'MANUTENÇÃO GRANJA':'Manutenção Granja', 'MANUTENCAO GRANJA':'Manutenção Granja',
-  'TRANSPORTE MAQ PES':'Transporte Máq. Pesadas',
-};
-// Mapeia DESCRCARGO (como vem na planilha, sem acento) para as opções do select de Cargo.
-const FERIAS_MAPA_CARGO = {
-  'AJUDANTE DE GRANJEIRO':'Ajudante de Granjeiro',
-  'GRANJEIRO LIDER':'Granjeiro Líder',
-  'TECNICO EM AGROPECUARIA I':'Técnico em Agropecuária I',
-  'TECNICO EM AGROPECUARIA II':'Técnico em Agropecuária II',
-  'AUXILIAR DE MANUT GRANJA I':'Auxiliar de Manutenção Granja I',
-  'ELETRICISTA MANUTENCAO I':'Eletricista Manutenção I',
-  'LIDER DE MANUTENCAO JUNIOR':'Líder de Manutenção Júnior',
-  'TRATORISTA AGRICOLA I':'Tratorista Agrícola I',
-  'AUXILIAR ADMINSTRATIVO JUNIOR':'Auxiliar Administrativo Júnior',
-};
+// ---- Carga inicial (uma vez) do Quadro de Férias vindo da planilha do RH ----
+// Roda sozinho na primeira vez que alguém abre a aba, só se a coleção ainda estiver vazia —
+// depois disso o cadastro/edição/exclusão é sempre manual pelo formulário acima.
+const FERIAS_SEED_DADOS = [{"nome": "Francisco Jose Pereira Sousa", "nucleo": "Vinagre 01", "cargo": "Granjeiro Líder", "inicioAquisitivo": "2024-10-14", "inicioFerias": "2026-09-21", "dias": 10, "substituto": null}, {"nome": "Rosilene Rodrigues da Silva Sousa", "nucleo": "Vinagre 01", "cargo": "Ajudante de Granjeiro", "inicioAquisitivo": "2024-10-14", "inicioFerias": "2026-09-21", "dias": 10, "substituto": null}, {"nome": "Jessika Caroline Mendonca de Oliveira", "nucleo": "Núcleos (Administrativo)", "cargo": "Técnico em Agropecuária II", "inicioAquisitivo": "2024-11-18", "inicioFerias": "2026-10-05", "dias": 15, "substituto": null}, {"nome": "Josivaldo de Lima dos Santos", "nucleo": "Paraiso 04", "cargo": "Granjeiro Líder", "inicioAquisitivo": "2024-12-02", "inicioFerias": null, "dias": 30, "substituto": null}, {"nome": "Edimar Rodrigues de Freitas", "nucleo": "Manutenção Granja", "cargo": "Auxiliar de Manutenção Granja I", "inicioAquisitivo": "2024-12-06", "inicioFerias": null, "dias": 30, "substituto": null}, {"nome": "Lucas Vieira do Carmo", "nucleo": "Núcleos (Administrativo)", "cargo": "Tratorista Agrícola I", "inicioAquisitivo": "2024-12-14", "inicioFerias": "2026-10-01", "dias": 30, "substituto": null}, {"nome": "Wilka Soares Lopes", "nucleo": "Vinagre 02", "cargo": "Ajudante de Granjeiro", "inicioAquisitivo": "2025-01-08", "inicioFerias": null, "dias": 30, "substituto": null}, {"nome": "Marcos Antonio Pereira", "nucleo": "Vinagre 02", "cargo": "Granjeiro Líder", "inicioAquisitivo": "2025-01-08", "inicioFerias": null, "dias": 30, "substituto": null}, {"nome": "Douglas de Jesus Sousa", "nucleo": "Núcleos (Administrativo)", "cargo": "Tratorista Agrícola I", "inicioAquisitivo": "2025-02-17", "inicioFerias": "2026-11-03", "dias": 30, "substituto": null}, {"nome": "Edilaine Cristina da Cruz Dias", "nucleo": "Vinagre 03", "cargo": "Ajudante de Granjeiro", "inicioAquisitivo": "2025-03-05", "inicioFerias": null, "dias": 30, "substituto": null}, {"nome": "Jucelino Dias Siqueira", "nucleo": "Vinagre 03", "cargo": "Granjeiro Líder", "inicioAquisitivo": "2025-03-05", "inicioFerias": null, "dias": 30, "substituto": null}, {"nome": "Elizeu Santos Souza", "nucleo": "Aroeira", "cargo": "Granjeiro Líder", "inicioAquisitivo": "2025-03-16", "inicioFerias": null, "dias": 30, "substituto": null}, {"nome": "Fabiana Batista dos Santos", "nucleo": "Aroeira", "cargo": "Ajudante de Granjeiro", "inicioAquisitivo": "2025-03-23", "inicioFerias": null, "dias": 30, "substituto": null}, {"nome": "Fabio Cordeiro dos Santos", "nucleo": "Vinagre 01", "cargo": "Granjeiro Líder", "inicioAquisitivo": "2025-04-16", "inicioFerias": "2027-01-04", "dias": 30, "substituto": null}, {"nome": "Antonia Katiane dos Santos Cruz", "nucleo": "Vinagre 01", "cargo": "Ajudante de Granjeiro", "inicioAquisitivo": "2025-04-16", "inicioFerias": "2027-01-04", "dias": 30, "substituto": null}, {"nome": "Alexandre de Jesus Cunha", "nucleo": "Manutenção Granja", "cargo": "Eletricista Manutenção I", "inicioAquisitivo": "2025-04-18", "inicioFerias": "2026-09-08", "dias": 30, "substituto": null}, {"nome": "Antonio Andre de Oliveira", "nucleo": "Vinagre 02", "cargo": "Granjeiro Líder", "inicioAquisitivo": "2025-05-13", "inicioFerias": null, "dias": 30, "substituto": null}, {"nome": "Flavia de Lima", "nucleo": "Vinagre 02", "cargo": "Ajudante de Granjeiro", "inicioAquisitivo": "2025-05-13", "inicioFerias": null, "dias": 30, "substituto": null}, {"nome": "Joao Bosco de Oliveira", "nucleo": "Vinagre 01", "cargo": "Granjeiro Líder", "inicioAquisitivo": "2025-05-19", "inicioFerias": "2026-11-03", "dias": 30, "substituto": null}, {"nome": "Nelsilene da Silva", "nucleo": "Vinagre 01", "cargo": "Ajudante de Granjeiro", "inicioAquisitivo": "2025-05-19", "inicioFerias": "2026-11-03", "dias": 30, "substituto": null}, {"nome": "Marta Oliveira Silva", "nucleo": "Aroeira", "cargo": "Ajudante de Granjeiro", "inicioAquisitivo": "2025-05-21", "inicioFerias": null, "dias": 30, "substituto": null}, {"nome": "Leandro Oliveira dos Santos", "nucleo": "Aroeira", "cargo": "Granjeiro Líder", "inicioAquisitivo": "2025-05-23", "inicioFerias": null, "dias": 30, "substituto": null}, {"nome": "Randir Alves Ferreira", "nucleo": "Aroeira", "cargo": "Granjeiro Líder", "inicioAquisitivo": "2025-06-02", "inicioFerias": null, "dias": 30, "substituto": null}, {"nome": "Siberde Aparecida Mendes Queiroz", "nucleo": "Aroeira", "cargo": "Ajudante de Granjeiro", "inicioAquisitivo": "2025-06-02", "inicioFerias": null, "dias": 30, "substituto": null}, {"nome": "Cicero Gomes Leal", "nucleo": "Manutenção Granja", "cargo": "Líder de Manutenção Júnior", "inicioAquisitivo": "2025-06-02", "inicioFerias": "2026-09-01", "dias": 30, "substituto": null}, {"nome": "Ueder Sousa Araujo", "nucleo": "Flamboyant", "cargo": "Granjeiro Líder", "inicioAquisitivo": "2025-06-06", "inicioFerias": null, "dias": 30, "substituto": null}, {"nome": "Raimundo Severo da Silva", "nucleo": "Transporte Máq. Pesadas", "cargo": "Tratorista Agrícola I", "inicioAquisitivo": "2025-07-01", "inicioFerias": null, "dias": 30, "substituto": null}, {"nome": "Gilmar Candido da Silva", "nucleo": "Núcleos (Administrativo)", "cargo": "Tratorista Agrícola I", "inicioAquisitivo": "2025-08-01", "inicioFerias": null, "dias": 30, "substituto": null}, {"nome": "Edivandro Batista dos Santos", "nucleo": "Aroeira", "cargo": "Granjeiro Líder", "inicioAquisitivo": "2025-08-04", "inicioFerias": null, "dias": 30, "substituto": null}, {"nome": "Raysa Caroline Brito Cruz", "nucleo": "Aroeira", "cargo": "Ajudante de Granjeiro", "inicioAquisitivo": "2025-08-04", "inicioFerias": null, "dias": 30, "substituto": null}, {"nome": "Elias Marques dos Santos", "nucleo": "Manutenção Granja", "cargo": "Eletricista Manutenção I", "inicioAquisitivo": "2025-09-01", "inicioFerias": null, "dias": 30, "substituto": null}, {"nome": "Joao de Jesus", "nucleo": "Núcleos (Administrativo)", "cargo": "Tratorista Agrícola I", "inicioAquisitivo": "2025-09-02", "inicioFerias": null, "dias": 30, "substituto": null}, {"nome": "Juliana Barbosa Dantas", "nucleo": "Núcleos (Administrativo)", "cargo": "Técnico em Agropecuária II", "inicioAquisitivo": "2025-09-02", "inicioFerias": null, "dias": 30, "substituto": null}, {"nome": "Maria do Socorro Bezerra do Nascimento", "nucleo": "Vinagre 03", "cargo": "Ajudante de Granjeiro", "inicioAquisitivo": "2025-09-15", "inicioFerias": null, "dias": 30, "substituto": null}, {"nome": "Iziel Vagner Rodrigues dos Santos", "nucleo": "Vinagre 03", "cargo": "Granjeiro Líder", "inicioAquisitivo": "2025-09-15", "inicioFerias": null, "dias": 30, "substituto": null}, {"nome": "Lidiane Ribeiro de Souza", "nucleo": "Aroeira", "cargo": "Ajudante de Granjeiro", "inicioAquisitivo": "2025-09-16", "inicioFerias": null, "dias": 30, "substituto": null}, {"nome": "Uidesnes Alves Feitosa", "nucleo": "Aroeira", "cargo": "Granjeiro Líder", "inicioAquisitivo": "2025-09-16", "inicioFerias": null, "dias": 30, "substituto": null}, {"nome": "Gisele Ferreira Soares", "nucleo": "Flamboyant", "cargo": "Ajudante de Granjeiro", "inicioAquisitivo": "2025-10-03", "inicioFerias": null, "dias": 30, "substituto": null}, {"nome": "Guilherme Pereira de Sousa", "nucleo": "Manutenção Granja", "cargo": "Auxiliar de Manutenção Granja I", "inicioAquisitivo": "2025-10-04", "inicioFerias": null, "dias": 30, "substituto": null}, {"nome": "Dionathan Deivide Santos Nogueira", "nucleo": "Valzinho", "cargo": "Granjeiro Líder", "inicioAquisitivo": "2024-11-04", "inicioFerias": null, "dias": 30, "substituto": null}, {"nome": "Bruna Teixeira Gomes", "nucleo": "Flamboyant", "cargo": "Auxiliar Administrativo Júnior", "inicioAquisitivo": "2024-11-18", "inicioFerias": null, "dias": 30, "substituto": null}, {"nome": "Gabriel Santana Silva", "nucleo": "Núcleos (Administrativo)", "cargo": "Técnico em Agropecuária II", "inicioAquisitivo": "2025-01-04", "inicioFerias": "2026-09-03", "dias": 14, "substituto": null}, {"nome": "Maria Socorro Januario Rodrigues", "nucleo": "Flamboyant", "cargo": "Ajudante de Granjeiro", "inicioAquisitivo": "2025-01-18", "inicioFerias": null, "dias": 30, "substituto": null}, {"nome": "Olivan Inacio Pereira", "nucleo": "Flamboyant", "cargo": "Granjeiro Líder", "inicioAquisitivo": "2025-01-18", "inicioFerias": null, "dias": 30, "substituto": null}, {"nome": "Severino Nunes dos Santos", "nucleo": "Flamboyant", "cargo": "Granjeiro Líder", "inicioAquisitivo": "2025-01-19", "inicioFerias": null, "dias": 30, "substituto": null}, {"nome": "Erisvaldo de Lima Santos", "nucleo": "Paraiso 01", "cargo": "Ajudante de Granjeiro", "inicioAquisitivo": "2025-03-01", "inicioFerias": null, "dias": 30, "substituto": null}, {"nome": "Daniel Nogueira", "nucleo": "Valzinho", "cargo": "Granjeiro Líder", "inicioAquisitivo": "2025-03-02", "inicioFerias": null, "dias": 30, "substituto": null}, {"nome": "Rosilania da Silva Santos", "nucleo": "Valzinho", "cargo": "Ajudante de Granjeiro", "inicioAquisitivo": "2025-03-02", "inicioFerias": null, "dias": 30, "substituto": null}, {"nome": "Luiz Carlos Mendes", "nucleo": "Paraiso 01", "cargo": "Granjeiro Líder", "inicioAquisitivo": "2025-05-06", "inicioFerias": null, "dias": 30, "substituto": null}, {"nome": "Leonete Teixeira Ferreira", "nucleo": "Valzinho", "cargo": "Ajudante de Granjeiro", "inicioAquisitivo": "2025-07-01", "inicioFerias": null, "dias": 30, "substituto": null}, {"nome": "Francisco Pedro da Silva", "nucleo": "Valzinho", "cargo": "Granjeiro Líder", "inicioAquisitivo": "2025-07-01", "inicioFerias": null, "dias": 30, "substituto": null}, {"nome": "Giovana Candida Marques", "nucleo": "Núcleos (Administrativo)", "cargo": "Técnico em Agropecuária I", "inicioAquisitivo": "2025-07-08", "inicioFerias": null, "dias": 30, "substituto": null}, {"nome": "Magno Fernandes de Sousa", "nucleo": "Flamboyant", "cargo": "Granjeiro Líder", "inicioAquisitivo": "2025-07-14", "inicioFerias": null, "dias": 30, "substituto": null}, {"nome": "Adriele Rodrigues de Oliveira", "nucleo": "Flamboyant", "cargo": "Ajudante de Granjeiro", "inicioAquisitivo": "2025-07-14", "inicioFerias": null, "dias": 30, "substituto": null}, {"nome": "Edmilson Aleixo de Souza", "nucleo": "Flamboyant", "cargo": "Granjeiro Líder", "inicioAquisitivo": "2025-08-01", "inicioFerias": null, "dias": 30, "substituto": null}, {"nome": "Osvaldo Rodrigues de Amorim", "nucleo": "Núcleos (Administrativo)", "cargo": "Ajudante de Granjeiro", "inicioAquisitivo": "2025-09-08", "inicioFerias": null, "dias": 30, "substituto": null}, {"nome": "Carlos Willian Alves de Oliveira", "nucleo": "Valzinho", "cargo": "Granjeiro Líder", "inicioAquisitivo": "2025-09-15", "inicioFerias": null, "dias": 30, "substituto": null}, {"nome": "Luana Martins Batista", "nucleo": "Valzinho", "cargo": "Ajudante de Granjeiro", "inicioAquisitivo": "2025-09-15", "inicioFerias": null, "dias": 30, "substituto": null}, {"nome": "Rosilene Maria de Oliveira", "nucleo": "Flamboyant", "cargo": "Ajudante de Granjeiro", "inicioAquisitivo": "2025-09-21", "inicioFerias": null, "dias": 30, "substituto": null}, {"nome": "Aparecido Batista Pena", "nucleo": "Aeroporto", "cargo": "Granjeiro Líder", "inicioAquisitivo": "2025-10-05", "inicioFerias": null, "dias": 30, "substituto": null}, {"nome": "Cristiane Alves da Silva", "nucleo": "Aeroporto", "cargo": "Ajudante de Granjeiro", "inicioAquisitivo": "2025-10-05", "inicioFerias": null, "dias": 30, "substituto": null}];
+const FERIAS_SEED_INICIAL = FERIAS_SEED_DADOS;
 
-function feriasParseDataExcel(valor){
-  // cellDates:true já entrega objeto Date pra colunas de data; cobre string ISO como reforço
-  if(!valor) return null;
-  if(valor instanceof Date) return isNaN(valor) ? null : valor.toISOString().slice(0,10);
-  const s = String(valor).trim();
-  const isoMatch = s.match(/^(\d{4}-\d{2}-\d{2})/);
-  if(isoMatch) return isoMatch[1];
-  const brMatch = s.match(/^(\d{2})\/(\d{2})\/(\d{4})/);
-  if(brMatch) return `${brMatch[3]}-${brMatch[2]}-${brMatch[1]}`;
-  return null;
-}
-
-function feriasParseAgendamento(valor){
-  // formato da planilha: "Data de Inicio: 21/09/2026 -  Data de Retorno: 01/10/2026"
-  if(!valor) return {inicioFerias:null, dias:null};
-  const m = String(valor).match(/Data de Inicio:\s*(\d{2}\/\d{2}\/\d{4}).*Data de Retorno:\s*(\d{2}\/\d{2}\/\d{4})/i);
-  if(!m) return {inicioFerias:null, dias:null};
-  const [, iniBR, fimBR] = m;
-  const converter = br => { const [d,mo,a] = br.split('/'); return `${a}-${mo}-${d}`; };
-  const inicioFerias = converter(iniBR);
-  const fimFerias = converter(fimBR);
-  const dias = Math.round((new Date(fimFerias+'T00:00:00') - new Date(inicioFerias+'T00:00:00')) / 86400000);
-  return {inicioFerias, dias: dias>0 ? dias : 30};
-}
-
-async function feriasImportarPlanilha(){
-  const input = document.getElementById('fer-inputImportar');
-  const btn = document.getElementById('fer-btnImportar');
-  const erroEl = document.getElementById('fer-erroImportar');
-  erroEl.style.color = ''; erroEl.textContent = '';
-  if(!input.files || !input.files[0]){ return; }
-  btn.disabled = true; btn.textContent = 'Processando...';
+async function feriasSeedInicialSeVazio(){
+  if(feriasDados.length > 0) return; // já tem gente cadastrada — não mexe em nada
   try{
-    const arrayBuffer = await input.files[0].arrayBuffer();
-    const wb = XLSX.read(arrayBuffer, {type:'array', cellDates:true});
-    const ws = wb.Sheets[wb.SheetNames[0]];
-    const linhas = XLSX.utils.sheet_to_json(ws, {defval:null});
-    if(!linhas.length) throw new Error('A planilha está vazia.');
-
-    const camposNecessarios = ['NOMEFUNC','DESCRDEP','DESCRCARGO','INICIOAQUISICAO'];
-    const faltando = camposNecessarios.filter(c => !(c in linhas[0]));
-    if(faltando.length) throw new Error('Colunas não encontradas na planilha: ' + faltando.join(', '));
-
-    const naoMapeados = new Set();
-    const registros = linhas.filter(l => l['NOMEFUNC']).map(l => {
-      const depOriginal = String(l['DESCRDEP']||'').trim().toUpperCase();
-      const cargoOriginal = String(l['DESCRCARGO']||'').trim().toUpperCase();
-      const nucleo = FERIAS_MAPA_NUCLEO[depOriginal];
-      const cargo = FERIAS_MAPA_CARGO[cargoOriginal];
-      if(!nucleo) naoMapeados.add('núcleo/setor: ' + l['DESCRDEP']);
-      if(!cargo) naoMapeados.add('cargo: ' + l['DESCRCARGO']);
-      const {inicioFerias, dias} = feriasParseAgendamento(l['AGENDAMENTO']);
-      return {
-        nome: String(l['NOMEFUNC']).trim(),
-        nucleo: nucleo || String(l['DESCRDEP']||'').trim(),
-        cargo: cargo || 'Outro',
-        inicioAquisitivo: feriasParseDataExcel(l['INICIOAQUISICAO']),
-        inicioFerias,
-        dias: dias || 30,
-        substituto: null,
-      };
-    }).filter(r => r.nome && r.inicioAquisitivo);
-
-    if(!registros.length) throw new Error('Nenhum registro válido encontrado (confira Nome e Início do Período Aquisitivo).');
-
-    // casa por nome (normalizado) com quem já está cadastrado -> atualiza em vez de duplicar
-    const existentesPorNome = new Map(feriasDados.map(d => [String(d.nome||'').trim().toUpperCase(), d]));
-    let criados = 0, atualizados = 0;
     const lote = db.batch();
-    registros.forEach(r => {
-      const chave = r.nome.toUpperCase();
-      const existente = existentesPorNome.get(chave);
-      if(existente){
-        lote.set(db.collection('ferias_funcionarios').doc(existente.id), r, {merge:true});
-        atualizados++;
-      } else {
-        lote.set(db.collection('ferias_funcionarios').doc(), r);
-        criados++;
-      }
-    });
+    FERIAS_SEED_INICIAL.forEach(r => lote.set(db.collection('ferias_funcionarios').doc(), r));
     await lote.commit();
-
     await feriasCarregarDados();
-    feriasPopularAnoFiltro();
-    feriasRenderLista();
-    feriasRenderCalendario();
-
-    erroEl.style.color = 'var(--verde-ok)';
-    erroEl.textContent = `Importação concluída: ${criados} novo(s), ${atualizados} atualizado(s).` +
-      (naoMapeados.size ? ` ⚠️ Não mapeados automaticamente (usados como veio na planilha): ${Array.from(naoMapeados).join('; ')}` : '');
-  }catch(err){
-    erroEl.style.color = 'var(--vermelho-alerta)';
-    erroEl.textContent = 'Erro ao importar: ' + err.message;
-  }finally{
-    btn.disabled = false; btn.textContent = '📥 Selecionar planilha (.xls/.xlsx)';
-    input.value = '';
+  }catch(e){
+    console.error('Erro na carga inicial do Quadro de Férias:', e);
   }
 }
 
