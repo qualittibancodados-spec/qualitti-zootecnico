@@ -245,7 +245,7 @@ def processar_resultado(xl):
         'Fator Produção': 'fp', 'GMD': 'gmd', 'CA': 'ca', 'IEP': 'iep', '%MortElim Total': 'mortElim',
         'Idade Abate': 'idadeAbate', 'Aves Alojadas': 'alojadas', 'Aves Abatidas': 'abatidas',
         'PM Abate': 'pmAbate', '%Condenas': 'condenas', '% Uniformidade': 'unif', 'Custo': 'custo',
-        'Consumo Ração': 'consumoRacao', 'Pm Alojamento': 'pmAlojamento', 'PM 1Dia': 'pm1', 'PM_7': 'pm7', 'PM_14': 'pm14', 'PM_21': 'pm21', 'PM_28': 'pm28',
+        'Consumo Ração': 'consumoRacao', 'PM Alojamento': 'pmAlojamento', 'PM 1Dia': 'pm1', 'PM_7': 'pm7', 'PM_14': 'pm14', 'PM_21': 'pm21', 'PM_28': 'pm28',
         'PM_35': 'pm35', 'PM_42': 'pm42', 'Média Prev': 'mediaPrev', 'Média Real': 'mediaReal', 'Dif. Média': 'difMedia',
         'Situacao': 'situacao', 'Data Alojamento': 'dataAloj',
         '%R7': 'r7', '%R14': 'r14', '%R21': 'r21', '%R28': 'r28', '%R35': 'r35', '%R42': 'r42',
