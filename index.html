@@ -208,7 +208,8 @@
   .qfc-tabela th.qfc-status, .qfc-tabela td.qfc-status{ text-align:center; }
   .qfc-tabela th.qfc-col-first, .qfc-tabela td.qfc-col-first{ position:sticky; left:0; background:var(--card); z-index:1; min-width:150px; text-align:left; }
   .qfc-tabela thead th.qfc-col-first{ background:#FBF7EE; z-index:2; }
-  .qfc-tabela td{ padding:8px 12px; border-bottom:1px solid var(--borda); vertical-align:middle; }
+  .qfc-tabela td{ padding:9px 12px; border-bottom:1px solid var(--borda); vertical-align:middle; }
+  .qfc-tabela tbody tr:not(.qfc-linha-nucleo):not(.qfc-linha-total):hover td{ background:#FAFAF8; }
   .qfc-linha-nucleo th, .qfc-linha-nucleo td{ background:#FBF7EE !important; font-weight:700; border-top:1px solid var(--borda); border-bottom:1px solid var(--borda); cursor:pointer; }
   .qfc-linha-nucleo:hover th, .qfc-linha-nucleo:hover td{ background:#F4EFE6 !important; }
   .qfc-chevron{ display:inline-block; width:14px; color:var(--texto-suave); font-size:11px; }
@@ -218,23 +219,34 @@
   .qfc-saindo .qfc-tag{ font-size:10px; font-weight:700; margin-left:4px; text-transform:uppercase; letter-spacing:.02em; }
   .qfc-status-ok{ color:var(--texto-suave); }
   .qfc-status-falta{ color:var(--vermelho-alerta); font-weight:700; }
-  .qfc-linha-total th, .qfc-linha-total td{ border-top:2px solid var(--texto); font-weight:700; background:var(--card); padding-top:11px; padding-bottom:11px; }
+  .qfc-linha-total th, .qfc-linha-total td{ border-top:2px solid var(--texto); font-weight:700; background:var(--card); padding-top:12px; padding-bottom:12px; }
 
   /* ===== Planejamento de Férias — grade de 12 meses ===== */
-  #fer2-tabela td.fer2-col-mes{ text-align:center; min-width:98px; }
-  #fer2-tabela th.fer2-col-mes{ text-align:center; min-width:98px; }
-  #fer2-tabela th:nth-child(2), #fer2-tabela td:nth-child(2){ min-width:110px; }
-  #fer2-tabela th:nth-child(3), #fer2-tabela td:nth-child(3){ min-width:110px; }
+  #fer2-tabela tbody tr:not(.qfc-linha-nucleo):not(.qfc-linha-total):hover td{ background:#FAFAF8; }
+  #fer2-tabela tbody tr:nth-child(even):not(.qfc-linha-nucleo):not(.qfc-linha-total) td{ background:#FCFCFB; }
+  #fer2-tabela tbody tr:nth-child(even):not(.qfc-linha-nucleo):not(.qfc-linha-total):hover td{ background:#F7F6F2; }
+  #fer2-tabela tbody tr:nth-child(even) td.fer2-mes-atual{ background:#FAF5E5; }
+  #fer2-tabela td, #fer2-tabela th{ transition:background .1s; }
+  #fer2-tabela td.fer2-col-mes{ text-align:center; min-width:100px; padding-top:10px; padding-bottom:10px; }
+  #fer2-tabela th.fer2-col-mes{ text-align:center; min-width:100px; }
+  #fer2-tabela th:nth-child(2), #fer2-tabela td:nth-child(2){ min-width:100px; text-align:center; }
+  #fer2-tabela th:nth-child(3), #fer2-tabela td:nth-child(3){ min-width:120px; }
+  #fer2-tabela th:nth-child(4), #fer2-tabela td:nth-child(4){ min-width:100px; }
   #fer2-tabela th.fer2-mes-atual{ background:#F6EFD8; }
   #fer2-tabela td.fer2-mes-atual{ background:#FCFAF3; }
-  #fer2-tabela td.fer2-col-first .fer2-nome{ font-weight:700; color:var(--texto); }
-  #fer2-tabela td.fer2-col-first .fer2-sub{ font-size:11px; color:var(--texto-suave); margin-top:1px; }
-  .fer2-chip{ display:inline-block; background:#FDF1DC; color:#8A6200; font-weight:700; border-radius:8px; padding:3px 8px; font-size:11px; white-space:nowrap; cursor:pointer; }
-  .fer2-chip-sub{ display:block; font-size:10px; color:var(--texto-suave); margin-top:2px; }
+  #fer2-tabela td.qfc-col-first{ padding-top:10px; padding-bottom:10px; }
+  #fer2-tabela td.fer2-col-first .fer2-nome{ font-weight:700; color:var(--texto); font-size:13px; }
+  .fer2-badge-cargo{ display:inline-block; font-size:10.5px; font-weight:700; padding:3px 10px; border-radius:20px; letter-spacing:.01em; }
+  .fer2-badge-cargo.granjeiro{ background:#EAF4FF; color:#1D5A96; }
+  .fer2-badge-cargo.ajudante{ background:#F1ECFB; color:#5B3FA6; }
+  .fer2-chip{ display:inline-block; background:#FDF1DC; color:#8A6200; font-weight:700; border-radius:8px; padding:4px 9px; font-size:11.5px; white-space:nowrap; cursor:pointer; letter-spacing:.01em; }
+  .fer2-chip-sub{ display:block; font-size:10.5px; color:var(--texto-suave); margin-top:3px; }
   .fer2-chip-sub.falta{ color:var(--vermelho-alerta); font-weight:700; }
-  .fer2-planejar{ color:var(--vermelho-alerta); font-size:11px; font-weight:600; cursor:pointer; }
-  .fer2-vazio{ color:#C7CDD6; cursor:pointer; }
-  .fer2-vazio:hover, .fer2-planejar:hover, .fer2-chip:hover{ text-decoration:underline; }
+  .fer2-planejar{ color:var(--vermelho-alerta); font-size:11px; font-weight:600; cursor:pointer; opacity:.85; }
+  .fer2-vazio{ color:#D5D9DE; cursor:pointer; font-size:13px; }
+  .fer2-vazio:hover{ color:var(--texto-suave); }
+  .fer2-planejar:hover{ opacity:1; text-decoration:underline; }
+  .fer2-chip:hover{ filter:brightness(0.96); }
 
   .fer2-modal-fundo{ position:fixed; inset:0; background:rgba(20,20,20,.5); z-index:900; display:flex; align-items:center; justify-content:center; padding:20px; }
   .fer2-modal-card{ background:var(--card); border-radius:16px; max-width:420px; width:100%; box-shadow:0 20px 60px rgba(0,0,0,.3); overflow:hidden; }
@@ -251,7 +263,6 @@
   .qf-toggle-visao:hover{ border-color:var(--dourado); }
   .qf-toggle-visao.ativo-atual{ background:#EAF4FF; border-color:#1D5A96; color:#1D5A96; }
   .qf-toggle-visao.ativo-futuro{ background:#FFF4E1; border-color:#8A6200; color:#8A6200; }
-  .qf-toggle-visao.ativo-ambos{ background:var(--vermelho); border-color:var(--vermelho); color:#fff; }
   .qf-totais-grid{ display:flex; gap:14px; flex-wrap:wrap; margin-bottom:20px; }  .qf-totais-grid .qf-stat{ flex:1; min-width:150px; background:var(--vermelho); color:#fff; border-radius:14px; padding:14px 18px; box-shadow:0 4px 14px rgba(193,39,45,.25); }
   .qf-totais-grid .qf-stat-label{ font-size:10.5px; font-weight:700; text-transform:uppercase; letter-spacing:.04em; opacity:.85; }
   .qf-totais-grid .qf-stat-valor{ font-size:22px; font-weight:800; font-family:'Sora',sans-serif; margin-top:4px; }
@@ -1541,9 +1552,8 @@
         <p class="nota" style="margin:16px 0 10px;">Resumo de todos os núcleos — quanto falta pra completar o quadro, hoje e depois das saídas previstas. Clique no nome do núcleo pra ver aviário por aviário.</p>
         <p class="nota" style="margin:0 0 16px;color:var(--texto-suave);">🛈 Cada núcleo é mantido pelo técnico responsável por ele — só quem tem autorização naquele núcleo consegue atualizar granjeiro, ajudante ou marcar saídas. A coluna <strong>Futuro</strong> reflete exatamente os desligamentos e avisos prévios já lançados por esses técnicos; ela não antecipa saídas que ainda não foram registradas no sistema.</p>
         <div class="qf-legenda-atual-futuro" style="margin-bottom:16px;">
-          <button type="button" class="qf-toggle-visao ativo-ambos" id="qf-btnVisaoAmbos" data-visao="ambos">Ambos</button>
-          <button type="button" class="qf-toggle-visao" id="qf-btnVisaoAtual" data-visao="atual">Só Quadro Atual — o time real de hoje</button>
-          <button type="button" class="qf-toggle-visao" id="qf-btnVisaoFuturo" data-visao="futuro">Só Quadro Futuro — projeção após saídas</button>
+          <button type="button" class="qf-toggle-visao ativo-atual" id="qf-btnVisaoAtual" data-visao="atual">Visão atual — o time real de hoje</button>
+          <button type="button" class="qf-toggle-visao" id="qf-btnVisaoFuturo" data-visao="futuro">Visão futura — projeção após saídas</button>
         </div>
         <div style="display:flex;gap:10px;margin-bottom:18px;flex-wrap:wrap;">
           <button class="btn-recolher" id="qf-btnExpandirTodos" type="button">Expandir todos</button>
@@ -6541,6 +6551,7 @@ function fer2Render(){
 
   const thead = `<thead><tr>
     <th class="qfc-col-first">Funcionário</th>
+    <th>Cargo</th>
     <th>Núcleo</th>
     <th>Aviários</th>
     ${meses.map((m,i)=>`<th class="fer2-col-mes ${i===0?'fer2-mes-atual':''}">${m.label}</th>`).join('')}
@@ -6567,8 +6578,8 @@ function fer2Render(){
     return `<tr>
       <td class="qfc-col-first" data-fer2-abrir="${chave}" style="cursor:pointer;">
         <div class="fer2-nome">${r.nome}</div>
-        <div class="fer2-sub">${r.papel}</div>
       </td>
+      <td data-fer2-abrir="${chave}" style="cursor:pointer;"><span class="fer2-badge-cargo ${r.papel==='Granjeiro'?'granjeiro':'ajudante'}">${r.papel}</span></td>
       <td data-fer2-abrir="${chave}" style="cursor:pointer;">${fer2Nucleos(r.atribuicoes)||'—'}</td>
       <td data-fer2-abrir="${chave}" style="cursor:pointer;">${fer2Aviarios(r.atribuicoes)||'—'}</td>
       ${celulas}
@@ -7077,7 +7088,7 @@ async function iniciarQuadroFuncionarios(){
 }
 window.iniciarQuadroFuncionarios = iniciarQuadroFuncionarios;
 
-window.qfVisaoAtiva = window.qfVisaoAtiva || 'ambos';
+window.qfVisaoAtiva = window.qfVisaoAtiva || 'atual';
 
 function renderQuadroConsolidado(){
   const totaisEl = document.getElementById('qf-resumoTotais');
@@ -7085,8 +7096,7 @@ function renderQuadroConsolidado(){
   if(!gridEl) return;
   if(totaisEl) totaisEl.innerHTML = '';
   const visao = window.qfVisaoAtiva;
-  const mostraAtual = visao==='ambos' || visao==='atual';
-  const mostraFuturo = visao==='ambos' || visao==='futuro';
+  const futuro = visao==='futuro';
 
   const porNucleo = new Map();
   (window.POSTOS_QUADRO||[]).forEach(p=>{
@@ -7103,8 +7113,8 @@ function renderQuadroConsolidado(){
   });
   // núcleos com falta aparecem primeiro (do maior problema pro menor); entre os completos, ordem alfabética
   resumosPorNucleo.sort((a,b)=>{
-    const faltaA = mostraAtual ? a.faltaAtual : a.faltaFuturo;
-    const faltaB = mostraAtual ? b.faltaAtual : b.faltaFuturo;
+    const faltaA = futuro ? a.faltaFuturo : a.faltaAtual;
+    const faltaB = futuro ? b.faltaFuturo : b.faltaAtual;
     if(faltaB !== faltaA) return faltaB - faltaA;
     return nomeNucleo(a.nuc).localeCompare(nomeNucleo(b.nuc));
   });
@@ -7190,23 +7200,17 @@ function renderQuadroConsolidado(){
     return `<div class="qfc-scroll"><table class="qfc-tabela">${thead}<tbody>${linhas}${linhaTotal}</tbody></table></div>`;
   }
 
-  // resumo rápido no topo: de cara já dá pra ver quantos núcleos estão OK e quantos precisam de atenção,
-  // sem precisar escanear a tabela inteira — os que têm falta já aparecem primeiro nela também.
   if(totaisEl){
-    const campoFalta = mostraAtual ? 'faltaAtual' : 'faltaFuturo';
-    const nucleosComFalta = resumosPorNucleo.filter(x=>x[campoFalta]>0);
+    const nucleosComFalta = resumosPorNucleo.filter(x=> futuro ? x.faltaFuturo>0 : x.faltaAtual>0);
     const nucleosOk = resumosPorNucleo.length - nucleosComFalta.length;
     if(nucleosComFalta.length===0){
-      totaisEl.innerHTML = `<div class="qf-resumo-rapido qf-resumo-ok">✅ Todos os ${resumosPorNucleo.length} núcleos completos${visao==='ambos'?' (atual e futuro)':''}</div>`;
+      totaisEl.innerHTML = `<div class="qf-resumo-rapido qf-resumo-ok">✅ Todos os ${resumosPorNucleo.length} núcleos completos</div>`;
     } else {
       totaisEl.innerHTML = `<div class="qf-resumo-rapido qf-resumo-alerta">⚠️ ${nucleosComFalta.length} de ${resumosPorNucleo.length} núcleo(s) com falta agora: <strong>${nucleosComFalta.map(x=>nomeNucleo(x.nuc)).join(', ')}</strong> ${nucleosOk>0?`· ${nucleosOk} completo(s)`:''}</div>`;
     }
   }
 
-  let html = '';
-  if(mostraAtual) html += `<div class="qfc-secao"><div class="qfc-secao-titulo"><h3>Quadro atual</h3><span>situação de hoje</span></div>${montarTabela(false)}</div>`;
-  if(mostraFuturo) html += `<div class="qfc-secao"><div class="qfc-secao-titulo"><h3>Quadro futuro</h3><span>projeção pós-saídas confirmadas</span></div>${montarTabela(true)}</div>`;
-  gridEl.innerHTML = html;
+  gridEl.innerHTML = montarTabela(futuro);
 
   gridEl.querySelectorAll('[data-toggle-nucleo-cons]').forEach(el=>{
     el.addEventListener('click', ()=>{
@@ -7228,14 +7232,14 @@ function renderQuadroConsolidado(){
 }
 window.renderQuadroConsolidado = renderQuadroConsolidado;
 
-['ambos','atual','futuro'].forEach(v=>{
-  const btn = document.getElementById(v==='ambos' ? 'qf-btnVisaoAmbos' : (v==='atual' ? 'qf-btnVisaoAtual' : 'qf-btnVisaoFuturo'));
+['atual','futuro'].forEach(v=>{
+  const btn = document.getElementById(v==='atual' ? 'qf-btnVisaoAtual' : 'qf-btnVisaoFuturo');
   if(!btn) return;
   btn.addEventListener('click', ()=>{
     window.qfVisaoAtiva = v;
-    ['qf-btnVisaoAmbos','qf-btnVisaoAtual','qf-btnVisaoFuturo'].forEach(id=>{
+    ['qf-btnVisaoAtual','qf-btnVisaoFuturo'].forEach(id=>{
       const el = document.getElementById(id);
-      if(el) el.classList.remove('ativo-ambos','ativo-atual','ativo-futuro');
+      if(el) el.classList.remove('ativo-atual','ativo-futuro');
     });
     btn.classList.add('ativo-'+v);
     renderQuadroConsolidado();
