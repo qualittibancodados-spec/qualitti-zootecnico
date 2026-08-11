@@ -2452,7 +2452,14 @@ async function compartilharTabelaWhatsApp(tabelaId, nomeArquivo, btnClicado){
 // cache simples: Resultado e Peso usam o mesmo arquivo — evita baixar 2x se a pessoa abrir os dois
 let _resultadoLotesCache = null;
 function fetchResultadoLotesCache(){
-  if(!_resultadoLotesCache) _resultadoLotesCache = fetchJSONSync('./data/resultado_lotes.json');
+  if(!_resultadoLotesCache){
+    _resultadoLotesCache = fetchJSONSync('./data/resultado_lotes.json');
+    // "Chegada" (1d) tem que vir da coluna Pm Alojamento do bd_lotes, não da pesagem do dia 1.
+    // Quando o pipeline passar a exportar esse campo como "pmAlojamento" no JSON, ele substitui o
+    // pm1 automaticamente bem aqui — matriz, gráficos e cards já leem tudo por pm1, então não
+    // precisa mexer em mais nada. Até lá, sem pmAlojamento no JSON, continua caindo no pm1 de hoje.
+    _resultadoLotesCache.forEach(l => { if(l.pmAlojamento != null) l.pm1 = l.pmAlojamento; });
+  }
   return _resultadoLotesCache;
 }
 
