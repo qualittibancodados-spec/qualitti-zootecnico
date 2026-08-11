@@ -106,6 +106,8 @@
   .reg-form .campo input:focus, .reg-form .campo select:focus{ outline:none; border-color:var(--dourado); box-shadow:0 0 0 3px rgba(242,169,0,.15); }
   .campo label{ display:block; font-size:11px; font-weight:700; color:var(--texto-suave); text-transform:uppercase; letter-spacing:.04em; margin-bottom:6px; }
   select{ width:100%; padding:10px 12px; border-radius:10px; border:1.5px solid var(--borda); background:#fff; font-size:13.5px; font-family:inherit; color:var(--texto); font-weight:500; transition:.15s; }
+  select:focus, input[type="text"]:focus, input[type="date"]:focus, input[type="number"]:focus{ outline:none; border-color:var(--dourado); box-shadow:0 0 0 3px rgba(242,169,0,.15); }
+  .filtros-grid input[type="text"], .filtros-grid input[type="date"], .filtros-grid input[type="number"]{ width:100%; padding:10px 12px; border-radius:10px; border:1.5px solid var(--borda); background:#fff; font-size:13.5px; font-family:inherit; color:var(--texto); font-weight:500; transition:.15s; box-sizing:border-box; }
   select:focus{ outline:none; border-color:var(--dourado); box-shadow:0 0 0 3px rgba(242,169,0,.15); }
 
   .metrica-row{ margin-top:14px; padding-top:14px; border-top:1px solid var(--borda); display:flex; align-items:center; gap:10px; flex-wrap:wrap; }
@@ -221,6 +223,8 @@
   /* ===== Planejamento de Férias — grade de 12 meses ===== */
   #fer2-tabela td.fer2-col-mes{ text-align:center; min-width:98px; }
   #fer2-tabela th.fer2-col-mes{ text-align:center; min-width:98px; }
+  #fer2-tabela th:nth-child(2), #fer2-tabela td:nth-child(2){ min-width:110px; }
+  #fer2-tabela th:nth-child(3), #fer2-tabela td:nth-child(3){ min-width:110px; }
   #fer2-tabela th.fer2-mes-atual{ background:#F6EFD8; }
   #fer2-tabela td.fer2-mes-atual{ background:#FCFAF3; }
   #fer2-tabela td.fer2-col-first .fer2-nome{ font-weight:700; color:var(--texto); }
@@ -390,6 +394,8 @@
   .matriz-diaria .col-idade{ min-width:32px; }
   .tabela-scroll.arrastavel{ cursor:grab; }
   .tabela-scroll.arrastavel.arrastando{ cursor:grabbing; user-select:none; }
+  .qfc-scroll.arrastavel{ cursor:grab; }
+  .qfc-scroll.arrastavel.arrastando{ cursor:grabbing; user-select:none; }
   .matriz-diaria .legenda-salto{ display:flex; gap:12px; flex-wrap:wrap; margin-top:12px; font-size:11.5px; color:var(--texto-suave); align-items:center; }
   .matriz-diaria .ls-item{ display:inline-flex; align-items:center; gap:5px; }
   .matriz-diaria .ls-cor{ width:16px; height:12px; border-radius:3px; display:inline-block; }
@@ -1584,7 +1590,7 @@
 
         <div class="painel">
           <div class="painel-header"><h2>Próximos 12 meses</h2><span class="info" id="fer2-info"></span></div>
-          <div class="qfc-scroll" id="fer2-scroll"><table class="qfc-tabela" id="fer2-tabela"></table></div>
+          <div class="qfc-scroll arrastavel" id="fer2-scroll"><table class="qfc-tabela" id="fer2-tabela"></table></div>
           <p class="nota" style="margin-top:10px;">Clique numa célula pra planejar ou editar as férias daquele funcionário.</p>
         </div>
 
@@ -6355,6 +6361,14 @@ function fer2ResumoAtribuicoes(atrib){
     return avs.length ? `${nomeNuc} · Av. ${avs.join(', ')}` : nomeNuc;
   }).join('; ');
 }
+// versões separadas dos mesmos dados, uma coluna por informação (usadas na tabela)
+function fer2Nucleos(atrib){
+  const set = new Set(atrib.map(a=>a.nucleo).filter(Boolean));
+  return Array.from(set).map(n=> typeof nomeNucleo==='function' ? nomeNucleo(n) : n).join('; ');
+}
+function fer2Aviarios(atrib){
+  return atrib.map(a=>a.aviarios).filter(Boolean).join(', ');
+}
 
 async function iniciarFerias(){
   if(!window.POSTOS_QUADRO){
@@ -6519,14 +6533,15 @@ function fer2Render(){
   }
 
   const thead = `<thead><tr>
-    <th class="qfc-col-first">Funcionário / Núcleo / Aviários</th>
+    <th class="qfc-col-first">Funcionário</th>
+    <th>Núcleo</th>
+    <th>Aviários</th>
     ${meses.map((m,i)=>`<th class="fer2-col-mes ${i===0?'fer2-mes-atual':''}">${m.label}</th>`).join('')}
   </tr></thead>`;
 
   const corpo = linhas.map(r=>{
     const chave = fer2Chave(r.nome);
     const {plano, temPlano, semSub} = statusDe(r);
-    const resumo = fer2ResumoAtribuicoes(r.atribuicoes);
     const celulas = meses.map((m,i)=>{
       const classeMes = i===0 ? 'fer2-mes-atual' : '';
       if(!temPlano){
@@ -6545,8 +6560,10 @@ function fer2Render(){
     return `<tr>
       <td class="qfc-col-first" data-fer2-abrir="${chave}" style="cursor:pointer;">
         <div class="fer2-nome">${r.nome}</div>
-        <div class="fer2-sub">${r.papel}${resumo?' · '+resumo:''}</div>
+        <div class="fer2-sub">${r.papel}</div>
       </td>
+      <td data-fer2-abrir="${chave}" style="cursor:pointer;">${fer2Nucleos(r.atribuicoes)||'—'}</td>
+      <td data-fer2-abrir="${chave}" style="cursor:pointer;">${fer2Aviarios(r.atribuicoes)||'—'}</td>
       ${celulas}
     </tr>`;
   }).join('');
@@ -6555,6 +6572,7 @@ function fer2Render(){
   tabelaEl.querySelectorAll('[data-fer2-abrir]').forEach(el=>{
     el.addEventListener('click', ()=> fer2AbrirModal(el.dataset.fer2Abrir));
   });
+  if(typeof ativarArrastar==='function') ativarArrastar(document.getElementById('fer2-scroll'));
 }
 
 function fer2AbrirModal(chave){
