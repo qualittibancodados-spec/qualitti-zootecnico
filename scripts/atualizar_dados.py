@@ -245,7 +245,7 @@ def processar_resultado(xl):
         'Fator Produção': 'fp', 'GMD': 'gmd', 'CA': 'ca', 'IEP': 'iep', '%MortElim Total': 'mortElim',
         'Idade Abate': 'idadeAbate', 'Aves Alojadas': 'alojadas', 'Aves Abatidas': 'abatidas',
         'PM Abate': 'pmAbate', '%Condenas': 'condenas', '% Uniformidade': 'unif', 'Custo': 'custo',
-        'Consumo Ração': 'consumoRacao', 'PM 1Dia': 'pm1', 'PM_7': 'pm7', 'PM_14': 'pm14', 'PM_21': 'pm21', 'PM_28': 'pm28',
+        'Consumo Ração': 'consumoRacao', 'Pm Alojamento': 'pmAlojamento', 'PM 1Dia': 'pm1', 'PM_7': 'pm7', 'PM_14': 'pm14', 'PM_21': 'pm21', 'PM_28': 'pm28',
         'PM_35': 'pm35', 'PM_42': 'pm42', 'Média Prev': 'mediaPrev', 'Média Real': 'mediaReal', 'Dif. Média': 'difMedia',
         'Situacao': 'situacao', 'Data Alojamento': 'dataAloj',
         '%R7': 'r7', '%R14': 'r14', '%R21': 'r21', '%R28': 'r28', '%R35': 'r35', '%R42': 'r42',
@@ -260,7 +260,7 @@ def processar_resultado(xl):
     if 'dataAloj' in sub.columns:
         sub['dataAloj'] = pd.to_datetime(sub['dataAloj'], errors='coerce').dt.strftime('%Y-%m-%d')
     round_map = {'fp': 1, 'gmd': 2, 'ca': 3, 'iep': 1, 'mortElim': 2, 'idadeAbate': 0, 'pmAbate': 3, 'condenas': 2,
-                 'unif': 1, 'custo': 3, 'consumoRacao': 3, 'pm1': 2, 'pm7': 2, 'pm14': 2, 'pm21': 2, 'pm28': 2, 'pm35': 2,
+                 'unif': 1, 'custo': 3, 'consumoRacao': 3, 'pmAlojamento': 2, 'pm1': 2, 'pm7': 2, 'pm14': 2, 'pm21': 2, 'pm28': 2, 'pm35': 2,
                  'pm42': 2, 'mediaPrev': 3, 'mediaReal': 3, 'difMedia': 3,
                  'r7': 2, 'r14': 2, 'r21': 2, 'r28': 2, 'r35': 2, 'r42': 2}
     for c, d in round_map.items():
