@@ -1341,12 +1341,13 @@
         <span class="info" id="cl_infoGrafico"></span>
       </div>
       <div class="chart-wrap" style="height:280px;"><canvas id="cl_graficoDiario"></canvas></div>
+      <div class="legenda-custom" id="cl_legendaGrafico"></div>
     </div>
 
     <div class="painel">
       <div class="painel-header"><h2>Detalhamento por dia</h2><span class="info" id="cl_infoTabela"></span></div>
       <button class="btn-recolher" id="cl_btnExportarPdf" type="button" style="margin-bottom:12px;">📄 Exportar PDF</button>
-      <div class="tabela-scroll"><table class="matriz-diaria" id="cl_tabela"></table></div>
+      <div class="qfc-scroll"><table class="qfc-tabela" id="cl_tabela"></table></div>
       <div id="cl_paginacao" style="display:flex;gap:6px;justify-content:center;margin-top:14px;flex-wrap:wrap;"></div>
     </div>
 
@@ -1854,7 +1855,7 @@
           <h2>Produção por usina</h2>
           <span class="info" id="energiasolar-infoUsinas"></span>
         </div>
-        <div class="tabela-scroll"><table class="matriz-diaria" id="energiasolar-tabelaUsinas"></table></div>
+        <div class="qfc-scroll"><table class="qfc-tabela" id="energiasolar-tabelaUsinas"></table></div>
       </div>
     </div>
 
@@ -1867,6 +1868,7 @@
         <button class="btn-recolher" id="energiasolar-btnCompartilhar" type="button" style="margin-bottom:14px;">📤 Compartilhar</button>
         <div id="energiasolar-relatorioCompartilhavel" style="background:#fff;padding:4px;">
           <div class="legenda-tendencia" style="margin:12px 0 14px;">
+            <span class="leg-item">📈 <strong>Variação</strong> = quanto a produção do dia mais recente mudou em relação ao dia anterior, em %. Não compara com a meta — só um dia contra o outro.</span>
             <span class="leg-item">✅ <strong>Ideal</strong> = produção somada dos 2 dias igual ou acima de 80% da meta somada</span>
             <span class="leg-item">🟡 <strong>Abaixo do ideal</strong> = produção somada dos 2 dias abaixo de 80% da meta somada</span>
             <span class="leg-item">🔴 <strong>Zerada hoje</strong> = nenhuma produção registrada no dia mais recente, com meta prevista</span>
@@ -2655,16 +2657,17 @@ function mortSemanal_mapaIncubatorios(){
 
 function renderMortalidadesSemanal(){
   const nucSel = document.getElementById('fNucleo').value;
+  const mapaIncub = mortSemanal_mapaIncubatorios();
   const lotes = MORT_DIARIA.filter(l => {
     if(nucSel !== 'Todos' && l.nucleo !== nucSel) return false;
     if(sexoAtivo !== 'Todos' && l.sexo !== sexoAtivo) return false;
+    if(incubatorioAtivo !== 'Todos' && (mapaIncub.get(l.nucleo + '|' + l.aviario) || '—') !== incubatorioAtivo) return false;
     return true;
   });
   const cont = document.getElementById('containerMortSemanal');
   const info = document.getElementById('infoMortSemanal');
   if(!lotes.length){ cont.innerHTML = '<div class="vazio">Nenhum aviário em andamento com esse filtro.</div>'; info.textContent=''; return; }
 
-  const mapaIncub = mortSemanal_mapaIncubatorios();
   const calculados = lotes.map(l => ({ l, calc: mortSemanal_calcularPorLote(l), incubatorio: mapaIncub.get(l.nucleo + '|' + l.aviario) || '—' }));
   info.textContent = `${calculados.length} aviário(s)`;
 
@@ -3348,10 +3351,12 @@ function renderMatrizDiaria(){
   const campoMetrica = metricaAtiva === 'pctTotal' ? 'total' : (metricaAtiva === 'pctNatural' ? 'morte' : 'elim');
   const nucSel = document.getElementById('fNucleo').value;
 
-  // filtra lotes abertos por núcleo e sexo do topo
+  // filtra lotes abertos por núcleo, sexo e incubatório do topo
+  const mapaIncubDiaria = mortSemanal_mapaIncubatorios();
   let lotes = MORT_DIARIA.filter(l => {
     if(nucSel !== 'Todos' && l.nucleo !== nucSel) return false;
     if(sexoAtivo !== 'Todos' && l.sexo !== sexoAtivo) return false;
+    if(incubatorioAtivo !== 'Todos' && (mapaIncubDiaria.get(l.nucleo + '|' + l.aviario) || '—') !== incubatorioAtivo) return false;
     return true;
   });
 
@@ -4147,19 +4152,34 @@ function renderCalosPe(){
   }
 
   if(infoGrafico) infoGrafico.textContent = `${dados.length} dia(s) no filtro · ${reg_formatarDataBR(dados[0].data)} a ${reg_formatarDataBR(dados[dados.length-1].data)}`;
+  const legendaEl = document.getElementById('cl_legendaGrafico');
+  if(legendaEl){
+    legendaEl.innerHTML = `
+      <div class="legenda-item"><span class="barra" style="background:#3A7D44"></span>Rendimento Real (%)</div>
+      <div class="legenda-item"><span class="barra" style="background:#C1272D"></span>Descarte por calo (%)</div>`;
+  }
   const ctx = document.getElementById('cl_graficoDiario');
   if(ctx){
     if(chartCalosDiario) chartCalosDiario.destroy();
+    const ehBarra = window.clGranularidade !== 'diario';
     chartCalosDiario = new Chart(ctx.getContext('2d'), {
-      type: window.clGranularidade === 'diario' ? 'line' : 'bar',
+      type: ehBarra ? 'bar' : 'line',
       data:{
         labels,
         datasets:[
-          { label:'Rendimento Real (%)', data: serieRendimento, borderColor:'#3A7D44', backgroundColor: window.clGranularidade==='diario'?'rgba(58,125,68,.12)':'#3A7D44', fill: window.clGranularidade==='diario', tension:.25 },
-          { label:'Descarte por calo (%)', data: serieDescarte, borderColor:'#C1272D', backgroundColor: window.clGranularidade==='diario'?'rgba(193,39,45,.12)':'#C1272D', fill: window.clGranularidade==='diario', tension:.25 }
+          { label:'Rendimento Real (%)', data: serieRendimento, borderColor:'#3A7D44', backgroundColor: ehBarra?'#3A7D44':'rgba(58,125,68,.12)', fill: !ehBarra, tension:.3, borderWidth:2.4, pointRadius: ehBarra?0:3, pointBackgroundColor:'#3A7D44', borderRadius: ehBarra?6:0, maxBarThickness:70 },
+          { label:'Descarte por calo (%)', data: serieDescarte, borderColor:'#C1272D', backgroundColor: ehBarra?'#C1272D':'rgba(193,39,45,.12)', fill: !ehBarra, tension:.3, borderWidth:2.4, pointRadius: ehBarra?0:3, pointBackgroundColor:'#C1272D', borderRadius: ehBarra?6:0, maxBarThickness:70 }
         ]
       },
-      options:{ responsive:true, maintainAspectRatio:false, scales:{ y:{ beginAtZero:true, max:100, title:{display:true,text:'%'} } } }
+      options:{
+        responsive:true, maintainAspectRatio:false,
+        interaction:{ mode:'index', intersect:false },
+        plugins:{ legend:{display:false}, tooltip:{ callbacks:{ label: c => `${c.dataset.label}: ${c.parsed.y!=null?c.parsed.y.toFixed(2)+'%':'—'}` } } },
+        scales:{
+          x:{ grid:{display:false} },
+          y:{ beginAtZero:true, max:100, title:{display:true,text:'%',font:{weight:600}}, grid:{color:'#EFEAE0'} }
+        }
+      }
     });
   }
 
@@ -4171,15 +4191,15 @@ function renderCalosPe(){
   const paginaAtualItens = ordenadoDesc.slice(inicio, inicio + CL_ITENS_POR_PAGINA);
 
   if(infoTabela) infoTabela.textContent = `${ordenadoDesc.length} dia(s)`;
-  tabelaEl.innerHTML = `<thead><tr><th class="rowhead">Data</th><th>Peso Balança</th><th>Calo Pé/Frango</th><th>Rend. Esperado</th><th>Rend. Real</th><th>Descarte</th><th>Rendimento</th></tr></thead>
+  tabelaEl.innerHTML = `<thead><tr><th class="qfc-col-first">Data</th><th>Peso Balança</th><th>Calo Pé/Frango</th><th>Rend. Esperado</th><th>Rend. Real</th><th class="qfc-status">Descarte</th><th class="qfc-status">Rendimento</th></tr></thead>
     <tbody>${paginaAtualItens.map(d=>`<tr>
-      <th class="rowhead">${reg_formatarDataBR(d.data)}</th>
+      <td class="qfc-col-first">${reg_formatarDataBR(d.data)}</td>
       <td>${d.pesoBalanca!=null?d.pesoBalanca.toLocaleString('pt-BR'):'–'}</td>
       <td>${d.caloPeFrango!=null?d.caloPeFrango.toLocaleString('pt-BR',{maximumFractionDigits:2}):'–'}</td>
       <td>${d.rendEsperado!=null?d.rendEsperado.toLocaleString('pt-BR',{maximumFractionDigits:2}):'–'}</td>
       <td>${d.rendReal!=null?d.rendReal.toLocaleString('pt-BR',{maximumFractionDigits:2}):'–'}</td>
-      <td style="font-weight:700;color:${d.descarteReal>0.2?'var(--vermelho-alerta)':'inherit'};">${d.descarteReal!=null?(d.descarteReal*100).toFixed(2)+'%':'–'}</td>
-      <td style="font-weight:700;">${d.rendimentoReal!=null?(d.rendimentoReal*100).toFixed(2)+'%':'–'}</td>
+      <td class="qfc-status ${d.descarteReal>0.2?'qfc-status-falta':''}">${d.descarteReal!=null?(d.descarteReal*100).toFixed(2)+'%':'–'}</td>
+      <td class="qfc-status" style="font-weight:700;">${d.rendimentoReal!=null?(d.rendimentoReal*100).toFixed(2)+'%':'–'}</td>
     </tr>`).join('')}</tbody>`;
 
   if(paginacaoEl){
@@ -7521,7 +7541,9 @@ function produtosRenderResultados(termo){
     return;
   }
   const filtrados = produtosCatalogo.filter(p =>
-    p.nome.toLowerCase().includes(t) || String(p.codigo).includes(t)
+    p.nome.toLowerCase().includes(t) ||
+    String(p.codigo).includes(t) ||
+    (p.controles && p.controles.some(c => String(c).toLowerCase().includes(t)))
   );
   info.textContent = `${filtrados.length} produto(s)`;
   if(!filtrados.length){ cont.innerHTML = '<div class="vazio">Nenhum produto encontrado com esse termo.</div>'; return; }
@@ -7535,7 +7557,7 @@ function produtosRenderResultados(termo){
         ${p.controles && p.controles.length ? `
           <div style="font-size:11px;color:var(--texto-suave);text-transform:uppercase;letter-spacing:.03em;font-weight:700;margin-bottom:4px;">Controles</div>
           <div style="display:flex;flex-direction:column;gap:3px;">
-            ${p.controles.map(c=>`<div style="font-size:13px;padding:3px 0 3px 10px;border-left:2px solid var(--dourado);">${c}</div>`).join('')}
+            ${p.controles.map(c=>`<div style="font-size:13px;padding:3px 0 3px 10px;border-left:2px solid ${String(c).toLowerCase().includes(t)?'var(--vermelho)':'var(--dourado)'};${String(c).toLowerCase().includes(t)?'font-weight:700;':''}">${c}</div>`).join('')}
           </div>` : '<div style="font-size:12px;color:var(--texto-suave);font-style:italic;">Sem controle específico</div>'}
       </div>
     </div>`).join('');
@@ -7864,11 +7886,11 @@ function energiaSolarRenderTudo(){
   });
   const usinasOrdenadas = Array.from(porUsina.keys()).sort();
   if(infoUsinas) infoUsinas.textContent = `${usinasOrdenadas.length} usina(s) · últimos 30 dias com dados`;
-  tabelaEl.innerHTML = `<thead><tr><th class="rowhead">Usina</th><th>Aviários</th><th>Produção (kWh)</th><th>Estimativa (kWh)</th><th>Diferença</th></tr></thead>
+  tabelaEl.innerHTML = `<thead><tr><th class="qfc-col-first">Usina</th><th>Aviários</th><th>Produção (kWh)</th><th>Estimativa (kWh)</th><th class="qfc-status">Diferença</th></tr></thead>
     <tbody>${usinasOrdenadas.map(nome=>{
       const u = porUsina.get(nome);
       const diffPct = u.estimativa ? ((u.producao-u.estimativa)/u.estimativa*100) : 0;
-      return `<tr><th class="rowhead">${nome}</th><td>${u.galpoes||'–'}</td><td>${u.producao.toLocaleString('pt-BR',{maximumFractionDigits:0})}</td><td>${u.estimativa.toLocaleString('pt-BR',{maximumFractionDigits:0})}</td><td style="color:${diffPct>=0?'var(--verde-ok)':'var(--vermelho-alerta)'};font-weight:700;">${diffPct>=0?'+':''}${diffPct.toFixed(1)}%</td></tr>`;
+      return `<tr><td class="qfc-col-first">${nome}</td><td>${u.galpoes||'–'}</td><td>${u.producao.toLocaleString('pt-BR',{maximumFractionDigits:0})}</td><td>${u.estimativa.toLocaleString('pt-BR',{maximumFractionDigits:0})}</td><td class="qfc-status ${diffPct>=0?'':'qfc-status-falta'}" style="font-weight:700;">${diffPct>=0?'+':''}${diffPct.toFixed(1)}%</td></tr>`;
     }).join('')}</tbody>`;
 }
 
