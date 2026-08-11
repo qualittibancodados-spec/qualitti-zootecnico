@@ -183,57 +183,46 @@
     .qf-celula.qf-cel-saindo{ background:#FDECEC !important; border-radius:8px !important; }
     .qf-linha.qf-linha-folguista .qf-celula{ background:transparent !important; box-shadow:none !important; }
   }
-  .qf-cons-ok{ color:var(--verde-ok); font-weight:700; }
-  .qf-cons-falta{ background:#FDF1DC; color:#A9720A; font-weight:700; box-shadow:inset 0 0 0 1px #F0CB7A; }
+  .qf-resumo-rapido{ padding:12px 16px; border-radius:10px; font-size:13px; margin-bottom:14px; line-height:1.5; }
+  .qf-resumo-ok{ background:#E8F7EC; color:#1E6B35; font-weight:700; }
+  .qf-resumo-alerta{ background:#FFF4E1; color:#8A6200; }
+  .qf-resumo-alerta strong{ color:#A9720A; }
   .qf-grupo-atual-th{ background:#EAF4FF !important; color:#1D5A96 !important; }
   .qf-grupo-futuro-th{ background:#FFF4E1 !important; color:#8A6200 !important; }
   .qf-grupo-atual-td{ background:#F5FAFF; }
   .qf-grupo-futuro-td{ background:#FFFBF2; }
   .qf-col-total-final{ background:#FBE3E1 !important; color:var(--vermelho-escuro) !important; border-left:2px solid var(--vermelho) !important; font-family:'Sora',sans-serif; }
   th.qf-col-total-final{ font-weight:800; }
-  .qf-resumo-rapido{ padding:12px 16px; border-radius:10px; font-size:13px; margin-bottom:14px; line-height:1.5; }
-  .qf-resumo-ok{ background:#E8F7EC; color:#1E6B35; font-weight:700; }
-  .qf-resumo-alerta{ background:#FFF4E1; color:#8A6200; }
-  .qf-resumo-alerta strong{ color:#A9720A; }
 
-  /* ===== Quadro de Funcionários — tabela nova, mais enxuta e à prova de impressão ===== */
-  .qf-tabela-nova{ table-layout:fixed; width:100%; }
-  .qf-tabela-nova th, .qf-tabela-nova td{ white-space:normal !important; word-break:break-word; vertical-align:middle; }
-  .qf-tabela-nova th.rowhead{ width:16%; text-align:left; }
-  .qf-tabela-nova td.rowhead{ width:16%; background:#fff; }
-  .qf-tabela-nova th:nth-child(2), .qf-tabela-nova td:nth-child(2){ width:13%; }
-  .qf-nucleo-toggle-icone{ display:inline-block; width:14px; }
-  .qf-nucleo-resumo-texto{ font-weight:500; margin-left:4px; }
-  .qf-status-cel{ text-align:center; }
-  .qf-tabela-nova th.qf-col-atual, .qf-tabela-nova td.qf-col-atual{ border-left:2px solid #CFE3F7; }
-  .qf-tabela-nova th.qf-col-futuro, .qf-tabela-nova td.qf-col-futuro{ border-left:2px solid #F0DFB0; }
-  .qf-tabela-nova th.qf-col-atual{ color:#1D5A96; background:#F5FAFF; }
-  .qf-tabela-nova th.qf-col-futuro{ color:#8A6200; background:#FFFBF2; }
-  .qf-tabela-nova td.qf-cel-nome{ text-align:left; line-height:1.7; }
-  .qf-tabela-nova td.qf-cel-aviario{ text-align:left; font-weight:700; color:var(--texto-suave); background:#FAFAF8; }
-  .qf-tabela-nova .qf-cons-ok{ color:#1E6B35; font-weight:700; background:#E8F7EC; padding:3px 10px; border-radius:12px; display:inline-block; }
-  .qf-tabela-nova .qf-cons-falta{ color:#C1272D; font-weight:800; background:#FBE3E1; padding:3px 10px; border-radius:12px; display:inline-block; }
-  .qf-tabela-nova .qf-linha-nucleo-resumo th.rowhead{ background:#FFF4E1; color:var(--vermelho-escuro); border-left:3px solid #D9A441; }
-  .qf-tabela-nova .qf-linha-nucleo-resumo td{ font-weight:700; }
-  .qf-tabela-nova .qf-linha-total-geral th, .qf-tabela-nova .qf-linha-total-geral td{ border-top:2.5px solid var(--vermelho); font-weight:800; }
-  .qf-tabela-nova .qf-linha-total-geral th.rowhead{ background:#FBE3E1; color:var(--vermelho-escuro); }
-  .qf-tabela-nova .qf-linha-aviario-detalhe td{ font-size:12.5px; padding-top:8px; padding-bottom:8px; }
-  .qf-nome-vago{ color:var(--texto-suave); font-style:italic; }
-  .qf-nome-saindo-detalhe{ text-decoration:line-through; color:var(--vermelho-alerta); }
+  /* ===== Quadro de Funcionários — Visão Consolidada: Atual e Futuro em tabelas separadas ===== */
+  .qfc-secao{ margin-bottom:26px; }
+  .qfc-secao:last-child{ margin-bottom:0; }
+  .qfc-secao-titulo{ display:flex; align-items:baseline; gap:8px; margin-bottom:10px; }
+  .qfc-secao-titulo h3{ font-size:14px; font-weight:700; margin:0; color:var(--texto); }
+  .qfc-secao-titulo span{ font-size:12px; color:var(--texto-suave); }
+  .qfc-scroll{ overflow-x:auto; border:1px solid var(--borda); border-radius:10px; }
+  .qfc-tabela{ width:100%; border-collapse:collapse; font-size:12.5px; min-width:560px; }
+  .qfc-tabela thead th{ background:#FBF7EE; border-bottom:1px solid var(--borda); color:var(--texto-suave); font-weight:700; font-size:10.5px; text-transform:uppercase; letter-spacing:.03em; text-align:left; padding:9px 12px; white-space:nowrap; position:sticky; top:0; }
+  .qfc-tabela th.qfc-status, .qfc-tabela td.qfc-status{ text-align:center; }
+  .qfc-tabela th.qfc-col-first, .qfc-tabela td.qfc-col-first{ position:sticky; left:0; background:var(--card); z-index:1; min-width:150px; text-align:left; }
+  .qfc-tabela thead th.qfc-col-first{ background:#FBF7EE; z-index:2; }
+  .qfc-tabela td{ padding:8px 12px; border-bottom:1px solid var(--borda); vertical-align:middle; }
+  .qfc-linha-nucleo th, .qfc-linha-nucleo td{ background:#FBF7EE !important; font-weight:700; border-top:1px solid var(--borda); border-bottom:1px solid var(--borda); cursor:pointer; }
+  .qfc-linha-nucleo:hover th, .qfc-linha-nucleo:hover td{ background:#F4EFE6 !important; }
+  .qfc-chevron{ display:inline-block; width:14px; color:var(--texto-suave); font-size:11px; }
+  .qfc-resumo-nucleo{ font-weight:400; color:var(--texto-suave); margin-left:6px; font-size:12px; }
+  .qfc-vago{ color:var(--texto-suave); font-style:italic; }
+  .qfc-saindo{ color:var(--vermelho-alerta); }
+  .qfc-saindo .qfc-tag{ font-size:10px; font-weight:700; margin-left:4px; text-transform:uppercase; letter-spacing:.02em; }
+  .qfc-status-ok{ color:var(--texto-suave); }
+  .qfc-status-falta{ color:var(--vermelho-alerta); font-weight:700; }
+  .qfc-linha-total th, .qfc-linha-total td{ border-top:2px solid var(--texto); font-weight:700; background:var(--card); padding-top:11px; padding-bottom:11px; }
   .qf-legenda-atual-futuro{ display:flex; gap:10px; align-items:center; margin-bottom:14px; flex-wrap:wrap; }
   .qf-toggle-visao{ display:flex; align-items:center; gap:7px; font-size:12.5px; font-weight:700; padding:9px 16px; border-radius:10px; border:1.5px solid var(--borda); background:var(--card); color:var(--texto-suave); cursor:pointer; transition:.15s; }
   .qf-toggle-visao:hover{ border-color:var(--dourado); }
-  .qf-toggle-visao .qf-legenda-cor{ width:12px; height:12px; border-radius:4px; display:inline-block; }
   .qf-toggle-visao.ativo-atual{ background:#EAF4FF; border-color:#1D5A96; color:#1D5A96; }
   .qf-toggle-visao.ativo-futuro{ background:#FFF4E1; border-color:#8A6200; color:#8A6200; }
   .qf-toggle-visao.ativo-ambos{ background:var(--vermelho); border-color:var(--vermelho); color:#fff; }
-  .qf-nucleo-toggle{ cursor:pointer; user-select:none; }
-  .qf-nucleo-toggle:hover{ text-decoration:underline; }
-  .qf-linha-aviario-detalhe td{ background:#FAFAF8; font-size:11.5px; padding:7px 10px; border-bottom:1px solid var(--borda); word-break:break-word; text-align:center; }
-  .qf-linha-aviario-detalhe td:first-child{ text-align:left; padding-left:24px; color:var(--texto-suave); font-weight:600; }
-  .qf-linha-aviario-detalhe td.qf-cel-nome{ text-align:left; }
-  .qf-nome-saindo-detalhe{ text-decoration:line-through; color:var(--vermelho-alerta); }
-  .qf-linha-aviario-detalhe .qf-nome-vago{ color:var(--vermelho-alerta); font-style:italic; }
   .qf-totais-grid{ display:flex; gap:14px; flex-wrap:wrap; margin-bottom:20px; }
   .qf-totais-grid .qf-stat{ flex:1; min-width:150px; background:var(--vermelho); color:#fff; border-radius:14px; padding:14px 18px; box-shadow:0 4px 14px rgba(193,39,45,.25); }
   .qf-totais-grid .qf-stat-label{ font-size:10.5px; font-weight:700; text-transform:uppercase; letter-spacing:.04em; opacity:.85; }
@@ -350,11 +339,6 @@
   .qf-linha-total-geral{ border-top:3px solid var(--vermelho); }
   .qf-linha-total-geral th, .qf-linha-total-geral td{ font-weight:800; padding-top:10px; padding-bottom:10px; }
   .qf-linha-total-geral th, .qf-linha-total-geral > td:first-of-type{ background:#FBE3E1 !important; color:var(--vermelho-escuro) !important; }
-  .qf-linha-nucleo-resumo th, .qf-linha-nucleo-resumo td{ font-weight:800 !important; }
-  .qf-linha-nucleo-resumo th{ background:#FFF4E1 !important; color:var(--vermelho-escuro) !important; border-left:3px solid #D9A441 !important; }
-  .qf-linha-nucleo-resumo .qf-cons-ok, .qf-linha-nucleo-resumo .qf-cons-falta{ box-shadow:none !important; }
-  .qf-linha-nucleo-resumo .qf-nucleo-toggle{ color:var(--vermelho-escuro) !important; }
-  .qf-linha-total-geral .qf-cons-ok, .qf-linha-total-geral .qf-cons-falta{ box-shadow:none !important; }
   .qf-linha.qf-linha-folguista .qf-celula{ background:#EAE3FB !important; }
   .qf-linha.qf-linha-folguista .qf-celula:first-child{ box-shadow:inset 3px 0 0 #8B6FD6; }
   .quadro-btn-remover-posto{ background:none; border:none; color:var(--vermelho-alerta); cursor:pointer; font-size:16px; padding:2px 6px; }
@@ -855,16 +839,14 @@
   #qf-print-header .qf-print-titulos h1{ font-size:16px; margin:0; font-family:'Sora',sans-serif; }
   #qf-print-header .qf-print-titulos p{ font-size:10px; margin:2px 0 0; color:#666; }
   #qf-scrollConsolidada{ overflow:visible !important; width:100% !important; }
-  #qf-tabelaConsolidada{ width:100% !important; table-layout:fixed; font-size:10px; }
-  #qf-tabelaConsolidada th, #qf-tabelaConsolidada td{ padding:5px 6px !important; overflow-wrap:break-word; word-break:break-word; white-space:normal !important; vertical-align:top; }
-  #qf-tabelaConsolidada th:first-child, #qf-tabelaConsolidada td:first-child{ width:15%; text-align:left !important; white-space:normal !important; }
-  #qf-tabelaConsolidada .qf-cel-nome{ text-align:left !important; font-size:9.5px !important; line-height:1.5; }
-  #qf-tabelaConsolidada .qf-cel-aviario{ text-align:left !important; font-size:9.5px !important; }
+  .qfc-tabela{ width:100% !important; table-layout:fixed; font-size:10px; }
+  .qfc-tabela th, .qfc-tabela td{ padding:5px 6px !important; overflow-wrap:break-word; word-break:break-word; white-space:normal !important; vertical-align:top; }
+  .qfc-tabela th.qfc-col-first, .qfc-tabela td.qfc-col-first{ width:16%; text-align:left !important; white-space:normal !important; }
   /* reforço estrutural (funciona mesmo se a impressora não reproduzir cor) */
-  .qf-linha-nucleo-resumo th, .qf-linha-nucleo-resumo td{ border-top:2px solid #333 !important; font-weight:800 !important; }
-  .qf-linha-aviario-detalhe td{ font-style:italic; }
-  .qf-linha-total-geral th, .qf-linha-total-geral td{ border-top:2px solid #333 !important; }
-  #qf-tabelaConsolidada tr{ page-break-inside:avoid; }
+  .qfc-linha-nucleo th, .qfc-linha-nucleo td{ border-top:2px solid #333 !important; font-weight:700 !important; }
+  .qfc-linha-total th, .qfc-linha-total td{ border-top:2px solid #333 !important; }
+  .qfc-secao{ page-break-inside:avoid; }
+  .qfc-tabela tr{ page-break-inside:avoid; }
   thead{ display:table-header-group; }
 }
 
@@ -1528,9 +1510,9 @@
         <p class="nota" style="margin:16px 0 10px;">Resumo de todos os núcleos — quanto falta pra completar o quadro, hoje e depois das saídas previstas. Clique no nome do núcleo pra ver aviário por aviário.</p>
         <p class="nota" style="margin:0 0 16px;color:var(--texto-suave);">🛈 Cada núcleo é mantido pelo técnico responsável por ele — só quem tem autorização naquele núcleo consegue atualizar granjeiro, ajudante ou marcar saídas. A coluna <strong>Futuro</strong> reflete exatamente os desligamentos e avisos prévios já lançados por esses técnicos; ela não antecipa saídas que ainda não foram registradas no sistema.</p>
         <div class="qf-legenda-atual-futuro" style="margin-bottom:16px;">
-          <button type="button" class="qf-toggle-visao ativo-ambos" id="qf-btnVisaoAmbos" data-visao="ambos"><span class="qf-legenda-cor" style="background:#fff;"></span> Ambos</button>
-          <button type="button" class="qf-toggle-visao" id="qf-btnVisaoAtual" data-visao="atual"><span class="qf-legenda-cor" style="background:#EAF4FF;border:1px solid #1D5A96;"></span> Só Quadro Atual — o time real de hoje</button>
-          <button type="button" class="qf-toggle-visao" id="qf-btnVisaoFuturo" data-visao="futuro"><span class="qf-legenda-cor" style="background:#FFF4E1;border:1px solid #8A6200;"></span> Só Quadro Futuro — projeção após saídas</button>
+          <button type="button" class="qf-toggle-visao ativo-ambos" id="qf-btnVisaoAmbos" data-visao="ambos">Ambos</button>
+          <button type="button" class="qf-toggle-visao" id="qf-btnVisaoAtual" data-visao="atual">Só Quadro Atual — o time real de hoje</button>
+          <button type="button" class="qf-toggle-visao" id="qf-btnVisaoFuturo" data-visao="futuro">Só Quadro Futuro — projeção após saídas</button>
         </div>
         <div style="display:flex;gap:10px;margin-bottom:18px;flex-wrap:wrap;">
           <button class="btn-recolher" id="qf-btnExpandirTodos" type="button">Expandir todos</button>
@@ -7000,15 +6982,10 @@ function renderQuadroConsolidado(){
   }
 
   let totNecessidadeG=0, totNecessidadeA=0, totAtualG=0, totAtualA=0, totFutG=0, totFutA=0;
-
-  // cabeçalho tabulado: uma coluna por informação (nada de texto combinado tipo "G 5/6 · A 3/4")
-  const thead = `<thead><tr>
-    <th class="rowhead">Núcleo</th>
-    <th>Aviário</th>
-    ${mostraAtual?'<th class="qf-col-atual">Granjeiro (atual)</th><th class="qf-col-atual">Ajudante (atual)</th><th class="qf-col-atual">Status atual</th>':''}
-    ${mostraFuturo?'<th class="qf-col-futuro">Granjeiro (futuro)</th><th class="qf-col-futuro">Ajudante (futuro)</th><th class="qf-col-futuro">Status futuro</th>':''}
-  </tr></thead>`;
-  const totalColunas = 2 + (mostraAtual?3:0) + (mostraFuturo?3:0);
+  resumosPorNucleo.forEach(({r})=>{
+    totNecessidadeG += r.necessidadeGranjeiro; totNecessidadeA += r.necessidadeAjudante;
+    totAtualG += r.atualGranj; totAtualA += r.atualAjud; totFutG += r.futuroGranj; totFutA += r.futuroAjud;
+  });
 
   function statusPosto(p, futuro){
     const temG = p.granjeiro && p.granjeiro.trim();
@@ -7018,67 +6995,67 @@ function renderQuadroConsolidado(){
     return (gOk?0:1) + (aOk?0:1);
   }
 
-  const linhas = resumosPorNucleo.map(({nuc, postos, r, faltaAtual, faltaFuturo})=>{
-    totNecessidadeG += r.necessidadeGranjeiro; totNecessidadeA += r.necessidadeAjudante; totAtualG += r.atualGranj; totAtualA += r.atualAjud; totFutG += r.futuroGranj; totFutA += r.futuroAjud;
-    const expandido = window.qfConsolidadoExpandido.has(nuc);
-    const necessidadeTexto = r.necessidadeGranjeiro===r.necessidadeAjudante ? r.necessidadeGranjeiro : `${r.necessidadeGranjeiro}g / ${r.necessidadeAjudante}a`;
-    const resumoAtualTxt = mostraAtual ? ` · Atual ${r.atualGranj}g / ${r.atualAjud}a` : '';
-    const resumoFuturoTxt = mostraFuturo ? ` · Futuro ${r.futuroGranj}g / ${r.futuroAjud}a` : '';
-    const faltaResumo = mostraAtual ? faltaAtual : faltaFuturo;
-    const statusResumoTxt = faltaResumo>0 ? ` · <span class="qf-cons-falta">⚠️ Falta ${faltaResumo}</span>` : ` · <span class="qf-cons-ok">✅ Completo</span>`;
+  // monta uma tabela completa e independente pra uma única visão (atual OU futuro) —
+  // nada de colunas lado a lado misturando as duas coisas.
+  function montarTabela(futuro){
+    const campoG = futuro ? 'futuroGranj' : 'atualGranj';
+    const campoA = futuro ? 'futuroAjud' : 'atualAjud';
+    const campoFalta = futuro ? 'faltaFuturo' : 'faltaAtual';
+    const totG = futuro ? totFutG : totAtualG;
+    const totA = futuro ? totFutA : totAtualA;
+    const faltaTotal = Math.max(0,totNecessidadeG-totG) + Math.max(0,totNecessidadeA-totA);
 
-    const linhaPrincipal = `<tr class="qf-linha-nucleo-resumo">
-      <th class="rowhead qf-nucleo-toggle" colspan="${totalColunas}" data-toggle-nucleo-cons="${nuc}">
-        <span class="qf-nucleo-toggle-icone">${expandido?'▾':'▸'}</span> ${nomeNucleo(nuc)}
-        <span class="qf-nucleo-resumo-texto">— Necessidade ${necessidadeTexto}${resumoAtualTxt}${resumoFuturoTxt}${statusResumoTxt}</span>
-      </th>
+    const thead = `<thead><tr>
+      <th class="qfc-col-first">Núcleo</th>
+      <th>Aviário</th>
+      <th>Granjeiro</th>
+      <th>Ajudante</th>
+      <th class="qfc-status">Status</th>
+    </tr></thead>`;
+
+    const linhas = resumosPorNucleo.map(({nuc, postos, r, faltaAtual, faltaFuturo})=>{
+      const expandido = window.qfConsolidadoExpandido.has(nuc);
+      const necessidadeTexto = r.necessidadeGranjeiro===r.necessidadeAjudante ? r.necessidadeGranjeiro : `${r.necessidadeGranjeiro}g / ${r.necessidadeAjudante}a`;
+      const faltaNucleo = futuro ? faltaFuturo : faltaAtual;
+      const statusResumoTxt = faltaNucleo>0 ? `<span class="qfc-status-falta">Falta ${faltaNucleo}</span>` : `Completo`;
+
+      const linhaPrincipal = `<tr class="qfc-linha-nucleo">
+        <th class="qfc-col-first" colspan="5" data-toggle-nucleo-cons="${nuc}">
+          <span class="qfc-chevron">${expandido?'▾':'▸'}</span> ${nomeNucleo(nuc)}
+          <span class="qfc-resumo-nucleo">Necessidade ${necessidadeTexto} · ${statusResumoTxt}</span>
+        </th>
+      </tr>`;
+
+      let linhasDetalhe = '';
+      if(expandido){
+        const postosOrdenados = postos.slice().sort((a,b)=>String(a.aviarios).localeCompare(String(b.aviarios), undefined, {numeric:true}));
+        linhasDetalhe = postosOrdenados.map(p=>{
+          const temG = p.granjeiro && p.granjeiro.trim();
+          const temA = p.ajudante && p.ajudante.trim();
+          const gTxt = temG ? (futuro && p.granjeiroSaindo ? `<span class="qfc-saindo">${p.granjeiro}<span class="qfc-tag">saindo</span></span>` : p.granjeiro) : '<span class="qfc-vago">vago</span>';
+          const aTxt = temA ? (futuro && p.ajudanteSaindo ? `<span class="qfc-saindo">${p.ajudante}<span class="qfc-tag">saindo</span></span>` : p.ajudante) : '<span class="qfc-vago">vago</span>';
+          const falta = statusPosto(p, futuro);
+          return `<tr>
+            <td class="qfc-col-first"></td>
+            <td>${p.aviarios}</td>
+            <td>${gTxt}</td>
+            <td>${aTxt}</td>
+            <td class="qfc-status ${falta>0?'qfc-status-falta':'qfc-status-ok'}">${falta>0?`Falta ${falta}`:'OK'}</td>
+          </tr>`;
+        }).join('');
+      }
+      return linhaPrincipal + linhasDetalhe;
+    }).join('');
+
+    const linhaTotal = `<tr class="qfc-linha-total">
+      <th class="qfc-col-first">Total geral (${nucleosOrdenados.length} núcleos)</th>
+      <td></td>
+      <td colspan="2">${totG}g / ${totA}a</td>
+      <td class="qfc-status ${faltaTotal>0?'qfc-status-falta':'qfc-status-ok'}">${faltaTotal>0?`Falta ${faltaTotal}`:'OK'}</td>
     </tr>`;
 
-    let linhasDetalhe = '';
-    if(expandido){
-      const postosOrdenados = postos.slice().sort((a,b)=>String(a.aviarios).localeCompare(String(b.aviarios), undefined, {numeric:true}));
-      linhasDetalhe = postosOrdenados.map(p=>{
-        const temG = p.granjeiro && p.granjeiro.trim();
-        const temA = p.ajudante && p.ajudante.trim();
-        const gAtualTxt = temG ? p.granjeiro : '<span class="qf-nome-vago">vago</span>';
-        const aAtualTxt = temA ? p.ajudante : '<span class="qf-nome-vago">vago</span>';
-        const gFuturoTxt = temG ? (p.granjeiroSaindo ? `<span class="qf-nome-saindo-detalhe">${p.granjeiro} <em>(saindo)</em></span>` : p.granjeiro) : '<span class="qf-nome-vago">vago</span>';
-        const aFuturoTxt = temA ? (p.ajudanteSaindo ? `<span class="qf-nome-saindo-detalhe">${p.ajudante} <em>(saindo)</em></span>` : p.ajudante) : '<span class="qf-nome-vago">vago</span>';
-        const faltaAtualPosto = statusPosto(p, false);
-        const faltaFuturoPosto = statusPosto(p, true);
-        const colsAtual = mostraAtual ? `
-          <td class="qf-cel-nome qf-col-atual">${gAtualTxt}</td>
-          <td class="qf-cel-nome qf-col-atual">${aAtualTxt}</td>
-          <td class="qf-col-atual qf-status-cel"><span class="${faltaAtualPosto>0?'qf-cons-falta':'qf-cons-ok'}">${faltaAtualPosto>0?`⚠️ Falta ${faltaAtualPosto}`:'✅ OK'}</span></td>` : '';
-        const colsFuturo = mostraFuturo ? `
-          <td class="qf-cel-nome qf-col-futuro">${gFuturoTxt}</td>
-          <td class="qf-cel-nome qf-col-futuro">${aFuturoTxt}</td>
-          <td class="qf-col-futuro qf-status-cel"><span class="${faltaFuturoPosto>0?'qf-cons-falta':'qf-cons-ok'}">${faltaFuturoPosto>0?`⚠️ Falta ${faltaFuturoPosto}`:'✅ OK'}</span></td>` : '';
-        return `<tr class="qf-linha-aviario-detalhe">
-          <td class="rowhead"></td>
-          <td class="qf-cel-aviario">${p.aviarios}</td>
-          ${colsAtual}
-          ${colsFuturo}
-        </tr>`;
-      }).join('');
-    }
-    return linhaPrincipal + linhasDetalhe;
-  }).join('');
-
-  const faltaAtualTotal = Math.max(0,totNecessidadeG-totAtualG) + Math.max(0,totNecessidadeA-totAtualA);
-  const faltaFuturoTotal = Math.max(0,totNecessidadeG-totFutG) + Math.max(0,totNecessidadeA-totFutA);
-  const necessidadeTotalTexto = totNecessidadeG===totNecessidadeA ? totNecessidadeG : `${totNecessidadeG}g / ${totNecessidadeA}a`;
-  const totCelAtual = mostraAtual ? `
-    <td class="qf-col-atual" colspan="2" style="font-weight:800;">${totAtualG}g / ${totAtualA}a</td>
-    <td class="qf-col-atual qf-status-cel"><span class="${faltaAtualTotal>0?'qf-cons-falta':'qf-cons-ok'}">${faltaAtualTotal>0?`⚠️ Falta ${faltaAtualTotal}`:'✅ OK'}</span></td>` : '';
-  const totCelFuturo = mostraFuturo ? `
-    <td class="qf-col-futuro" colspan="2" style="font-weight:800;">${totFutG}g / ${totFutA}a</td>
-    <td class="qf-col-futuro qf-status-cel"><span class="${faltaFuturoTotal>0?'qf-cons-falta':'qf-cons-ok'}">${faltaFuturoTotal>0?`⚠️ Falta ${faltaFuturoTotal}`:'✅ OK'}</span></td>` : '';
-  const linhaTotal = `<tr class="qf-linha-total-geral">
-    <th class="rowhead" colspan="2">TOTAL GERAL (${nucleosOrdenados.length} núcleos) — Necessidade ${necessidadeTotalTexto}</th>
-    ${totCelAtual}
-    ${totCelFuturo}
-  </tr>`;
+    return `<div class="qfc-scroll"><table class="qfc-tabela">${thead}<tbody>${linhas}${linhaTotal}</tbody></table></div>`;
+  }
 
   // resumo rápido no topo: de cara já dá pra ver quantos núcleos estão OK e quantos precisam de atenção,
   // sem precisar escanear a tabela inteira — os que têm falta já aparecem primeiro nela também.
@@ -7093,7 +7070,11 @@ function renderQuadroConsolidado(){
     }
   }
 
-  gridEl.innerHTML = `<div class="tabela-scroll arrastavel"><table class="matriz-diaria qf-tabela-nova" id="qf-tabelaConsolidada">${thead}<tbody>${linhas}${linhaTotal}</tbody></table></div>`;
+  let html = '';
+  if(mostraAtual) html += `<div class="qfc-secao"><div class="qfc-secao-titulo"><h3>Quadro atual</h3><span>situação de hoje</span></div>${montarTabela(false)}</div>`;
+  if(mostraFuturo) html += `<div class="qfc-secao"><div class="qfc-secao-titulo"><h3>Quadro futuro</h3><span>projeção pós-saídas confirmadas</span></div>${montarTabela(true)}</div>`;
+  gridEl.innerHTML = html;
+
   gridEl.querySelectorAll('[data-toggle-nucleo-cons]').forEach(el=>{
     el.addEventListener('click', ()=>{
       const n = el.dataset.toggleNucleoCons;
@@ -7110,7 +7091,7 @@ function renderQuadroConsolidado(){
   }
   const dataEl = document.getElementById('qf-print-data');
   if(dataEl) dataEl.textContent = 'Gerado em ' + new Date().toLocaleString('pt-BR');
-  if(typeof ativarArrastar==='function') ativarArrastar(gridEl.querySelector('.tabela-scroll'));
+  if(typeof ativarArrastar==='function') gridEl.querySelectorAll('.qfc-scroll').forEach(el=>ativarArrastar(el));
 }
 window.renderQuadroConsolidado = renderQuadroConsolidado;
 
@@ -7150,20 +7131,14 @@ if(btnImprimirQf){
     const dataEl = document.getElementById('qf-print-data');
     if(dataEl) dataEl.textContent = 'Gerado em ' + new Date().toLocaleString('pt-BR');
 
-    // orientação: "Ambos" tem mais números por núcleo -> paisagem. "Só Atual"/"Só Futuro" tem menos -> retrato.
-    const ehAmbos = (window.qfVisaoAtiva === 'ambos');
+    // agora Atual e Futuro são duas tabelas empilhadas, sempre com as mesmas 5 colunas —
+    // não precisa mais de paisagem quando as duas aparecem juntas.
     let estilo = document.getElementById('qf-print-orientacao-dinamica');
     if(!estilo){ estilo = document.createElement('style'); estilo.id = 'qf-print-orientacao-dinamica'; document.head.appendChild(estilo); }
-    estilo.textContent = ehAmbos
-      ? `@media print{
-           @page{ size: landscape; margin: 10mm; }
-           #qf-tabelaConsolidada{ font-size: 8.5px !important; }
-           #qf-tabelaConsolidada th, #qf-tabelaConsolidada td{ padding: 3px 4px !important; }
-         }`
-      : `@media print{
+    estilo.textContent = `@media print{
            @page{ size: portrait; margin: 12mm; }
-           #qf-tabelaConsolidada{ font-size: 11px !important; }
-           #qf-tabelaConsolidada th, #qf-tabelaConsolidada td{ padding: 6px 8px !important; }
+           .qfc-tabela{ font-size: 10.5px !important; }
+           .qfc-tabela th, .qfc-tabela td{ padding: 5px 7px !important; }
          }`;
     setTimeout(()=>window.print(), 150);
   });
