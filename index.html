@@ -200,7 +200,11 @@
   .qf-tabela-nova{ table-layout:fixed; width:100%; }
   .qf-tabela-nova th, .qf-tabela-nova td{ white-space:normal !important; word-break:break-word; vertical-align:middle; }
   .qf-tabela-nova th.rowhead{ width:16%; text-align:left; }
-  .qf-tabela-nova th:nth-child(2), .qf-tabela-nova td:nth-child(2){ width:11%; }
+  .qf-tabela-nova td.rowhead{ width:16%; background:#fff; }
+  .qf-tabela-nova th:nth-child(2), .qf-tabela-nova td:nth-child(2){ width:13%; }
+  .qf-nucleo-toggle-icone{ display:inline-block; width:14px; }
+  .qf-nucleo-resumo-texto{ font-weight:500; margin-left:4px; }
+  .qf-status-cel{ text-align:center; }
   .qf-tabela-nova th.qf-col-atual, .qf-tabela-nova td.qf-col-atual{ border-left:2px solid #CFE3F7; }
   .qf-tabela-nova th.qf-col-futuro, .qf-tabela-nova td.qf-col-futuro{ border-left:2px solid #F0DFB0; }
   .qf-tabela-nova th.qf-col-atual{ color:#1D5A96; background:#F5FAFF; }
@@ -6997,40 +7001,37 @@ function renderQuadroConsolidado(){
 
   let totNecessidadeG=0, totNecessidadeA=0, totAtualG=0, totAtualA=0, totFutG=0, totFutA=0;
 
-  // cabeçalho enxuto: uma coluna por bloco (Atual/Futuro), texto combinado "G x/y · A x/y" em vez de 3 colunas cada
+  // cabeçalho tabulado: uma coluna por informação (nada de texto combinado tipo "G 5/6 · A 3/4")
   const thead = `<thead><tr>
     <th class="rowhead">Núcleo</th>
-    <th>Necessidade</th>
-    ${mostraAtual?'<th class="qf-col-atual">Quadro Atual (hoje)</th><th class="qf-col-atual">Falta hoje</th>':''}
-    ${mostraFuturo?'<th class="qf-col-futuro">Quadro Futuro (pós-saídas)</th><th class="qf-col-futuro">Falta futuro</th>':''}
+    <th>Aviário</th>
+    ${mostraAtual?'<th class="qf-col-atual">Granjeiro (atual)</th><th class="qf-col-atual">Ajudante (atual)</th><th class="qf-col-atual">Status atual</th>':''}
+    ${mostraFuturo?'<th class="qf-col-futuro">Granjeiro (futuro)</th><th class="qf-col-futuro">Ajudante (futuro)</th><th class="qf-col-futuro">Status futuro</th>':''}
   </tr></thead>`;
+  const totalColunas = 2 + (mostraAtual?3:0) + (mostraFuturo?3:0);
+
+  function statusPosto(p, futuro){
+    const temG = p.granjeiro && p.granjeiro.trim();
+    const temA = p.ajudante && p.ajudante.trim();
+    const gOk = futuro ? (temG && !p.granjeiroSaindo) : !!temG;
+    const aOk = futuro ? (temA && !p.ajudanteSaindo) : !!temA;
+    return (gOk?0:1) + (aOk?0:1);
+  }
 
   const linhas = resumosPorNucleo.map(({nuc, postos, r, faltaAtual, faltaFuturo})=>{
     totNecessidadeG += r.necessidadeGranjeiro; totNecessidadeA += r.necessidadeAjudante; totAtualG += r.atualGranj; totAtualA += r.atualAjud; totFutG += r.futuroGranj; totFutA += r.futuroAjud;
     const expandido = window.qfConsolidadoExpandido.has(nuc);
     const necessidadeTexto = r.necessidadeGranjeiro===r.necessidadeAjudante ? r.necessidadeGranjeiro : `${r.necessidadeGranjeiro}g / ${r.necessidadeAjudante}a`;
-
-    const gAtualOk = r.atualGranj>=r.necessidadeGranjeiro, aAtualOk = r.atualAjud>=r.necessidadeAjudante;
-    const gFutOk = r.futuroGranj>=r.necessidadeGranjeiro, aFutOk = r.futuroAjud>=r.necessidadeAjudante;
-
-    const celAtual = mostraAtual ? `
-      <td class="qf-col-atual">
-        <span class="${gAtualOk?'qf-cons-ok':'qf-cons-falta'}">G ${r.atualGranj}/${r.necessidadeGranjeiro}</span> ·
-        <span class="${aAtualOk?'qf-cons-ok':'qf-cons-falta'}">A ${r.atualAjud}/${r.necessidadeAjudante}</span>
-      </td>
-      <td class="qf-col-atual"><span class="${faltaAtual>0?'qf-cons-falta':'qf-cons-ok'}">${faltaAtual>0?`⚠️ Falta ${faltaAtual}`:'✅ OK'}</span></td>` : '';
-    const celFuturo = mostraFuturo ? `
-      <td class="qf-col-futuro">
-        <span class="${gFutOk?'qf-cons-ok':'qf-cons-falta'}">G ${r.futuroGranj}/${r.necessidadeGranjeiro}</span> ·
-        <span class="${aFutOk?'qf-cons-ok':'qf-cons-falta'}">A ${r.futuroAjud}/${r.necessidadeAjudante}</span>
-      </td>
-      <td class="qf-col-futuro"><span class="${faltaFuturo>0?'qf-cons-falta':'qf-cons-ok'}">${faltaFuturo>0?`⚠️ Falta ${faltaFuturo}`:'✅ OK'}</span></td>` : '';
+    const resumoAtualTxt = mostraAtual ? ` · Atual ${r.atualGranj}g / ${r.atualAjud}a` : '';
+    const resumoFuturoTxt = mostraFuturo ? ` · Futuro ${r.futuroGranj}g / ${r.futuroAjud}a` : '';
+    const faltaResumo = mostraAtual ? faltaAtual : faltaFuturo;
+    const statusResumoTxt = faltaResumo>0 ? ` · <span class="qf-cons-falta">⚠️ Falta ${faltaResumo}</span>` : ` · <span class="qf-cons-ok">✅ Completo</span>`;
 
     const linhaPrincipal = `<tr class="qf-linha-nucleo-resumo">
-      <th class="rowhead qf-nucleo-toggle" data-toggle-nucleo-cons="${nuc}">${expandido?'▾':'▸'} ${nomeNucleo(nuc)}</th>
-      <td>${necessidadeTexto}</td>
-      ${celAtual}
-      ${celFuturo}
+      <th class="rowhead qf-nucleo-toggle" colspan="${totalColunas}" data-toggle-nucleo-cons="${nuc}">
+        <span class="qf-nucleo-toggle-icone">${expandido?'▾':'▸'}</span> ${nomeNucleo(nuc)}
+        <span class="qf-nucleo-resumo-texto">— Necessidade ${necessidadeTexto}${resumoAtualTxt}${resumoFuturoTxt}${statusResumoTxt}</span>
+      </th>
     </tr>`;
 
     let linhasDetalhe = '';
@@ -7041,14 +7042,23 @@ function renderQuadroConsolidado(){
         const temA = p.ajudante && p.ajudante.trim();
         const gAtualTxt = temG ? p.granjeiro : '<span class="qf-nome-vago">vago</span>';
         const aAtualTxt = temA ? p.ajudante : '<span class="qf-nome-vago">vago</span>';
-        const gFuturoTxt = temG ? (p.granjeiroSaindo ? `<span class="qf-nome-saindo-detalhe">${p.granjeiro}</span>` : p.granjeiro) : '<span class="qf-nome-vago">vago</span>';
-        const aFuturoTxt = temA ? (p.ajudanteSaindo ? `<span class="qf-nome-saindo-detalhe">${p.ajudante}</span>` : p.ajudante) : '<span class="qf-nome-vago">vago</span>';
-        const detAtual = mostraAtual ? `<td class="qf-cel-nome qf-col-atual" colspan="2">Granjeiro: ${gAtualTxt}<br>Ajudante: ${aAtualTxt}</td>` : '';
-        const detFuturo = mostraFuturo ? `<td class="qf-cel-nome qf-col-futuro" colspan="2">Granjeiro: ${gFuturoTxt}<br>Ajudante: ${aFuturoTxt}</td>` : '';
+        const gFuturoTxt = temG ? (p.granjeiroSaindo ? `<span class="qf-nome-saindo-detalhe">${p.granjeiro} <em>(saindo)</em></span>` : p.granjeiro) : '<span class="qf-nome-vago">vago</span>';
+        const aFuturoTxt = temA ? (p.ajudanteSaindo ? `<span class="qf-nome-saindo-detalhe">${p.ajudante} <em>(saindo)</em></span>` : p.ajudante) : '<span class="qf-nome-vago">vago</span>';
+        const faltaAtualPosto = statusPosto(p, false);
+        const faltaFuturoPosto = statusPosto(p, true);
+        const colsAtual = mostraAtual ? `
+          <td class="qf-cel-nome qf-col-atual">${gAtualTxt}</td>
+          <td class="qf-cel-nome qf-col-atual">${aAtualTxt}</td>
+          <td class="qf-col-atual qf-status-cel"><span class="${faltaAtualPosto>0?'qf-cons-falta':'qf-cons-ok'}">${faltaAtualPosto>0?`⚠️ Falta ${faltaAtualPosto}`:'✅ OK'}</span></td>` : '';
+        const colsFuturo = mostraFuturo ? `
+          <td class="qf-cel-nome qf-col-futuro">${gFuturoTxt}</td>
+          <td class="qf-cel-nome qf-col-futuro">${aFuturoTxt}</td>
+          <td class="qf-col-futuro qf-status-cel"><span class="${faltaFuturoPosto>0?'qf-cons-falta':'qf-cons-ok'}">${faltaFuturoPosto>0?`⚠️ Falta ${faltaFuturoPosto}`:'✅ OK'}</span></td>` : '';
         return `<tr class="qf-linha-aviario-detalhe">
-          <td class="qf-cel-aviario" colspan="2">Aviários ${p.aviarios}</td>
-          ${detAtual}
-          ${detFuturo}
+          <td class="rowhead"></td>
+          <td class="qf-cel-aviario">${p.aviarios}</td>
+          ${colsAtual}
+          ${colsFuturo}
         </tr>`;
       }).join('');
     }
@@ -7059,14 +7069,13 @@ function renderQuadroConsolidado(){
   const faltaFuturoTotal = Math.max(0,totNecessidadeG-totFutG) + Math.max(0,totNecessidadeA-totFutA);
   const necessidadeTotalTexto = totNecessidadeG===totNecessidadeA ? totNecessidadeG : `${totNecessidadeG}g / ${totNecessidadeA}a`;
   const totCelAtual = mostraAtual ? `
-    <td class="qf-col-atual" style="font-weight:800;">G ${totAtualG}/${totNecessidadeG} · A ${totAtualA}/${totNecessidadeA}</td>
-    <td class="qf-col-atual"><span class="${faltaAtualTotal>0?'qf-cons-falta':'qf-cons-ok'}">${faltaAtualTotal>0?`⚠️ Falta ${faltaAtualTotal}`:'✅ OK'}</span></td>` : '';
+    <td class="qf-col-atual" colspan="2" style="font-weight:800;">${totAtualG}g / ${totAtualA}a</td>
+    <td class="qf-col-atual qf-status-cel"><span class="${faltaAtualTotal>0?'qf-cons-falta':'qf-cons-ok'}">${faltaAtualTotal>0?`⚠️ Falta ${faltaAtualTotal}`:'✅ OK'}</span></td>` : '';
   const totCelFuturo = mostraFuturo ? `
-    <td class="qf-col-futuro" style="font-weight:800;">G ${totFutG}/${totNecessidadeG} · A ${totFutA}/${totNecessidadeA}</td>
-    <td class="qf-col-futuro"><span class="${faltaFuturoTotal>0?'qf-cons-falta':'qf-cons-ok'}">${faltaFuturoTotal>0?`⚠️ Falta ${faltaFuturoTotal}`:'✅ OK'}</span></td>` : '';
+    <td class="qf-col-futuro" colspan="2" style="font-weight:800;">${totFutG}g / ${totFutA}a</td>
+    <td class="qf-col-futuro qf-status-cel"><span class="${faltaFuturoTotal>0?'qf-cons-falta':'qf-cons-ok'}">${faltaFuturoTotal>0?`⚠️ Falta ${faltaFuturoTotal}`:'✅ OK'}</span></td>` : '';
   const linhaTotal = `<tr class="qf-linha-total-geral">
-    <th class="rowhead">TOTAL GERAL (${nucleosOrdenados.length} núcleos)</th>
-    <td style="font-weight:800;">${necessidadeTotalTexto}</td>
+    <th class="rowhead" colspan="2">TOTAL GERAL (${nucleosOrdenados.length} núcleos) — Necessidade ${necessidadeTotalTexto}</th>
     ${totCelAtual}
     ${totCelFuturo}
   </tr>`;
