@@ -228,26 +228,28 @@
   #fer2-tabela tbody tr:nth-child(even):not(.qfc-linha-nucleo):not(.qfc-linha-total):hover td{ background:#F7F6F2; }
   #fer2-tabela tbody tr:nth-child(even) td.fer2-mes-atual{ background:#FAF5E5; }
   #fer2-tabela td, #fer2-tabela th{ transition:background .1s; }
-  #fer2-tabela td.fer2-col-mes{ text-align:center; min-width:100px; padding-top:10px; padding-bottom:10px; }
-  #fer2-tabela th.fer2-col-mes{ text-align:center; min-width:100px; }
+  #fer2-tabela td.fer2-col-mes{ text-align:center; min-width:64px; padding-top:10px; padding-bottom:10px; }
+  #fer2-tabela th.fer2-col-mes{ text-align:center; min-width:64px; }
+  #fer2-tabela th.fer2-th-mes{ text-align:center; min-width:128px; }
+  #fer2-tabela th.fer2-sub{ font-size:10px; padding:5px 6px; }
   #fer2-tabela th:nth-child(2), #fer2-tabela td:nth-child(2){ min-width:100px; text-align:center; }
-  #fer2-tabela th:nth-child(3), #fer2-tabela td:nth-child(3){ min-width:120px; }
-  #fer2-tabela th:nth-child(4), #fer2-tabela td:nth-child(4){ min-width:100px; }
+  #fer2-tabela th:nth-child(3), #fer2-tabela td:nth-child(3){ min-width:110px; text-align:center; }
+  #fer2-tabela th:nth-child(4), #fer2-tabela td:nth-child(4){ min-width:110px; text-align:center; }
+  #fer2-tabela th:nth-child(5), #fer2-tabela td:nth-child(5){ min-width:110px; text-align:center; }
   #fer2-tabela th.fer2-mes-atual{ background:#F6EFD8; }
   #fer2-tabela td.fer2-mes-atual{ background:#FCFAF3; }
   #fer2-tabela td.qfc-col-first{ padding-top:10px; padding-bottom:10px; }
   #fer2-tabela td.fer2-col-first .fer2-nome{ font-weight:700; color:var(--texto); font-size:13px; }
+  #fer2-tabela .fer2-borda-direita{ border-right:1.5px solid var(--borda); }
   .fer2-badge-cargo{ display:inline-block; font-size:10.5px; font-weight:700; padding:3px 10px; border-radius:20px; letter-spacing:.01em; }
   .fer2-badge-cargo.granjeiro{ background:#EAF4FF; color:#1D5A96; }
   .fer2-badge-cargo.ajudante{ background:#F1ECFB; color:#5B3FA6; }
-  .fer2-chip{ display:inline-block; background:#FDF1DC; color:#8A6200; font-weight:700; border-radius:8px; padding:4px 9px; font-size:11.5px; white-space:nowrap; cursor:pointer; letter-spacing:.01em; }
-  .fer2-chip-sub{ display:block; font-size:10.5px; color:var(--texto-suave); margin-top:3px; }
+  .fer2-chip-sim{ display:inline-block; background:#E7F6EF; color:var(--verde-ok); font-weight:700; border-radius:6px; padding:2px 9px; font-size:11px; }
+  .fer2-chip-sub{ font-size:11px; color:var(--texto-suave); }
   .fer2-chip-sub.falta{ color:var(--vermelho-alerta); font-weight:700; }
-  .fer2-planejar{ color:var(--vermelho-alerta); font-size:11px; font-weight:600; cursor:pointer; opacity:.85; }
   .fer2-vazio{ color:#D5D9DE; cursor:pointer; font-size:13px; }
   .fer2-vazio:hover{ color:var(--texto-suave); }
-  .fer2-planejar:hover{ opacity:1; text-decoration:underline; }
-  .fer2-chip:hover{ filter:brightness(0.96); }
+  .fer2-prazo-urgente{ color:var(--vermelho-alerta); font-weight:700; }
 
   .fer2-modal-fundo{ position:fixed; inset:0; background:rgba(20,20,20,.5); z-index:900; display:flex; align-items:center; justify-content:center; padding:20px; }
   .fer2-modal-card{ background:var(--card); border-radius:16px; max-width:420px; width:100%; box-shadow:0 20px 60px rgba(0,0,0,.3); overflow:hidden; }
@@ -259,6 +261,11 @@
   .fer2-modal-corpo .campo label{ display:block; font-size:11px; font-weight:700; color:var(--texto-suave); text-transform:uppercase; letter-spacing:.03em; margin-bottom:5px; }
   .fer2-modal-corpo .campo input{ width:100%; padding:10px 12px; border-radius:9px; border:1.5px solid var(--borda); font-size:14px; font-family:inherit; box-sizing:border-box; }
   .fer2-modal-rodape{ display:flex; justify-content:space-between; align-items:center; gap:10px; padding:14px 20px; border-top:1px solid var(--borda); }
+  .fer2-modal-calculado{ background:#FBF7EE; border:1px solid var(--borda); border-radius:9px; padding:10px 12px; display:flex; flex-direction:column; gap:6px; }
+  .fer2-modal-calculado div{ display:flex; justify-content:space-between; align-items:center; font-size:12.5px; }
+  .fer2-modal-calculado span{ color:var(--texto-suave); }
+  .fer2-modal-calculado strong{ color:var(--texto); font-weight:700; }
+  .fer2-modal-calculado strong.fer2-prazo-urgente{ color:var(--vermelho-alerta); }
   .qf-legenda-atual-futuro{ display:flex; gap:10px; align-items:center; margin-bottom:14px; flex-wrap:wrap; }
   .qf-toggle-visao{ display:flex; align-items:center; gap:7px; font-size:12.5px; font-weight:700; padding:9px 16px; border-radius:10px; border:1.5px solid var(--borda); background:var(--card); color:var(--texto-suave); cursor:pointer; transition:.15s; }
   .qf-toggle-visao:hover{ border-color:var(--dourado); }
@@ -1594,6 +1601,7 @@
               <option value="sem_planejar">Sem férias planejadas</option>
               <option value="com_planejar">Com férias planejadas</option>
               <option value="sem_substituto">Com férias, sem substituto</option>
+              <option value="prazo_vencendo">Prazo vencendo (≤ 2 meses ou vencido)</option>
             </select></div>
           </div>
         </div>
@@ -1614,6 +1622,11 @@
               <button type="button" id="fer2-modalFechar" class="fer2-modal-fechar">✕</button>
             </div>
             <div class="fer2-modal-corpo">
+              <div class="campo"><label>Início do período aquisitivo</label><input type="date" id="fer2-fInicioPeriodo"></div>
+              <div class="fer2-modal-calculado" id="fer2-modalCalculado" style="display:none;">
+                <div><span>Fim do período</span><strong id="fer2-txtFimPeriodo">—</strong></div>
+                <div><span>Prazo máximo p/ tirar férias</span><strong id="fer2-txtPrazoMaximo">—</strong></div>
+              </div>
               <div class="campo"><label>Início das férias</label><input type="date" id="fer2-fInicio"></div>
               <div class="campo"><label>Fim das férias</label><input type="date" id="fer2-fFim"></div>
               <div class="campo"><label>Substituto / folguista</label><input type="text" id="fer2-fSub" placeholder="Quem vai cobrir"></div>
@@ -6410,6 +6423,7 @@ async function iniciarFerias(){
     document.getElementById('fer2-modalFundo').addEventListener('click', (e)=>{ if(e.target.id==='fer2-modalFundo') fer2FecharModal(); });
     document.getElementById('fer2-btnSalvarPlano').addEventListener('click', fer2SalvarPlano);
     document.getElementById('fer2-btnLimparPlano').addEventListener('click', fer2RemoverPlano);
+    document.getElementById('fer2-fInicioPeriodo').addEventListener('input', fer2AtualizarCalculado);
   }
 }
 window.iniciarFerias = iniciarFerias;
@@ -6481,6 +6495,18 @@ function fer2UltimoDiaMes(ano,mes){
   return new Date(new Date(prox+'T00:00:00').getTime()-86400000).toISOString().slice(0,10);
 }
 
+// soma meses a uma data YYYY-MM-DD preservando o dia (usa UTC pra não sofrer com fuso)
+function fer2SomarMeses(dataISO, meses){
+  if(!dataISO) return null;
+  const [a,m,d] = dataISO.split('-').map(Number);
+  const dt = new Date(Date.UTC(a, m-1+meses, d));
+  return dt.toISOString().slice(0,10);
+}
+// período aquisitivo é sempre 12 meses exatos, contado do início informado
+function fer2FimPeriodo(inicioPeriodo){ return fer2SomarMeses(inicioPeriodo, 12); }
+// prazo máximo pra tirar as férias = fim do período aquisitivo + 6 meses (período concessivo interno)
+function fer2PrazoMaximo(inicioPeriodo){ const fim = fer2FimPeriodo(inicioPeriodo); return fim ? fer2SomarMeses(fim, 6) : null; }
+
 function fer2Render(){
   const cardsEl = document.getElementById('fer2-cards');
   const tabelaEl = document.getElementById('fer2-tabela');
@@ -6499,17 +6525,24 @@ function fer2Render(){
     const plano = fer2Planos.get(fer2Chave(r.nome));
     const temPlano = !!(plano && plano.inicio && plano.fim);
     const semSub = temPlano && !fer2Norm(plano.substituto);
-    return {plano, temPlano, semSub};
+    const inicioPeriodo = plano && plano.inicioPeriodo || null;
+    const fimPeriodo = inicioPeriodo ? fer2FimPeriodo(inicioPeriodo) : null;
+    const prazoMaximo = inicioPeriodo ? fer2PrazoMaximo(inicioPeriodo) : null;
+    const hoje = new Date().toISOString().slice(0,10);
+    const cobreAteOFim = temPlano && prazoMaximo && plano.fim >= prazoMaximo; // férias já marcada cobre (ou passa) o prazo máximo
+    const prazoUrgente = !!(prazoMaximo && !cobreAteOFim && fer2SomarMeses(hoje,2) >= prazoMaximo); // vence em até 2 meses (ou já venceu) e ainda não tem férias que resolvam isso
+    return {plano, temPlano, semSub, inicioPeriodo, fimPeriodo, prazoMaximo, prazoUrgente};
   };
 
   const linhas = roster.filter(r=>{
     if(busca && !r.nome.toLowerCase().includes(busca)) return false;
     if(nucleoSel!=='Todos' && !r.atribuicoes.some(a=>a.nucleo===nucleoSel)) return false;
     if(cargoSel!=='Todos' && r.papel!==cargoSel) return false;
-    const {temPlano, semSub} = statusDe(r);
+    const {temPlano, semSub, prazoUrgente} = statusDe(r);
     if(situacaoSel==='sem_planejar' && temPlano) return false;
     if(situacaoSel==='com_planejar' && !temPlano) return false;
     if(situacaoSel==='sem_substituto' && !semSub) return false;
+    if(situacaoSel==='prazo_vencendo' && !prazoUrgente) return false;
     return true;
   });
 
@@ -6518,6 +6551,7 @@ function fer2Render(){
   const planejados = roster.filter(r=>statusDe(r).temPlano);
   const semPlanejar = totalFunc - planejados.length;
   const semSubstituto = roster.filter(r=>statusDe(r).semSub);
+  const prazoVencendo = roster.filter(r=>statusDe(r).prazoUrgente);
   const mesAtual = meses[0];
   const noMesAtual = planejados.filter(r=>{
     const {plano} = statusDe(r);
@@ -6530,6 +6564,7 @@ function fer2Render(){
       <div class="card"><div class="label">Férias planejadas</div><div class="valor" style="color:var(--verde-ok);">${planejados.length}</div></div>
       <div class="card"><div class="label">Sem planejar</div><div class="valor" style="color:${semPlanejar>0?'var(--vermelho-alerta)':'inherit'};">${semPlanejar}</div></div>
       <div class="card"><div class="label">Sem substituto</div><div class="valor" style="color:${semSubstituto.length>0?'var(--vermelho-alerta)':'inherit'};">${semSubstituto.length}</div></div>
+      <div class="card"><div class="label">Prazo vencendo</div><div class="valor" style="color:${prazoVencendo.length>0?'var(--vermelho-alerta)':'inherit'};">${prazoVencendo.length}</div></div>
       <div class="card"><div class="label">Férias em ${mesAtual.label}</div><div class="valor">${noMesAtual}</div></div>
     `;
   }
@@ -6545,39 +6580,43 @@ function fer2Render(){
     return;
   }
 
-  const thead = `<thead><tr>
-    <th class="qfc-col-first">Funcionário</th>
-    <th>Cargo</th>
-    <th>Núcleo</th>
-    <th>Aviários</th>
-    ${meses.map((m,i)=>`<th class="fer2-col-mes ${i===0?'fer2-mes-atual':''}">${m.label}</th>`).join('')}
-  </tr></thead>`;
+  const thead = `<thead>
+    <tr>
+      <th class="qfc-col-first" rowspan="2">Funcionário</th>
+      <th rowspan="2">Cargo</th>
+      <th rowspan="2">Início do Período</th>
+      <th rowspan="2">Fim do Período</th>
+      <th rowspan="2">Prazo Máximo</th>
+      ${meses.map((m,i)=>`<th colspan="2" class="fer2-th-mes ${i===0?'fer2-mes-atual':''}">${m.label}</th>`).join('')}
+    </tr>
+    <tr>
+      ${meses.map((m,i)=>`<th class="fer2-col-mes fer2-sub ${i===0?'fer2-mes-atual':''}">Férias</th><th class="fer2-col-mes fer2-sub fer2-borda-direita ${i===0?'fer2-mes-atual':''}">Substituto</th>`).join('')}
+    </tr>
+  </thead>`;
 
   const corpo = linhas.map(r=>{
     const chave = fer2Chave(r.nome);
-    const {plano, temPlano, semSub} = statusDe(r);
+    const {plano, temPlano, semSub, fimPeriodo, prazoMaximo, prazoUrgente} = statusDe(r);
     const celulas = meses.map((m,i)=>{
       const classeMes = i===0 ? 'fer2-mes-atual' : '';
       if(!temPlano){
-        return `<td class="fer2-col-mes ${classeMes}" data-fer2-abrir="${chave}"><span class="fer2-planejar">⚠ Planejar</span></td>`;
+        return `<td class="fer2-col-mes ${classeMes}" data-fer2-abrir="${chave}"><span class="fer2-vazio">–</span></td><td class="fer2-col-mes fer2-borda-direita ${classeMes}" data-fer2-abrir="${chave}"><span class="fer2-vazio">–</span></td>`;
       }
       const cruza = plano.inicio <= fer2UltimoDiaMes(m.ano,m.mes) && plano.fim >= fer2PrimeiroDiaMes(m.ano,m.mes);
       if(!cruza){
-        return `<td class="fer2-col-mes ${classeMes}" data-fer2-abrir="${chave}"><span class="fer2-vazio">—</span></td>`;
+        return `<td class="fer2-col-mes ${classeMes}" data-fer2-abrir="${chave}"><span class="fer2-vazio">–</span></td><td class="fer2-col-mes fer2-borda-direita ${classeMes}" data-fer2-abrir="${chave}"><span class="fer2-vazio">–</span></td>`;
       }
-      const periodo = `${plano.inicio.slice(8,10)}–${plano.fim.slice(8,10)}`;
-      return `<td class="fer2-col-mes ${classeMes}" data-fer2-abrir="${chave}">
-        <span class="fer2-chip">${periodo}</span>
-        <span class="fer2-chip-sub ${semSub?'falta':''}">${fer2Norm(plano.substituto)||'sem substituto'}</span>
-      </td>`;
+      return `<td class="fer2-col-mes ${classeMes}" data-fer2-abrir="${chave}"><span class="fer2-chip-sim">Sim</span></td>
+        <td class="fer2-col-mes fer2-borda-direita ${classeMes}" data-fer2-abrir="${chave}"><span class="${semSub?'fer2-chip-sub falta':'fer2-chip-sub'}">${fer2Norm(plano.substituto)||'sem substituto'}</span></td>`;
     }).join('');
     return `<tr>
       <td class="qfc-col-first" data-fer2-abrir="${chave}" style="cursor:pointer;">
         <div class="fer2-nome">${r.nome}</div>
       </td>
       <td data-fer2-abrir="${chave}" style="cursor:pointer;"><span class="fer2-badge-cargo ${r.papel==='Granjeiro'?'granjeiro':'ajudante'}">${r.papel}</span></td>
-      <td data-fer2-abrir="${chave}" style="cursor:pointer;">${fer2Nucleos(r.atribuicoes)||'—'}</td>
-      <td data-fer2-abrir="${chave}" style="cursor:pointer;">${fer2Aviarios(r.atribuicoes)||'—'}</td>
+      <td data-fer2-abrir="${chave}" style="cursor:pointer;">${plano&&plano.inicioPeriodo ? reg_formatarDataBR(plano.inicioPeriodo) : '<span class="fer2-vazio">–</span>'}</td>
+      <td data-fer2-abrir="${chave}" style="cursor:pointer;">${fimPeriodo ? reg_formatarDataBR(fimPeriodo) : '<span class="fer2-vazio">–</span>'}</td>
+      <td data-fer2-abrir="${chave}" style="cursor:pointer;">${prazoMaximo ? `<span class="${prazoUrgente?'fer2-prazo-urgente':''}">${reg_formatarDataBR(prazoMaximo)}</span>` : '<span class="fer2-vazio">–</span>'}</td>
       ${celulas}
     </tr>`;
   }).join('');
@@ -6596,12 +6635,28 @@ function fer2AbrirModal(chave){
   const plano = fer2Planos.get(chave);
   document.getElementById('fer2-modalNome').textContent = pessoa.nome;
   document.getElementById('fer2-modalSub').textContent = `${pessoa.papel} · ${fer2ResumoAtribuicoes(pessoa.atribuicoes)||'sem aviário vinculado'}`;
+  document.getElementById('fer2-fInicioPeriodo').value = (plano && plano.inicioPeriodo) || '';
   document.getElementById('fer2-fInicio').value = (plano && plano.inicio) || '';
   document.getElementById('fer2-fFim').value = (plano && plano.fim) || '';
   document.getElementById('fer2-fSub').value = (plano && plano.substituto) || '';
   document.getElementById('fer2-modalErro').textContent = '';
   document.getElementById('fer2-btnLimparPlano').style.display = (plano && plano.id) ? '' : 'none';
+  fer2AtualizarCalculado();
   document.getElementById('fer2-modalFundo').style.display = 'flex';
+}
+function fer2AtualizarCalculado(){
+  const inicioPeriodo = document.getElementById('fer2-fInicioPeriodo').value;
+  const bloco = document.getElementById('fer2-modalCalculado');
+  if(!inicioPeriodo){ bloco.style.display = 'none'; return; }
+  bloco.style.display = '';
+  const fimPeriodo = fer2FimPeriodo(inicioPeriodo);
+  const prazoMaximo = fer2PrazoMaximo(inicioPeriodo);
+  const hoje = new Date().toISOString().slice(0,10);
+  const urgente = fer2SomarMeses(hoje,2) >= prazoMaximo;
+  document.getElementById('fer2-txtFimPeriodo').textContent = reg_formatarDataBR(fimPeriodo);
+  const elPrazo = document.getElementById('fer2-txtPrazoMaximo');
+  elPrazo.textContent = reg_formatarDataBR(prazoMaximo);
+  elPrazo.classList.toggle('fer2-prazo-urgente', urgente);
 }
 function fer2FecharModal(){
   document.getElementById('fer2-modalFundo').style.display = 'none';
@@ -6610,23 +6665,24 @@ function fer2FecharModal(){
 async function fer2SalvarPlano(){
   const erroEl = document.getElementById('fer2-modalErro');
   erroEl.style.color=''; erroEl.textContent = '';
+  const inicioPeriodo = document.getElementById('fer2-fInicioPeriodo').value;
   const inicio = document.getElementById('fer2-fInicio').value;
   const fim = document.getElementById('fer2-fFim').value;
   const substituto = document.getElementById('fer2-fSub').value.trim();
-  if(!inicio || !fim){ erroEl.style.color='var(--vermelho-alerta)'; erroEl.textContent = 'Preencha início e fim das férias.'; return; }
-  if(fim < inicio){ erroEl.style.color='var(--vermelho-alerta)'; erroEl.textContent = 'A data de fim não pode ser antes do início.'; return; }
+  if((inicio && !fim) || (!inicio && fim)){ erroEl.style.color='var(--vermelho-alerta)'; erroEl.textContent = 'Preencha início e fim das férias (ou deixe os dois em branco).'; return; }
+  if(inicio && fim && fim < inicio){ erroEl.style.color='var(--vermelho-alerta)'; erroEl.textContent = 'A data de fim não pode ser antes do início.'; return; }
   const chave = fer2Chave(fer2NomeAtual);
   const existente = fer2Planos.get(chave);
-  const dados = { nome: fer2NomeAtual, inicio, fim, substituto: substituto || null };
+  const dados = { nome: fer2NomeAtual, inicioPeriodo: inicioPeriodo || null, inicio: inicio || null, fim: fim || null, substituto: substituto || null };
   const btn = document.getElementById('fer2-btnSalvarPlano');
   btn.disabled = true; btn.textContent = 'Salvando...';
   try{
     if(existente && existente.id){
       await db.collection('ferias_planejamento').doc(existente.id).set(dados, {merge:true});
-      fer2Planos.set(chave, {id: existente.id, inicio, fim, substituto: dados.substituto});
+      fer2Planos.set(chave, {id: existente.id, ...dados});
     } else {
       const ref = await db.collection('ferias_planejamento').add(dados);
-      fer2Planos.set(chave, {id: ref.id, inicio, fim, substituto: dados.substituto});
+      fer2Planos.set(chave, {id: ref.id, ...dados});
     }
     fer2FecharModal();
     fer2Render();
@@ -6641,7 +6697,7 @@ async function fer2RemoverPlano(){
   const chave = fer2Chave(fer2NomeAtual);
   const existente = fer2Planos.get(chave);
   if(!existente || !existente.id){ fer2FecharModal(); return; }
-  if(!confirm(`Remover o planejamento de férias de "${fer2NomeAtual}"?`)) return;
+  if(!confirm(`Remover o planejamento de "${fer2NomeAtual}" (período aquisitivo, férias e substituto)?`)) return;
   try{
     await db.collection('ferias_planejamento').doc(existente.id).delete();
     fer2Planos.delete(chave);
