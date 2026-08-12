@@ -220,7 +220,7 @@
   .qfc-saindo .qfc-tag{ font-size:10px; font-weight:700; margin-left:4px; text-transform:uppercase; letter-spacing:.02em; }
   .qfc-status-ok{ color:var(--texto-suave); }
   .qfc-status-falta{ color:var(--vermelho-alerta); font-weight:700; }
-  .qfc-linha-total th, .qfc-linha-total td{ border-top:2px solid var(--texto); font-weight:700; background:var(--card); padding-top:12px; padding-bottom:12px; }
+  .qfc-linha-total th, .qfc-linha-total td{ border-top:3px solid var(--texto); border-bottom:3px solid var(--texto); font-weight:800; font-size:14px; background:var(--card); padding-top:15px; padding-bottom:15px; }
 
   /* ===== Planejamento de Férias — grade de 12 meses ===== */
   #fer2-tabela tbody tr:not(.qfc-linha-nucleo):not(.qfc-linha-total):hover td{ background:#FAFAF8; }
@@ -7163,10 +7163,26 @@ function renderQuadroConsolidado(){
     const linhas = resumosPorNucleo.map(({nuc, postos})=>{
       const expandido = window.qfConsolidadoExpandido.has(nuc);
 
+      let avCount = postos.length, gCount = 0, aCount = 0, casalCount = 0;
+      postos.forEach(p=>{
+        const temG = p.granjeiro && p.granjeiro.trim();
+        const temA = p.ajudante && p.ajudante.trim();
+        const gOk = futuro ? (temG && !p.granjeiroSaindo) : !!temG;
+        const aOk = futuro ? (temA && !p.ajudanteSaindo) : !!temA;
+        if(gOk) gCount++;
+        if(aOk) aCount++;
+        if(gOk && aOk) casalCount++;
+      });
+
       const linhaPrincipal = `<tr class="qfc-linha-nucleo">
-        <th class="qfc-col-first" colspan="6" data-toggle-nucleo-cons="${nuc}">
+        <th class="qfc-col-first" data-toggle-nucleo-cons="${nuc}">
           <span class="qfc-chevron">${expandido?'▾':'▸'}</span> ${nomeNucleo(nuc)}
         </th>
+        <td data-toggle-nucleo-cons="${nuc}">${avCount}</td>
+        <td data-toggle-nucleo-cons="${nuc}">${gCount}</td>
+        <td data-toggle-nucleo-cons="${nuc}">${aCount}</td>
+        <td class="qfc-status ${casalCount<avCount?'qfc-status-falta':'qfc-status-ok'}" data-toggle-nucleo-cons="${nuc}">${casalCount}</td>
+        <td class="qfc-status ${casalCount<avCount?'qfc-status-falta':'qfc-status-ok'}" data-toggle-nucleo-cons="${nuc}">${gCount+aCount}/${avCount*2}</td>
       </tr>`;
 
       let linhasDetalhe = '';
