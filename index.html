@@ -1704,10 +1704,12 @@
         <div class="painel">
           <div class="painel-header"><h2>Histórico</h2><span class="info" id="regPin_info"></span></div>
           <button class="btn-recolher" id="regPin_btnExcel" type="button" style="margin-bottom:12px;">📊 Exportar Excel</button>
-          <div class="tabela-scroll"><table class="matriz-diaria" id="regPin_tabela"></table></div>
+          <div class="tabela-scroll arrastavel" id="regPin_scroll"><table class="matriz-diaria" id="regPin_tabela"></table></div>
+          <div id="regPin_paginacao" style="display:flex;gap:6px;justify-content:center;margin-top:14px;flex-wrap:wrap;"></div>
         </div>
         <div class="painel">
-          <div class="painel-header"><h2>Total de problemas identificados</h2></div>
+          <div class="painel-header"><h2>Qualidade dos pintinhos avaliados</h2></div>
+          <div class="cards" id="regPin_cards" style="margin-bottom:18px;"></div>
           <div class="chart-wrap" style="height:280px;"><canvas id="regPin_grafico"></canvas></div>
           <p class="nota" id="regPin_graficoNota"></p>
         </div>
@@ -7211,9 +7213,10 @@ function renderQuadroConsolidado(){
 
     const linhaTotal = `<tr class="qfc-linha-total">
       <th class="qfc-col-first">Total geral (${nucleosOrdenados.length} núcleos)</th>
-      <td></td>
-      <td colspan="2">${totG}g / ${totA}a</td>
-      <td class="qfc-status ${casaisCompletosGeral<totalPostos?'qfc-status-falta':'qfc-status-ok'}">${casaisCompletosGeral}/${totalPostos} casais</td>
+      <td>${totalPostos}</td>
+      <td>${totG}</td>
+      <td>${totA}</td>
+      <td class="qfc-status ${casaisCompletosGeral<totalPostos?'qfc-status-falta':'qfc-status-ok'}">${casaisCompletosGeral}/${totalPostos}</td>
       <td class="qfc-status ${pessoasTotal<vagasTotal?'qfc-status-falta':'qfc-status-ok'}">${pessoasTotal}/${vagasTotal}</td>
     </tr>`;
 
@@ -8684,9 +8687,13 @@ function reg_escapar(txt){
 
 const REG_COLECOES = { energia:'registros_energia', pintinhos:'registros_pintinhos' };
 
+const REG_PIN_ITENS_POR_PAGINA = 15;
+let regPinPaginaAtual = 1;
+
 async function reg_carregarHistorico(tipo){
   const tabela = document.getElementById(tipo==='energia'?'regEn_tabela':'regPin_tabela');
   const info = document.getElementById(tipo==='energia'?'regEn_info':'regPin_info');
+  const paginacaoEl = document.getElementById('regPin_paginacao');
   if(!tabela) return;
   tabela.innerHTML = '<tbody><tr><td style="padding:14px;">Carregando...</td></tr></tbody>';
   try{
@@ -8695,13 +8702,39 @@ async function reg_carregarHistorico(tipo){
     snap.forEach(doc => docs.push({id: doc.id, ...doc.data()}));
     docs.sort((a,b) => String(b.data||'').localeCompare(String(a.data||'')));
     info.textContent = `${docs.length} registro(s)`;
-    if(!docs.length){ tabela.innerHTML = '<tbody><tr><td style="padding:14px;">Nenhum registro ainda.</td></tr></tbody>'; return; }
+    if(!docs.length){
+      tabela.innerHTML = '<tbody><tr><td style="padding:14px;">Nenhum registro ainda.</td></tr></tbody>';
+      if(paginacaoEl) paginacaoEl.innerHTML = '';
+      reg_renderGrafico(tipo, docs);
+      return;
+    }
+
+    // pintinhos pagina a tabela — histórico tende a crescer bastante e fica pesado de rolar inteiro
+    let docsPagina = docs;
+    if(tipo==='pintinhos'){
+      const totalPaginas = Math.max(1, Math.ceil(docs.length / REG_PIN_ITENS_POR_PAGINA));
+      if(regPinPaginaAtual > totalPaginas) regPinPaginaAtual = totalPaginas;
+      const inicio = (regPinPaginaAtual-1) * REG_PIN_ITENS_POR_PAGINA;
+      docsPagina = docs.slice(inicio, inicio + REG_PIN_ITENS_POR_PAGINA);
+      if(paginacaoEl){
+        if(totalPaginas>1){
+          paginacaoEl.innerHTML = `
+            <button class="comb-btn-pagina" id="regPin_btnPaginaAnterior" ${regPinPaginaAtual===1?'disabled':''}>‹</button>
+            <span class="comb-pagina-indicador">Página ${regPinPaginaAtual} de ${totalPaginas}</span>
+            <button class="comb-btn-pagina" id="regPin_btnPaginaProxima" ${regPinPaginaAtual===totalPaginas?'disabled':''}>›</button>`;
+          document.getElementById('regPin_btnPaginaAnterior').addEventListener('click', ()=>{ regPinPaginaAtual--; reg_carregarHistorico('pintinhos'); });
+          document.getElementById('regPin_btnPaginaProxima').addEventListener('click', ()=>{ regPinPaginaAtual++; reg_carregarHistorico('pintinhos'); });
+        } else {
+          paginacaoEl.innerHTML = '';
+        }
+      }
+    }
 
     let thead, corpo;
     const colEditar = th => window.souAdminPrincipal ? th : '';
     if(tipo==='energia'){
       thead = `<thead><tr><th>Data</th><th>Núcleo</th><th>Unid. Consumidora</th><th>Protocolo</th><th>Início</th><th>Retorno</th><th>Duração</th><th>Diesel (L)</th><th>Observações</th><th>Lançado por</th><th></th>${colEditar('<th></th>')}</tr></thead>`;
-      corpo = docs.map(d=>`<tr data-reg-id="${d.id}">
+      corpo = docsPagina.map(d=>`<tr data-reg-id="${d.id}">
         <td>${reg_formatarDataBR(d.data)}</td><td>${d.nucleo||'–'}</td><td>${d.unidadeConsumidora||'–'}</td>
         <td>${d.protocolo||'–'}</td><td>${d.horaInicio||'–'}</td><td>${d.horaRetorno||'–'}</td>
         <td style="font-weight:700;">${reg_calcularDuracaoEnergia(d.horaInicio, d.horaRetorno)}</td>
@@ -8712,7 +8745,7 @@ async function reg_carregarHistorico(tipo){
       </tr>`).join('');
     } else {
       thead = `<thead><tr><th>Data</th><th>Núcleo</th><th>Aviário</th><th>Qtd.</th><th>T° Galpão</th><th>T° Caminhão</th><th>T° Cloacal</th><th>Plumagem</th><th>Desidr.</th><th>Umbigo</th><th>Hematoma</th><th>Amônia (ppm)</th><th>Lançado por</th><th></th>${colEditar('<th></th>')}</tr></thead>`;
-      corpo = docs.map(d=>`<tr data-reg-id="${d.id}">
+      corpo = docsPagina.map(d=>`<tr data-reg-id="${d.id}">
         <td>${reg_formatarDataBR(d.data)}</td><td>${d.nucleo||'–'}</td><td>${d.aviario||'–'}</td>
         <td>${d.quantidade!=null?d.quantidade:'–'}</td><td>${d.tempGalpao!=null?d.tempGalpao+'°C':'–'}</td>
         <td>${d.tempCaminhao!=null?d.tempCaminhao+'°C':'–'}</td><td>${d.tempCloacal||0}</td><td>${d.plumagem||0}</td>
@@ -8724,6 +8757,7 @@ async function reg_carregarHistorico(tipo){
       </tr>`).join('');
     }
     tabela.innerHTML = thead + '<tbody>'+corpo+'</tbody>';
+    if(tipo==='pintinhos' && typeof ativarArrastar==='function') ativarArrastar(document.getElementById('regPin_scroll'));
     tabela.querySelectorAll('[data-reg-remover]').forEach(btn=>{
       btn.addEventListener('click', async ()=>{
         if(!confirm('Excluir esse registro?')) return;
@@ -8753,7 +8787,12 @@ function reg_renderGrafico(tipo, docs){
   const notaEl = document.getElementById(notaId);
   if(!canvas) return;
   if(window.regGraficos[tipo]){ window.regGraficos[tipo].destroy(); window.regGraficos[tipo] = null; }
-  if(!docs.length){ if(notaEl) notaEl.textContent = 'Sem dados suficientes ainda pra montar o gráfico.'; return; }
+  if(!docs.length){
+    if(notaEl) notaEl.textContent = 'Sem dados suficientes ainda pra montar o gráfico.';
+    const cardsElVazio = document.getElementById('regPin_cards');
+    if(cardsElVazio) cardsElVazio.innerHTML = '';
+    return;
+  }
 
   const ctx = canvas.getContext('2d');
   if(tipo==='energia'){
@@ -8785,27 +8824,56 @@ function reg_renderGrafico(tipo, docs){
     });
     if(notaEl) notaEl.textContent = `${docs.length} registro(s) no total, em ${nucleos.length} núcleo(s).`;
   } else {
-    const totais = { 'Temp. cloacal': 0, 'Plumagem ruim': 0, 'Desidratação': 0, 'Umbigo aberto': 0, 'Hematoma': 0 };
+    const cardsEl = document.getElementById('regPin_cards');
+    const totalPintinhos = docs.reduce((s,d)=>s+(d.quantidade||0),0);
+    const totais = { 'T° Cloacal': 0, 'Plumagem ruim': 0, 'Desidratação': 0, 'Umbigo aberto': 0, 'Hematoma': 0 };
     let somaAmonia=0, contAmonia=0;
     docs.forEach(d=>{
-      totais['Temp. cloacal'] += (d.tempCloacal||0);
+      totais['T° Cloacal'] += (d.tempCloacal||0);
       totais['Plumagem ruim'] += (d.plumagem||0);
       totais['Desidratação'] += (d.desidratacao||0);
       totais['Umbigo aberto'] += (d.umbigo||0);
       totais['Hematoma'] += (d.hematoma||0);
       if(d.nivelAmonia!=null){ somaAmonia += Number(d.nivelAmonia); contAmonia++; }
     });
+    // em % do total avaliado — bem mais útil que soma bruta, já que lotes de tamanhos diferentes
+    // não são comparáveis em número absoluto (10 pintinhos com problema em 100 é bem pior que em 1000)
+    const percentuais = {};
+    Object.keys(totais).forEach(k => { percentuais[k] = totalPintinhos>0 ? +(totais[k]/totalPintinhos*100).toFixed(2) : 0; });
+    const amoniaMedia = contAmonia ? (somaAmonia/contAmonia).toFixed(1) : '–';
+
+    if(cardsEl){
+      cardsEl.innerHTML = `
+        <div class="card"><div class="label">Registros no período</div><div class="valor">${docs.length}</div></div>
+        <div class="card"><div class="label">Pintinhos avaliados</div><div class="valor">${totalPintinhos.toLocaleString('pt-BR')}</div></div>
+        <div class="card"><div class="label">Amônia média</div><div class="valor">${amoniaMedia} <span style="font-size:14px;color:var(--texto-suave);font-weight:500;">ppm</span></div></div>
+      `;
+    }
+
     window.regGraficos.pintinhos = new Chart(ctx, {
       type: 'bar',
       data: {
-        labels: Object.keys(totais),
-        datasets: [{ label: 'Total de aves com o problema', data: Object.values(totais), backgroundColor: ['#C1272D','#F2A900','#1D5A96','#8A6200','#6B7280'] }]
+        labels: Object.keys(percentuais),
+        datasets: [{
+          label: '% dos pintinhos avaliados',
+          data: Object.values(percentuais),
+          backgroundColor: ['#C1272D','#F2A900','#1D5A96','#8A6200','#6B7280'],
+          borderRadius: 6, maxBarThickness: 70
+        }]
       },
-      options: { responsive:true, maintainAspectRatio:false, plugins:{legend:{display:false}}, scales:{ y:{ beginAtZero:true } } }
+      options: {
+        responsive:true, maintainAspectRatio:false,
+        plugins:{
+          legend:{display:false},
+          tooltip:{ callbacks:{ label: c => `${c.parsed.y.toFixed(2)}% (${totais[c.label].toLocaleString('pt-BR')} de ${totalPintinhos.toLocaleString('pt-BR')})` } }
+        },
+        scales:{
+          x:{ grid:{display:false} },
+          y:{ beginAtZero:true, title:{display:true,text:'% dos pintinhos avaliados',font:{weight:600}}, grid:{color:'#EFEAE0'} }
+        }
+      }
     });
-    const totalPintinhos = docs.reduce((s,d)=>s+(d.quantidade||0),0);
-    const amoniaMedia = contAmonia ? (somaAmonia/contAmonia).toFixed(1) : '–';
-    if(notaEl) notaEl.textContent = `${docs.length} registro(s), somando ${totalPintinhos.toLocaleString('pt-BR')} pintinho(s) avaliado(s). Amônia média: ${amoniaMedia} ppm.`;
+    if(notaEl) notaEl.textContent = `${docs.length} registro(s) no período, somando ${totalPintinhos.toLocaleString('pt-BR')} pintinho(s) avaliado(s) — cada barra é o % que teve aquele problema, sobre o total avaliado.`;
   }
 }
 
