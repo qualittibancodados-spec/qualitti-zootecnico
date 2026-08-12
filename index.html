@@ -210,10 +210,11 @@
   .qfc-tabela thead th.qfc-col-first{ background:#FBF7EE; z-index:2; }
   .qfc-tabela td{ padding:9px 12px; border-bottom:1px solid var(--borda); vertical-align:middle; }
   .qfc-tabela tbody tr:not(.qfc-linha-nucleo):not(.qfc-linha-total):hover td{ background:#FAFAF8; }
-  .qfc-linha-nucleo th, .qfc-linha-nucleo td{ background:#FBF7EE !important; font-weight:700; border-top:1px solid var(--borda); border-bottom:1px solid var(--borda); cursor:pointer; }
-  .qfc-linha-nucleo:hover th, .qfc-linha-nucleo:hover td{ background:#F4EFE6 !important; }
-  .qfc-chevron{ display:inline-block; width:14px; color:var(--texto-suave); font-size:11px; }
-  .qfc-resumo-nucleo{ font-weight:400; color:var(--texto-suave); margin-left:6px; font-size:12px; }
+  .qfc-linha-nucleo th, .qfc-linha-nucleo td{ background:#FFF4E1 !important; font-weight:700; color:var(--vermelho-escuro); border-top:1px solid var(--borda); border-bottom:1px solid var(--borda); cursor:pointer; }
+  .qfc-linha-nucleo th.qfc-col-first{ box-shadow:inset 3px 0 0 var(--dourado); }
+  .qfc-linha-nucleo:hover th, .qfc-linha-nucleo:hover td{ background:#FBE7C2 !important; }
+  .qfc-chevron{ display:inline-block; width:14px; color:var(--dourado); font-size:11px; }
+  .qfc-resumo-nucleo{ font-weight:400; color:var(--vermelho-escuro); opacity:.75; margin-left:6px; font-size:12px; }
   .qfc-vago{ color:var(--texto-suave); font-style:italic; }
   .qfc-saindo{ color:var(--vermelho-alerta); }
   .qfc-saindo .qfc-tag{ font-size:10px; font-weight:700; margin-left:4px; text-transform:uppercase; letter-spacing:.02em; }
@@ -1347,17 +1348,7 @@
 
   <!-- CALOS DE PÉ -->
   <div data-aba-view="calos" style="display:none;">
-    <p class="nota" style="margin:0 0 12px;">Relatório diário do abate — quanto do rendimento esperado se perde por causa de calo de pé. <strong>Descarte</strong> é a fatia perdida; <strong>Rendimento</strong> é a fatia que efetivamente virou produto bom.</p>
-
-    <div class="painel" style="background:var(--bg);margin-bottom:16px;">
-      <div class="painel-header"><h2 style="font-size:13px;">📐 Memória de cálculo</h2></div>
-      <div style="display:flex;flex-direction:column;gap:8px;font-size:13px;font-family:'Sora',sans-serif;">
-        <div><strong>Rendimento Esperado</strong> = Peso Líquido Balança × 3,34% <span style="font-weight:400;color:var(--texto-suave);font-family:inherit;">(percentual de rendimento programado)</span></div>
-        <div><strong>Rendimento Real</strong> = Rendimento Esperado − Calo de Pé (kg)</div>
-        <div><strong>Descarte Real %</strong> = Calo de Pé ÷ Rendimento Esperado</div>
-        <div><strong>Rendimento Real %</strong> = Rendimento Real ÷ Rendimento Esperado</div>
-      </div>
-    </div>
+    <p class="nota" style="margin:0 0 14px;">Quanto do rendimento esperado no abate se perde por causa de calo de pé — o indicador que importa de verdade é o <strong>% de descarte</strong>: quanto maior, mais peso saiu como perda em vez de produto.</p>
 
     <div class="filtros">
       <div class="filtros-grid">
@@ -1373,7 +1364,7 @@
 
     <div class="painel-grafico">
       <div class="painel-grafico-header">
-        <h2>Rendimento — evolução</h2>
+        <h2>% Descarte por calo de pé</h2>
         <div class="tabs-internas" id="cl_segGranularidade" style="margin:0;">
           <button class="tab-int ativo" data-gran="diario">Diário</button>
           <button class="tab-int" data-gran="mensal">Mensal</button>
@@ -1381,8 +1372,8 @@
         </div>
         <span class="info" id="cl_infoGrafico"></span>
       </div>
+      <p class="nota-grafico" style="margin:0 0 10px;">A linha tracejada é a média do período no filtro — dá pra ver de cara quais dias/meses ficaram acima ou abaixo do normal.</p>
       <div class="chart-wrap" style="height:280px;"><canvas id="cl_graficoDiario"></canvas></div>
-      <div class="legenda-custom" id="cl_legendaGrafico"></div>
     </div>
 
     <div class="painel">
@@ -1391,6 +1382,15 @@
       <div class="qfc-scroll"><table class="qfc-tabela" id="cl_tabela"></table></div>
       <div id="cl_paginacao" style="display:flex;gap:6px;justify-content:center;margin-top:14px;flex-wrap:wrap;"></div>
     </div>
+
+    <details class="painel" style="margin-top:16px;padding:14px 20px;">
+      <summary style="cursor:pointer;font-weight:700;font-size:13px;color:var(--texto-suave);">📐 Como esses números são calculados</summary>
+      <div style="display:flex;flex-direction:column;gap:8px;font-size:13px;font-family:'Sora',sans-serif;margin-top:12px;">
+        <div><strong>Rendimento Esperado</strong> = Peso Líquido Balança × 3,34% <span style="font-weight:400;color:var(--texto-suave);font-family:inherit;">(percentual de rendimento programado)</span></div>
+        <div><strong>Rendimento Real</strong> = Rendimento Esperado − Calo de Pé (kg)</div>
+        <div><strong>% Descarte</strong> = Calo de Pé ÷ Rendimento Esperado <span style="font-weight:400;color:var(--texto-suave);font-family:inherit;">(essa é a métrica usada no gráfico e nos cards)</span></div>
+      </div>
+    </details>
 
     <div id="cl_areaImpressao" style="display:none;">
       <div id="cl_print-header" style="display:flex;align-items:center;gap:14px;margin-bottom:14px;border-bottom:2px solid #C1272D;padding-bottom:12px;">
@@ -4104,7 +4104,7 @@ function clExportarPdf(){
   if(!dados.length){ alert('Nenhum dado pra exportar com esse filtro.'); return; }
 
   const tabelaImp = document.getElementById('cl_tabelaImpressao');
-  tabelaImp.innerHTML = `<thead><tr><th class="rowhead">Data</th><th>Peso Balança</th><th>Calo Pé/Frango</th><th>Rend. Esperado</th><th>Rend. Real</th><th>Descarte</th><th>Rendimento</th></tr></thead>
+  tabelaImp.innerHTML = `<thead><tr><th class="rowhead">Data</th><th>Peso Balança</th><th>Calo Pé/Frango</th><th>Rend. Esperado</th><th>Rend. Real</th><th>% Descarte</th></tr></thead>
     <tbody>${dados.map(d=>`<tr>
       <th class="rowhead">${reg_formatarDataBR(d.data)}</th>
       <td>${d.pesoBalanca!=null?d.pesoBalanca.toLocaleString('pt-BR'):'–'}</td>
@@ -4112,7 +4112,6 @@ function clExportarPdf(){
       <td>${d.rendEsperado!=null?d.rendEsperado.toLocaleString('pt-BR',{maximumFractionDigits:2}):'–'}</td>
       <td>${d.rendReal!=null?d.rendReal.toLocaleString('pt-BR',{maximumFractionDigits:2}):'–'}</td>
       <td>${d.descarteReal!=null?(d.descarteReal*100).toFixed(2)+'%':'–'}</td>
-      <td>${d.rendimentoReal!=null?(d.rendimentoReal*100).toFixed(2)+'%':'–'}</td>
     </tr>`).join('')}</tbody>`;
   document.getElementById('cl_print-data').textContent = `${dados.length} dia(s) · ${reg_formatarDataBR(dados[dados.length-1].data)} a ${reg_formatarDataBR(dados[0].data)} · gerado em ${new Date().toLocaleString('pt-BR')}`;
 
@@ -4168,66 +4167,62 @@ function renderCalosPe(){
   const piorDia = validos.reduce((a,b)=>b.descarteReal>a.descarteReal?b:a);
   const melhorDia = validos.reduce((a,b)=>b.descarteReal<a.descarteReal?b:a);
   const totalCalo = dados.reduce((s,d)=>s+(d.caloPeFrango||0),0);
+  const diasAcimaMedia = validos.filter(d=>d.descarteReal > mediaDescarte).length;
 
   cardsEl.innerHTML = `
     <div class="card"><div class="label">Descarte médio no período</div><div class="valor">${(mediaDescarte*100).toFixed(1)}%</div></div>
     <div class="card"><div class="label">Pior dia</div><div class="valor" style="color:var(--vermelho-alerta);">${(piorDia.descarteReal*100).toFixed(1)}%</div><div style="font-size:11px;color:var(--texto-suave);margin-top:2px;">${reg_formatarDataBR(piorDia.data)}</div></div>
     <div class="card"><div class="label">Melhor dia</div><div class="valor" style="color:var(--verde-ok);">${(melhorDia.descarteReal*100).toFixed(1)}%</div><div style="font-size:11px;color:var(--texto-suave);margin-top:2px;">${reg_formatarDataBR(melhorDia.data)}</div></div>
+    <div class="card"><div class="label">Dias acima da média</div><div class="valor" style="color:${diasAcimaMedia>0?'var(--vermelho-alerta)':'inherit'};">${diasAcimaMedia} <span style="font-size:14px;color:var(--texto-suave);font-weight:500;">de ${validos.length}</span></div></div>
     <div class="card"><div class="label">Total perdido no período</div><div class="valor">${totalCalo.toLocaleString('pt-BR',{maximumFractionDigits:0})} kg</div></div>
   `;
 
-  // ---- gráfico: agrega conforme a granularidade escolhida (diário/mensal/anual) ----
-  let labels, serieRendimento, serieDescarte;
+  // ---- gráfico: só a métrica que importa (% Descarte) + linha tracejada com a média do período.
+  // Rendimento Real% é sempre exatamente 100% − Descarte% (mesma informação, espelhada) —
+  // mostrar os dois juntos não ajuda em nada, só disputa espaço visual sem acrescentar leitura nova.
+  let labels, serieDescarte;
   if(window.clGranularidade === 'diario'){
     const ordenado = dados.slice().sort((a,b)=>a.data.localeCompare(b.data));
     labels = ordenado.map(d=>reg_formatarDataBR(d.data).slice(0,5));
-    serieRendimento = ordenado.map(d=>d.rendimentoReal!=null?+(d.rendimentoReal*100).toFixed(2):null);
     serieDescarte = ordenado.map(d=>d.descarteReal!=null?+(d.descarteReal*100).toFixed(2):null);
   } else {
     const chaveFn = window.clGranularidade === 'mensal' ? (d=>d.data.slice(0,7)) : (d=>d.data.slice(0,4));
     const grupos = new Map();
     dados.forEach(d=>{
       const chave = chaveFn(d);
-      if(!grupos.has(chave)) grupos.set(chave, {esperado:0, real:0, calo:0});
+      if(!grupos.has(chave)) grupos.set(chave, {esperado:0, calo:0});
       const g = grupos.get(chave);
-      g.esperado += (d.rendEsperado||0); g.real += (d.rendReal||0); g.calo += (d.caloPeFrango||0);
+      g.esperado += (d.rendEsperado||0); g.calo += (d.caloPeFrango||0);
     });
     const chaves = Array.from(grupos.keys()).sort();
     labels = chaves.map(c=>{
       if(window.clGranularidade === 'mensal'){ const [a,m]=c.split('-'); return CL_NOMES_MESES[+m-1].slice(0,3)+'/'+a.slice(2); }
       return c;
     });
-    serieRendimento = chaves.map(c=>{ const g=grupos.get(c); return g.esperado>0 ? +(g.real/g.esperado*100).toFixed(2) : null; });
     serieDescarte = chaves.map(c=>{ const g=grupos.get(c); return g.esperado>0 ? +(g.calo/g.esperado*100).toFixed(2) : null; });
   }
 
   if(infoGrafico) infoGrafico.textContent = `${dados.length} dia(s) no filtro · ${reg_formatarDataBR(dados[0].data)} a ${reg_formatarDataBR(dados[dados.length-1].data)}`;
-  const legendaEl = document.getElementById('cl_legendaGrafico');
-  if(legendaEl){
-    legendaEl.innerHTML = `
-      <div class="legenda-item"><span class="barra" style="background:#3A7D44"></span>Rendimento Real (%)</div>
-      <div class="legenda-item"><span class="barra" style="background:#C1272D"></span>Descarte por calo (%)</div>`;
-  }
+  const mediaLinha = +(mediaDescarte*100).toFixed(2);
   const ctx = document.getElementById('cl_graficoDiario');
   if(ctx){
     if(chartCalosDiario) chartCalosDiario.destroy();
-    const ehBarra = window.clGranularidade !== 'diario';
     chartCalosDiario = new Chart(ctx.getContext('2d'), {
-      type: ehBarra ? 'bar' : 'line',
+      type:'bar',
       data:{
         labels,
         datasets:[
-          { label:'Rendimento Real (%)', data: serieRendimento, borderColor:'#3A7D44', backgroundColor: ehBarra?'#3A7D44':'rgba(58,125,68,.12)', fill: !ehBarra, tension:.3, borderWidth:2.4, pointRadius: ehBarra?0:3, pointBackgroundColor:'#3A7D44', borderRadius: ehBarra?6:0, maxBarThickness:70 },
-          { label:'Descarte por calo (%)', data: serieDescarte, borderColor:'#C1272D', backgroundColor: ehBarra?'#C1272D':'rgba(193,39,45,.12)', fill: !ehBarra, tension:.3, borderWidth:2.4, pointRadius: ehBarra?0:3, pointBackgroundColor:'#C1272D', borderRadius: ehBarra?6:0, maxBarThickness:70 }
+          { type:'bar', label:'% Descarte', data: serieDescarte, backgroundColor: serieDescarte.map(v=> v!=null && v>mediaLinha ? '#C1272D' : '#E8A2A5'), borderRadius:6, maxBarThickness:60, order:2 },
+          { type:'line', label:`Média do período (${mediaLinha.toFixed(1)}%)`, data: labels.map(()=>mediaLinha), borderColor:'#8A6200', borderDash:[6,4], borderWidth:2, pointRadius:0, fill:false, order:1 }
         ]
       },
       options:{
         responsive:true, maintainAspectRatio:false,
         interaction:{ mode:'index', intersect:false },
-        plugins:{ legend:{display:false}, tooltip:{ callbacks:{ label: c => `${c.dataset.label}: ${c.parsed.y!=null?c.parsed.y.toFixed(2)+'%':'—'}` } } },
+        plugins:{ legend:{display:true, position:'top', align:'end', labels:{boxWidth:12, font:{size:11.5}}}, tooltip:{ callbacks:{ label: c => `${c.dataset.label}: ${c.parsed.y!=null?c.parsed.y.toFixed(2)+'%':'—'}` } } },
         scales:{
           x:{ grid:{display:false} },
-          y:{ beginAtZero:true, max:100, title:{display:true,text:'%',font:{weight:600}}, grid:{color:'#EFEAE0'} }
+          y:{ beginAtZero:true, title:{display:true,text:'%',font:{weight:600}}, grid:{color:'#EFEAE0'} }
         }
       }
     });
@@ -4241,15 +4236,14 @@ function renderCalosPe(){
   const paginaAtualItens = ordenadoDesc.slice(inicio, inicio + CL_ITENS_POR_PAGINA);
 
   if(infoTabela) infoTabela.textContent = `${ordenadoDesc.length} dia(s)`;
-  tabelaEl.innerHTML = `<thead><tr><th class="qfc-col-first">Data</th><th>Peso Balança</th><th>Calo Pé/Frango</th><th>Rend. Esperado</th><th>Rend. Real</th><th class="qfc-status">Descarte</th><th class="qfc-status">Rendimento</th></tr></thead>
+  tabelaEl.innerHTML = `<thead><tr><th class="qfc-col-first">Data</th><th>Peso Balança</th><th>Calo Pé/Frango</th><th>Rend. Esperado</th><th>Rend. Real</th><th class="qfc-status">% Descarte</th></tr></thead>
     <tbody>${paginaAtualItens.map(d=>`<tr>
       <td class="qfc-col-first">${reg_formatarDataBR(d.data)}</td>
       <td>${d.pesoBalanca!=null?d.pesoBalanca.toLocaleString('pt-BR'):'–'}</td>
       <td>${d.caloPeFrango!=null?d.caloPeFrango.toLocaleString('pt-BR',{maximumFractionDigits:2}):'–'}</td>
       <td>${d.rendEsperado!=null?d.rendEsperado.toLocaleString('pt-BR',{maximumFractionDigits:2}):'–'}</td>
       <td>${d.rendReal!=null?d.rendReal.toLocaleString('pt-BR',{maximumFractionDigits:2}):'–'}</td>
-      <td class="qfc-status ${d.descarteReal>0.2?'qfc-status-falta':''}">${d.descarteReal!=null?(d.descarteReal*100).toFixed(2)+'%':'–'}</td>
-      <td class="qfc-status" style="font-weight:700;">${d.rendimentoReal!=null?(d.rendimentoReal*100).toFixed(2)+'%':'–'}</td>
+      <td class="qfc-status ${d.descarteReal>mediaDescarte?'qfc-status-falta':''}" style="font-weight:700;">${d.descarteReal!=null?(d.descarteReal*100).toFixed(2)+'%':'–'}</td>
     </tr>`).join('')}</tbody>`;
 
   if(paginacaoEl){
