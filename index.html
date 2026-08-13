@@ -1682,9 +1682,19 @@
           <div class="tabela-scroll"><table class="matriz-diaria" id="regEn_tabela"></table></div>
         </div>
         <div class="painel">
-          <div class="painel-header"><h2>Ocorrências e consumo de diesel por núcleo</h2></div>
+          <div class="painel-header"><h2>Ocorrências e consumo de diesel</h2></div>
+          <div class="cards" id="regEn_cards" style="margin-bottom:18px;"></div>
           <div class="chart-wrap" style="height:280px;"><canvas id="regEn_grafico"></canvas></div>
           <p class="nota" id="regEn_graficoNota"></p>
+        </div>
+        <div class="painel">
+          <div class="painel-header"><h2>Evolução mensal</h2></div>
+          <div class="chart-wrap" style="height:260px;"><canvas id="regEn_graficoMensal"></canvas></div>
+        </div>
+        <div class="painel">
+          <div class="painel-header"><h2>Duração média da falta por núcleo</h2></div>
+          <p class="nota" style="margin:0 0 14px;">Quanto tempo o núcleo costuma ficar sem energia até o retorno — útil pra enxergar onde o restabelecimento demora mais.</p>
+          <div class="chart-wrap" style="height:260px;"><canvas id="regEn_graficoDuracao"></canvas></div>
         </div>
       </div>
 
@@ -1777,14 +1787,15 @@
             <button class="btn-recolher" id="comb-btnLimparFiltrosHist" type="button" style="border-color:var(--vermelho);color:var(--vermelho);">Limpar filtros</button>
             <button class="btn-recolher" id="comb-btnExcel" type="button">📊 Exportar Excel</button>
           </div>
-          <p class="nota" style="margin:0 0 12px;font-size:11.5px;" id="comb-notaRodada">🛈 <strong>Rodada</strong> é estimada cruzando o núcleo e a data da solicitação com a base de lotes (alojamento até abate) — pode não bater exatamente quando duas rodadas se sobrepõem no mesmo núcleo.</p>
+          <p class="nota" style="margin:0 0 12px;font-size:11.5px;" id="comb-notaRodada">🛈 <strong>Rodada</strong> é estimada cruzando a data da solicitação com a base de lotes: quando o galpão é específico, olha só aquele aviário; quando é "Ratear Núcleo Todo", olha o núcleo inteiro (já que não tem como o mesmo núcleo ter 2 rodadas ao mesmo tempo).</p>
           <div class="tabela-scroll arrastavel" id="comb-tabelaScrollWrap"><table class="matriz-diaria" id="comb-tabelaHistorico"></table></div>
           <div id="comb-paginacao" style="display:flex;gap:6px;justify-content:center;margin-top:14px;flex-wrap:wrap;"></div>
         </div>
 
         <div class="painel-grafico">
           <div class="painel-grafico-header"><h2>Consumo por rodada — núcleo</h2><span class="info" id="comb-infoRodada"></span></div>
-          <div class="tabela-scroll"><table class="matriz-diaria" id="comb-tabelaRodada"></table></div>
+          <div class="chart-wrap" style="height:280px;"><canvas id="comb-graficoRodada"></canvas></div>
+          <div class="tabela-scroll" style="margin-top:16px;"><table class="matriz-diaria" id="comb-tabelaRodada"></table></div>
         </div>
 
         <div class="painel-grafico">
@@ -7603,6 +7614,19 @@ function reg_calcularDuracaoEnergia(horaInicio, horaRetorno){
   const horas = Math.floor(minutos/60), min = minutos%60;
   return `${horas}h${min>0?' '+min+'min':''}`;
 }
+// mesma conta, mas em número puro (minutos) — pra usar em gráfico/média, não pra mostrar na tela
+function reg_duracaoEnergiaMin(horaInicio, horaRetorno){
+  if(!horaInicio || !horaRetorno) return null;
+  const [h1,m1] = horaInicio.split(':').map(Number);
+  const [h2,m2] = horaRetorno.split(':').map(Number);
+  let minutos = (h2*60+m2) - (h1*60+m1);
+  if(minutos < 0) minutos += 24*60;
+  return minutos;
+}
+function reg_formatarMinutos(min){
+  const horas = Math.floor(min/60), m = Math.round(min%60);
+  return `${horas}h${m>0?' '+m+'min':''}`;
+}
 
 function reg_popularNucleos(){
   ['regEn_nucleo','regPin_nucleo'].forEach(id=>{
@@ -8291,7 +8315,7 @@ async function combustivelCarregarDados(){
     combustivelDados = [];
     snap.forEach(doc => combustivelDados.push({id: doc.id, ...doc.data()}));
     combustivelDados.sort((a,b) => (b.ticketId||0) - (a.ticketId||0));
-    combustivelDados.forEach(d => { d.rodada = combustivelAcharRodada(d.nucleo, d.dataSolicitacao); });
+    combustivelDados.forEach(d => { d.rodada = combustivelAcharRodada(d.nucleo, d.dataSolicitacao, d.rateioNucleo ? null : d.galpoes); });
   }catch(e){
     combustivelDados = [];
   }
@@ -8306,15 +8330,23 @@ function combustivelNormalizarNucleo(nome){
   return n;
 }
 
-function combustivelAcharRodada(nucleoComb, dataSolicitacao){
+function combustivelAcharRodada(nucleoComb, dataSolicitacao, galpoesEspecificos){
   if(!nucleoComb || !dataSolicitacao) return null;
   let lotes;
   try{ lotes = fetchResultadoLotesCache(); }catch(e){ return null; }
   if(!lotes || !lotes.length) return null;
   const nucNorm = combustivelNormalizarNucleo(nucleoComb);
   const hoje = new Date().toISOString().slice(0,10);
+  // se veio uma lista de galpões específicos (requisição não é rateio de núcleo todo), restringe
+  // a busca só a esses aviários — mais preciso que olhar o núcleo inteiro quando dá pra saber
+  // exatamente qual galpão foi. Pra "Ratear Núcleo Todo" não tem isso: usa o núcleo inteiro mesmo,
+  // porque nesse caso não tem como ter 2 rodadas diferentes rodando ao mesmo tempo no mesmo núcleo.
+  const numerosAlvo = (galpoesEspecificos && galpoesEspecificos.length)
+    ? new Set(galpoesEspecificos.map(combustivelNumeroAviario).filter(Boolean))
+    : null;
   const candidatos = lotes.filter(l=>{
     if(!l.dataAloj || combustivelNormalizarNucleo(l.nucleo) !== nucNorm) return false;
+    if(numerosAlvo && !numerosAlvo.has(combustivelNumeroAviario(l.aviario))) return false;
     const fimData = (l.situacao==='Fechado' && l.idadeAbate!=null)
       ? new Date(new Date(l.dataAloj+'T00:00:00').getTime() + l.idadeAbate*86400000).toISOString().slice(0,10)
       : hoje; // lote ainda aberto: considera em aberto até hoje
@@ -8328,6 +8360,10 @@ function combustivelAcharRodada(nucleoComb, dataSolicitacao){
   let melhorRodada=null, melhorContagem=0;
   contagem.forEach((c,r)=>{ if(c>melhorContagem){ melhorContagem=c; melhorRodada=r; } });
   return melhorRodada;
+}
+function combustivelNumeroAviario(texto){
+  const m = String(texto||'').match(/(\d+)/);
+  return m ? String(parseInt(m[1],10)) : null;
 }
 
 function combustivelProximoTicketId(){
@@ -8585,6 +8621,31 @@ function combustivelRenderTabelaRodada(dados){
       <td style="text-align:center;">${g.qtdReq}</td>
       <td style="font-weight:700;">${g.litros.toLocaleString('pt-BR',{minimumFractionDigits:1})}</td>
     </tr>`).join('')}</tbody>`;
+
+  // gráfico: total consumido por rodada (soma de todos os núcleos) — dá pra ver se o consumo
+  // por ciclo está subindo, caindo ou estável ao longo do tempo, sem precisar ler a tabela inteira
+  const porRodada = new Map();
+  comRodada.forEach(d=>{
+    if(!porRodada.has(d.rodada)) porRodada.set(d.rodada, 0);
+    porRodada.set(d.rodada, porRodada.get(d.rodada) + (Number(d.quantidade)||0));
+  });
+  const rodadasOrdenadas = Array.from(porRodada.keys()).sort((a,b)=>a-b);
+  const ctxRodada = document.getElementById('comb-graficoRodada');
+  if(ctxRodada){
+    if(window.chartCombRodada) window.chartCombRodada.destroy();
+    window.chartCombRodada = new Chart(ctxRodada.getContext('2d'), {
+      type:'bar',
+      data:{
+        labels: rodadasOrdenadas.map(r=>'R'+r),
+        datasets:[{ label:'Litros', data: rodadasOrdenadas.map(r=>Math.round(porRodada.get(r)*10)/10), backgroundColor:'#C1272D', borderRadius:6, maxBarThickness:70 }]
+      },
+      options:{
+        responsive:true, maintainAspectRatio:false,
+        plugins:{ legend:{display:false}, tooltip:{ callbacks:{ label: c => `${c.parsed.y.toLocaleString('pt-BR',{minimumFractionDigits:1})} L` } } },
+        scales:{ x:{grid:{display:false}}, y:{beginAtZero:true, title:{display:true,text:'Litros',font:{weight:600}}, grid:{color:'#EFEAE0'}} }
+      }
+    });
+  }
 }
 
 function combustivelRenderGraficos(){
@@ -8858,32 +8919,99 @@ function reg_renderGrafico(tipo, docs){
   const ctx = canvas.getContext('2d');
   if(tipo==='energia'){
     const porNucleo = new Map();
+    let dieselTotal = 0, somaDuracao=0, contDuracao=0, semRetorno=0;
     docs.forEach(d=>{
       const n = d.nucleo || '—';
-      if(!porNucleo.has(n)) porNucleo.set(n, {ocorrencias:0, diesel:0});
+      if(!porNucleo.has(n)) porNucleo.set(n, {ocorrencias:0, diesel:0, somaDuracao:0, contDuracao:0});
       const o = porNucleo.get(n);
       o.ocorrencias++;
       o.diesel += (d.consumoDiesel!=null ? Number(d.consumoDiesel) : 0);
+      dieselTotal += (d.consumoDiesel!=null ? Number(d.consumoDiesel) : 0);
+      const dur = reg_duracaoEnergiaMin(d.horaInicio, d.horaRetorno);
+      if(dur!=null){ o.somaDuracao += dur; o.contDuracao++; somaDuracao += dur; contDuracao++; }
+      else if(d.horaInicio) semRetorno++;
     });
     const nucleos = Array.from(porNucleo.keys()).sort((a,b)=>porNucleo.get(b).ocorrencias-porNucleo.get(a).ocorrencias);
+
+    const cardsEl = document.getElementById('regEn_cards');
+    if(cardsEl){
+      cardsEl.innerHTML = `
+        <div class="card"><div class="label">Ocorrências no período</div><div class="valor">${docs.length}</div></div>
+        <div class="card"><div class="label">Diesel consumido</div><div class="valor">${dieselTotal.toLocaleString('pt-BR',{maximumFractionDigits:1})} <span style="font-size:14px;color:var(--texto-suave);font-weight:500;">L</span></div></div>
+        <div class="card"><div class="label">Duração média</div><div class="valor">${contDuracao?reg_formatarMinutos(somaDuracao/contDuracao):'–'}</div></div>
+        <div class="card"><div class="label">Sem retorno lançado</div><div class="valor" style="color:${semRetorno>0?'var(--vermelho-alerta)':'inherit'};">${semRetorno}</div></div>
+      `;
+    }
+
     window.regGraficos.energia = new Chart(ctx, {
       type: 'bar',
       data: {
         labels: nucleos,
         datasets: [
-          { label: 'Ocorrências', data: nucleos.map(n=>porNucleo.get(n).ocorrencias), backgroundColor: '#C1272D', yAxisID: 'y' },
-          { label: 'Diesel total (L)', data: nucleos.map(n=>Math.round(porNucleo.get(n).diesel*10)/10), backgroundColor: '#F2A900', yAxisID: 'y1' }
+          { label: 'Ocorrências', data: nucleos.map(n=>porNucleo.get(n).ocorrencias), backgroundColor: '#C1272D', yAxisID: 'y', borderRadius:6 },
+          { label: 'Diesel total (L)', data: nucleos.map(n=>Math.round(porNucleo.get(n).diesel*10)/10), backgroundColor: '#F2A900', yAxisID: 'y1', borderRadius:6 }
         ]
       },
       options: {
         responsive:true, maintainAspectRatio:false,
+        plugins:{ legend:{position:'top', align:'end', labels:{boxWidth:12,font:{size:11.5}}} },
         scales:{
-          y:{ position:'left', beginAtZero:true, title:{display:true,text:'Ocorrências'} },
-          y1:{ position:'right', beginAtZero:true, grid:{drawOnChartArea:false}, title:{display:true,text:'Diesel (L)'} }
+          x:{ grid:{display:false} },
+          y:{ position:'left', beginAtZero:true, title:{display:true,text:'Ocorrências',font:{weight:600}}, grid:{color:'#EFEAE0'} },
+          y1:{ position:'right', beginAtZero:true, grid:{drawOnChartArea:false}, title:{display:true,text:'Diesel (L)',font:{weight:600}} }
         }
       }
     });
     if(notaEl) notaEl.textContent = `${docs.length} registro(s) no total, em ${nucleos.length} núcleo(s).`;
+
+    // ---- evolução mensal: mostra se as faltas estão aumentando ou diminuindo com o tempo ----
+    const porMes = new Map();
+    docs.forEach(d=>{
+      if(!d.data) return;
+      const chave = d.data.slice(0,7);
+      if(!porMes.has(chave)) porMes.set(chave, {ocorrencias:0, diesel:0});
+      const o = porMes.get(chave);
+      o.ocorrencias++; o.diesel += (d.consumoDiesel!=null ? Number(d.consumoDiesel) : 0);
+    });
+    const mesesOrdenados = Array.from(porMes.keys()).sort();
+    const REG_NOMES_MESES_ABREV = ['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez'];
+    const labelsMes = mesesOrdenados.map(c=>{ const [a,m]=c.split('-'); return REG_NOMES_MESES_ABREV[+m-1]+'/'+a.slice(2); });
+    const ctxMensal = document.getElementById('regEn_graficoMensal');
+    if(window.regGraficos.energiaMensal) window.regGraficos.energiaMensal.destroy();
+    if(ctxMensal){
+      window.regGraficos.energiaMensal = new Chart(ctxMensal.getContext('2d'), {
+        type:'bar',
+        data:{ labels: labelsMes, datasets:[
+          { label:'Ocorrências', data: mesesOrdenados.map(c=>porMes.get(c).ocorrencias), backgroundColor:'#C1272D', borderRadius:6, maxBarThickness:60 }
+        ]},
+        options:{ responsive:true, maintainAspectRatio:false,
+          plugins:{ legend:{display:false} },
+          scales:{ x:{grid:{display:false}}, y:{beginAtZero:true, ticks:{stepSize:1}, title:{display:true,text:'Ocorrências',font:{weight:600}}, grid:{color:'#EFEAE0'}} }
+        }
+      });
+    }
+
+    // ---- duração média por núcleo: onde o restabelecimento demora mais ----
+    const nucleosPorDuracao = nucleos.filter(n=>porNucleo.get(n).contDuracao>0)
+      .sort((a,b)=> (porNucleo.get(b).somaDuracao/porNucleo.get(b).contDuracao) - (porNucleo.get(a).somaDuracao/porNucleo.get(a).contDuracao));
+    const ctxDuracao = document.getElementById('regEn_graficoDuracao');
+    if(window.regGraficos.energiaDuracao) window.regGraficos.energiaDuracao.destroy();
+    if(ctxDuracao){
+      if(!nucleosPorDuracao.length){
+        ctxDuracao.parentElement.innerHTML = '<p class="nota">Ainda não há registros com hora de retorno preenchida pra calcular a duração.</p>';
+      } else {
+        window.regGraficos.energiaDuracao = new Chart(ctxDuracao.getContext('2d'), {
+          type:'bar',
+          data:{ labels: nucleosPorDuracao, datasets:[
+            { label:'Duração média (min)', data: nucleosPorDuracao.map(n=>{ const o=porNucleo.get(n); return +(o.somaDuracao/o.contDuracao).toFixed(0); }), backgroundColor:'#1D5A96', borderRadius:6, maxBarThickness:60 }
+          ]},
+          options:{ responsive:true, maintainAspectRatio:false,
+            plugins:{ legend:{display:false}, tooltip:{ callbacks:{ label: c => reg_formatarMinutos(c.parsed.y) } } },
+            scales:{ x:{grid:{display:false}}, y:{beginAtZero:true, title:{display:true,text:'Minutos',font:{weight:600}}, grid:{color:'#EFEAE0'}} }
+          }
+        });
+      }
+    }
   } else {
     const cardsEl = document.getElementById('regPin_cards');
     const totalPintinhos = docs.reduce((s,d)=>s+(d.quantidade||0),0);
