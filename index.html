@@ -508,7 +508,7 @@
     padding:10px 12px; margin-bottom:12px; font-size:12px; color:var(--texto-suave); line-height:1.7;
   }
   .legenda-tendencia strong{ color:var(--texto); }
-  .legenda-tendencia .leg-item{ display:inline-block; margin-left:14px; }
+  .legenda-tendencia .leg-item{ display:block; }
   .legenda-tendencia .tendencia{ font-size:12px; }
 
   .tabela-scroll{ overflow-x:auto; -webkit-overflow-scrolling:touch; }
@@ -1923,14 +1923,19 @@
           <h2>Comparativo — últimos 2 dias</h2>
           <span class="info" id="energiasolar-infoRelatorio"></span>
         </div>
-        <button class="btn-recolher" id="energiasolar-btnCompartilhar" type="button" style="margin-bottom:14px;">📤 Compartilhar</button>
-        <div id="energiasolar-relatorioCompartilhavel" style="background:#fff;padding:4px;">
-          <div class="legenda-tendencia" style="margin:12px 0 14px;">
+
+        <details class="legenda-tendencia" style="margin-bottom:16px;">
+          <summary style="cursor:pointer;font-weight:700;color:var(--texto);">ℹ️ Como ler esse relatório</summary>
+          <div style="display:flex;flex-direction:column;gap:7px;margin-top:10px;">
             <span class="leg-item">📈 <strong>Variação</strong> = quanto a produção do dia mais recente mudou em relação ao dia anterior, em %. Não compara com a meta — só um dia contra o outro.</span>
             <span class="leg-item">✅ <strong>Ideal</strong> = produção somada dos 2 dias igual ou acima de 80% da meta somada</span>
             <span class="leg-item">🟡 <strong>Abaixo do ideal</strong> = produção somada dos 2 dias abaixo de 80% da meta somada</span>
             <span class="leg-item">🔴 <strong>Zerada hoje</strong> = nenhuma produção registrada no dia mais recente, com meta prevista</span>
           </div>
+        </details>
+
+        <button class="btn-recolher" id="energiasolar-btnCompartilhar" type="button" style="margin-bottom:14px;">📤 Compartilhar</button>
+        <div id="energiasolar-relatorioCompartilhavel" style="background:#fff;padding:4px;">
           <div class="tabela-scroll"><table class="matriz-diaria" id="energiasolar-tabelaRelatorio"></table></div>
         </div>
       </div>
@@ -2439,8 +2444,8 @@ async function compartilharTabelaWhatsApp(tabelaId, nomeArquivo, btnClicado){
   const textoOriginal = btnClicado ? btnClicado.innerHTML : null;
   if(btnClicado) btnClicado.innerHTML = 'Gerando imagem...';
 
-  // remove temporariamente qualquer rolagem interna (ex: .tabela-scroll) que esconderia parte do conteúdo da "foto"
-  const scrollsInternos = Array.from(tabela.querySelectorAll('.tabela-scroll'));
+  // remove temporariamente qualquer rolagem interna (ex: .tabela-scroll, .qfc-scroll) que esconderia parte do conteúdo da "foto"
+  const scrollsInternos = Array.from(tabela.querySelectorAll('.tabela-scroll, .qfc-scroll'));
   const estilosOriginais = scrollsInternos.map(el => ({ overflow: el.style.overflow, width: el.style.width }));
   scrollsInternos.forEach(el => { el.style.overflow = 'visible'; el.style.width = 'max-content'; });
 
