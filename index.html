@@ -1351,6 +1351,11 @@
       <div class="tipo-lista" id="cd_tipoLista"></div>
       <p class="nota">Participação de cada tipo no total condenado (em peso ou aves, conforme o seletor). Use os filtros de Núcleo/Aviário para ver o que puxa a condena num lugar específico.</p>
     </div>
+    <div class="painel">
+      <div class="painel-header"><h2>Evolução mensal por tipo de condena</h2><span class="info" id="cd_infoEvoTipo"></span></div>
+      <p class="nota" style="margin:0 0 14px;">% de cada tipo sobre o total abatido naquele mês (mesmo critério peso/aves do seletor acima). Abaixo do número, a variação em pontos percentuais (p.p.) em relação ao mês anterior — <span class="tendencia subiu" style="font-size:11.5px;">▲ subiu</span> = piorou, <span class="tendencia desceu" style="font-size:11.5px;">▼ caiu</span> = melhorou.</p>
+      <div class="tabela-scroll arrastavel" id="cd_scrollEvoTipo"><table class="matriz-diaria" id="cd_tabelaEvoTipo"></table></div>
+    </div>
   </div>
 
   <!-- CALOS DE PÉ -->
@@ -4433,6 +4438,58 @@ function renderTipo(dados){
       <div class="tipo-val">${pctPart.toFixed(1)}%<br><span style="font-weight:500;color:var(--texto-suave);font-size:10.5px">${v.toLocaleString('pt-BR',{maximumFractionDigits:0})} ${unidade}</span></div>
     </div>`;
   }).join('');
+  renderTipoEvolucaoMensal(dados, linhas.map(([t])=>t));
+}
+
+// evolução mensal de cada tipo de condena, em % sobre o total abatido no mês — mesma lógica de
+// pctDeTipo, só que quebrada por mês em vez de um número só pro período inteiro. A ordem das linhas
+// segue a mesma ordem de relevância da lista acima (maior participação primeiro).
+function renderTipoEvolucaoMensal(dados, tiposOrdenados){
+  const tabela = document.getElementById('cd_tabelaEvoTipo');
+  const info = document.getElementById('cd_infoEvoTipo');
+  if(!tabela) return;
+  if(!dados.length || !tiposOrdenados.length){
+    tabela.innerHTML = '<tbody><tr><td style="padding:14px;">Sem condenas para este filtro.</td></tr></tbody>';
+    if(info) info.textContent = '';
+    return;
+  }
+  const porMes = new Map(); // chave "AAAA-MM" -> lotes daquele mês
+  dados.forEach(l=>{
+    if(!l.anoAbate || !l.mes || !ORDEM_MES[l.mes]) return;
+    const chave = `${l.anoAbate}-${String(ORDEM_MES[l.mes]).padStart(2,'0')}`;
+    if(!porMes.has(chave)) porMes.set(chave, []);
+    porMes.get(chave).push(l);
+  });
+  const mesesOrdenados = Array.from(porMes.keys()).sort();
+  if(!mesesOrdenados.length){
+    tabela.innerHTML = '<tbody><tr><td style="padding:14px;">Sem dados de mês/ano de abate suficientes pra montar a evolução.</td></tr></tbody>';
+    if(info) info.textContent = '';
+    return;
+  }
+  const NOMES_MES_ABREV = ['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez'];
+  const labelsMes = mesesOrdenados.map(c=>{ const [a,m]=c.split('-'); return NOMES_MES_ABREV[+m-1]+'/'+a.slice(2); });
+  if(info) info.textContent = `${tiposOrdenados.length} tipo(s) · ${mesesOrdenados.length} mês(es) · ${sufMetrica()}`;
+
+  const thead = `<thead><tr><th class="rowhead">Tipo de condena</th>${labelsMes.map(l=>`<th style="text-align:center;">${l}</th>`).join('')}</tr></thead>`;
+  const corpo = tiposOrdenados.map(tipo=>{
+    let anterior = null;
+    const celulas = mesesOrdenados.map(chave=>{
+      const lotesMes = porMes.get(chave);
+      const pct = pctDeTipo(lotesMes, tipo);
+      let tendenciaHtml = '';
+      if(pct!=null && anterior!=null){
+        const delta = pct - anterior;
+        if(Math.abs(delta) < 0.005) tendenciaHtml = `<div class="tendencia neutro">＝ estável</div>`;
+        else if(delta > 0) tendenciaHtml = `<div class="tendencia subiu">▲ +${delta.toFixed(2)} p.p.</div>`;
+        else tendenciaHtml = `<div class="tendencia desceu">▼ ${delta.toFixed(2)} p.p.</div>`;
+      }
+      if(pct!=null) anterior = pct;
+      return `<td style="text-align:center;"><div style="font-weight:700;color:var(--texto);">${pct!=null?pct.toFixed(2)+'%':'<span style="color:var(--texto-suave);font-weight:400;">–</span>'}</div>${tendenciaHtml}</td>`;
+    }).join('');
+    return `<tr><th class="rowhead" title="${tipo}">${tipo.replace('/FRANGO','')}</th>${celulas}</tr>`;
+  }).join('');
+  tabela.innerHTML = thead + `<tbody>${corpo}</tbody>`;
+  if(typeof ativarArrastar==='function') ativarArrastar(document.getElementById('cd_scrollEvoTipo'));
 }
 
 // ---------- Matriz Ano/Rodada × Núcleo/Aviário (+ tipo) ----------
