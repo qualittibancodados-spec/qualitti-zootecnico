@@ -1524,6 +1524,17 @@
         <table class="matriz-diaria" id="pw_tabelaStandard"></table>
       </div>
     </div>
+
+    <div class="painel-grafico">
+      <div class="painel-grafico-header">
+        <h2>Núcleos vs. meta — % atingido por idade</h2>
+        <span class="info" id="pw_infoGraficoStandard"></span>
+      </div>
+      <p class="nota-grafico" style="margin:0 0 10px;">100% = bateu a meta exata daquela idade, pela faixa de chegada de cada lote. Acima de 100% está passando da meta; abaixo, está atrasado. Só núcleos com lote em andamento aparecem aqui.</p>
+      <div class="cards" id="pw_cardsGraficoStandard" style="margin-bottom:16px;"></div>
+      <div class="chart-wrap" style="height:340px;"><canvas id="pw_graficoStandard"></canvas></div>
+      <div class="legenda-custom" id="pw_legendaGraficoStandard"></div>
+    </div>
   </div>
 
   <!-- ============ HISTÓRICO ============ -->
@@ -4843,6 +4854,8 @@ async function renderStandardPeso(){
 
   tabela.innerHTML = thead + `<tbody>${corpo}</tbody>`;
 
+  if(!pwStandardEditando) renderStandardPesoGrafico();
+
   if(pwStandardEditando){
     tabela.querySelectorAll('[data-standard-campo]').forEach(input=>{
       input.addEventListener('input', ()=>{
@@ -4858,6 +4871,111 @@ async function renderStandardPeso(){
       });
     });
   }
+}
+
+function renderStandardPesoGrafico(){
+  const canvas = document.getElementById('pw_graficoStandard');
+  const infoEl = document.getElementById('pw_infoGraficoStandard');
+  const legendaEl = document.getElementById('pw_legendaGraficoStandard');
+  const cardsEl = document.getElementById('pw_cardsGraficoStandard');
+  if(!canvas) return;
+
+  const abertos = PESO_LOTES.filter(l=>l.situacao==='Aberto');
+  const porNucleo = new Map();
+  abertos.forEach(l=>{ if(!porNucleo.has(l.nucleo)) porNucleo.set(l.nucleo, []); porNucleo.get(l.nucleo).push(l); });
+  const nucleos = Array.from(porNucleo.keys()).sort();
+  const campos = [7,14,21,28,35,42];
+
+  if(window.chartStandardPeso){ window.chartStandardPeso.destroy(); window.chartStandardPeso = null; }
+  if(!nucleos.length){
+    canvas.parentElement.innerHTML = '<p class="nota">Nenhum lote em andamento no momento pra montar o comparativo.</p>';
+    if(infoEl) infoEl.textContent = '';
+    if(cardsEl) cardsEl.innerHTML = '';
+    return;
+  }
+
+  // % da meta atingida em cada idade, por núcleo — usa a chegada MÉDIA dos lotes daquele núcleo
+  // pra achar a faixa certa no Standard, igual a matriz de "Em andamento" já faz.
+  const seriesPorNucleo = new Map();
+  let ultimoPctPorNucleo = new Map(); // pra montar os cards de resumo (idade mais recente com dado de cada núcleo)
+  nucleos.forEach(nuc=>{
+    const lotesNuc = porNucleo.get(nuc);
+    const chegadas = lotesNuc.map(l=>l.pm1).filter(v=>v!=null);
+    const chegadaMedia = chegadas.length ? chegadas.reduce((s,v)=>s+v,0)/chegadas.length : null;
+    const serie = [];
+    let ultimoPct = null;
+    campos.forEach(c=>{
+      const vals = lotesNuc.map(l=>l['pm'+c]).filter(v=>v!=null);
+      const med = vals.length ? vals.reduce((s,v)=>s+v,0)/vals.length : null;
+      const meta = metaParaCelula(chegadaMedia, c);
+      const pct = (med!=null && meta) ? +(med/meta*100).toFixed(1) : null;
+      serie.push(pct);
+      if(pct!=null) ultimoPct = pct;
+    });
+    seriesPorNucleo.set(nuc, serie);
+    if(ultimoPct!=null) ultimoPctPorNucleo.set(nuc, ultimoPct);
+  });
+
+  const dentroMeta = Array.from(ultimoPctPorNucleo.values()).filter(p=>p>=100).length;
+  const abaixoMeta = ultimoPctPorNucleo.size - dentroMeta;
+  const mediaGeral = ultimoPctPorNucleo.size ? Array.from(ultimoPctPorNucleo.values()).reduce((a,b)=>a+b,0)/ultimoPctPorNucleo.size : null;
+  if(cardsEl){
+    cardsEl.innerHTML = `
+      <div class="card"><div class="label">Núcleos dentro da meta</div><div class="valor" style="color:var(--verde-ok);">${dentroMeta}</div></div>
+      <div class="card"><div class="label">Núcleos abaixo da meta</div><div class="valor" style="color:${abaixoMeta>0?'var(--vermelho-alerta)':'inherit'};">${abaixoMeta}</div></div>
+      <div class="card"><div class="label">Média geral atingida</div><div class="valor">${mediaGeral!=null?mediaGeral.toFixed(1)+'%':'–'}</div></div>
+    `;
+  }
+  if(infoEl) infoEl.textContent = `${nucleos.length} núcleo(s) com lote em andamento`;
+
+  if(legendaEl){
+    legendaEl.innerHTML = nucleos.map((nuc,i)=>`<div class="legenda-item"><span class="barra" style="background:${corPorIndice(i)}"></span>${nomeNucleo(nuc)}</div>`).join('');
+  }
+
+  window.chartStandardPeso = new Chart(canvas.getContext('2d'), {
+    type: 'line',
+    data: {
+      labels: campos.map(c=>c+'d'),
+      datasets: nucleos.map((nuc,i)=>({
+        label: nomeNucleo(nuc),
+        data: seriesPorNucleo.get(nuc),
+        borderColor: corPorIndice(i),
+        backgroundColor: corPorIndice(i),
+        borderWidth: 2, tension:.25, spanGaps:true,
+        pointRadius:3, pointHoverRadius:5
+      }))
+    },
+    options: {
+      responsive:true, maintainAspectRatio:false,
+      interaction:{ mode:'index', intersect:false },
+      plugins:{
+        legend:{ display:false },
+        tooltip:{ callbacks:{ label: c => `${c.dataset.label}: ${c.parsed.y!=null?c.parsed.y.toFixed(1)+'%':'sem dado'}` } }
+      },
+      scales:{
+        x:{ grid:{display:false} },
+        y:{ title:{display:true,text:'% da meta atingida',font:{weight:600}}, grid:{color:'#EFEAE0'} }
+      }
+    },
+    plugins: [{
+      id: 'linhaMeta100',
+      afterDraw(chart){
+        const {ctx, chartArea, scales} = chart;
+        if(!chartArea) return;
+        const y = scales.y.getPixelForValue(100);
+        if(y < chartArea.top || y > chartArea.bottom) return;
+        ctx.save();
+        ctx.strokeStyle = '#6A7686';
+        ctx.setLineDash([5,4]);
+        ctx.lineWidth = 1.5;
+        ctx.beginPath();
+        ctx.moveTo(chartArea.left, y);
+        ctx.lineTo(chartArea.right, y);
+        ctx.stroke();
+        ctx.restore();
+      }
+    }]
+  });
 }
 
 function pwStandardAlternarBotoes(editando){
