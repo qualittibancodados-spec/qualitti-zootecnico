@@ -1442,10 +1442,11 @@
 
   <div class="tabs-internas">
     <button class="tab-int ativo" data-aba="andamento">Em andamento</button>
+    <button class="tab-int" data-aba="standard">Standard de Peso</button>
     <button class="tab-int" data-aba="historico">Histórico</button>
   </div>
 
-  <div class="filtros">
+  <div class="filtros" id="pw_filtrosPainel">
     <div class="filtros-grid">
       <div class="campo"><label>Ano</label><select id="pw_fAno"></select></div>
       <div class="campo"><label>Núcleo</label><select id="pw_fNucleo"></select></div>
@@ -1500,7 +1501,28 @@
       <div class="tabela-scroll arrastavel" id="pw_scrollPesoMatriz">
         <table class="matriz-diaria" id="pw_tabelaPesoMatriz"></table>
       </div>
-      <p class="nota">"–" = o lote ainda não chegou nessa idade / ainda não foi pesado nessa checagem. <strong style="color:#C0392B">✕ destacado</strong> = o lote já passou 1 dia da idade da checagem e ainda não tem peso registrado (deveria ter sido pesado no dia do "aniversário"). A coluna <strong>"relação"</strong> ao lado de cada idade (ex: <strong>3,07x</strong>) mostra quantas vezes o frango já ganhou de peso naquela idade, em relação ao peso do alojamento. <strong style="color:#2E7D46">▲ verde</strong> = dentro ou acima da meta definida em Administração. <strong style="color:#A9720A">▼ âmbar</strong> = abaixo da meta.</p>
+      <p class="nota">"–" = o lote ainda não chegou nessa idade / ainda não foi pesado nessa checagem. <strong style="color:#C0392B">✕ destacado</strong> = o lote já passou 1 dia da idade da checagem e ainda não tem peso registrado (deveria ter sido pesado no dia do "aniversário"). A coluna <strong>"relação"</strong> ao lado de cada idade (ex: <strong>3,07x</strong>) mostra quantas vezes o frango já ganhou de peso naquela idade, em relação ao peso do alojamento. <strong style="color:#2E7D46">▲ verde</strong> = dentro ou acima da meta; <strong style="color:#A9720A">▼ âmbar</strong> = abaixo da meta. A meta usada é a do <strong>Standard de Peso</strong> (aba ao lado), pela faixa de peso de chegada de cada lote — quando o lote não tem chegada registrada ou a faixa não está cadastrada, usa a meta fixa por idade definida em Administração.</p>
+    </div>
+  </div>
+
+  <!-- ============ STANDARD DE PESO ============ -->
+  <div data-aba-view="standard" style="display:none;">
+    <div class="painel">
+      <div class="painel-header">
+        <h2>Standard de Peso — meta por faixa de chegada</h2>
+        <span class="info" id="pw_infoStandard"></span>
+      </div>
+      <p class="nota" style="margin:0 0 14px;">Referência de peso esperado (kg) em cada idade, de acordo com o peso de chegada do lote (Pm Alojamento) — quanto mais pesado o pintinho chega, maior a meta esperada nas idades seguintes. Essa é a meta usada na Matriz de Peso — Lote em Andamento.</p>
+      <div style="display:flex;gap:10px;margin-bottom:14px;flex-wrap:wrap;" id="pw_standardAcoesAdmin">
+        <button class="btn-recolher" id="pw_btnEditarStandard" type="button">✏️ Editar</button>
+        <button class="btn-recolher" id="pw_btnAddLinhaStandard" type="button" style="display:none;">+ Adicionar faixa</button>
+        <button class="comb-btn-registrar" id="pw_btnSalvarStandard" type="button" style="display:none;width:fit-content;padding:10px 20px;">💾 Salvar</button>
+        <button class="btn-recolher" id="pw_btnCancelarStandard" type="button" style="display:none;border-color:var(--vermelho-alerta);color:var(--vermelho-alerta);">Cancelar</button>
+      </div>
+      <p class="nota" id="pw_erroStandard" style="min-height:16px;"></p>
+      <div class="tabela-scroll" id="pw_scrollStandard">
+        <table class="matriz-diaria" id="pw_tabelaStandard"></table>
+      </div>
     </div>
   </div>
 
@@ -4708,6 +4730,187 @@ if(typeof db !== 'undefined' && !window.METAS_PESO){
   }).catch(()=>{ window.METAS_PESO = {}; });
 }
 
+// Standard de Peso: metas por faixa de peso de chegada (mais precisa que a meta fixa por idade —
+// um lote que chega mais pesado tende a manter a vantagem nas idades seguintes, então a meta
+// certa pra ele é mais alta desde o início). Carrega 1x e reaproveita.
+if(typeof db !== 'undefined' && !window.STANDARD_PESO){
+  db.collection('configuracoes').doc('standard_peso').get().then(doc=>{
+    window.STANDARD_PESO = (doc.exists && Array.isArray(doc.data().linhas)) ? doc.data().linhas : [];
+    window.STANDARD_PESO.sort((a,b)=>a.chegada-b.chegada);
+    if(typeof renderMatrizPeso === 'function') renderMatrizPeso();
+    if(typeof renderStandardPeso === 'function' && abaAtiva==='standard') renderStandardPeso();
+  }).catch(()=>{ window.STANDARD_PESO = []; });
+}
+
+// acha, na tabela de standard, a linha cujo peso de chegada mais se aproxima do peso de chegada
+// real do lote (em gramas) — e devolve a meta (kg) da idade pedida (7/14/21/28/35/42).
+// Se não achar nada (lote sem chegada registrada, ou standard vazio), devolve null.
+function standardMetaPara(pesoChegadaKg, idade){
+  if(pesoChegadaKg==null || !window.STANDARD_PESO || !window.STANDARD_PESO.length) return null;
+  const chegadaG = Math.round(pesoChegadaKg*1000);
+  let melhor = null, menorDist = Infinity;
+  window.STANDARD_PESO.forEach(linha=>{
+    const dist = Math.abs(linha.chegada - chegadaG);
+    if(dist < menorDist){ menorDist = dist; melhor = linha; }
+  });
+  if(!melhor) return null;
+  const campo = 'm'+idade;
+  return melhor[campo]!=null ? melhor[campo] : null;
+}
+// meta final pra uma checagem: tenta o Standard por chegada primeiro, cai pra meta fixa se não achar
+function metaParaCelula(pesoChegadaKg, idade){
+  const doStandard = standardMetaPara(pesoChegadaKg, idade);
+  if(doStandard!=null) return doStandard;
+  return (window.METAS_PESO && window.METAS_PESO[idade]!=null) ? window.METAS_PESO[idade] : null;
+}
+
+// seed inicial (as 15 faixas da tabela de referência) — só entra em uso se a coleção ainda estiver
+// vazia na primeira vez que a aba abrir; depois disso quem manda é o que estiver salvo no Firestore.
+const PW_STANDARD_SEED = [
+  {chegada:36, m7:0.176, m14:0.468, m21:0.960, m28:1.601, m35:2.370, m42:2.968},
+  {chegada:37, m7:0.178, m14:0.473, m21:0.967, m28:1.611, m35:2.379, m42:2.979},
+  {chegada:38, m7:0.180, m14:0.477, m21:0.974, m28:1.621, m35:2.387, m42:2.990},
+  {chegada:39, m7:0.182, m14:0.481, m21:0.982, m28:1.631, m35:2.395, m42:3.001},
+  {chegada:40, m7:0.185, m14:0.485, m21:0.989, m28:1.641, m35:2.404, m42:3.012},
+  {chegada:41, m7:0.187, m14:0.490, m21:0.996, m28:1.651, m35:2.412, m42:3.023},
+  {chegada:42, m7:0.189, m14:0.494, m21:1.004, m28:1.661, m35:2.420, m42:3.034},
+  {chegada:43, m7:0.191, m14:0.498, m21:1.011, m28:1.671, m35:2.429, m42:3.046},
+  {chegada:44, m7:0.193, m14:0.503, m21:1.018, m28:1.681, m35:2.437, m42:3.057},
+  {chegada:45, m7:0.195, m14:0.507, m21:1.026, m28:1.691, m35:2.446, m42:3.068},
+  {chegada:46, m7:0.198, m14:0.511, m21:1.033, m28:1.701, m35:2.454, m42:3.079},
+  {chegada:47, m7:0.200, m14:0.515, m21:1.040, m28:1.711, m35:2.462, m42:3.090},
+  {chegada:48, m7:0.202, m14:0.520, m21:1.047, m28:1.720, m35:2.471, m42:3.101},
+  {chegada:49, m7:0.204, m14:0.524, m21:1.055, m28:1.730, m35:2.479, m42:3.112},
+  {chegada:50, m7:0.206, m14:0.528, m21:1.062, m28:1.740, m35:2.488, m42:3.123}
+];
+
+let pwStandardEditando = false;
+let pwStandardRascunho = [];
+let pwStandardSemeadoNaSessao = false;
+
+const PW_STANDARD_COLS = [
+  {campo:'chegada', label:'Peso de Chegada', casas:0, sufixo:'g'},
+  {campo:'m7',  label:'Meta 7D',  casas:3},
+  {campo:'m14', label:'Meta 14D', casas:3},
+  {campo:'m21', label:'Meta 21D', casas:3},
+  {campo:'m28', label:'Meta 28D', casas:3},
+  {campo:'m35', label:'Meta 35D', casas:3},
+  {campo:'m42', label:'Meta 42D (Ajustado)', casas:3}
+];
+
+async function renderStandardPeso(){
+  const tabela = document.getElementById('pw_tabelaStandard');
+  const info = document.getElementById('pw_infoStandard');
+  const acoesEl = document.getElementById('pw_standardAcoesAdmin');
+  if(!tabela) return;
+
+  // semeia 1x se a coleção ainda estiver vazia (nunca sobrescreve o que já foi salvo)
+  if(!pwStandardSemeadoNaSessao && window.STANDARD_PESO && !window.STANDARD_PESO.length && typeof db!=='undefined'){
+    pwStandardSemeadoNaSessao = true;
+    try{
+      await db.collection('configuracoes').doc('standard_peso').set({linhas: PW_STANDARD_SEED});
+      window.STANDARD_PESO = PW_STANDARD_SEED.slice();
+    }catch(e){ console.error('Erro ao semear Standard de Peso:', e); }
+  }
+
+  const linhas = window.STANDARD_PESO || [];
+  if(info) info.textContent = `${linhas.length} faixa(s) de chegada cadastrada(s)`;
+
+  const souAdmin = !!window.souAdminPrincipal;
+  if(acoesEl) acoesEl.style.display = souAdmin ? 'flex' : 'none';
+
+  if(!linhas.length && !pwStandardEditando){
+    tabela.innerHTML = `<tbody><tr><td style="padding:14px;">Nenhuma faixa cadastrada ainda.${souAdmin?' Clique em "Editar" pra começar.':''}</td></tr></tbody>`;
+    return;
+  }
+
+  const thead = `<thead><tr><th class="rowhead">${PW_STANDARD_COLS[0].label} (g)</th>${PW_STANDARD_COLS.slice(1).map(c=>`<th>${c.label}</th>`).join('')}${pwStandardEditando?'<th></th>':''}</tr></thead>`;
+
+  const fonteLinhas = pwStandardEditando ? pwStandardRascunho : linhas;
+  const corpo = fonteLinhas.map((linha, i)=>{
+    if(pwStandardEditando){
+      return `<tr>
+        <th class="rowhead"><input type="number" step="1" value="${linha.chegada??''}" data-standard-campo="chegada" data-standard-idx="${i}" style="width:64px;padding:6px 8px;border-radius:6px;border:1.5px solid var(--borda);font-family:inherit;font-size:13px;"></th>
+        ${PW_STANDARD_COLS.slice(1).map(c=>`<td><input type="number" step="0.001" value="${linha[c.campo]??''}" data-standard-campo="${c.campo}" data-standard-idx="${i}" style="width:76px;padding:6px 8px;border-radius:6px;border:1.5px solid var(--borda);font-family:inherit;font-size:13px;"></td>`).join('')}
+        <td><button type="button" class="quadro-btn-remover-posto" data-standard-remover="${i}" title="Remover linha">✕</button></td>
+      </tr>`;
+    }
+    return `<tr>
+      <th class="rowhead">${linha.chegada}g</th>
+      ${PW_STANDARD_COLS.slice(1).map(c=>`<td>${linha[c.campo]!=null?linha[c.campo].toFixed(3):'–'}</td>`).join('')}
+    </tr>`;
+  }).join('');
+
+  tabela.innerHTML = thead + `<tbody>${corpo}</tbody>`;
+
+  if(pwStandardEditando){
+    tabela.querySelectorAll('[data-standard-campo]').forEach(input=>{
+      input.addEventListener('input', ()=>{
+        const idx = +input.dataset.standardIdx, campo = input.dataset.standardCampo;
+        const v = input.value === '' ? null : parseFloat(input.value);
+        pwStandardRascunho[idx][campo] = (campo==='chegada' && v!=null) ? Math.round(v) : v;
+      });
+    });
+    tabela.querySelectorAll('[data-standard-remover]').forEach(btn=>{
+      btn.addEventListener('click', ()=>{
+        pwStandardRascunho.splice(+btn.dataset.standardRemover, 1);
+        renderStandardPeso();
+      });
+    });
+  }
+}
+
+function pwStandardAlternarBotoes(editando){
+  document.getElementById('pw_btnEditarStandard').style.display = editando ? 'none' : '';
+  document.getElementById('pw_btnAddLinhaStandard').style.display = editando ? '' : 'none';
+  document.getElementById('pw_btnSalvarStandard').style.display = editando ? '' : 'none';
+  document.getElementById('pw_btnCancelarStandard').style.display = editando ? '' : 'none';
+}
+
+document.getElementById('pw_btnEditarStandard').addEventListener('click', ()=>{
+  pwStandardEditando = true;
+  pwStandardRascunho = (window.STANDARD_PESO||[]).map(l=>({...l}));
+  pwStandardAlternarBotoes(true);
+  renderStandardPeso();
+});
+document.getElementById('pw_btnCancelarStandard').addEventListener('click', ()=>{
+  pwStandardEditando = false;
+  pwStandardAlternarBotoes(false);
+  document.getElementById('pw_erroStandard').textContent = '';
+  renderStandardPeso();
+});
+document.getElementById('pw_btnAddLinhaStandard').addEventListener('click', ()=>{
+  pwStandardRascunho.push({chegada:null, m7:null, m14:null, m21:null, m28:null, m35:null, m42:null});
+  renderStandardPeso();
+});
+document.getElementById('pw_btnSalvarStandard').addEventListener('click', async ()=>{
+  const erroEl = document.getElementById('pw_erroStandard');
+  erroEl.style.color = ''; erroEl.textContent = '';
+  const limpo = pwStandardRascunho.filter(l=>l.chegada!=null);
+  const chaves = limpo.map(l=>l.chegada);
+  if(new Set(chaves).size !== chaves.length){
+    erroEl.style.color = 'var(--vermelho-alerta)';
+    erroEl.textContent = 'Tem 2 linhas com o mesmo peso de chegada — ajuste antes de salvar.';
+    return;
+  }
+  limpo.sort((a,b)=>a.chegada-b.chegada);
+  const btn = document.getElementById('pw_btnSalvarStandard');
+  btn.disabled = true; btn.textContent = 'Salvando...';
+  try{
+    await db.collection('configuracoes').doc('standard_peso').set({linhas: limpo});
+    window.STANDARD_PESO = limpo;
+    pwStandardEditando = false;
+    pwStandardAlternarBotoes(false);
+    renderStandardPeso();
+    if(typeof renderMatrizPeso==='function') renderMatrizPeso();
+  }catch(e){
+    erroEl.style.color = 'var(--vermelho-alerta)'; erroEl.textContent = 'Erro ao salvar: ' + e.message;
+  }finally{
+    btn.disabled = false; btn.textContent = '💾 Salvar';
+  }
+});
+
+
 const IND_PW = {
   pmAbate:   {nome:'Peso ao abate (kg)', dec:3, sufixo:'', melhorMaior:true},
   gmd:       {nome:'GMD (g/dia)',        dec:1, sufixo:'', melhorMaior:true},
@@ -4750,9 +4953,11 @@ document.getElementById('btnLimparFiltrosPw').addEventListener('click', () => {
 document.querySelectorAll('#mod-peso .tab-int').forEach(b=>b.addEventListener('click',()=>{
   document.querySelectorAll('#mod-peso .tab-int').forEach(x=>x.classList.remove('ativo'));
   b.classList.add('ativo'); abaAtiva=b.dataset.aba;
-  ['andamento','historico'].forEach(a=>{
+  ['andamento','standard','historico'].forEach(a=>{
     document.querySelector(`#mod-peso [data-aba-view="${a}"]`).style.display = (a===abaAtiva)?'':'none';
   });
+  const filtrosPainel = document.getElementById('pw_filtrosPainel');
+  if(filtrosPainel) filtrosPainel.style.display = (abaAtiva==='standard') ? 'none' : '';
   render(); window.scrollTo({top:0,behavior:'smooth'});
 }));
 
@@ -4956,7 +5161,9 @@ function renderMatrizPeso(){
       const med = vals.length ? (vals.reduce((s,v)=>s+v,0)/vals.length) : null;
       const valsR = lotesNuc.map(l=>l['r'+c]).filter(v=>v!=null);
       const medR = valsR.length ? (valsR.reduce((s,v)=>s+v,0)/valsR.length) : null;
-      const meta = (window.METAS_PESO && window.METAS_PESO[c]!=null) ? window.METAS_PESO[c] : null;
+      const chegadasNuc = lotesNuc.map(l=>l.pm1).filter(v=>v!=null);
+      const chegadaMediaNuc = chegadasNuc.length ? chegadasNuc.reduce((s,v)=>s+v,0)/chegadasNuc.length : null;
+      const meta = (c===1) ? null : metaParaCelula(chegadaMediaNuc, c);
       let classeMeta = '';
       if(med!=null && meta!=null) classeMeta = med >= meta ? 'peso-acima-meta' : 'peso-abaixo-meta';
       tdsNuc += `<td class="cel ${classeMeta}">${med!=null?med.toFixed(3):'–'}</td>`;
@@ -4978,7 +5185,7 @@ function renderMatrizPeso(){
           const rotulo = c===1 ? 'Chegada' : c+'d';
           // não sinaliza falta de peso na Chegada (1d) nem aos 42d — chegada é opcional pra muita gente registrar, e 42d nem sempre existe (lote pode abater antes ou alguns dias depois)
           const faltando = (v==null && idade!=null && idade >= c+1 && c !== 42 && c !== 1);
-          const meta = (window.METAS_PESO && window.METAS_PESO[c]!=null) ? window.METAS_PESO[c] : null;
+          const meta = (c===1) ? null : metaParaCelula(l.pm1, c);
           let classeMeta = '';
           if(v!=null && meta!=null) classeMeta = v >= meta ? 'peso-acima-meta' : 'peso-abaixo-meta';
           const tituloMeta = (v!=null && meta!=null) ? `title="Meta ${rotulo}: ${meta.toFixed(3)}kg — ${v>=meta?'dentro da meta':'abaixo da meta'}"` : '';
@@ -5161,6 +5368,7 @@ function renderHistorico(){
 function render(){
   const dados = filtrar();
   if(abaAtiva==='andamento'){ renderAndamento(); }
+  else if(abaAtiva==='standard'){ renderStandardPeso(); }
   else if(abaAtiva==='historico'){ renderHistorico(); }
 }
 window.renderPeso = render;
