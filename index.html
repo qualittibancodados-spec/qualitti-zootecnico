@@ -1551,10 +1551,6 @@
     <div class="painel-grafico">
       <div class="painel-grafico-header">
         <h2>Núcleos vs. meta — % atingido por idade</h2>
-        <div class="tabs-internas" id="pw_segGranularidadeStandard" style="margin:0;">
-          <button class="tab-int ativo" data-gran="nucleo">Por núcleo</button>
-          <button class="tab-int" data-gran="lote">Por lote</button>
-        </div>
         <button class="btn-recolher" id="pw_btnExpandirStandard" type="button" style="margin:0;">Expandir todos</button>
         <span class="info" id="pw_infoGraficoStandard"></span>
       </div>
@@ -4911,78 +4907,6 @@ async function renderStandardPeso(){
   }
 }
 
-let pwStandardGranularidade = 'nucleo';
-
-// monta uma linha por núcleo (média dos lotes) ou uma linha por lote, conforme granularidade —
-// reaproveitado tanto na aba Standard de Peso (lotes abertos) quanto no Histórico (lotes fechados).
-function construirLinhasStandard(dadosLotes, porLote){
-  const campos = [7,14,21,28,35,42];
-  if(porLote){
-    return dadosLotes.map(l=>{
-      const pcts = campos.map(c=>{
-        const v = l['pm'+c];
-        const meta = metaParaCelula(l.pm1, c);
-        return (v!=null && meta) ? +(v/meta*100).toFixed(1) : null;
-      });
-      const validos = pcts.filter(p=>p!=null);
-      const media = validos.length ? validos.reduce((a,b)=>a+b,0)/validos.length : null;
-      return {label: `${nomeNucleo(l.nucleo)} · Av. ${l.aviario}`, pcts, media};
-    });
-  }
-  const porNucleo = new Map();
-  dadosLotes.forEach(l=>{ if(!porNucleo.has(l.nucleo)) porNucleo.set(l.nucleo, []); porNucleo.get(l.nucleo).push(l); });
-  return Array.from(porNucleo.keys()).map(nuc=>{
-    const lotesNuc = porNucleo.get(nuc);
-    const chegadas = lotesNuc.map(l=>l.pm1).filter(v=>v!=null);
-    const chegadaMedia = chegadas.length ? chegadas.reduce((s,v)=>s+v,0)/chegadas.length : null;
-    const pcts = campos.map(c=>{
-      const vals = lotesNuc.map(l=>l['pm'+c]).filter(v=>v!=null);
-      const med = vals.length ? vals.reduce((s,v)=>s+v,0)/vals.length : null;
-      const meta = metaParaCelula(chegadaMedia, c);
-      return (med!=null && meta) ? +(med/meta*100).toFixed(1) : null;
-    });
-    const validos = pcts.filter(p=>p!=null);
-    const media = validos.length ? validos.reduce((a,b)=>a+b,0)/validos.length : null;
-    return {label: nomeNucleo(nuc), pcts, media};
-  });
-}
-
-function renderTabelaStandardGenerica(tabelaEl, infoEl, cardsEl, dadosLotes, porLote, rotuloVazio){
-  const campos = [7,14,21,28,35,42];
-  if(!tabelaEl) return;
-  if(!dadosLotes.length){
-    tabelaEl.innerHTML = `<tbody><tr><td style="padding:14px;">${rotuloVazio||'Nenhum lote encontrado com esse filtro.'}</td></tr></tbody>`;
-    if(infoEl) infoEl.textContent = '';
-    if(cardsEl) cardsEl.innerHTML = '';
-    return;
-  }
-  const linhas = construirLinhasStandard(dadosLotes, porLote);
-  linhas.sort((a,b)=>{ if(a.media==null) return 1; if(b.media==null) return -1; return a.media-b.media; });
-
-  const comMedia = linhas.filter(l=>l.media!=null);
-  const dentroMeta = comMedia.filter(l=>l.media>=100).length;
-  const abaixoMeta = comMedia.length - dentroMeta;
-  const mediaGeral = comMedia.length ? comMedia.reduce((s,l)=>s+l.media,0)/comMedia.length : null;
-  const rotuloItem = porLote ? 'Lotes' : 'Núcleos';
-  if(cardsEl){
-    cardsEl.innerHTML = `
-      <div class="card"><div class="label">${rotuloItem} dentro da meta</div><div class="valor" style="color:var(--verde-ok);">${dentroMeta}</div></div>
-      <div class="card"><div class="label">${rotuloItem} abaixo da meta</div><div class="valor" style="color:${abaixoMeta>0?'var(--vermelho-alerta)':'inherit'};">${abaixoMeta}</div></div>
-      <div class="card"><div class="label">Média geral atingida</div><div class="valor">${mediaGeral!=null?mediaGeral.toFixed(1)+'%':'–'}</div></div>
-    `;
-  }
-  if(infoEl) infoEl.textContent = `${linhas.length} ${porLote?'lote(s)':'núcleo(s)'} · pior desempenho primeiro`;
-
-  const corCel = p => p==null ? '' : (p>=100 ? 'peso-acima-meta' : 'peso-abaixo-meta');
-  const thead = `<thead><tr><th class="rowhead">${porLote?'Núcleo / Aviário':'Núcleo'}</th>${campos.map(c=>`<th style="text-align:center;">${c}d</th>`).join('')}<th style="text-align:center;">Média</th></tr></thead>`;
-  const corpo = linhas.map(l=>`<tr>
-    <th class="rowhead">${l.label}</th>
-    ${l.pcts.map(p=>`<td class="cel ${corCel(p)}" style="text-align:center;">${p!=null?p.toFixed(1)+'%':'<span style="color:var(--texto-suave);">–</span>'}</td>`).join('')}
-    <td class="cel ${corCel(l.media)}" style="text-align:center;font-weight:700;">${l.media!=null?l.media.toFixed(1)+'%':'–'}</td>
-  </tr>`).join('');
-  tabelaEl.innerHTML = thead + `<tbody>${corpo}</tbody>`;
-}
-
 let pwStandardNucleosExpandido = new Set();
 let pwStandardNucleosIniciado = false;
 
@@ -5069,7 +4993,6 @@ function renderTabelaStandardPorNucleo(tabelaEl, infoEl, cardsEl, dadosLotes, ro
 
   const btnExp = document.getElementById('pw_btnExpandirStandard');
   if(btnExp){
-    btnExp.style.display = pwStandardGranularidade==='lote' ? 'none' : '';
     const todosExpandidos = nucleosOrd.length>0 && nucleosOrd.every(n=>pwStandardNucleosExpandido.has(n));
     btnExp.textContent = todosExpandidos ? 'Recolher todos' : 'Expandir todos';
     if(!btnExp.dataset.bind){
@@ -5086,32 +5009,14 @@ function renderTabelaStandardPorNucleo(tabelaEl, infoEl, cardsEl, dadosLotes, ro
 
 function renderStandardPesoGrafico(){
   const dados = filtrar().filter(l=>l.situacao==='Aberto');
-  if(pwStandardGranularidade === 'lote'){
-    renderTabelaStandardGenerica(
-      document.getElementById('pw_tabelaGraficoStandard'),
-      document.getElementById('pw_infoGraficoStandard'),
-      document.getElementById('pw_cardsGraficoStandard'),
-      dados, true,
-      'Nenhum lote em andamento no momento pra montar o comparativo.'
-    );
-  } else {
-    renderTabelaStandardPorNucleo(
-      document.getElementById('pw_tabelaGraficoStandard'),
-      document.getElementById('pw_infoGraficoStandard'),
-      document.getElementById('pw_cardsGraficoStandard'),
-      dados,
-      'Nenhum lote em andamento no momento pra montar o comparativo.'
-    );
-  }
+  renderTabelaStandardPorNucleo(
+    document.getElementById('pw_tabelaGraficoStandard'),
+    document.getElementById('pw_infoGraficoStandard'),
+    document.getElementById('pw_cardsGraficoStandard'),
+    dados,
+    'Nenhum lote em andamento no momento pra montar o comparativo.'
+  );
 }
-document.querySelectorAll('#pw_segGranularidadeStandard .tab-int').forEach(btn=>{
-  btn.addEventListener('click', ()=>{
-    document.querySelectorAll('#pw_segGranularidadeStandard .tab-int').forEach(b=>b.classList.remove('ativo'));
-    btn.classList.add('ativo');
-    pwStandardGranularidade = btn.dataset.gran;
-    renderStandardPesoGrafico();
-  });
-});
 
 let histStandardAnosRecolhidos = new Set(), histStandardAnosIniciado = false;
 let histStandardNucleosExpandido = new Set();
