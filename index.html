@@ -1611,7 +1611,7 @@
         <button class="btn-recolher" id="pw_btnExpandirHistStandard" type="button" style="margin:0;">Expandir todos</button>
         <span class="info" id="pw_infoHistoricoStandard"></span>
       </div>
-      <p class="nota-grafico" style="margin:0 0 10px;">Colunas: ano › rodada › idade — clique no ano pra abrir/fechar as rodadas (o último ano já vem aberto). Linhas: núcleo › aviário — clique no núcleo pra ver os aviários dentro dele. Como muitos lotes abatem antes dos 42 dias, é normal ter "–" nas últimas colunas.</p>
+      <p class="nota-grafico" style="margin:0 0 10px;">Colunas: ano › rodada › idade — clique no ano pra abrir/fechar as rodadas (todos vêm recolhidos por padrão, mostrando só a média de cada ano). Linhas: núcleo › aviário — clique no núcleo pra ver os aviários dentro dele. Como muitos lotes abatem antes dos 42 dias, é normal ter "–" nas últimas colunas.</p>
       <div class="cards" id="pw_cardsHistoricoStandard" style="margin-bottom:16px;"></div>
       <div class="tabela-scroll arrastavel" id="pw_scrollHistoricoStandard"><table class="matriz" id="pw_tabelaHistoricoStandard"></table></div>
     </div>
@@ -4984,6 +4984,7 @@ function renderTabelaStandardGenerica(tabelaEl, infoEl, cardsEl, dadosLotes, por
 }
 
 let pwStandardNucleosExpandido = new Set();
+let pwStandardNucleosIniciado = false;
 
 // tabela expansível: linha do núcleo (agregada) + clique pra ver cada aviário dentro dele
 function renderTabelaStandardPorNucleo(tabelaEl, infoEl, cardsEl, dadosLotes, rotuloVazio){
@@ -5011,6 +5012,12 @@ function renderTabelaStandardPorNucleo(tabelaEl, infoEl, cardsEl, dadosLotes, ro
   const porNucleo = new Map();
   dadosLotes.forEach(l=>{ if(!porNucleo.has(l.nucleo)) porNucleo.set(l.nucleo, []); porNucleo.get(l.nucleo).push(l); });
   const nucleosOrd = Array.from(porNucleo.keys());
+  // por padrão essa tabela já abre com todos os núcleos expandidos — só na 1ª vez;
+  // depois disso respeita o que o usuário recolher/expandir manualmente.
+  if(!pwStandardNucleosIniciado){
+    pwStandardNucleosIniciado = true;
+    nucleosOrd.forEach(n=>pwStandardNucleosExpandido.add(n));
+  }
   const linhas = nucleosOrd.map(nuc=>{
     const lotesNuc = porNucleo.get(nuc);
     const agregada = pctsDeLotes(lotesNuc);
@@ -5143,7 +5150,7 @@ function renderHistoricoStandard(dados){
   // só o último ano vem aberto por padrão — só roda 1x, depois respeita o que o usuário mexer
   if(!histStandardAnosIniciado){
     histStandardAnosIniciado = true;
-    histStandardAnosRecolhidos = new Set(anos.slice(0,-1).map(String));
+    histStandardAnosRecolhidos = new Set(anos.map(String));
   }
   if(btnExp) btnExp.style.display = '';
 
