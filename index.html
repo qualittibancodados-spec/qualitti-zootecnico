@@ -240,8 +240,7 @@
   #fer2-tabela td.qfc-col-first .fer2-nome{ font-weight:700; color:var(--texto); font-size:13px; }
   #fer2-tabela th:nth-child(2), #fer2-tabela td:nth-child(2){ min-width:110px; text-align:center; }
   #fer2-tabela th:nth-child(3), #fer2-tabela td:nth-child(3){ min-width:100px; text-align:center; font-size:12px; }
-  #fer2-tabela th:nth-child(4), #fer2-tabela td:nth-child(4){ min-width:100px; text-align:center; font-size:12px; }
-  #fer2-tabela th:nth-child(5), #fer2-tabela td:nth-child(5){ min-width:100px; text-align:center; font-size:12px; border-right:2px solid var(--borda); }
+  #fer2-tabela th:nth-child(4), #fer2-tabela td:nth-child(4){ min-width:100px; text-align:center; font-size:12px; border-right:2px solid var(--borda); }
   #fer2-tabela th.fer2-primeiro-mes, #fer2-tabela td.fer2-primeiro-mes{ border-left:2px solid var(--borda); }
 
   .fer2-linha-resumo th, .fer2-linha-resumo td{ background:#F1F4F7 !important; border-top:2px solid var(--borda) !important; padding:10px 6px !important; }
@@ -951,12 +950,11 @@
   /* a causa do corte era o min-width da tela "vazando" pro papel — zera tudo e distribui em % que somam 100% */
   #fer2-tabela{ width:100% !important; table-layout:fixed !important; font-size:7.5px; }
   #fer2-tabela th, #fer2-tabela td{ min-width:0 !important; max-width:none !important; padding:3px 2px !important; overflow-wrap:break-word; word-break:break-word; white-space:normal !important; }
-  #fer2-tabela th.qfc-col-first, #fer2-tabela td.qfc-col-first{ width:12% !important; text-align:left !important; }
-  #fer2-tabela th:nth-child(2), #fer2-tabela td:nth-child(2){ width:6% !important; }
-  #fer2-tabela th:nth-child(3), #fer2-tabela td:nth-child(3){ width:7% !important; }
-  #fer2-tabela th:nth-child(4), #fer2-tabela td:nth-child(4){ width:7% !important; }
-  #fer2-tabela th:nth-child(5), #fer2-tabela td:nth-child(5){ width:7% !important; }
-  #fer2-tabela th.fer2-col-mes, #fer2-tabela td.fer2-col-mes{ width:5% !important; }
+  #fer2-tabela th.qfc-col-first, #fer2-tabela td.qfc-col-first{ width:14% !important; text-align:left !important; }
+  #fer2-tabela th:nth-child(2), #fer2-tabela td:nth-child(2){ width:7% !important; }
+  #fer2-tabela th:nth-child(3), #fer2-tabela td:nth-child(3){ width:8% !important; }
+  #fer2-tabela th:nth-child(4), #fer2-tabela td:nth-child(4){ width:8% !important; }
+  #fer2-tabela th.fer2-col-mes, #fer2-tabela td.fer2-col-mes{ width:5.25% !important; }
   #fer2-tabela .fer2-nome{ font-size:7.5px !important; }
   #fer2-tabela .fer2-badge-cargo{ font-size:7px !important; padding:1px 5px !important; }
   #fer2-tabela .fer2-periodo-chip{ font-size:7.5px !important; padding:2px 4px !important; }
@@ -1748,9 +1746,8 @@
               <button type="button" id="fer2-modalFechar" class="fer2-modal-fechar">✕</button>
             </div>
             <div class="fer2-modal-corpo">
-              <div class="campo"><label>Início do período aquisitivo</label><input type="date" id="fer2-fInicioPeriodo"></div>
+              <div class="campo"><label>Fim do período aquisitivo</label><input type="date" id="fer2-fFimPeriodo"></div>
               <div class="fer2-modal-calculado" id="fer2-modalCalculado" style="display:none;">
-                <div><span>Fim do período</span><strong id="fer2-txtFimPeriodo">—</strong></div>
                 <div><span>Prazo máximo p/ tirar férias</span><strong id="fer2-txtPrazoMaximo">—</strong></div>
               </div>
               <div class="campo"><label>Início das férias</label><input type="date" id="fer2-fInicio"></div>
@@ -7113,19 +7110,19 @@ function fer2Aviarios(atrib){
 }
 
 // renovação automática do período aquisitivo: quando as férias planejadas de alguém já
-// terminaram (hoje passou do "fim" das férias), o próximo ciclo começa sozinho a partir de
-// onde o período aquisitivo anterior terminava — sem precisar editar nada na mão. Já limpa
-// férias/substituto pra esse novo ciclo, já que é um período novo, ainda sem planejamento.
+// terminaram (hoje passou do "fim" das férias), o próximo ciclo começa sozinho — o novo
+// Fim do Período é sempre o Fim do Período anterior + 12 meses. Já limpa férias/substituto
+// pra esse novo ciclo, já que é um período novo, ainda sem planejamento.
 async function fer2RenovarPeriodosVencidos(){
   const hoje = new Date().toISOString().slice(0,10);
   const lote = db.batch();
   let renovados = 0;
   fer2Planos.forEach((plano, chave)=>{
     if(!plano.id || !plano.fim || plano.fim >= hoje) return; // só quem já terminou as férias marcadas
-    if(!plano.inicioPeriodo) return; // sem período aquisitivo registrado, não dá pra calcular o próximo
-    const fimPeriodoAnterior = fer2FimPeriodo(plano.inicioPeriodo);
-    if(!fimPeriodoAnterior || fimPeriodoAnterior === plano.inicioPeriodo) return;
-    const dados = { inicioPeriodo: fimPeriodoAnterior, inicio: null, fim: null, substituto: null };
+    if(!plano.fimPeriodo) return; // sem período aquisitivo registrado, não dá pra calcular o próximo
+    const novoFimPeriodo = fer2SomarMeses(plano.fimPeriodo, 12);
+    if(!novoFimPeriodo || novoFimPeriodo === plano.fimPeriodo) return;
+    const dados = { fimPeriodo: novoFimPeriodo, inicio: null, fim: null, substituto: null };
     lote.set(db.collection('ferias_planejamento').doc(plano.id), dados, {merge:true});
     fer2Planos.set(chave, {...plano, ...dados});
     renovados++;
@@ -7165,7 +7162,7 @@ async function iniciarFerias(){
     document.getElementById('fer2-modalFundo').addEventListener('click', (e)=>{ if(e.target.id==='fer2-modalFundo') fer2FecharModal(); });
     document.getElementById('fer2-btnSalvarPlano').addEventListener('click', fer2SalvarPlano);
     document.getElementById('fer2-btnLimparPlano').addEventListener('click', fer2RemoverPlano);
-    document.getElementById('fer2-fInicioPeriodo').addEventListener('input', fer2AtualizarCalculado);
+    document.getElementById('fer2-fFimPeriodo').addEventListener('input', fer2AtualizarCalculado);
     document.getElementById('fer2-btnImprimir').addEventListener('click', ()=>{
       document.getElementById('fer2-print-data').textContent = 'Gerado em ' + new Date().toLocaleString('pt-BR');
       window.print();
@@ -7180,7 +7177,10 @@ async function fer2CarregarPlanos(){
     const snap = await db.collection('ferias_planejamento').get();
     snap.forEach(doc=>{
       const d = doc.data();
-      fer2Planos.set(fer2Chave(d.nome), {id: doc.id, inicioPeriodo: d.inicioPeriodo||null, inicio: d.inicio||null, fim: d.fim||null, substituto: d.substituto||null});
+      // compatibilidade com registros salvos antes da mudança pra "Fim do Período" direto —
+      // quem só tinha o Início salvo, converte pra Fim (Início + 12 meses) automaticamente.
+      const fimPeriodo = d.fimPeriodo || (d.inicioPeriodo ? fer2SomarMeses(d.inicioPeriodo, 12) : null);
+      fer2Planos.set(fer2Chave(d.nome), {id: doc.id, fimPeriodo, inicio: d.inicio||null, fim: d.fim||null, substituto: d.substituto||null});
     });
   }catch(e){ fer2Planos = new Map(); }
 }
@@ -7248,10 +7248,8 @@ function fer2SomarMeses(dataISO, meses){
   const dt = new Date(Date.UTC(a, m-1+meses, d));
   return dt.toISOString().slice(0,10);
 }
-// período aquisitivo é sempre 12 meses exatos, contado do início informado
-function fer2FimPeriodo(inicioPeriodo){ return fer2SomarMeses(inicioPeriodo, 12); }
 // prazo máximo pra tirar as férias = fim do período aquisitivo + 6 meses (período concessivo interno)
-function fer2PrazoMaximo(inicioPeriodo){ const fim = fer2FimPeriodo(inicioPeriodo); return fim ? fer2SomarMeses(fim, 6) : null; }
+function fer2PrazoMaximo(fimPeriodo){ return fimPeriodo ? fer2SomarMeses(fimPeriodo, 6) : null; }
 
 function fer2Render(){
   const cardsEl = document.getElementById('fer2-cards');
@@ -7271,13 +7269,12 @@ function fer2Render(){
     const plano = fer2Planos.get(fer2Chave(r.nome));
     const temPlano = !!(plano && plano.inicio && plano.fim);
     const semSub = temPlano && !fer2Norm(plano.substituto);
-    const inicioPeriodo = plano && plano.inicioPeriodo || null;
-    const fimPeriodo = inicioPeriodo ? fer2FimPeriodo(inicioPeriodo) : null;
-    const prazoMaximo = inicioPeriodo ? fer2PrazoMaximo(inicioPeriodo) : null;
+    const fimPeriodo = plano && plano.fimPeriodo || null;
+    const prazoMaximo = fimPeriodo ? fer2PrazoMaximo(fimPeriodo) : null;
     const hoje = new Date().toISOString().slice(0,10);
     const cobreAteOFim = temPlano && prazoMaximo && plano.fim >= prazoMaximo; // férias já marcada cobre (ou passa) o prazo máximo
     const prazoUrgente = !!(prazoMaximo && !cobreAteOFim && fer2SomarMeses(hoje,2) >= prazoMaximo); // vence em até 2 meses (ou já venceu) e ainda não tem férias que resolvam isso
-    return {plano, temPlano, semSub, inicioPeriodo, fimPeriodo, prazoMaximo, prazoUrgente};
+    return {plano, temPlano, semSub, fimPeriodo, prazoMaximo, prazoUrgente};
   };
 
   const linhas = roster.filter(r=>{
@@ -7330,7 +7327,6 @@ function fer2Render(){
     <tr>
       <th class="qfc-col-first">Funcionário</th>
       <th>Cargo</th>
-      <th>Início do Período</th>
       <th>Fim do Período</th>
       <th>Prazo Máximo</th>
       ${meses.map((m,i)=>`<th class="fer2-col-mes ${i===0?'fer2-mes-atual fer2-primeiro-mes':''}">${m.label}</th>`).join('')}
@@ -7364,7 +7360,6 @@ function fer2Render(){
         <div class="fer2-nome">${r.nome}</div>
       </th>
       <td data-fer2-abrir="${chave}" style="cursor:pointer;"><span class="fer2-badge-cargo ${r.papel==='Granjeiro'?'granjeiro':'ajudante'}">${r.papel}</span></td>
-      <td data-fer2-abrir="${chave}" style="cursor:pointer;">${plano&&plano.inicioPeriodo ? reg_formatarDataBR(plano.inicioPeriodo) : '<span class="fer2-vazio">–</span>'}</td>
       <td data-fer2-abrir="${chave}" style="cursor:pointer;">${fimPeriodo ? reg_formatarDataBR(fimPeriodo) : '<span class="fer2-vazio">–</span>'}</td>
       <td data-fer2-abrir="${chave}" style="cursor:pointer;">${prazoMaximo ? `<span class="${prazoUrgente?'fer2-prazo-urgente':''}">${reg_formatarDataBR(prazoMaximo)}</span>` : '<span class="fer2-vazio">–</span>'}</td>
       ${celulas}
@@ -7386,7 +7381,8 @@ function fer2Render(){
     return {deFerias, comSubstituto};
   });
   const linhaResumo = `<tr class="fer2-linha-resumo">
-    <th class="qfc-col-first" colspan="5">Resumo do mês <span style="font-weight:400;text-transform:none;">— todo o quadro</span></th>
+    <th class="qfc-col-first">Resumo do mês</th>
+    <td colspan="3" style="text-align:left;color:var(--texto-suave);font-size:11px;font-weight:600;">todo o quadro</td>
     ${resumoMensal.map((r,i)=>`<td class="fer2-col-mes ${i===0?'fer2-mes-atual fer2-primeiro-mes':''}">
       <div class="fer2-resumo-bloco">
         <div class="fer2-resumo-item"><span class="fer2-resumo-num">${r.deFerias}</span><span class="fer2-resumo-rotulo">Férias</span></div>
@@ -7409,7 +7405,7 @@ function fer2AbrirModal(chave){
   const plano = fer2Planos.get(chave);
   document.getElementById('fer2-modalNome').textContent = pessoa.nome;
   document.getElementById('fer2-modalSub').textContent = `${pessoa.papel} · ${fer2ResumoAtribuicoes(pessoa.atribuicoes)||'sem aviário vinculado'}`;
-  document.getElementById('fer2-fInicioPeriodo').value = (plano && plano.inicioPeriodo) || '';
+  document.getElementById('fer2-fFimPeriodo').value = (plano && plano.fimPeriodo) || '';
   document.getElementById('fer2-fInicio').value = (plano && plano.inicio) || '';
   document.getElementById('fer2-fFim').value = (plano && plano.fim) || '';
   document.getElementById('fer2-fSub').value = (plano && plano.substituto) || '';
@@ -7419,15 +7415,13 @@ function fer2AbrirModal(chave){
   document.getElementById('fer2-modalFundo').style.display = 'flex';
 }
 function fer2AtualizarCalculado(){
-  const inicioPeriodo = document.getElementById('fer2-fInicioPeriodo').value;
+  const fimPeriodo = document.getElementById('fer2-fFimPeriodo').value;
   const bloco = document.getElementById('fer2-modalCalculado');
-  if(!inicioPeriodo){ bloco.style.display = 'none'; return; }
+  if(!fimPeriodo){ bloco.style.display = 'none'; return; }
   bloco.style.display = '';
-  const fimPeriodo = fer2FimPeriodo(inicioPeriodo);
-  const prazoMaximo = fer2PrazoMaximo(inicioPeriodo);
+  const prazoMaximo = fer2PrazoMaximo(fimPeriodo);
   const hoje = new Date().toISOString().slice(0,10);
   const urgente = fer2SomarMeses(hoje,2) >= prazoMaximo;
-  document.getElementById('fer2-txtFimPeriodo').textContent = reg_formatarDataBR(fimPeriodo);
   const elPrazo = document.getElementById('fer2-txtPrazoMaximo');
   elPrazo.textContent = reg_formatarDataBR(prazoMaximo);
   elPrazo.classList.toggle('fer2-prazo-urgente', urgente);
@@ -7439,7 +7433,7 @@ function fer2FecharModal(){
 async function fer2SalvarPlano(){
   const erroEl = document.getElementById('fer2-modalErro');
   erroEl.style.color=''; erroEl.textContent = '';
-  const inicioPeriodo = document.getElementById('fer2-fInicioPeriodo').value;
+  const fimPeriodo = document.getElementById('fer2-fFimPeriodo').value;
   const inicio = document.getElementById('fer2-fInicio').value;
   const fim = document.getElementById('fer2-fFim').value;
   const substituto = document.getElementById('fer2-fSub').value.trim();
@@ -7447,7 +7441,7 @@ async function fer2SalvarPlano(){
   if(inicio && fim && fim < inicio){ erroEl.style.color='var(--vermelho-alerta)'; erroEl.textContent = 'A data de fim não pode ser antes do início.'; return; }
   const chave = fer2Chave(fer2NomeAtual);
   const existente = fer2Planos.get(chave);
-  const dados = { nome: fer2NomeAtual, inicioPeriodo: inicioPeriodo || null, inicio: inicio || null, fim: fim || null, substituto: substituto || null };
+  const dados = { nome: fer2NomeAtual, fimPeriodo: fimPeriodo || null, inicio: inicio || null, fim: fim || null, substituto: substituto || null };
   const btn = document.getElementById('fer2-btnSalvarPlano');
   btn.disabled = true; btn.textContent = 'Salvando...';
   try{
