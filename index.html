@@ -224,36 +224,42 @@
   .qfc-status-falta{ color:var(--vermelho-alerta); font-weight:700; }
   .qfc-linha-total th, .qfc-linha-total td{ border-top:3px solid var(--texto); border-bottom:3px solid var(--texto); font-weight:800; font-size:14px; background:var(--card); padding-top:15px; padding-bottom:15px; }
 
-  /* ===== Planejamento de Férias — grade de 12 meses ===== */
-  #fer2-tabela{ font-size:12px; }
-  #fer2-tabela tbody tr:not(.qfc-linha-nucleo):not(.qfc-linha-total):not(.fer2-linha-resumo):hover td{ background:#FAFAF8; }
-  #fer2-tabela tbody tr:nth-child(even):not(.qfc-linha-nucleo):not(.qfc-linha-total):not(.fer2-linha-resumo) td{ background:#FCFCFB; }
-  #fer2-tabela tbody tr:nth-child(even):not(.qfc-linha-nucleo):not(.qfc-linha-total):not(.fer2-linha-resumo):hover td{ background:#F7F6F2; }
-  #fer2-tabela tbody tr:nth-child(even) td.fer2-mes-atual{ background:#FAF5E5; }
+  /* ===== Planejamento de Férias — grade de 12 meses (redesenho) ===== */
+  #fer2-tabela{ font-size:12.5px; border-collapse:separate; border-spacing:0; }
+  #fer2-tabela thead th{ background:#FBF7EE; color:var(--texto-suave); font-weight:700; text-transform:uppercase; letter-spacing:.03em; font-size:10.5px; padding:11px 10px; border-bottom:2px solid var(--borda); white-space:nowrap; }
+  #fer2-tabela tbody td, #fer2-tabela tbody th.qfc-col-first{ border-bottom:1px solid var(--borda); }
+  #fer2-tabela tbody tr:not(.fer2-linha-resumo):hover td, #fer2-tabela tbody tr:not(.fer2-linha-resumo):hover th.qfc-col-first{ background:#FBFAF6; }
   #fer2-tabela td, #fer2-tabela th{ transition:background .1s; }
-  #fer2-tabela td.fer2-col-mes{ text-align:center; min-width:58px; padding:7px 4px; }
-  #fer2-tabela th.fer2-col-mes{ text-align:center; min-width:58px; font-size:11px; letter-spacing:.02em; padding:8px 4px; }
-  #fer2-tabela th:nth-child(2), #fer2-tabela td:nth-child(2){ min-width:88px; text-align:center; }
-  #fer2-tabela th:nth-child(3), #fer2-tabela td:nth-child(3){ min-width:92px; text-align:center; font-size:11.5px; }
-  #fer2-tabela th:nth-child(4), #fer2-tabela td:nth-child(4){ min-width:92px; text-align:center; font-size:11.5px; }
-  #fer2-tabela th:nth-child(5), #fer2-tabela td:nth-child(5){ min-width:92px; text-align:center; font-size:11.5px; }
-  #fer2-tabela th.fer2-mes-atual{ background:#F6EFD8; }
-  #fer2-tabela td.fer2-mes-atual{ background:#FCFAF3; }
-  #fer2-tabela td.qfc-col-first{ padding:7px 12px; }
-  #fer2-tabela td.fer2-col-first .fer2-nome{ font-weight:700; color:var(--texto); font-size:12.5px; }
-  #fer2-tabela .fer2-borda-direita{ border-right:2px solid var(--borda); }
-  .fer2-linha-resumo th, .fer2-linha-resumo td{ background:#F1F4F7 !important; border-top:2px solid var(--borda); padding:8px 4px !important; }
+  #fer2-tabela td.fer2-col-mes{ text-align:center; min-width:82px; padding:9px 6px; vertical-align:middle; }
+  #fer2-tabela th.fer2-col-mes{ text-align:center; min-width:82px; }
+  #fer2-tabela th.fer2-mes-atual{ color:var(--vermelho-escuro); box-shadow:inset 0 -3px 0 var(--dourado); }
+  #fer2-tabela td.fer2-mes-atual{ background:#FFFBF0; }
+  #fer2-tabela tbody tr:hover td.fer2-mes-atual{ background:#FBF3DC; }
+  #fer2-tabela th.qfc-col-first{ background:#FBF7EE; }
+  #fer2-tabela td.qfc-col-first{ padding:10px 14px; }
+  #fer2-tabela td.qfc-col-first .fer2-nome{ font-weight:700; color:var(--texto); font-size:13px; }
+  #fer2-tabela th:nth-child(2), #fer2-tabela td:nth-child(2){ min-width:110px; text-align:center; }
+  #fer2-tabela th:nth-child(3), #fer2-tabela td:nth-child(3){ min-width:100px; text-align:center; font-size:12px; }
+  #fer2-tabela th:nth-child(4), #fer2-tabela td:nth-child(4){ min-width:100px; text-align:center; font-size:12px; }
+  #fer2-tabela th:nth-child(5), #fer2-tabela td:nth-child(5){ min-width:100px; text-align:center; font-size:12px; border-right:2px solid var(--borda); }
+  #fer2-tabela th.fer2-primeiro-mes, #fer2-tabela td.fer2-primeiro-mes{ border-left:2px solid var(--borda); }
+
+  .fer2-linha-resumo th, .fer2-linha-resumo td{ background:#F1F4F7 !important; border-top:2px solid var(--borda) !important; padding:10px 6px !important; }
   .fer2-linha-resumo th.qfc-col-first{ font-weight:700; font-size:11.5px; color:var(--texto-suave); text-transform:uppercase; letter-spacing:.02em; }
-  .fer2-resumo-num{ display:block; font-weight:800; font-size:12.5px; color:var(--texto); line-height:1.5; }
+  .fer2-resumo-bloco{ display:flex; justify-content:center; gap:10px; }
+  .fer2-resumo-item{ text-align:center; }
+  .fer2-resumo-num{ display:block; font-weight:800; font-size:14px; color:var(--texto); line-height:1.2; }
   .fer2-resumo-num.alerta{ color:var(--vermelho-alerta); }
-  .fer2-resumo-rotulo{ display:block; font-size:8.5px; color:var(--texto-suave); text-transform:uppercase; letter-spacing:.02em; }
-  .fer2-badge-cargo{ display:inline-block; font-size:10px; font-weight:700; padding:2px 8px; border-radius:20px; letter-spacing:.01em; }
+  .fer2-resumo-rotulo{ display:block; font-size:8px; color:var(--texto-suave); text-transform:uppercase; letter-spacing:.02em; margin-top:1px; }
+
+  .fer2-badge-cargo{ display:inline-block; font-size:10.5px; font-weight:700; padding:3px 10px; border-radius:20px; letter-spacing:.01em; }
   .fer2-badge-cargo.granjeiro{ background:#EAF4FF; color:#1D5A96; }
   .fer2-badge-cargo.ajudante{ background:#F1ECFB; color:#5B3FA6; }
-  .fer2-chip-sim{ display:inline-block; background:#E7F6EF; color:var(--verde-ok); font-weight:700; border-radius:6px; padding:2px 8px; font-size:10.5px; }
-  .fer2-chip-sub{ display:block; font-size:9.5px; color:var(--texto-suave); margin-top:2px; max-width:56px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; margin-left:auto; margin-right:auto; }
-  .fer2-chip-sub.falta{ color:var(--vermelho-alerta); font-weight:700; }
-  .fer2-vazio{ color:#D5D9DE; cursor:pointer; font-size:12px; }
+
+  .fer2-periodo-chip{ display:inline-block; background:#FDF1DC; color:#8A6200; font-weight:800; border-radius:7px; padding:4px 10px; font-size:12px; letter-spacing:.01em; }
+  .fer2-nome-substituto{ display:block; font-size:10.5px; color:var(--texto-suave); margin-top:4px; font-weight:500; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; max-width:100%; }
+  .fer2-nome-substituto.falta{ color:var(--vermelho-alerta); font-weight:700; }
+  .fer2-vazio{ color:#D5D9DE; cursor:pointer; font-size:13px; }
   .fer2-vazio:hover{ color:var(--texto-suave); }
   .fer2-prazo-urgente{ color:var(--vermelho-alerta); font-weight:700; }
 
@@ -928,7 +934,7 @@
 
 #fer2-print-header{ display:none; }
 @media print{
-  @page{ size: landscape; margin: 10mm; }
+  @page{ size: landscape; margin: 8mm; }
   body *{ visibility:hidden; }
   #mod-quadro [data-aba-qf-view="ferias"] *,
   #mod-quadro [data-aba-qf-view="ferias"]{ visibility:visible; }
@@ -942,11 +948,21 @@
   #fer2-print-header .qf-print-titulos h1{ font-size:16px; margin:0; font-family:'Sora',sans-serif; }
   #fer2-print-header .qf-print-titulos p{ font-size:10px; margin:2px 0 0; color:#666; }
   #fer2-scroll{ overflow:visible !important; width:100% !important; }
-  #fer2-tabela{ width:100% !important; table-layout:fixed; font-size:8px; }
-  #fer2-tabela th, #fer2-tabela td{ padding:3px 2px !important; overflow-wrap:break-word; word-break:break-word; white-space:normal !important; }
-  #fer2-tabela .fer2-chip-sub{ max-width:none !important; white-space:normal !important; }
-  #fer2-tabela th.qfc-col-first, #fer2-tabela td.qfc-col-first{ width:13%; text-align:left !important; }
-  .qfc-linha-total th, .qfc-linha-total td{ border-top:2px solid #333 !important; }
+  /* a causa do corte era o min-width da tela "vazando" pro papel — zera tudo e distribui em % que somam 100% */
+  #fer2-tabela{ width:100% !important; table-layout:fixed !important; font-size:7.5px; }
+  #fer2-tabela th, #fer2-tabela td{ min-width:0 !important; max-width:none !important; padding:3px 2px !important; overflow-wrap:break-word; word-break:break-word; white-space:normal !important; }
+  #fer2-tabela th.qfc-col-first, #fer2-tabela td.qfc-col-first{ width:12% !important; text-align:left !important; }
+  #fer2-tabela th:nth-child(2), #fer2-tabela td:nth-child(2){ width:6% !important; }
+  #fer2-tabela th:nth-child(3), #fer2-tabela td:nth-child(3){ width:7% !important; }
+  #fer2-tabela th:nth-child(4), #fer2-tabela td:nth-child(4){ width:7% !important; }
+  #fer2-tabela th:nth-child(5), #fer2-tabela td:nth-child(5){ width:7% !important; }
+  #fer2-tabela th.fer2-col-mes, #fer2-tabela td.fer2-col-mes{ width:5% !important; }
+  #fer2-tabela .fer2-nome{ font-size:7.5px !important; }
+  #fer2-tabela .fer2-badge-cargo{ font-size:7px !important; padding:1px 5px !important; }
+  #fer2-tabela .fer2-periodo-chip{ font-size:7.5px !important; padding:2px 4px !important; }
+  #fer2-tabela .fer2-nome-substituto{ font-size:6.5px !important; white-space:normal !important; max-width:none !important; }
+  #fer2-tabela .fer2-resumo-num{ font-size:8.5px !important; }
+  #fer2-tabela .fer2-resumo-rotulo{ font-size:5.5px !important; }
   .fer2-linha-resumo th, .fer2-linha-resumo td{ border-top:2px solid #333 !important; }
   #fer2-tabela tr{ page-break-inside:avoid; }
   thead{ display:table-header-group; }
@@ -7317,7 +7333,7 @@ function fer2Render(){
       <th>Início do Período</th>
       <th>Fim do Período</th>
       <th>Prazo Máximo</th>
-      ${meses.map((m,i)=>`<th class="fer2-col-mes fer2-borda-direita ${i===0?'fer2-mes-atual':''}">${m.label}</th>`).join('')}
+      ${meses.map((m,i)=>`<th class="fer2-col-mes ${i===0?'fer2-mes-atual fer2-primeiro-mes':''}">${m.label}</th>`).join('')}
     </tr>
   </thead>`;
 
@@ -7325,23 +7341,28 @@ function fer2Render(){
     const chave = fer2Chave(r.nome);
     const {plano, temPlano, semSub, fimPeriodo, prazoMaximo, prazoUrgente} = statusDe(r);
     const celulas = meses.map((m,i)=>{
-      const classeMes = i===0 ? 'fer2-mes-atual' : '';
+      const classeMes = (i===0 ? 'fer2-mes-atual fer2-primeiro-mes' : '');
       if(!temPlano){
-        return `<td class="fer2-col-mes ${classeMes} fer2-borda-direita" data-fer2-abrir="${chave}"><span class="fer2-vazio">–</span></td>`;
+        return `<td class="fer2-col-mes ${classeMes}" data-fer2-abrir="${chave}"><span class="fer2-vazio">–</span></td>`;
       }
       const cruza = plano.inicio <= fer2UltimoDiaMes(m.ano,m.mes) && plano.fim >= fer2PrimeiroDiaMes(m.ano,m.mes);
       if(!cruza){
-        return `<td class="fer2-col-mes ${classeMes} fer2-borda-direita" data-fer2-abrir="${chave}"><span class="fer2-vazio">–</span></td>`;
+        return `<td class="fer2-col-mes ${classeMes}" data-fer2-abrir="${chave}"><span class="fer2-vazio">–</span></td>`;
       }
-      return `<td class="fer2-col-mes ${classeMes} fer2-borda-direita" data-fer2-abrir="${chave}">
-        <span class="fer2-chip-sim">Sim</span>
-        <span class="${semSub?'fer2-chip-sub falta':'fer2-chip-sub'}" title="${fer2Norm(plano.substituto)||'sem substituto'}">${fer2Norm(plano.substituto)||'sem subst.'}</span>
+      // mostra só a parte do período que cai dentro deste mês (ex: férias 21/set a 01/out mostra "21–30" em Set e "01" em Out)
+      const iniMes = fer2PrimeiroDiaMes(m.ano,m.mes), fimMes = fer2UltimoDiaMes(m.ano,m.mes);
+      const diaIni = (plano.inicio > iniMes ? plano.inicio : iniMes).slice(8,10);
+      const diaFim = (plano.fim < fimMes ? plano.fim : fimMes).slice(8,10);
+      const faixa = diaIni===diaFim ? diaIni : `${diaIni}–${diaFim}`;
+      return `<td class="fer2-col-mes ${classeMes}" data-fer2-abrir="${chave}">
+        <span class="fer2-periodo-chip">${faixa}</span>
+        <span class="fer2-nome-substituto ${semSub?'falta':''}" title="${fer2Norm(plano.substituto)||'sem substituto definido'}">${fer2Norm(plano.substituto)||'sem substituto'}</span>
       </td>`;
     }).join('');
     return `<tr>
-      <td class="qfc-col-first" data-fer2-abrir="${chave}" style="cursor:pointer;">
+      <th class="qfc-col-first" data-fer2-abrir="${chave}" style="cursor:pointer;font-weight:400;text-align:left;">
         <div class="fer2-nome">${r.nome}</div>
-      </td>
+      </th>
       <td data-fer2-abrir="${chave}" style="cursor:pointer;"><span class="fer2-badge-cargo ${r.papel==='Granjeiro'?'granjeiro':'ajudante'}">${r.papel}</span></td>
       <td data-fer2-abrir="${chave}" style="cursor:pointer;">${plano&&plano.inicioPeriodo ? reg_formatarDataBR(plano.inicioPeriodo) : '<span class="fer2-vazio">–</span>'}</td>
       <td data-fer2-abrir="${chave}" style="cursor:pointer;">${fimPeriodo ? reg_formatarDataBR(fimPeriodo) : '<span class="fer2-vazio">–</span>'}</td>
@@ -7365,10 +7386,12 @@ function fer2Render(){
     return {deFerias, comSubstituto};
   });
   const linhaResumo = `<tr class="fer2-linha-resumo">
-    <th class="qfc-col-first" colspan="5">Resumo do mês (todo o quadro)</th>
-    ${resumoMensal.map((r,i)=>`<td class="fer2-col-mes fer2-borda-direita ${i===0?'fer2-mes-atual':''}">
-      <span class="fer2-resumo-num">${r.deFerias}</span><span class="fer2-resumo-rotulo">férias</span>
-      <span class="fer2-resumo-num ${r.deFerias>r.comSubstituto?'alerta':''}">${r.comSubstituto}</span><span class="fer2-resumo-rotulo">c/ subst.</span>
+    <th class="qfc-col-first" colspan="5">Resumo do mês <span style="font-weight:400;text-transform:none;">— todo o quadro</span></th>
+    ${resumoMensal.map((r,i)=>`<td class="fer2-col-mes ${i===0?'fer2-mes-atual fer2-primeiro-mes':''}">
+      <div class="fer2-resumo-bloco">
+        <div class="fer2-resumo-item"><span class="fer2-resumo-num">${r.deFerias}</span><span class="fer2-resumo-rotulo">Férias</span></div>
+        <div class="fer2-resumo-item"><span class="fer2-resumo-num ${r.deFerias>r.comSubstituto?'alerta':''}">${r.comSubstituto}</span><span class="fer2-resumo-rotulo">C/ subst.</span></div>
+      </div>
     </td>`).join('')}
   </tr>`;
 
