@@ -1528,6 +1528,10 @@
     <div class="painel-grafico">
       <div class="painel-grafico-header">
         <h2>Núcleos vs. meta — % atingido por idade</h2>
+        <div class="tabs-internas" id="pw_segGranularidadeStandard" style="margin:0;">
+          <button class="tab-int ativo" data-gran="nucleo">Por núcleo</button>
+          <button class="tab-int" data-gran="lote">Por lote</button>
+        </div>
         <span class="info" id="pw_infoGraficoStandard"></span>
       </div>
       <p class="nota-grafico" style="margin:0 0 10px;">100% = bateu a meta exata daquela idade, pela faixa de chegada de cada lote. Acima de 100% está passando da meta; abaixo, está atrasado. <strong style="color:#2E7D46">Verde</strong> = na meta ou acima; <strong style="color:#A9720A">âmbar</strong> = abaixo. Ordenado do pior pro melhor desempenho médio, pra quem precisa de atenção aparecer primeiro. Só núcleos com lote em andamento aparecem aqui.</p>
@@ -1575,6 +1579,16 @@
       <div id="pw_chipsNucleos" class="chips-nucleos"></div>
       <div class="chart-wrap"><canvas id="pw_chartCurvaNucleo"></canvas></div>
       <div class="legenda-custom" id="pw_legendaCurvaNucleo"></div>
+    </div>
+
+    <div class="painel-grafico">
+      <div class="painel-grafico-header">
+        <h2>Alcance do Standard de Peso — lotes fechados</h2>
+        <span class="info" id="pw_infoHistoricoStandard"></span>
+      </div>
+      <p class="nota-grafico" style="margin:0 0 10px;">Mesma leitura da aba Standard de Peso, só que aqui já é o resultado final dos lotes fechados — usa os mesmos filtros de Ano/Núcleo/Linhagem/Sexo desta tela. Como muitos lotes abatem antes dos 42 dias, é normal ter "–" nas últimas colunas.</p>
+      <div class="cards" id="pw_cardsHistoricoStandard" style="margin-bottom:16px;"></div>
+      <div class="tabela-scroll" id="pw_scrollHistoricoStandard"><table class="matriz-diaria" id="pw_tabelaHistoricoStandard"></table></div>
     </div>
   </div>
 
@@ -4872,27 +4886,27 @@ async function renderStandardPeso(){
   }
 }
 
-function renderStandardPesoGrafico(){
-  const tabela = document.getElementById('pw_tabelaGraficoStandard');
-  const infoEl = document.getElementById('pw_infoGraficoStandard');
-  const cardsEl = document.getElementById('pw_cardsGraficoStandard');
-  if(!tabela) return;
+let pwStandardGranularidade = 'nucleo';
 
-  const abertos = PESO_LOTES.filter(l=>l.situacao==='Aberto');
-  const porNucleo = new Map();
-  abertos.forEach(l=>{ if(!porNucleo.has(l.nucleo)) porNucleo.set(l.nucleo, []); porNucleo.get(l.nucleo).push(l); });
+// monta uma linha por núcleo (média dos lotes) ou uma linha por lote, conforme granularidade —
+// reaproveitado tanto na aba Standard de Peso (lotes abertos) quanto no Histórico (lotes fechados).
+function construirLinhasStandard(dadosLotes, porLote){
   const campos = [7,14,21,28,35,42];
-
-  if(!porNucleo.size){
-    tabela.innerHTML = '<tbody><tr><td style="padding:14px;">Nenhum lote em andamento no momento pra montar o comparativo.</td></tr></tbody>';
-    if(infoEl) infoEl.textContent = '';
-    if(cardsEl) cardsEl.innerHTML = '';
-    return;
+  if(porLote){
+    return dadosLotes.map(l=>{
+      const pcts = campos.map(c=>{
+        const v = l['pm'+c];
+        const meta = metaParaCelula(l.pm1, c);
+        return (v!=null && meta) ? +(v/meta*100).toFixed(1) : null;
+      });
+      const validos = pcts.filter(p=>p!=null);
+      const media = validos.length ? validos.reduce((a,b)=>a+b,0)/validos.length : null;
+      return {label: `${nomeNucleo(l.nucleo)} · Av. ${l.aviario}`, pcts, media};
+    });
   }
-
-  // % da meta atingida em cada idade, por núcleo — usa a chegada MÉDIA dos lotes daquele núcleo
-  // pra achar a faixa certa no Standard, igual a matriz de "Em andamento" já faz.
-  const linhas = Array.from(porNucleo.keys()).map(nuc=>{
+  const porNucleo = new Map();
+  dadosLotes.forEach(l=>{ if(!porNucleo.has(l.nucleo)) porNucleo.set(l.nucleo, []); porNucleo.get(l.nucleo).push(l); });
+  return Array.from(porNucleo.keys()).map(nuc=>{
     const lotesNuc = porNucleo.get(nuc);
     const chegadas = lotesNuc.map(l=>l.pm1).filter(v=>v!=null);
     const chegadaMedia = chegadas.length ? chegadas.reduce((s,v)=>s+v,0)/chegadas.length : null;
@@ -4904,36 +4918,74 @@ function renderStandardPesoGrafico(){
     });
     const validos = pcts.filter(p=>p!=null);
     const media = validos.length ? validos.reduce((a,b)=>a+b,0)/validos.length : null;
-    return {nuc, pcts, media};
+    return {label: nomeNucleo(nuc), pcts, media};
   });
-  // pior desempenho primeiro — quem precisa de atenção já aparece no topo, sem precisar escanear tudo
-  linhas.sort((a,b)=>{
-    if(a.media==null) return 1;
-    if(b.media==null) return -1;
-    return a.media - b.media;
-  });
+}
+
+function renderTabelaStandardGenerica(tabelaEl, infoEl, cardsEl, dadosLotes, porLote, rotuloVazio){
+  const campos = [7,14,21,28,35,42];
+  if(!tabelaEl) return;
+  if(!dadosLotes.length){
+    tabelaEl.innerHTML = `<tbody><tr><td style="padding:14px;">${rotuloVazio||'Nenhum lote encontrado com esse filtro.'}</td></tr></tbody>`;
+    if(infoEl) infoEl.textContent = '';
+    if(cardsEl) cardsEl.innerHTML = '';
+    return;
+  }
+  const linhas = construirLinhasStandard(dadosLotes, porLote);
+  linhas.sort((a,b)=>{ if(a.media==null) return 1; if(b.media==null) return -1; return a.media-b.media; });
 
   const comMedia = linhas.filter(l=>l.media!=null);
   const dentroMeta = comMedia.filter(l=>l.media>=100).length;
   const abaixoMeta = comMedia.length - dentroMeta;
   const mediaGeral = comMedia.length ? comMedia.reduce((s,l)=>s+l.media,0)/comMedia.length : null;
+  const rotuloItem = porLote ? 'Lotes' : 'Núcleos';
   if(cardsEl){
     cardsEl.innerHTML = `
-      <div class="card"><div class="label">Núcleos dentro da meta</div><div class="valor" style="color:var(--verde-ok);">${dentroMeta}</div></div>
-      <div class="card"><div class="label">Núcleos abaixo da meta</div><div class="valor" style="color:${abaixoMeta>0?'var(--vermelho-alerta)':'inherit'};">${abaixoMeta}</div></div>
+      <div class="card"><div class="label">${rotuloItem} dentro da meta</div><div class="valor" style="color:var(--verde-ok);">${dentroMeta}</div></div>
+      <div class="card"><div class="label">${rotuloItem} abaixo da meta</div><div class="valor" style="color:${abaixoMeta>0?'var(--vermelho-alerta)':'inherit'};">${abaixoMeta}</div></div>
       <div class="card"><div class="label">Média geral atingida</div><div class="valor">${mediaGeral!=null?mediaGeral.toFixed(1)+'%':'–'}</div></div>
     `;
   }
-  if(infoEl) infoEl.textContent = `${linhas.length} núcleo(s) com lote em andamento · pior desempenho primeiro`;
+  if(infoEl) infoEl.textContent = `${linhas.length} ${porLote?'lote(s)':'núcleo(s)'} · pior desempenho primeiro`;
 
   const corCel = p => p==null ? '' : (p>=100 ? 'peso-acima-meta' : 'peso-abaixo-meta');
-  const thead = `<thead><tr><th class="rowhead">Núcleo</th>${campos.map(c=>`<th style="text-align:center;">${c}d</th>`).join('')}<th style="text-align:center;">Média</th></tr></thead>`;
+  const thead = `<thead><tr><th class="rowhead">${porLote?'Núcleo / Aviário':'Núcleo'}</th>${campos.map(c=>`<th style="text-align:center;">${c}d</th>`).join('')}<th style="text-align:center;">Média</th></tr></thead>`;
   const corpo = linhas.map(l=>`<tr>
-    <th class="rowhead">${nomeNucleo(l.nuc)}</th>
-    ${l.pcts.map((p,i)=>`<td class="cel ${corCel(p)}" style="text-align:center;">${p!=null?p.toFixed(1)+'%':'<span style="color:var(--texto-suave);">–</span>'}</td>`).join('')}
+    <th class="rowhead">${l.label}</th>
+    ${l.pcts.map(p=>`<td class="cel ${corCel(p)}" style="text-align:center;">${p!=null?p.toFixed(1)+'%':'<span style="color:var(--texto-suave);">–</span>'}</td>`).join('')}
     <td class="cel ${corCel(l.media)}" style="text-align:center;font-weight:700;">${l.media!=null?l.media.toFixed(1)+'%':'–'}</td>
   </tr>`).join('');
-  tabela.innerHTML = thead + `<tbody>${corpo}</tbody>`;
+  tabelaEl.innerHTML = thead + `<tbody>${corpo}</tbody>`;
+}
+
+function renderStandardPesoGrafico(){
+  const dados = filtrar().filter(l=>l.situacao==='Aberto');
+  renderTabelaStandardGenerica(
+    document.getElementById('pw_tabelaGraficoStandard'),
+    document.getElementById('pw_infoGraficoStandard'),
+    document.getElementById('pw_cardsGraficoStandard'),
+    dados, pwStandardGranularidade==='lote',
+    'Nenhum lote em andamento no momento pra montar o comparativo.'
+  );
+}
+document.querySelectorAll('#pw_segGranularidadeStandard .tab-int').forEach(btn=>{
+  btn.addEventListener('click', ()=>{
+    document.querySelectorAll('#pw_segGranularidadeStandard .tab-int').forEach(b=>b.classList.remove('ativo'));
+    btn.classList.add('ativo');
+    pwStandardGranularidade = btn.dataset.gran;
+    renderStandardPesoGrafico();
+  });
+});
+
+function renderHistoricoStandard(dados){
+  const fechados = dados.filter(l=>l.situacao==='Fechado');
+  renderTabelaStandardGenerica(
+    document.getElementById('pw_tabelaHistoricoStandard'),
+    document.getElementById('pw_infoHistoricoStandard'),
+    document.getElementById('pw_cardsHistoricoStandard'),
+    fechados, false,
+    'Nenhum lote fechado encontrado com esse filtro.'
+  );
 }
 
 function pwStandardAlternarBotoes(editando){
@@ -5033,7 +5085,7 @@ document.querySelectorAll('#mod-peso .tab-int').forEach(b=>b.addEventListener('c
     document.querySelector(`#mod-peso [data-aba-view="${a}"]`).style.display = (a===abaAtiva)?'':'none';
   });
   const filtrosPainel = document.getElementById('pw_filtrosPainel');
-  if(filtrosPainel) filtrosPainel.style.display = (abaAtiva==='standard') ? 'none' : '';
+  if(filtrosPainel) filtrosPainel.style.display = '';
   render(); window.scrollTo({top:0,behavior:'smooth'});
 }));
 
@@ -5439,6 +5491,7 @@ function renderHistorico(){
   renderEvoAno(dados);
   renderRankingPeso(dados);
   renderCurvaNucleo(dados);
+  renderHistoricoStandard(dados);
 }
 
 function render(){
