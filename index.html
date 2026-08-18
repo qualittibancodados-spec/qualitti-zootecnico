@@ -135,8 +135,10 @@
   .cel-relacao{ font-size:9.5px; color:var(--texto-suave); font-weight:700; }
   .matriz-diaria td.cel-relacao-col{ background:#F7F5F0; color:var(--texto-suave); font-weight:700; font-size:11px; }
   .matriz-diaria td.peso-acima-meta{ background:#E3F3E7; box-shadow:inset 0 0 0 1px #A8D5B3; }
+  #mod-peso table.matriz td.peso-acima-meta{ background:#E3F3E7; box-shadow:inset 0 0 0 1px #A8D5B3; }
   .matriz-diaria td.peso-acima-meta::after{ content:'▲'; font-size:8px; color:#2E7D46; margin-left:3px; }
   .matriz-diaria td.peso-abaixo-meta{ background:#FDF1DC; box-shadow:inset 0 0 0 1px #F0CB7A; }
+  #mod-peso table.matriz td.peso-abaixo-meta{ background:#FDF1DC; box-shadow:inset 0 0 0 1px #F0CB7A; }
   .matriz-diaria td.peso-abaixo-meta::after{ content:'▼'; font-size:8px; color:#A9720A; margin-left:3px; }
   .quadro-nucleo-card{ background:var(--card); border:1px solid var(--borda); border-radius:16px; padding:20px; margin-bottom:18px; box-shadow:var(--sombra); }
   .quadro-nucleo-titulo{ font-family:'Sora',sans-serif; font-weight:800; font-size:16px; color:var(--vermelho); margin-bottom:14px; display:flex; align-items:center; gap:10px; flex-wrap:wrap; padding-bottom:12px; border-bottom:2px solid var(--bg); }
@@ -653,6 +655,27 @@
   #mod-resultado table.matriz th.th-ano .ano-toggle{ font-size:10px; color:var(--vermelho); margin-right:2px; }
   #mod-resultado table.matriz td.media{ background:#F4EFE6; font-weight:800; border-left:2px solid var(--dourado); }
   #mod-resultado table.matriz col.sep, #mod-resultado table.matriz th.sep{ border-left:2px solid var(--dourado-claro); }
+
+  /* mesmo padrão "matriz" de ano/rodada recolhível + núcleo/aviário, agora também no módulo Peso */
+  #mod-peso table.matriz{ border-collapse:collapse; font-size:12px; width:auto; min-width:100%; }
+  #mod-peso table.matriz th, #mod-peso table.matriz td{ border:1px solid var(--borda); padding:6px 8px; text-align:center; white-space:nowrap; }
+  #mod-peso table.matriz thead th{ background:#FBF7EE; font-weight:700; font-size:10.5px; text-transform:uppercase; letter-spacing:.02em; position:sticky; top:0; z-index:2; }
+  #mod-peso table.matriz th.rowhead{ text-align:left; position:sticky; left:0; z-index:3; background:#fff; min-width:170px; }
+  #mod-peso table.matriz thead th.rowhead{ z-index:4; background:#FBF7EE; }
+  #mod-peso table.matriz tr.linha-nucleo{ background:#FFF4E1; cursor:pointer; }
+  #mod-peso table.matriz tr.linha-nucleo:hover{ background:#FDECCB; }
+  #mod-peso table.matriz tr.linha-nucleo th.rowhead{ font-weight:800; color:var(--vermelho-escuro); background:#FBE7C2; box-shadow:inset 3px 0 0 var(--dourado); }
+  #mod-peso table.matriz tr.linha-nucleo td{ font-weight:700; background:#FFF4E1; }
+  #mod-peso table.matriz .nuc-toggle{ display:inline-block; width:16px; cursor:pointer; color:var(--vermelho); font-size:11px; user-select:none; }
+  #mod-peso table.matriz .nuc-toggle:hover{ color:var(--vermelho-escuro); }
+  #mod-peso table.matriz th.rowhead.av{ padding-left:22px; font-weight:500; color:var(--texto-suave); }
+  #mod-peso table.matriz td.cel{ font-variant-numeric:tabular-nums; }
+  #mod-peso table.matriz td.subano{ background:#FBF7EE; font-weight:800; font-variant-numeric:tabular-nums; border-left:1px dashed var(--dourado-claro); }
+  #mod-peso table.matriz th.subano{ background:#F4EFE6; }
+  #mod-peso table.matriz th.th-ano{ cursor:pointer; user-select:none; }
+  #mod-peso table.matriz th.th-ano:hover{ background:#F4EFE6; }
+  #mod-peso table.matriz th.th-ano .ano-toggle{ font-size:10px; color:var(--vermelho); margin-right:2px; }
+  #mod-peso table.matriz col.sep, #mod-peso table.matriz th.sep{ border-left:2px solid var(--dourado-claro); }
   #mod-resultado .matriz-legenda{ display:flex; align-items:center; gap:10px; margin:12px 0 0; font-size:11.5px; color:var(--texto-suave); flex-wrap:wrap; }
   #mod-resultado .heat-escala{ display:inline-flex; height:12px; width:120px; border-radius:6px; overflow:hidden; }
   #mod-resultado .podio{ display:flex; align-items:flex-end; justify-content:center; gap:10px; margin:8px 0 18px; }
@@ -1532,6 +1555,7 @@
           <button class="tab-int ativo" data-gran="nucleo">Por núcleo</button>
           <button class="tab-int" data-gran="lote">Por lote</button>
         </div>
+        <button class="btn-recolher" id="pw_btnExpandirStandard" type="button" style="margin:0;">Expandir todos</button>
         <span class="info" id="pw_infoGraficoStandard"></span>
       </div>
       <p class="nota-grafico" style="margin:0 0 10px;">100% = bateu a meta exata daquela idade, pela faixa de chegada de cada lote. Acima de 100% está passando da meta; abaixo, está atrasado. <strong style="color:#2E7D46">Verde</strong> = na meta ou acima; <strong style="color:#A9720A">âmbar</strong> = abaixo. Ordenado do pior pro melhor desempenho médio, pra quem precisa de atenção aparecer primeiro. Só núcleos com lote em andamento aparecem aqui.</p>
@@ -1584,11 +1608,12 @@
     <div class="painel-grafico">
       <div class="painel-grafico-header">
         <h2>Alcance do Standard de Peso — lotes fechados</h2>
+        <button class="btn-recolher" id="pw_btnExpandirHistStandard" type="button" style="margin:0;">Expandir todos</button>
         <span class="info" id="pw_infoHistoricoStandard"></span>
       </div>
-      <p class="nota-grafico" style="margin:0 0 10px;">Mesma leitura da aba Standard de Peso, só que aqui já é o resultado final dos lotes fechados — usa os mesmos filtros de Ano/Núcleo/Linhagem/Sexo desta tela. Como muitos lotes abatem antes dos 42 dias, é normal ter "–" nas últimas colunas.</p>
+      <p class="nota-grafico" style="margin:0 0 10px;">Colunas: ano › rodada › idade — clique no ano pra abrir/fechar as rodadas (o último ano já vem aberto). Linhas: núcleo › aviário — clique no núcleo pra ver os aviários dentro dele. Como muitos lotes abatem antes dos 42 dias, é normal ter "–" nas últimas colunas.</p>
       <div class="cards" id="pw_cardsHistoricoStandard" style="margin-bottom:16px;"></div>
-      <div class="tabela-scroll" id="pw_scrollHistoricoStandard"><table class="matriz-diaria" id="pw_tabelaHistoricoStandard"></table></div>
+      <div class="tabela-scroll arrastavel" id="pw_scrollHistoricoStandard"><table class="matriz" id="pw_tabelaHistoricoStandard"></table></div>
     </div>
   </div>
 
@@ -4958,15 +4983,119 @@ function renderTabelaStandardGenerica(tabelaEl, infoEl, cardsEl, dadosLotes, por
   tabelaEl.innerHTML = thead + `<tbody>${corpo}</tbody>`;
 }
 
+let pwStandardNucleosExpandido = new Set();
+
+// tabela expansível: linha do núcleo (agregada) + clique pra ver cada aviário dentro dele
+function renderTabelaStandardPorNucleo(tabelaEl, infoEl, cardsEl, dadosLotes, rotuloVazio){
+  const campos = [7,14,21,28,35,42];
+  if(!tabelaEl) return;
+  if(!dadosLotes.length){
+    tabelaEl.innerHTML = `<tbody><tr><td style="padding:14px;">${rotuloVazio||'Nenhum lote encontrado com esse filtro.'}</td></tr></tbody>`;
+    if(infoEl) infoEl.textContent = '';
+    if(cardsEl) cardsEl.innerHTML = '';
+    return;
+  }
+  function pctsDeLotes(lotes){
+    const chegadas = lotes.map(l=>l.pm1).filter(v=>v!=null);
+    const chegadaMedia = chegadas.length ? chegadas.reduce((s,v)=>s+v,0)/chegadas.length : null;
+    const pcts = campos.map(c=>{
+      const vals = lotes.map(l=>l['pm'+c]).filter(v=>v!=null);
+      const med = vals.length ? vals.reduce((s,v)=>s+v,0)/vals.length : null;
+      const meta = metaParaCelula(chegadaMedia, c);
+      return (med!=null && meta) ? +(med/meta*100).toFixed(1) : null;
+    });
+    const validos = pcts.filter(p=>p!=null);
+    const media = validos.length ? validos.reduce((a,b)=>a+b,0)/validos.length : null;
+    return {pcts, media};
+  }
+  const porNucleo = new Map();
+  dadosLotes.forEach(l=>{ if(!porNucleo.has(l.nucleo)) porNucleo.set(l.nucleo, []); porNucleo.get(l.nucleo).push(l); });
+  const nucleosOrd = Array.from(porNucleo.keys());
+  const linhas = nucleosOrd.map(nuc=>{
+    const lotesNuc = porNucleo.get(nuc);
+    const agregada = pctsDeLotes(lotesNuc);
+    const porAviario = new Map();
+    lotesNuc.forEach(l=>{ if(!porAviario.has(l.aviario)) porAviario.set(l.aviario, []); porAviario.get(l.aviario).push(l); });
+    const aviarios = Array.from(porAviario.keys()).sort((a,b)=>String(a).localeCompare(String(b), undefined, {numeric:true})).map(av=>({av, ...pctsDeLotes(porAviario.get(av))}));
+    return {nuc, ...agregada, aviarios};
+  });
+  linhas.sort((a,b)=>{ if(a.media==null) return 1; if(b.media==null) return -1; return a.media-b.media; });
+
+  const comMedia = linhas.filter(l=>l.media!=null);
+  const dentroMeta = comMedia.filter(l=>l.media>=100).length;
+  const abaixoMeta = comMedia.length - dentroMeta;
+  const mediaGeral = comMedia.length ? comMedia.reduce((s,l)=>s+l.media,0)/comMedia.length : null;
+  if(cardsEl){
+    cardsEl.innerHTML = `
+      <div class="card"><div class="label">Núcleos dentro da meta</div><div class="valor" style="color:var(--verde-ok);">${dentroMeta}</div></div>
+      <div class="card"><div class="label">Núcleos abaixo da meta</div><div class="valor" style="color:${abaixoMeta>0?'var(--vermelho-alerta)':'inherit'};">${abaixoMeta}</div></div>
+      <div class="card"><div class="label">Média geral atingida</div><div class="valor">${mediaGeral!=null?mediaGeral.toFixed(1)+'%':'–'}</div></div>
+    `;
+  }
+  if(infoEl) infoEl.textContent = `${linhas.length} núcleo(s) · pior desempenho primeiro`;
+
+  const corCel = p => p==null ? '' : (p>=100 ? 'peso-acima-meta' : 'peso-abaixo-meta');
+  const thead = `<thead><tr><th class="rowhead">Núcleo / Aviário</th>${campos.map(c=>`<th>${c}d</th>`).join('')}<th>Média</th></tr></thead>`;
+  const corpo = linhas.map(l=>{
+    const expandido = pwStandardNucleosExpandido.has(l.nuc);
+    let html = `<tr class="linha-nuc">
+      <th class="rowhead"><span class="nuc-toggle" data-toggle-standard-nuc="${l.nuc}">${expandido?'▾':'▸'}</span> ${nomeNucleo(l.nuc)}</th>
+      ${l.pcts.map(p=>`<td class="cel ${corCel(p)}">${p!=null?p.toFixed(1)+'%':'<span style="color:var(--texto-suave);">–</span>'}</td>`).join('')}
+      <td class="cel ${corCel(l.media)}" style="font-weight:700;">${l.media!=null?l.media.toFixed(1)+'%':'–'}</td>
+    </tr>`;
+    if(expandido){
+      l.aviarios.forEach(av=>{
+        html += `<tr><th class="rowhead av">${av.av}</th>${av.pcts.map(p=>`<td class="cel ${corCel(p)}">${p!=null?p.toFixed(1)+'%':'<span style="color:var(--texto-suave);">–</span>'}</td>`).join('')}<td class="cel ${corCel(av.media)}" style="font-weight:700;">${av.media!=null?av.media.toFixed(1)+'%':'–'}</td></tr>`;
+      });
+    }
+    return html;
+  }).join('');
+  tabelaEl.innerHTML = thead + `<tbody>${corpo}</tbody>`;
+
+  tabelaEl.querySelectorAll('[data-toggle-standard-nuc]').forEach(el=>{
+    el.addEventListener('click', ()=>{
+      const nuc = el.dataset.toggleStandardNuc;
+      if(pwStandardNucleosExpandido.has(nuc)) pwStandardNucleosExpandido.delete(nuc); else pwStandardNucleosExpandido.add(nuc);
+      renderStandardPesoGrafico();
+    });
+  });
+
+  const btnExp = document.getElementById('pw_btnExpandirStandard');
+  if(btnExp){
+    btnExp.style.display = pwStandardGranularidade==='lote' ? 'none' : '';
+    const todosExpandidos = nucleosOrd.length>0 && nucleosOrd.every(n=>pwStandardNucleosExpandido.has(n));
+    btnExp.textContent = todosExpandidos ? 'Recolher todos' : 'Expandir todos';
+    if(!btnExp.dataset.bind){
+      btnExp.dataset.bind = '1';
+      btnExp.addEventListener('click', ()=>{
+        const todos = nucleosOrd.every(n=>pwStandardNucleosExpandido.has(n));
+        if(todos) pwStandardNucleosExpandido.clear();
+        else nucleosOrd.forEach(n=>pwStandardNucleosExpandido.add(n));
+        renderStandardPesoGrafico();
+      });
+    }
+  }
+}
+
 function renderStandardPesoGrafico(){
   const dados = filtrar().filter(l=>l.situacao==='Aberto');
-  renderTabelaStandardGenerica(
-    document.getElementById('pw_tabelaGraficoStandard'),
-    document.getElementById('pw_infoGraficoStandard'),
-    document.getElementById('pw_cardsGraficoStandard'),
-    dados, pwStandardGranularidade==='lote',
-    'Nenhum lote em andamento no momento pra montar o comparativo.'
-  );
+  if(pwStandardGranularidade === 'lote'){
+    renderTabelaStandardGenerica(
+      document.getElementById('pw_tabelaGraficoStandard'),
+      document.getElementById('pw_infoGraficoStandard'),
+      document.getElementById('pw_cardsGraficoStandard'),
+      dados, true,
+      'Nenhum lote em andamento no momento pra montar o comparativo.'
+    );
+  } else {
+    renderTabelaStandardPorNucleo(
+      document.getElementById('pw_tabelaGraficoStandard'),
+      document.getElementById('pw_infoGraficoStandard'),
+      document.getElementById('pw_cardsGraficoStandard'),
+      dados,
+      'Nenhum lote em andamento no momento pra montar o comparativo.'
+    );
+  }
 }
 document.querySelectorAll('#pw_segGranularidadeStandard .tab-int').forEach(btn=>{
   btn.addEventListener('click', ()=>{
@@ -4977,15 +5106,184 @@ document.querySelectorAll('#pw_segGranularidadeStandard .tab-int').forEach(btn=>
   });
 });
 
+let histStandardAnosRecolhidos = new Set(), histStandardAnosIniciado = false;
+let histStandardNucleosExpandido = new Set();
+
 function renderHistoricoStandard(dados){
   const fechados = dados.filter(l=>l.situacao==='Fechado');
-  renderTabelaStandardGenerica(
-    document.getElementById('pw_tabelaHistoricoStandard'),
-    document.getElementById('pw_infoHistoricoStandard'),
-    document.getElementById('pw_cardsHistoricoStandard'),
-    fechados, false,
-    'Nenhum lote fechado encontrado com esse filtro.'
-  );
+  const tabela = document.getElementById('pw_tabelaHistoricoStandard');
+  const infoEl = document.getElementById('pw_infoHistoricoStandard');
+  const cardsEl = document.getElementById('pw_cardsHistoricoStandard');
+  const btnExp = document.getElementById('pw_btnExpandirHistStandard');
+  if(!tabela) return;
+  if(!fechados.length){
+    tabela.innerHTML = '<tbody><tr><td style="padding:14px;">Nenhum lote fechado encontrado com esse filtro.</td></tr></tbody>';
+    if(infoEl) infoEl.textContent = ''; if(cardsEl) cardsEl.innerHTML = '';
+    if(btnExp) btnExp.style.display = 'none';
+    return;
+  }
+  const campos = [7,14,21,28,35,42];
+
+  // ano -> rodadas presentes (ordenadas)
+  const rodadasPorAnoSet = new Map();
+  fechados.forEach(l=>{
+    if(l.ano==null || l.rodada==null) return;
+    if(!rodadasPorAnoSet.has(l.ano)) rodadasPorAnoSet.set(l.ano, new Set());
+    rodadasPorAnoSet.get(l.ano).add(l.rodada);
+  });
+  const anos = Array.from(rodadasPorAnoSet.keys()).sort((a,b)=>a-b);
+  if(!anos.length){
+    tabela.innerHTML = '<tbody><tr><td style="padding:14px;">Os lotes fechados desse filtro não têm ano/rodada preenchidos.</td></tr></tbody>';
+    if(infoEl) infoEl.textContent = ''; if(cardsEl) cardsEl.innerHTML = '';
+    if(btnExp) btnExp.style.display = 'none';
+    return;
+  }
+  const rodadasPorAno = new Map(anos.map(a=>[a, Array.from(rodadasPorAnoSet.get(a)).sort((x,y)=>x-y)]));
+
+  // só o último ano vem aberto por padrão — só roda 1x, depois respeita o que o usuário mexer
+  if(!histStandardAnosIniciado){
+    histStandardAnosIniciado = true;
+    histStandardAnosRecolhidos = new Set(anos.slice(0,-1).map(String));
+  }
+  if(btnExp) btnExp.style.display = '';
+
+  const corCel = p => p==null ? '' : (p>=100 ? 'peso-acima-meta' : 'peso-abaixo-meta');
+  function chaveAR(ano,rodada){ return ano+'|'+rodada; }
+  function pctsDeLotes(lotes){
+    const chegadas = lotes.map(l=>l.pm1).filter(v=>v!=null);
+    const chegadaMedia = chegadas.length ? chegadas.reduce((s,v)=>s+v,0)/chegadas.length : null;
+    return campos.map(c=>{
+      const vals = lotes.map(l=>l['pm'+c]).filter(v=>v!=null);
+      const med = vals.length ? vals.reduce((s,v)=>s+v,0)/vals.length : null;
+      const meta = metaParaCelula(chegadaMedia, c);
+      return (med!=null && meta) ? +(med/meta*100).toFixed(1) : null;
+    });
+  }
+  function agruparPorAR(lotes){
+    const mapa = new Map();
+    lotes.forEach(l=>{
+      if(l.ano==null || l.rodada==null) return;
+      const k = chaveAR(l.ano,l.rodada);
+      if(!mapa.has(k)) mapa.set(k, []);
+      mapa.get(k).push(l);
+    });
+    return mapa;
+  }
+  // devolve o HTML das células de uma linha (núcleo ou aviário) + a média geral dela (pra ordenar/cards)
+  function celulasDaLinha(lotesDoItem){
+    const mapaAR = agruparPorAR(lotesDoItem);
+    let tds = '';
+    let todosPcts = [];
+    anos.forEach(ano=>{
+      const recolhido = histStandardAnosRecolhidos.has(String(ano));
+      const rodadas = rodadasPorAno.get(ano);
+      const pctsAno = [];
+      rodadas.forEach(r=>{
+        const lotesAR = mapaAR.get(chaveAR(ano,r)) || [];
+        const pcts = lotesAR.length ? pctsDeLotes(lotesAR) : campos.map(()=>null);
+        pcts.forEach(p=>{ if(p!=null) pctsAno.push(p); });
+        if(!recolhido){
+          pcts.forEach(p=>{ tds += `<td class="cel ${corCel(p)}">${p!=null?p.toFixed(1)+'%':'<span style="color:var(--texto-suave);">–</span>'}</td>`; });
+        }
+      });
+      const mediaAno = pctsAno.length ? pctsAno.reduce((a,b)=>a+b,0)/pctsAno.length : null;
+      todosPcts.push(...pctsAno);
+      tds += `<td class="cel subano ${corCel(mediaAno)}">${mediaAno!=null?mediaAno.toFixed(1)+'%':'–'}</td>`;
+    });
+    const media = todosPcts.length ? todosPcts.reduce((a,b)=>a+b,0)/todosPcts.length : null;
+    return {tds, media};
+  }
+
+  // cabeçalho: ano em cima (recolhível), rodada no meio, idade embaixo
+  let thAno = '<th class="rowhead" rowspan="3">Núcleo / Aviário</th>';
+  let thRodada = '';
+  let thCampo = '';
+  anos.forEach(ano=>{
+    const recolhido = histStandardAnosRecolhidos.has(String(ano));
+    const rodadas = rodadasPorAno.get(ano);
+    const icone = recolhido ? '▸' : '▾';
+    const totalColunas = recolhido ? 1 : (rodadas.length*campos.length + 1);
+    thAno += `<th colspan="${totalColunas}" class="th-ano" data-ano-hist-toggle="${ano}" title="${recolhido?'Expandir':'Recolher'} rodadas de ${ano}"><span class="ano-toggle">${icone}</span> ${ano}</th>`;
+    if(!recolhido){
+      rodadas.forEach((r,i)=>{
+        thRodada += `<th colspan="${campos.length}" class="${i===0?'sep':''}">R${r}</th>`;
+        campos.forEach((c,j)=>{ thCampo += `<th class="${i===0 && j===0 ? 'sep':''}">${c}d</th>`; });
+      });
+    }
+    thRodada += `<th class="subano" rowspan="2">Méd ${String(ano).slice(2)}</th>`;
+  });
+  const thead = `<thead><tr>${thAno}</tr><tr>${thRodada}</tr><tr>${thCampo}</tr></thead>`;
+
+  // linhas: núcleo (agregada, clicável) -> aviários dentro dele
+  const porNucleo = new Map();
+  fechados.forEach(l=>{ if(!porNucleo.has(l.nucleo)) porNucleo.set(l.nucleo, []); porNucleo.get(l.nucleo).push(l); });
+  const nucleosOrd = Array.from(porNucleo.keys());
+  const linhasNucleo = nucleosOrd.map(nuc=>{
+    const lotesNuc = porNucleo.get(nuc);
+    const {tds, media} = celulasDaLinha(lotesNuc);
+    const porAviario = new Map();
+    lotesNuc.forEach(l=>{ if(!porAviario.has(l.aviario)) porAviario.set(l.aviario, []); porAviario.get(l.aviario).push(l); });
+    const aviarios = Array.from(porAviario.keys()).sort((a,b)=>String(a).localeCompare(String(b), undefined, {numeric:true})).map(av=>{
+      const r = celulasDaLinha(porAviario.get(av));
+      return {av, tds:r.tds, media:r.media};
+    });
+    return {nuc, tds, media, aviarios};
+  });
+  linhasNucleo.sort((a,b)=>{ if(a.media==null) return 1; if(b.media==null) return -1; return a.media-b.media; });
+
+  let corpo = '';
+  linhasNucleo.forEach(l=>{
+    const expandido = histStandardNucleosExpandido.has(l.nuc);
+    corpo += `<tr class="linha-nucleo">
+      <th class="rowhead" data-toggle-hist-nuc="${l.nuc}"><span class="nuc-toggle">${expandido?'▾':'▸'}</span> ${nomeNucleo(l.nuc)}</th>
+      ${l.tds}
+    </tr>`;
+    if(expandido){
+      l.aviarios.forEach(av=>{
+        corpo += `<tr><th class="rowhead" style="padding-left:22px;font-weight:500;color:var(--texto-suave);">${av.av}</th>${av.tds}</tr>`;
+      });
+    }
+  });
+  tabela.innerHTML = thead + `<tbody>${corpo}</tbody>`;
+
+  tabela.querySelectorAll('[data-ano-hist-toggle]').forEach(th=>th.addEventListener('click', ()=>{
+    const ano = th.dataset.anoHistToggle;
+    if(histStandardAnosRecolhidos.has(ano)) histStandardAnosRecolhidos.delete(ano); else histStandardAnosRecolhidos.add(ano);
+    renderHistoricoStandard(dados);
+  }));
+  tabela.querySelectorAll('[data-toggle-hist-nuc]').forEach(el=>el.addEventListener('click', ()=>{
+    const nuc = el.dataset.toggleHistNuc;
+    if(histStandardNucleosExpandido.has(nuc)) histStandardNucleosExpandido.delete(nuc); else histStandardNucleosExpandido.add(nuc);
+    renderHistoricoStandard(dados);
+  }));
+  if(typeof ativarArrastar==='function') ativarArrastar(document.getElementById('pw_scrollHistoricoStandard'));
+
+  const comMedia = linhasNucleo.filter(l=>l.media!=null);
+  const dentroMeta = comMedia.filter(l=>l.media>=100).length;
+  const abaixoMeta = comMedia.length - dentroMeta;
+  const mediaGeral = comMedia.length ? comMedia.reduce((s,l)=>s+l.media,0)/comMedia.length : null;
+  if(cardsEl){
+    cardsEl.innerHTML = `
+      <div class="card"><div class="label">Núcleos dentro da meta</div><div class="valor" style="color:var(--verde-ok);">${dentroMeta}</div></div>
+      <div class="card"><div class="label">Núcleos abaixo da meta</div><div class="valor" style="color:${abaixoMeta>0?'var(--vermelho-alerta)':'inherit'};">${abaixoMeta}</div></div>
+      <div class="card"><div class="label">Média geral atingida</div><div class="valor">${mediaGeral!=null?mediaGeral.toFixed(1)+'%':'–'}</div></div>
+    `;
+  }
+  if(infoEl) infoEl.textContent = `${linhasNucleo.length} núcleo(s) · ${anos.length} ano(s)`;
+
+  if(btnExp){
+    const todosExpandidos = nucleosOrd.length>0 && nucleosOrd.every(n=>histStandardNucleosExpandido.has(n));
+    btnExp.textContent = todosExpandidos ? 'Recolher todos os núcleos' : 'Expandir todos os núcleos';
+    if(!btnExp.dataset.bind){
+      btnExp.dataset.bind = '1';
+      btnExp.addEventListener('click', ()=>{
+        const todos = nucleosOrd.every(n=>histStandardNucleosExpandido.has(n));
+        if(todos) histStandardNucleosExpandido.clear();
+        else nucleosOrd.forEach(n=>histStandardNucleosExpandido.add(n));
+        renderHistoricoStandard(dados);
+      });
+    }
+  }
 }
 
 function pwStandardAlternarBotoes(editando){
