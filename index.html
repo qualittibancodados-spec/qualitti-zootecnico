@@ -934,11 +934,13 @@
 #fer2-print-header{ display:none; }
 @media print{
   @page{ size: landscape; margin: 8mm; }
+  html, body{ background:#fff !important; }
   body *{ visibility:hidden; }
   #mod-quadro [data-aba-qf-view="ferias"] *,
   #mod-quadro [data-aba-qf-view="ferias"]{ visibility:visible; }
   .sidebar, .topbar-mobile, .tabs-internas,
   #fer2-btnImprimir,
+  #fer2-modalFundo,
   #mod-quadro [data-aba-qf-view="ferias"] > p.nota,
   #mod-quadro [data-aba-qf-view="ferias"] .filtros-grid,
   #mod-quadro [data-aba-qf-view="ferias"] .painel > p.nota{ display:none !important; }
@@ -1703,7 +1705,8 @@
       </div>
 
       <div data-aba-qf-view="ferias" style="display:none;">
-        <p class="nota" style="margin:16px 0 18px;">Granjeiros e Ajudantes são puxados automaticamente de <strong>Atualizar Funcionários</strong> — não precisa recadastrar ninguém aqui. Essa aba só cuida do planejamento das férias.</p>
+        <p class="nota" style="margin:16px 0 8px;">Granjeiros e Ajudantes são puxados automaticamente de <strong>Atualizar Funcionários</strong> — não precisa recadastrar ninguém aqui. Essa aba só cuida do planejamento das férias.</p>
+        <p class="nota" style="margin:0 0 18px;">🛈 <strong>Prazo Máximo</strong> = vencimento do período aquisitivo (Fim do Período) + 6 meses — é até quando as férias precisam ser tiradas.</p>
 
         <div class="cards" id="fer2-cards"></div>
 
@@ -7165,7 +7168,19 @@ async function iniciarFerias(){
     document.getElementById('fer2-fFimPeriodo').addEventListener('input', fer2AtualizarCalculado);
     document.getElementById('fer2-btnImprimir').addEventListener('click', ()=>{
       document.getElementById('fer2-print-data').textContent = 'Gerado em ' + new Date().toLocaleString('pt-BR');
+      // reforço direto via JS (além do CSS) pra garantir que o fundo escuro do modal de edição
+      // não vaze na impressão — mesmo problema que já corrigimos no ticket de Combustível
+      const modal = document.getElementById('fer2-modalFundo');
+      const styleOriginalModal = modal.getAttribute('style') || '';
+      modal.style.display = 'none';
+      document.documentElement.style.background = '#fff';
+      document.body.style.background = '#fff';
       window.print();
+      setTimeout(()=>{
+        modal.setAttribute('style', styleOriginalModal);
+        document.documentElement.style.background = '';
+        document.body.style.background = '';
+      }, 500);
     });
   }
 }
