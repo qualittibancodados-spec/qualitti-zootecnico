@@ -1706,7 +1706,7 @@
 
       <div data-aba-qf-view="ferias" style="display:none;">
         <p class="nota" style="margin:16px 0 8px;">Granjeiros e Ajudantes são puxados automaticamente de <strong>Atualizar Funcionários</strong> — não precisa recadastrar ninguém aqui. Essa aba só cuida do planejamento das férias.</p>
-        <p class="nota" style="margin:0 0 18px;">🛈 <strong>Prazo Máximo</strong> = vencimento do período aquisitivo (Fim do Período) + 6 meses — é até quando as férias precisam ser tiradas.</p>
+        <p class="nota" style="margin:0 0 18px;">🛈 <strong>Período Pendente</strong> = o período aquisitivo que a pessoa ainda deve resolver (pode corrigir na mão a qualquer momento). <strong>Prazo Máximo</strong> = Período Pendente + 6 meses — é até quando as férias precisam ser tiradas.</p>
 
         <div class="cards" id="fer2-cards"></div>
 
@@ -1749,12 +1749,17 @@
               <button type="button" id="fer2-modalFechar" class="fer2-modal-fechar">✕</button>
             </div>
             <div class="fer2-modal-corpo">
-              <div class="campo"><label>Data de Admissão</label><input type="date" id="fer2-fDataAdmissao"></div>
+              <div class="campo"><label>Data de Admissão <span style="font-weight:400;color:var(--texto-suave);">(referência)</span></label><input type="date" id="fer2-fDataAdmissao"></div>
+              <div class="campo">
+                <label>Período Pendente <span style="font-weight:400;color:var(--texto-suave);">(que a pessoa ainda deve)</span></label>
+                <div style="display:flex;gap:8px;">
+                  <input type="date" id="fer2-fFimPeriodo" style="flex:1;">
+                  <button type="button" id="fer2-btnAvancarPeriodo" class="btn-recolher" style="white-space:nowrap;padding:0 12px;">+12 meses</button>
+                </div>
+              </div>
               <div class="fer2-modal-calculado" id="fer2-modalCalculado" style="display:none;">
-                <div><span>Fim do período aquisitivo atual</span><strong id="fer2-txtFimPeriodo">—</strong></div>
                 <div><span>Prazo máximo p/ tirar férias</span><strong id="fer2-txtPrazoMaximo">—</strong></div>
               </div>
-              <div class="campo" id="fer2-campoFimManual"><label>Fim do Período <span style="font-weight:400;color:var(--texto-suave);">(só se não souber a admissão)</span></label><input type="date" id="fer2-fFimPeriodo"></div>
               <div class="campo"><label>Início das férias</label><input type="date" id="fer2-fInicio"></div>
               <div class="campo"><label>Fim das férias</label><input type="date" id="fer2-fFim"></div>
               <div class="campo"><label>Substituto / folguista</label><input type="text" id="fer2-fSub" placeholder="Quem vai cobrir"></div>
@@ -7114,20 +7119,18 @@ function fer2Aviarios(atrib){
   return atrib.map(a=>a.aviarios).filter(Boolean).join(', ');
 }
 
-// renovação automática do período aquisitivo: quando as férias planejadas de alguém já
+// renovação automática do "Período Pendente": quando as férias planejadas de alguém já
 // terminaram (hoje passou do "fim" das férias), o próximo ciclo começa sozinho — o novo
-// Fim do Período é sempre o Fim do Período anterior + 12 meses. Já limpa férias/substituto
-// pra esse novo ciclo, já que é um período novo, ainda sem planejamento.
-// só necessário pra quem NÃO tem data de admissão conhecida (fallback manual) — quem tem
-// admissão, o Fim do Período já é recalculado ao vivo em statusDe(), não precisa "renovar" nada.
+// Período Pendente é sempre o anterior + 12 meses. Já limpa férias/substituto pra esse novo
+// ciclo, já que é um período novo, ainda sem planejamento. Vale pra todo mundo — a pessoa
+// também pode adiantar isso na mão a qualquer momento (botão "+12 meses" no modal).
 async function fer2RenovarPeriodosVencidos(){
   const hoje = new Date().toISOString().slice(0,10);
   const lote = db.batch();
   let renovados = 0;
   fer2Planos.forEach((plano, chave)=>{
-    if(plano.dataAdmissao) return; // calculado ao vivo, não precisa renovar
     if(!plano.id || !plano.fim || plano.fim >= hoje) return; // só quem já terminou as férias marcadas
-    if(!plano.fimPeriodo) return; // sem período aquisitivo registrado, não dá pra calcular o próximo
+    if(!plano.fimPeriodo) return; // sem período pendente registrado, não dá pra calcular o próximo
     const novoFimPeriodo = fer2SomarMeses(plano.fimPeriodo, 12);
     if(!novoFimPeriodo || novoFimPeriodo === plano.fimPeriodo) return;
     const dados = { fimPeriodo: novoFimPeriodo, inicio: null, fim: null, substituto: null };
@@ -7146,9 +7149,10 @@ async function fer2RenovarPeriodosVencidos(){
 // é ignorado — essa aba não cadastra gente nova, só usa quem já está em Atualizar Funcionários.
 const FER2_ADMISSOES = [{"nome": "ADRIELE RODRIGUES DE OLIVEIRA", "admissao": "2025-07-14"}, {"nome": "ANA CELIA GONÇALVES DE SOUSA", "admissao": "2026-04-06"}, {"nome": "APARECIDO BATISTA PENA", "admissao": "2023-10-05"}, {"nome": "BRUNA TEIXEIRA GOMES", "admissao": "2024-11-18"}, {"nome": "CARLOS WILLIAN ALVES DE OLIVEIRA", "admissao": "2025-09-15"}, {"nome": "CLAUDIA DA SILVA PEREIRA", "admissao": "2026-04-13"}, {"nome": "CLEIDISONIA DA SILVA MENDES", "admissao": "2026-01-05"}, {"nome": "CLEONICE GREGORIO LEMES", "admissao": "2026-05-04"}, {"nome": "CRISTIANE ALVES DA SILVA", "admissao": "2023-10-05"}, {"nome": "DANIEL NOGUEIRA", "admissao": "2022-03-02"}, {"nome": "DEMAR MARQUES SOUSA", "admissao": "2025-12-02"}, {"nome": "DIONATHAN DEIVIDE SANTOS NOGUEIRA", "admissao": "2024-11-04"}, {"nome": "EDINEY RODRIGUES DE SOUSA", "admissao": "2026-04-06"}, {"nome": "EDMILSON ALEIXO DE SOUZA", "admissao": "2022-08-01"}, {"nome": "EDVANIO NOGUEIRA LINO", "admissao": "2025-04-01"}, {"nome": "ERISVALDO DE LIMA SANTOS", "admissao": "2021-03-01"}, {"nome": "ERLAN GONCALVES DE SOUSA", "admissao": "2026-08-10"}, {"nome": "ESLAINE LEITE DOS REIS LINO", "admissao": "2025-04-01"}, {"nome": "FABIANA DE LIMA CARVALHO", "admissao": "2026-01-05"}, {"nome": "FRANCISCO PEDRO DA SILVA", "admissao": "2024-07-01"}, {"nome": "GABRIEL LOPES BELARMINO", "admissao": "2026-01-19"}, {"nome": "GABRIEL SANTANA SILVA", "admissao": "2024-01-04"}, {"nome": "GIOVANA CANDIDA MARQUES", "admissao": "2024-07-08"}, {"nome": "GIOVANI CARLOS DA SILVA PONTES", "admissao": "2024-10-14"}, {"nome": "HIRLA SANTOS DA SILVA", "admissao": "2026-08-13"}, {"nome": "JOAO MARCOS SANTOS SOUZA", "admissao": "2026-04-01"}, {"nome": "JOSE ANDRE DOS SANTOS", "admissao": "2026-02-02"}, {"nome": "JOSE DOS SANTOS DE SOUZA", "admissao": "2026-04-13"}, {"nome": "JOSE RISOMAR DA SILVA MONTEIRO", "admissao": "2026-07-20"}, {"nome": "JOSEFRAN DE JESUS DOS SANTOS", "admissao": "2025-01-20"}, {"nome": "JURACI FERREIRA SANTOS", "admissao": "2026-01-05"}, {"nome": "KEVEN JOSE BUENO DE CASTRO", "admissao": "2026-08-13"}, {"nome": "LEONETE TEIXEIRA FERREIRA", "admissao": "2024-07-01"}, {"nome": "LIDIANE SANTOS GOMES", "admissao": "2026-08-03"}, {"nome": "LORENA GAMA DIAS DE LIMA", "admissao": "2025-02-10"}, {"nome": "LUANA MARTINS BATISTA", "admissao": "2025-09-15"}, {"nome": "LUCILENE EVANGELISTA LIMA", "admissao": "2025-12-02"}, {"nome": "LUIZ CARLOS MENDES", "admissao": "2014-05-06"}, {"nome": "MAGNO FERNANDES DE SOUSA", "admissao": "2025-07-14"}, {"nome": "MARCILENE SANTANA DE BRITO", "admissao": "2026-08-13"}, {"nome": "MARCOS RODRIGUES MORAIS", "admissao": "2024-06-03"}, {"nome": "MARIA JOSE ALVES PEREIRA", "admissao": "2026-07-20"}, {"nome": "MARIA SOCORRO JANUARIO RODRIGUES", "admissao": "2024-01-18"}, {"nome": "MATHEUS ALVES COSTA", "admissao": "2026-07-20"}, {"nome": "MICHEL DE MELO RODRIGUES", "admissao": "2026-08-13"}, {"nome": "MIRIAM MAIELE DOS SANTOS NEVES", "admissao": "2026-08-13"}, {"nome": "MONICA OLIVEIRA SILVA", "admissao": "2024-10-21"}, {"nome": "ODAIR OLIVEIRA DO CARMO", "admissao": "2025-12-18"}, {"nome": "OLIVAN INACIO PEREIRA", "admissao": "2024-01-18"}, {"nome": "OSVALDO RODRIGUES DE AMORIM", "admissao": "2016-09-08"}, {"nome": "ROGERIO DUARTE AJALA", "admissao": "2026-05-04"}, {"nome": "ROSILANIA DA SILVA SANTOS", "admissao": "2022-03-02"}, {"nome": "ROSILENE MARIA DE OLIVEIRA", "admissao": "2023-09-21"}, {"nome": "SAMUEL BATISTA NEVES", "admissao": "2026-08-13"}, {"nome": "SEVERINO NUNES DOS SANTOS", "admissao": "2023-01-19"}, {"nome": "SIDNEY MARTINS LINO", "admissao": "2026-08-03"}, {"nome": "VERILANE SOUSA RODRIGUES", "admissao": "2026-04-01"}, {"nome": "WEDSON DE FREITAS MORAES", "admissao": "2024-02-01"}, {"nome": "ADEMAR ALMEIDA DA SILVA", "admissao": "2026-01-12"}, {"nome": "ADRIANA EVANGELISTA SALES", "admissao": "2024-11-04"}, {"nome": "ALEXANDRE DE JESUS CUNHA", "admissao": "2024-04-18"}, {"nome": "ANA CLARA ALVES SOUSA", "admissao": "2026-04-13"}, {"nome": "ANTONIA KATIANE DOS SANTOS CRUZ", "admissao": "2025-04-16"}, {"nome": "ANTONIO ANDRE DE OLIVEIRA", "admissao": "2024-05-13"}, {"nome": "CARLOS BATISTA MOTA", "admissao": "2019-07-03"}, {"nome": "CICERO GOMES LEAL", "admissao": "2014-06-02"}, {"nome": "CLAUDIO DA CONCEICAO COSTA", "admissao": "2025-06-02"}, {"nome": "CRISTIANE RIBEIRO DO NASCIMENTO", "admissao": "2021-03-01"}, {"nome": "DANIEL BARBOSA DE SOUSA", "admissao": "2024-12-02"}, {"nome": "DANIEL MARQUES DE OLIVEIRA", "admissao": "2026-02-02"}, {"nome": "DARLYS SANTOS DA SILVA", "admissao": "2024-11-04"}, {"nome": "DAVID VIANA CAMPOS", "admissao": "2025-10-20"}, {"nome": "DEUSA HELENA DE CARVALHO", "admissao": "2023-12-07"}, {"nome": "DIRLAINE SOARES DUTRA", "admissao": "2025-02-10"}, {"nome": "DOUGLAS DE JESUS SOUSA", "admissao": "2025-02-17"}, {"nome": "EDER LUIS DA SILVA", "admissao": "2026-07-20"}, {"nome": "EDILAINE CRISTINA DA CRUZ DIAS", "admissao": "2025-03-05"}, {"nome": "EDIMAR RODRIGUES DE FREITAS", "admissao": "2022-12-06"}, {"nome": "EDIVANDRO BATISTA DOS SANTOS", "admissao": "2025-08-04"}, {"nome": "ELIAS MARQUES DOS SANTOS", "admissao": "2016-09-01"}, {"nome": "ELIZEU SANTOS SOUZA", "admissao": "2023-03-16"}, {"nome": "EMERSON DOS REIS TRAVASSOS", "admissao": "2022-12-22"}, {"nome": "FABIANA BATISTA DOS SANTOS", "admissao": "2023-03-23"}, {"nome": "FABIO CORDEIRO DOS SANTOS", "admissao": "2025-04-16"}, {"nome": "FLAVIA DE LIMA", "admissao": "2024-05-13"}, {"nome": "FRANCISCO ANASTACIO DE SOUZA", "admissao": "2023-12-07"}, {"nome": "FRANCISCO JOSE PEREIRA SOUSA", "admissao": "2024-10-14"}, {"nome": "GILDEMAR CANDIDO DA SILVA", "admissao": "2026-02-09"}, {"nome": "GILMAR CANDIDO DA SILVA", "admissao": "2016-08-01"}, {"nome": "GISELE FERREIRA SOARES", "admissao": "2018-10-03"}, {"nome": "GUILHERME PEREIRA DE SOUSA", "admissao": "2017-10-04"}, {"nome": "IZIEL VAGNER RODRIGUES DOS SANTOS", "admissao": "2022-09-15"}, {"nome": "JEFERSON SOUSA DA SILVA", "admissao": "2026-06-01"}, {"nome": "JESSICA VIEIRA DA SILVA", "admissao": "2025-10-20"}, {"nome": "JESSIKA CAROLINE MENDONCA DE OLIVEIRA", "admissao": "2024-11-18"}, {"nome": "JOAO BOSCO DE OLIVEIRA", "admissao": "2025-05-19"}, {"nome": "JOAO DE JESUS", "admissao": "2024-09-02"}, {"nome": "JOSE RAIMUNDO DE SOUSA LIMA", "admissao": "2015-12-17"}, {"nome": "JOSIVALDO DE LIMA DOS SANTOS", "admissao": "2024-12-02"}, {"nome": "JUAREZ INACIO BARBOSA", "admissao": "2016-01-22"}, {"nome": "JUCELINO DIAS SIQUEIRA", "admissao": "2025-03-05"}, {"nome": "JULIANA BARBOSA DANTAS", "admissao": "2024-09-02"}, {"nome": "KARINA VIEIRA ALVES DE OLIVEIRA", "admissao": "2026-02-02"}, {"nome": "LEANDRO OLIVEIRA DOS SANTOS", "admissao": "2018-05-23"}, {"nome": "LIDIANE RIBEIRO DE SOUZA", "admissao": "2024-09-16"}, {"nome": "LUCAS VIEIRA DO CARMO", "admissao": "2023-12-14"}, {"nome": "MARCOS ANTONIO PEREIRA", "admissao": "2020-01-08"}, {"nome": "MARIA CAROLINA SILVA", "admissao": "2026-01-12"}, {"nome": "MARIA DO SOCORRO BEZERRA DO NASCIMENTO", "admissao": "2022-09-15"}, {"nome": "MARIA FRANCISCA NONATA PONTES", "admissao": "2025-06-02"}, {"nome": "MARTA OLIVEIRA SILVA", "admissao": "2019-05-21"}, {"nome": "MAURICIO LEITE DE LIMA", "admissao": "2026-04-13"}, {"nome": "NADIA KALINE DAS NEVES PINTO", "admissao": "2024-12-02"}, {"nome": "NELSILENE DA SILVA", "admissao": "2025-05-19"}, {"nome": "PAULO RICHARD MARTINS BARBOSA", "admissao": "2026-04-13"}, {"nome": "RAFAEL ANTONIO GONCALVES", "admissao": "2024-01-11"}, {"nome": "RAIMUNDO SEVERO DA SILVA", "admissao": "2016-07-01"}, {"nome": "RANDIR ALVES FERREIRA", "admissao": "2025-06-02"}, {"nome": "RAYSA CAROLINE BRITO CRUZ", "admissao": "2025-08-04"}, {"nome": "ROMAURA FERNANDES LOPES", "admissao": "2024-11-11"}, {"nome": "ROSILENE RODRIGUES DA SILVA SOUSA", "admissao": "2024-10-14"}, {"nome": "SAMIRA PEREIRA DE OLIVEIRA", "admissao": "2026-06-01"}, {"nome": "SIBERDE APARECIDA MENDES QUEIROZ", "admissao": "2025-06-02"}, {"nome": "TATIANE MOREIRA DOS SANTOS LIMA", "admissao": "2026-04-13"}, {"nome": "UEDER SOUSA ARAUJO", "admissao": "2016-06-06"}, {"nome": "UIDESNES ALVES FEITOSA", "admissao": "2024-09-16"}, {"nome": "VALCILENE DE SOUZA PINHEIRO", "admissao": "2026-07-20"}, {"nome": "WELLINGTON NUNES DE OLIVEIRA", "admissao": "2025-02-10"}, {"nome": "WILKA SOARES LOPES", "admissao": "2020-01-08"}];
 
-// aplica a data de admissão de cada pessoa da base do RH que bater (por nome) com o roster atual —
-// substitui qualquer Fim do Período preenchido manualmente antes, porque calculado a partir da
-// admissão é mais confiável. Roda 1x por sessão; grava só quem realmente mudou (evita escrita à toa).
+// aplica a data de admissão de cada pessoa da base do RH que bater (por nome) com o roster atual,
+// e usa ela pra semear o "Período Pendente" na primeira vez (uma vez só). Depois de semeado, o
+// valor é editável — não fica mais sendo sobrescrito por essa função, é a pessoa que passa a
+// controlar (na mão, ou pelo avanço automático quando as férias terminam).
 async function fer2AplicarAdmissoes(){
   const roster = fer2Roster();
   const porChaveRoster = new Map(roster.map(r=>[fer2Chave(r.nome), r]));
@@ -7159,15 +7163,18 @@ async function fer2AplicarAdmissoes(){
     const admissao = porChaveAdmissao.get(chave);
     if(!admissao) return; // não achou essa pessoa na base de admissões — deixa como está
     const existente = fer2Planos.get(chave);
-    if(existente && existente.dataAdmissao === admissao) return; // já está certo, não escreve de novo
+    const jaTemAdmissao = existente && existente.dataAdmissao === admissao;
+    const jaTemPeriodo = existente && existente.fimPeriodo;
+    if(jaTemAdmissao && jaTemPeriodo) return; // já foi semeado e/ou já foi editado — não mexe mais
     const dados = { nome: pessoa.nome, dataAdmissao: admissao };
+    if(!jaTemPeriodo) dados.fimPeriodo = fer2FimPeriodoDeAdmissao(admissao); // só semeia se ainda estiver vazio
     if(existente && existente.id){
       lote.set(db.collection('ferias_planejamento').doc(existente.id), dados, {merge:true});
       fer2Planos.set(chave, {...existente, ...dados});
     } else {
       const ref = db.collection('ferias_planejamento').doc();
       lote.set(ref, dados);
-      fer2Planos.set(chave, {id: ref.id, fimPeriodo:null, inicio:null, fim:null, substituto:null, ...dados});
+      fer2Planos.set(chave, {id: ref.id, inicio:null, fim:null, substituto:null, ...dados});
     }
     aplicados++;
   });
@@ -7209,6 +7216,15 @@ async function iniciarFerias(){
     document.getElementById('fer2-btnLimparPlano').addEventListener('click', fer2RemoverPlano);
     document.getElementById('fer2-fFimPeriodo').addEventListener('input', fer2AtualizarCalculado);
     document.getElementById('fer2-fDataAdmissao').addEventListener('input', fer2AtualizarCalculado);
+    document.getElementById('fer2-btnAvancarPeriodo').addEventListener('click', ()=>{
+      const campoFim = document.getElementById('fer2-fFimPeriodo');
+      const campoAdmissao = document.getElementById('fer2-fDataAdmissao');
+      // se ainda não tem período pendente, usa a admissão como ponto de partida; senão, +12 meses em cima do que já tem
+      const base = campoFim.value || fer2FimPeriodoDeAdmissao(campoAdmissao.value);
+      if(!base) return; // sem base nenhuma (nem período nem admissão), não tem o que avançar
+      campoFim.value = fer2SomarMeses(base, 12);
+      fer2AtualizarCalculado();
+    });
     document.getElementById('fer2-btnImprimir').addEventListener('click', ()=>{
       document.getElementById('fer2-print-data').textContent = 'Gerado em ' + new Date().toLocaleString('pt-BR');
       // reforço direto via JS (além do CSS) pra garantir que o fundo escuro do modal de edição
@@ -7341,10 +7357,10 @@ function fer2Render(){
     const plano = fer2Planos.get(fer2Chave(r.nome));
     const temPlano = !!(plano && plano.inicio && plano.fim);
     const semSub = temPlano && !fer2Norm(plano.substituto);
-    // quando a admissão é conhecida, o Fim do Período é SEMPRE recalculado ao vivo a partir dela —
-    // ignora qualquer valor manual antigo, pra nunca ficar desatualizado. Sem admissão conhecida,
-    // cai no valor digitado manualmente (fallback pra quem não está na base de admissões).
-    const fimPeriodo = plano ? (plano.dataAdmissao ? fer2FimPeriodoDeAdmissao(plano.dataAdmissao) : (plano.fimPeriodo||null)) : null;
+    // "Período Pendente" é um valor guardado e editável — parte do cálculo pela admissão (uma vez,
+    // quando ainda está vazio) mas depois disso é o usuário (ou o avanço automático ao concluir
+    // férias) quem manda, não uma fórmula recalculando por cima toda hora.
+    const fimPeriodo = plano && plano.fimPeriodo || null;
     const prazoMaximo = fimPeriodo ? fer2PrazoMaximo(fimPeriodo) : null;
     const hoje = new Date().toISOString().slice(0,10);
     const cobreAteOFim = temPlano && prazoMaximo && plano.fim >= prazoMaximo; // férias já marcada cobre (ou passa) o prazo máximo
@@ -7402,7 +7418,7 @@ function fer2Render(){
     <tr>
       <th class="qfc-col-first">Funcionário</th>
       <th>Cargo</th>
-      <th>Fim do Período</th>
+      <th>Período Pendente</th>
       <th>Prazo Máximo</th>
       ${meses.map((m,i)=>`<th class="fer2-col-mes ${i===0?'fer2-mes-atual fer2-primeiro-mes':''}">${m.label}</th>`).join('')}
     </tr>
@@ -7481,7 +7497,7 @@ function fer2AbrirModal(chave){
   document.getElementById('fer2-modalNome').textContent = pessoa.nome;
   document.getElementById('fer2-modalSub').textContent = `${pessoa.papel} · ${fer2ResumoAtribuicoes(pessoa.atribuicoes)||'sem aviário vinculado'}`;
   document.getElementById('fer2-fDataAdmissao').value = (plano && plano.dataAdmissao) || '';
-  document.getElementById('fer2-fFimPeriodo').value = (plano && !plano.dataAdmissao && plano.fimPeriodo) || '';
+  document.getElementById('fer2-fFimPeriodo').value = (plano && plano.fimPeriodo) || '';
   document.getElementById('fer2-fInicio').value = (plano && plano.inicio) || '';
   document.getElementById('fer2-fFim').value = (plano && plano.fim) || '';
   document.getElementById('fer2-fSub').value = (plano && plano.substituto) || '';
@@ -7491,18 +7507,13 @@ function fer2AbrirModal(chave){
   document.getElementById('fer2-modalFundo').style.display = 'flex';
 }
 function fer2AtualizarCalculado(){
-  const dataAdmissao = document.getElementById('fer2-fDataAdmissao').value;
-  const campoFimManual = document.getElementById('fer2-campoFimManual');
+  const fimPeriodo = document.getElementById('fer2-fFimPeriodo').value;
   const bloco = document.getElementById('fer2-modalCalculado');
-  // com admissão preenchida, o Fim do Período manual some (é sempre calculado a partir dela)
-  campoFimManual.style.display = dataAdmissao ? 'none' : '';
-  if(!dataAdmissao){ bloco.style.display = 'none'; return; }
+  if(!fimPeriodo){ bloco.style.display = 'none'; return; }
   bloco.style.display = '';
-  const fimPeriodo = fer2FimPeriodoDeAdmissao(dataAdmissao);
   const prazoMaximo = fer2PrazoMaximo(fimPeriodo);
   const hoje = new Date().toISOString().slice(0,10);
   const urgente = fer2SomarMeses(hoje,2) >= prazoMaximo;
-  document.getElementById('fer2-txtFimPeriodo').textContent = reg_formatarDataBR(fimPeriodo);
   const elPrazo = document.getElementById('fer2-txtPrazoMaximo');
   elPrazo.textContent = reg_formatarDataBR(prazoMaximo);
   elPrazo.classList.toggle('fer2-prazo-urgente', urgente);
@@ -7523,7 +7534,7 @@ async function fer2SalvarPlano(){
   if(inicio && fim && fim < inicio){ erroEl.style.color='var(--vermelho-alerta)'; erroEl.textContent = 'A data de fim não pode ser antes do início.'; return; }
   const chave = fer2Chave(fer2NomeAtual);
   const existente = fer2Planos.get(chave);
-  const dados = { nome: fer2NomeAtual, dataAdmissao: dataAdmissao || null, fimPeriodo: dataAdmissao ? null : (fimPeriodo || null), inicio: inicio || null, fim: fim || null, substituto: substituto || null };
+  const dados = { nome: fer2NomeAtual, dataAdmissao: dataAdmissao || null, fimPeriodo: fimPeriodo || null, inicio: inicio || null, fim: fim || null, substituto: substituto || null };
   const btn = document.getElementById('fer2-btnSalvarPlano');
   btn.disabled = true; btn.textContent = 'Salvando...';
   try{
