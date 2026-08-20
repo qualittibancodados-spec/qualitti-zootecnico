@@ -1728,6 +1728,7 @@
         <div class="painel">
           <div class="painel-header"><h2>Próximos 12 meses</h2><span class="info" id="fer2-info"></span></div>
           <button class="btn-recolher" id="fer2-btnImprimir" type="button" style="margin-bottom:12px;">🖨️ Imprimir / PDF</button>
+          <button class="btn-recolher" id="fer2-btnExportarExcel" type="button" style="margin-bottom:12px;">📊 Exportar Excel</button>
           <div id="fer2-print-header">
             <img src="logo.png" alt="Qualitti">
             <div class="qf-print-titulos">
@@ -7241,6 +7242,7 @@ async function iniciarFerias(){
         document.body.style.background = '';
       }, 500);
     });
+    document.getElementById('fer2-btnExportarExcel').addEventListener('click', fer2ExportarExcel);
   }
 }
 window.iniciarFerias = iniciarFerias;
@@ -7337,6 +7339,100 @@ function fer2FimPeriodoDeAdmissao(admissaoISO){
   let k = Math.floor(totalMeses/12);
   if(k<1) k = 1;
   return fer2SomarMeses(admissaoISO, 12*k);
+}
+
+function fer2ExportarExcel(){
+  if(typeof XLSX === 'undefined'){ alert('Não foi possível carregar o gerador de Excel.'); return; }
+  const roster = fer2Roster();
+  if(!roster.length){ alert('Nenhum funcionário encontrado.'); return; }
+  const meses = fer2JanelaMeses();
+  const NOMES_MES_CURTO = ['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez'];
+  const hoje = new Date().toISOString().slice(0,10);
+
+  const cabecalhoFixo = ['Nome','Cargo','Núcleo','Aviário','Data de Admissão','Período Pendente','Prazo Máximo','Status'];
+  const cabecalhoMeses = [];
+  meses.forEach(m=>{ cabecalhoMeses.push(`${NOMES_MES_CURTO[m.mes-1]}/${String(m.ano).slice(2)} - Dias`, `${NOMES_MES_CURTO[m.mes-1]}/${String(m.ano).slice(2)} - Substituto`); });
+
+  const linhas = [
+    ['PLANEJAMENTO DE FÉRIAS — Granjeiros e Ajudantes · Próximos 12 meses'],
+    [`Exportado em ${new Date().toLocaleString('pt-BR')} — dados ao vivo do Quadro de Funcionários e do Planejamento de Férias`],
+    [],
+    [...cabecalhoFixo, ...cabecalhoMeses]
+  ];
+
+  const linhasOrdenadas = roster.slice().sort((a,b)=>a.nome.localeCompare(b.nome));
+  let totalVencidos=0, totalUrgentes=0, totalOk=0, totalSemPeriodo=0;
+
+  linhasOrdenadas.forEach(r=>{
+    const plano = fer2Planos.get(fer2Chave(r.nome));
+    const fimPeriodo = plano && plano.fimPeriodo || null;
+    const prazoMaximo = fimPeriodo ? fer2PrazoMaximo(fimPeriodo) : null;
+    let status = '—';
+    if(prazoMaximo){
+      if(prazoMaximo < hoje) status = 'VENCIDO';
+      else if(prazoMaximo <= fer2SomarMeses(hoje,2)) status = 'URGENTE';
+      else status = 'OK';
+    } else totalSemPeriodo++;
+    if(status==='VENCIDO') totalVencidos++;
+    else if(status==='URGENTE') totalUrgentes++;
+    else if(status==='OK') totalOk++;
+
+    const temPlano = !!(plano && plano.inicio && plano.fim);
+    const linha = [
+      r.nome, r.papel, fer2Nucleos(r.atribuicoes)||'—', fer2Aviarios(r.atribuicoes)||'—',
+      (plano && plano.dataAdmissao) ? reg_formatarDataBR(plano.dataAdmissao) : '—',
+      fimPeriodo ? reg_formatarDataBR(fimPeriodo) : '—',
+      prazoMaximo ? reg_formatarDataBR(prazoMaximo) : '—',
+      status
+    ];
+    meses.forEach(m=>{
+      if(!temPlano){ linha.push('', ''); return; }
+      const cruza = plano.inicio <= fer2UltimoDiaMes(m.ano,m.mes) && plano.fim >= fer2PrimeiroDiaMes(m.ano,m.mes);
+      if(!cruza){ linha.push('', ''); return; }
+      const iniMes = fer2PrimeiroDiaMes(m.ano,m.mes), fimMes = fer2UltimoDiaMes(m.ano,m.mes);
+      const diaIni = (plano.inicio > iniMes ? plano.inicio : iniMes).slice(8,10);
+      const diaFim = (plano.fim < fimMes ? plano.fim : fimMes).slice(8,10);
+      linha.push(diaIni===diaFim ? diaIni : `${diaIni}–${diaFim}`, fer2Norm(plano.substituto) || 'sem substituto');
+    });
+    linhas.push(linha);
+  });
+
+  // linhas de resumo por mês, no fim
+  const linhaDeFerias = ['QUANTOS DE FÉRIAS NO MÊS','','','','','','',''];
+  const linhaComSub = ['…COM SUBSTITUTO DEFINIDO','','','','','','',''];
+  const linhaSemSub = ['…SEM SUBSTITUTO (atenção)','','','','','','',''];
+  meses.forEach(m=>{
+    let deFerias=0, comSub=0;
+    linhasOrdenadas.forEach(r=>{
+      const plano = fer2Planos.get(fer2Chave(r.nome));
+      const temPlano = !!(plano && plano.inicio && plano.fim);
+      if(!temPlano) return;
+      const cruza = plano.inicio <= fer2UltimoDiaMes(m.ano,m.mes) && plano.fim >= fer2PrimeiroDiaMes(m.ano,m.mes);
+      if(!cruza) return;
+      deFerias++;
+      if(fer2Norm(plano.substituto)) comSub++;
+    });
+    linhaDeFerias.push(deFerias, '');
+    linhaComSub.push(comSub, '');
+    linhaSemSub.push(deFerias-comSub, '');
+  });
+  linhas.push([], linhaDeFerias, linhaComSub, linhaSemSub);
+  linhas.push([], ['Resumo geral'], ['Total de funcionários', linhasOrdenadas.length], ['Vencidos', totalVencidos], ['Urgentes (≤ 2 meses)', totalUrgentes], ['Dentro do prazo (OK)', totalOk], ['Sem período pendente registrado', totalSemPeriodo]);
+
+  const ws = XLSX.utils.aoa_to_sheet(linhas);
+  ws['!cols'] = [
+    {wch:30},{wch:11},{wch:16},{wch:10},{wch:14},{wch:14},{wch:13},{wch:11},
+    ...meses.flatMap(()=>[{wch:9},{wch:16}])
+  ];
+  ws['!merges'] = [
+    {s:{r:0,c:0}, e:{r:0,c:cabecalhoFixo.length+cabecalhoMeses.length-1}},
+    {s:{r:1,c:0}, e:{r:1,c:cabecalhoFixo.length+cabecalhoMeses.length-1}}
+  ];
+  ws['!freeze'] = {xSplit:0, ySplit:4};
+
+  const wb = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb, ws, 'Planejamento de Férias');
+  XLSX.writeFile(wb, `planejamento_ferias_${new Date().toISOString().slice(0,10)}.xlsx`);
 }
 
 function fer2Render(){
