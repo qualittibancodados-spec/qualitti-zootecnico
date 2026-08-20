@@ -1683,6 +1683,7 @@
         <div style="display:flex;gap:10px;margin-bottom:18px;flex-wrap:wrap;">
           <button class="btn-recolher" id="qf-btnExpandirTodos" type="button">Expandir todos</button>
           <button class="btn-recolher" id="qf-btnImprimir" type="button">🖨️ Imprimir</button>
+          <button class="btn-recolher" id="qf-btnExportarExcel" type="button">📊 Exportar Excel</button>
         </div>
         <div class="painel">
           <div id="qf-print-header">
@@ -8078,6 +8079,51 @@ function qfExtraPapel(p){ if(p.extraPapel) return p.extraPapel; if(p.ajudante2 &
 function qfExtraNome(p){ return p.extraNome!=null ? p.extraNome : (p.ajudante2||''); }
 function qfExtraSaindo(p){ return p.extraSaindo!=null ? p.extraSaindo : !!p.ajudante2Saindo; }
 
+function qfExportarExcel(){
+  if(typeof XLSX === 'undefined'){ alert('Não foi possível carregar o gerador de Excel.'); return; }
+  const postos = window.POSTOS_QUADRO || [];
+  if(!postos.length){ alert('Nenhum posto cadastrado ainda.'); return; }
+
+  // uma linha por PESSOA (não por posto) — assim dá pra fazer PROCV direto pelo nome
+  const linhas = [
+    ['QUADRO DE FUNCIONÁRIOS — Visão Consolidada (Granjeiro/Ajudante por núcleo e aviário)'],
+    [`Exportado em ${new Date().toLocaleString('pt-BR')} — dados ao vivo de Atualizar Funcionários`],
+    [],
+    ['Nome','Cargo','Núcleo','Aviário','Saindo?']
+  ];
+
+  const postosOrd = postos.slice().sort((a,b)=> (a.nucleo||'').localeCompare(b.nucleo||'') || String(a.aviarios||'').localeCompare(String(b.aviarios||''), undefined, {numeric:true}));
+  let totalPessoas = 0;
+  postosOrd.forEach(p=>{
+    const nucleoNome = typeof nomeNucleo==='function' ? nomeNucleo(p.nucleo) : p.nucleo;
+    if(p.granjeiro && p.granjeiro.trim()){
+      linhas.push([p.granjeiro.trim(), 'Granjeiro', nucleoNome, p.aviarios||'—', p.granjeiroSaindo ? 'Sim' : 'Não']);
+      totalPessoas++;
+    }
+    if(p.ajudante && p.ajudante.trim()){
+      linhas.push([p.ajudante.trim(), 'Ajudante', nucleoNome, p.aviarios||'—', p.ajudanteSaindo ? 'Sim' : 'Não']);
+      totalPessoas++;
+    }
+    const papelExtra = qfExtraPapel(p), nomeExtra = qfExtraNome(p);
+    if(nomeExtra && nomeExtra.trim()){
+      const rotuloPapel = papelExtra==='granjeiro' ? 'Granjeiro (extra)' : (papelExtra==='ajudante' ? 'Ajudante (extra)' : 'Extra');
+      linhas.push([nomeExtra.trim(), rotuloPapel, nucleoNome, p.aviarios||'—', qfExtraSaindo(p) ? 'Sim' : 'Não']);
+      totalPessoas++;
+    }
+  });
+
+  linhas.push([], ['Total de postos', postosOrd.length], ['Total de pessoas', totalPessoas]);
+
+  const ws = XLSX.utils.aoa_to_sheet(linhas);
+  ws['!cols'] = [{wch:32},{wch:18},{wch:18},{wch:12},{wch:9}];
+  ws['!merges'] = [{s:{r:0,c:0}, e:{r:0,c:4}}, {s:{r:1,c:0}, e:{r:1,c:4}}];
+  ws['!freeze'] = {xSplit:0, ySplit:4};
+
+  const wb = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb, ws, 'Quadro Consolidado');
+  XLSX.writeFile(wb, `quadro_consolidado_${new Date().toISOString().slice(0,10)}.xlsx`);
+}
+
 async function iniciarQuadroFuncionarios(){
   try{
     const docNec = await db.collection('configuracoes').doc('necessidade_nucleos').get();
@@ -8316,6 +8362,9 @@ if(btnImprimirQf){
     setTimeout(()=>window.print(), 150);
   });
 }
+
+const btnExportarExcelQf = document.getElementById('qf-btnExportarExcel');
+if(btnExportarExcelQf) btnExportarExcelQf.addEventListener('click', qfExportarExcel);
 
 function renderQuadroFuncionarios(){
   const cont = document.getElementById('quadroNucleosContainer');
