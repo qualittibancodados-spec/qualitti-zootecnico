@@ -1707,9 +1707,10 @@
 
       <div data-aba-qf-view="ferias" style="display:none;">
         <p class="nota" style="margin:16px 0 8px;">Granjeiros e Ajudantes são puxados automaticamente de <strong>Atualizar Funcionários</strong> — não precisa recadastrar ninguém aqui. Essa aba só cuida do planejamento das férias.</p>
-        <p class="nota" style="margin:0 0 18px;">🛈 <strong>Período Pendente</strong> = o período aquisitivo que a pessoa ainda deve resolver (pode corrigir na mão a qualquer momento). <strong>Prazo Máximo</strong> = Período Pendente + 6 meses — é até quando as férias precisam ser tiradas.</p>
+        <p class="nota" style="margin:0 0 18px;">🛈 <strong>Período Pendente</strong> = o período aquisitivo que a pessoa ainda deve resolver (pode corrigir na mão a qualquer momento). <strong>Prazo Máximo</strong> = Período Pendente + 10 meses — é até quando as férias precisam ser tiradas.</p>
 
         <div class="cards" id="fer2-cards"></div>
+        <div id="fer2-avisoDuplicatas" style="display:none;margin:0 0 16px;padding:12px 16px;background:#FFF6DA;border:1px solid #F0DA8C;border-radius:10px;"></div>
 
         <div class="painel" style="margin-bottom:18px;">
           <div class="filtros-grid">
@@ -7082,8 +7083,12 @@ let fer2Planos = new Map(); // chave (nome normalizado) -> {id, inicio, fim, sub
 let fer2NomeAtual = null;
 let fer2CarregouPlanos = false;
 
-function fer2Norm(s){ return String(s||'').trim(); }
-function fer2Chave(nome){ return fer2Norm(nome).toUpperCase(); }
+function fer2Norm(s){ return String(s||'').trim().replace(/\s+/g,' '); }
+// normaliza bem forte (maiúsculo + sem acento) pra casar nomes mesmo com pequenas diferenças de
+// digitação entre o cadastro e as bases do RH (acento, espaço duplo, etc.)
+function fer2Chave(nome){
+  return fer2Norm(nome).toUpperCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+}
 
 // deriva a lista de granjeiros/ajudantes a partir do cadastro de Atualizar Funcionários —
 // se a mesma pessoa cobre mais de um posto, junta tudo numa única entrada.
@@ -7099,6 +7104,51 @@ function fer2Roster(){
     });
   });
   return Array.from(porChave.values()).sort((a,b)=>a.nome.localeCompare(b.nome));
+}
+
+// distância de edição entre 2 strings (Levenshtein) -- usada só pra achar nomes PARECIDOS,
+// não idênticos (esses o roster já junta sozinho pela chave normalizada)
+function fer2Levenshtein(a, b){
+  const m = a.length, n = b.length;
+  const dp = Array.from({length:m+1}, ()=>new Array(n+1).fill(0));
+  for(let i=0;i<=m;i++) dp[i][0]=i;
+  for(let j=0;j<=n;j++) dp[0][j]=j;
+  for(let i=1;i<=m;i++){
+    for(let j=1;j<=n;j++){
+      dp[i][j] = a[i-1]===b[j-1] ? dp[i-1][j-1] : 1+Math.min(dp[i-1][j],dp[i][j-1],dp[i-1][j-1]);
+    }
+  }
+  return dp[m][n];
+}
+// varre o roster inteiro procurando pares de nomes bem parecidos (mas não idênticos) --
+// sinal de que pode ser a MESMA pessoa cadastrada com pequena diferença de digitação em algum
+// lugar (typo, nome do meio faltando, etc.), o que faria essa pessoa "sumir" da base de
+// admissão/RH por não bater a chave exata.
+function fer2DetectarDuplicatas(roster){
+  const achados = [];
+  for(let i=0;i<roster.length;i++){
+    for(let j=i+1;j<roster.length;j++){
+      const a = fer2Chave(roster[i].nome), b = fer2Chave(roster[j].nome);
+      const dist = fer2Levenshtein(a,b);
+      const limiar = Math.max(2, Math.floor(Math.min(a.length,b.length)*0.12));
+      if(dist>0 && dist<=limiar){
+        achados.push({nome1: roster[i].nome, nome2: roster[j].nome, dist});
+      }
+    }
+  }
+  return achados;
+}
+function fer2RenderAvisoDuplicatas(roster){
+  const el = document.getElementById('fer2-avisoDuplicatas');
+  if(!el) return;
+  const achados = fer2DetectarDuplicatas(roster);
+  if(!achados.length){ el.style.display = 'none'; return; }
+  el.style.display = 'block';
+  el.innerHTML = `<strong style="color:#8A6D00;">⚠️ ${achados.length} possível(is) nome(s) duplicado(s)/desalinhado(s):</strong>
+    <div style="margin-top:6px;font-size:12.5px;color:#5B6470;">
+      ${achados.map(a=>`"${a.nome1}" ≈ "${a.nome2}"`).join('<br>')}
+    </div>
+    <div style="margin-top:6px;font-size:11.5px;color:#8A6D00;">Confira em Atualizar Funcionários se são a mesma pessoa cadastrada duas vezes com nome ligeiramente diferente.</div>`;
 }
 
 function fer2ResumoAtribuicoes(atrib){
@@ -7121,11 +7171,12 @@ function fer2Aviarios(atrib){
   return atrib.map(a=>a.aviarios).filter(Boolean).join(', ');
 }
 
-// renovação automática do "Período Pendente": quando as férias planejadas de alguém já
-// terminaram (hoje passou do "fim" das férias), o próximo ciclo começa sozinho — o novo
-// Período Pendente é sempre o anterior + 12 meses. Já limpa férias/substituto pra esse novo
-// ciclo, já que é um período novo, ainda sem planejamento. Vale pra todo mundo — a pessoa
-// também pode adiantar isso na mão a qualquer momento (botão "+12 meses" no modal).
+// renovação automática do "Período Pendente": quando as férias marcadas de alguém já aconteceram
+// (hoje passou do "fim" das férias) E esse período de férias realmente corresponde ao período
+// pendente atual (mesmo mês ou depois — nunca antes, senão um histórico antigo poderia empurrar
+// errado um período que ainda nem venceu), o próximo ciclo começa sozinho: +12 meses em cima do
+// anterior. Mesma regra usada na planilha Excel. A pessoa também pode adiantar isso na mão a
+// qualquer momento (botão "+12 meses" no modal).
 async function fer2RenovarPeriodosVencidos(){
   const hoje = new Date().toISOString().slice(0,10);
   const lote = db.batch();
@@ -7133,6 +7184,10 @@ async function fer2RenovarPeriodosVencidos(){
   fer2Planos.forEach((plano, chave)=>{
     if(!plano.id || !plano.fim || plano.fim >= hoje) return; // só quem já terminou as férias marcadas
     if(!plano.fimPeriodo) return; // sem período pendente registrado, não dá pra calcular o próximo
+    // as férias marcadas precisam cair no mês do período pendente ou depois — nunca antes
+    const mesFerias = plano.fim.slice(0,7); // "AAAA-MM"
+    const mesPeriodo = plano.fimPeriodo.slice(0,7);
+    if(mesFerias < mesPeriodo) return;
     const novoFimPeriodo = fer2SomarMeses(plano.fimPeriodo, 12);
     if(!novoFimPeriodo || novoFimPeriodo === plano.fimPeriodo) return;
     const dados = { fimPeriodo: novoFimPeriodo, inicio: null, fim: null, substituto: null };
@@ -7155,21 +7210,33 @@ const FER2_ADMISSOES = [{"nome": "ADRIELE RODRIGUES DE OLIVEIRA", "admissao": "2
 // e usa ela pra semear o "Período Pendente" na primeira vez (uma vez só). Depois de semeado, o
 // valor é editável — não fica mais sendo sobrescrito por essa função, é a pessoa que passa a
 // controlar (na mão, ou pelo avanço automático quando as férias terminam).
+// base real de FIM do período aquisitivo, confirmada pelo RH (EMP_02/EMP_03) -- mais confiável
+// que estimar pela admissão, porque já reflete férias que a pessoa tirou antes desse sistema
+// existir. Prioridade: usa isso quando disponível; só cai no cálculo por admissão pra quem não
+// está aqui.
+const FER2_RH_FIMAQUISICAO = [{"nome": "FRANCISCO JOSE PEREIRA SOUSA", "fimAquisicao": "2025-10-13"}, {"nome": "ROSILENE RODRIGUES DA SILVA SOUSA", "fimAquisicao": "2025-10-13"}, {"nome": "JESSIKA CAROLINE MENDONCA DE OLIVEIRA", "fimAquisicao": "2025-11-17"}, {"nome": "JOSIVALDO DE LIMA DOS SANTOS", "fimAquisicao": "2025-12-01"}, {"nome": "EDIMAR RODRIGUES DE FREITAS", "fimAquisicao": "2025-12-05"}, {"nome": "LUCAS VIEIRA DO CARMO", "fimAquisicao": "2025-12-13"}, {"nome": "WILKA SOARES LOPES", "fimAquisicao": "2026-01-07"}, {"nome": "MARCOS ANTONIO PEREIRA", "fimAquisicao": "2026-01-07"}, {"nome": "DOUGLAS DE JESUS SOUSA", "fimAquisicao": "2026-02-16"}, {"nome": "EDILAINE CRISTINA DA CRUZ DIAS", "fimAquisicao": "2026-03-04"}, {"nome": "JUCELINO DIAS SIQUEIRA", "fimAquisicao": "2026-03-04"}, {"nome": "ELIZEU SANTOS SOUZA", "fimAquisicao": "2026-03-15"}, {"nome": "FABIANA BATISTA DOS SANTOS", "fimAquisicao": "2026-03-22"}, {"nome": "FABIO CORDEIRO DOS SANTOS", "fimAquisicao": "2026-04-15"}, {"nome": "ANTONIA KATIANE DOS SANTOS CRUZ", "fimAquisicao": "2026-04-15"}, {"nome": "ALEXANDRE DE JESUS CUNHA", "fimAquisicao": "2026-04-17"}, {"nome": "ANTONIO ANDRE DE OLIVEIRA", "fimAquisicao": "2026-05-12"}, {"nome": "FLAVIA DE LIMA", "fimAquisicao": "2026-05-12"}, {"nome": "JOAO BOSCO DE OLIVEIRA", "fimAquisicao": "2026-05-18"}, {"nome": "NELSILENE DA SILVA", "fimAquisicao": "2026-05-18"}, {"nome": "MARTA OLIVEIRA SILVA", "fimAquisicao": "2026-05-20"}, {"nome": "LEANDRO OLIVEIRA DOS SANTOS", "fimAquisicao": "2026-05-22"}, {"nome": "RANDIR ALVES FERREIRA", "fimAquisicao": "2026-06-01"}, {"nome": "SIBERDE APARECIDA MENDES QUEIROZ", "fimAquisicao": "2026-06-01"}, {"nome": "CICERO GOMES LEAL", "fimAquisicao": "2026-06-01"}, {"nome": "UEDER SOUSA ARAUJO", "fimAquisicao": "2026-06-05"}, {"nome": "RAIMUNDO SEVERO DA SILVA", "fimAquisicao": "2026-06-30"}, {"nome": "GILMAR CANDIDO DA SILVA", "fimAquisicao": "2026-07-31"}, {"nome": "EDIVANDRO BATISTA DOS SANTOS", "fimAquisicao": "2026-08-03"}, {"nome": "RAYSA CAROLINE BRITO CRUZ", "fimAquisicao": "2026-08-03"}, {"nome": "ELIAS MARQUES DOS SANTOS", "fimAquisicao": "2026-08-31"}, {"nome": "JOAO DE JESUS", "fimAquisicao": "2026-09-01"}, {"nome": "JULIANA BARBOSA DANTAS", "fimAquisicao": "2026-09-01"}, {"nome": "MARIA DO SOCORRO BEZERRA DO NASCIMENTO", "fimAquisicao": "2026-09-14"}, {"nome": "IZIEL VAGNER RODRIGUES DOS SANTOS", "fimAquisicao": "2026-09-14"}, {"nome": "LIDIANE RIBEIRO DE SOUZA", "fimAquisicao": "2026-09-15"}, {"nome": "UIDESNES ALVES FEITOSA", "fimAquisicao": "2026-09-15"}, {"nome": "GISELE FERREIRA SOARES", "fimAquisicao": "2026-10-02"}, {"nome": "GUILHERME PEREIRA DE SOUSA", "fimAquisicao": "2026-10-03"}, {"nome": "DIONATHAN DEIVIDE SANTOS NOGUEIRA", "fimAquisicao": "2025-11-03"}, {"nome": "BRUNA TEIXEIRA GOMES", "fimAquisicao": "2025-11-17"}, {"nome": "GABRIEL SANTANA SILVA", "fimAquisicao": "2026-01-03"}, {"nome": "MARIA SOCORRO JANUARIO RODRIGUES", "fimAquisicao": "2026-01-17"}, {"nome": "OLIVAN INACIO PEREIRA", "fimAquisicao": "2026-01-17"}, {"nome": "SEVERINO NUNES DOS SANTOS", "fimAquisicao": "2026-01-18"}, {"nome": "ERISVALDO DE LIMA SANTOS", "fimAquisicao": "2026-02-28"}, {"nome": "DANIEL NOGUEIRA", "fimAquisicao": "2026-03-01"}, {"nome": "ROSILANIA DA SILVA SANTOS", "fimAquisicao": "2026-03-01"}, {"nome": "LUIZ CARLOS MENDES", "fimAquisicao": "2026-05-05"}, {"nome": "LEONETE TEIXEIRA FERREIRA", "fimAquisicao": "2026-06-30"}, {"nome": "FRANCISCO PEDRO DA SILVA", "fimAquisicao": "2026-06-30"}, {"nome": "GIOVANA CANDIDA MARQUES", "fimAquisicao": "2026-07-07"}, {"nome": "MAGNO FERNANDES DE SOUSA", "fimAquisicao": "2026-07-13"}, {"nome": "ADRIELE RODRIGUES DE OLIVEIRA", "fimAquisicao": "2026-07-13"}, {"nome": "EDMILSON ALEIXO DE SOUZA", "fimAquisicao": "2026-07-31"}, {"nome": "OSVALDO RODRIGUES DE AMORIM", "fimAquisicao": "2026-09-07"}, {"nome": "CARLOS WILLIAN ALVES DE OLIVEIRA", "fimAquisicao": "2026-09-14"}, {"nome": "LUANA MARTINS BATISTA", "fimAquisicao": "2026-09-14"}, {"nome": "ROSILENE MARIA DE OLIVEIRA", "fimAquisicao": "2026-09-20"}, {"nome": "APARECIDO BATISTA PENA", "fimAquisicao": "2026-10-04"}, {"nome": "CRISTIANE ALVES DA SILVA", "fimAquisicao": "2026-10-04"}];
+
 async function fer2AplicarAdmissoes(){
   const roster = fer2Roster();
   const porChaveRoster = new Map(roster.map(r=>[fer2Chave(r.nome), r]));
   const porChaveAdmissao = new Map(FER2_ADMISSOES.map(a=>[fer2Chave(a.nome), a.admissao]));
+  const porChaveRH = new Map(FER2_RH_FIMAQUISICAO.map(a=>[fer2Chave(a.nome), a.fimAquisicao]));
   const lote = db.batch();
   let aplicados = 0;
   porChaveRoster.forEach((pessoa, chave)=>{
     const admissao = porChaveAdmissao.get(chave);
-    if(!admissao) return; // não achou essa pessoa na base de admissões — deixa como está
+    const fimRH = porChaveRH.get(chave);
+    if(!admissao && !fimRH) return; // não achou essa pessoa em nenhuma base — deixa como está
     const existente = fer2Planos.get(chave);
-    const jaTemAdmissao = existente && existente.dataAdmissao === admissao;
+    const jaTemAdmissao = existente && existente.dataAdmissao === (admissao||null);
     const jaTemPeriodo = existente && existente.fimPeriodo;
     if(jaTemAdmissao && jaTemPeriodo) return; // já foi semeado e/ou já foi editado — não mexe mais
-    const dados = { nome: pessoa.nome, dataAdmissao: admissao };
-    if(!jaTemPeriodo) dados.fimPeriodo = fer2FimPeriodoDeAdmissao(admissao); // só semeia se ainda estiver vazio
+    const dados = { nome: pessoa.nome };
+    if(admissao) dados.dataAdmissao = admissao;
+    if(!jaTemPeriodo){
+      // prioridade: FIM do período real (RH) > estimativa pela admissão
+      dados.fimPeriodo = fimRH || fer2FimPeriodoDeAdmissao(admissao);
+    }
     if(existente && existente.id){
       lote.set(db.collection('ferias_planejamento').doc(existente.id), dados, {merge:true});
       fer2Planos.set(chave, {...existente, ...dados});
@@ -7181,8 +7248,8 @@ async function fer2AplicarAdmissoes(){
     aplicados++;
   });
   if(aplicados>0){
-    try{ await lote.commit(); console.log(`Férias: data de admissão aplicada/atualizada pra ${aplicados} pessoa(s).`); }
-    catch(e){ console.error('Erro ao aplicar datas de admissão:', e); }
+    try{ await lote.commit(); console.log(`Férias: dados de admissão/RH aplicados/atualizados pra ${aplicados} pessoa(s).`); }
+    catch(e){ console.error('Erro ao aplicar dados de admissão/RH:', e); }
   }
 }
 
@@ -7325,8 +7392,8 @@ function fer2SomarMeses(dataISO, meses){
   const dt = new Date(Date.UTC(a, m-1+meses, d));
   return dt.toISOString().slice(0,10);
 }
-// prazo máximo pra tirar as férias = fim do período aquisitivo + 6 meses (período concessivo interno)
-function fer2PrazoMaximo(fimPeriodo){ return fimPeriodo ? fer2SomarMeses(fimPeriodo, 6) : null; }
+// prazo máximo pra tirar as férias = fim do período aquisitivo + 10 meses (período concessivo interno)
+function fer2PrazoMaximo(fimPeriodo){ return fimPeriodo ? fer2SomarMeses(fimPeriodo, 10) : null; }
 
 // sempre o ÚLTIMO período aquisitivo já completo, calculado ao vivo a partir da admissão —
 // nunca fica desatualizado, mesmo que ninguém mexa em nada por meses. Se ainda não completou
@@ -7444,6 +7511,7 @@ function fer2Render(){
 
   const roster = fer2Roster();
   const meses = fer2JanelaMeses();
+  fer2RenderAvisoDuplicatas(roster);
 
   const busca = (document.getElementById('fer2-fBusca').value||'').trim().toLowerCase();
   const nucleoSel = document.getElementById('fer2-fNucleo').value;
