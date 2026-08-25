@@ -493,6 +493,13 @@
   .legenda-item{ display:flex; align-items:center; gap:6px; font-size:12px; font-weight:500; color:var(--texto-suave);}
   .legenda-item .barra{ width:16px; height:3px; border-radius:2px;}
 
+  /* calendário de importações — Fábrica de Rações */
+  .fab-cal-grid{ display:grid; grid-template-columns:repeat(auto-fill, minmax(46px, 1fr)); gap:4px; }
+  .fab-cal-dia{ border:1px solid var(--borda); border-radius:8px; padding:5px 4px; text-align:center; background:var(--card); }
+  .fab-cal-num{ font-size:11px; font-weight:700; color:var(--texto-suave); margin-bottom:4px; }
+  .fab-cal-barras{ display:flex; flex-direction:column; gap:2px; }
+  .fab-cal-b{ display:block; height:4px; border-radius:2px; }
+
   .linha-nucleo{ font-weight:600; }
   .linha-nucleo td{ padding:10px; }
   .btn-expandir{
@@ -1149,6 +1156,9 @@
       </button>
       <button class="modulo" data-modulo="admin" id="btnModuloAdmin" style="display:none;">
         <span class="modulo-ic">⚙️</span> Administração
+      </button>
+      <button class="modulo" data-modulo="fabrica" id="btnModuloFabrica" style="display:none;">
+        <span class="modulo-ic">🏭</span> Fábrica de Rações
       </button>
     </div>
   </nav>
@@ -2158,6 +2168,7 @@
                 <label style="display:flex;align-items:center;gap:5px;font-size:12.5px;"><input type="checkbox" class="perm-modulo-check" value="registros"> Registros</label>
                 <label style="display:flex;align-items:center;gap:5px;font-size:12.5px;"><input type="checkbox" class="perm-modulo-check" value="produtos"> Consulta de Produtos</label>
                 <label style="display:flex;align-items:center;gap:5px;font-size:12.5px;"><input type="checkbox" class="perm-modulo-check" value="energiasolar"> Energia Solar</label>
+                <label style="display:flex;align-items:center;gap:5px;font-size:12.5px;"><input type="checkbox" class="perm-modulo-check" value="fabrica"> Fábrica de Rações</label>
               </div>
             </div>
             <button type="submit" class="btn-recolher" style="background:var(--vermelho);color:#fff;border-color:var(--vermelho);">Promover / Atualizar</button>
@@ -2177,6 +2188,146 @@
           <p class="nota" style="margin-top:0;">Quem está usando o painel de verdade — ordenado por acesso mais recente. Atualiza sozinho conforme as pessoas usam o site.</p>
           <div class="tabela-scroll"><table class="matriz-diaria" id="tabelaAcessos"></table></div>
         </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============ MÓDULO: FÁBRICA DE RAÇÕES ============ -->
+  <div data-modulo-view="fabrica" style="display:none;">
+    <h1 class="pagina-titulo">Fábrica de Rações</h1>
+
+    <div class="tabs-internas" id="tabsFabrica">
+      <button class="tab-int ativo" data-aba-fab="importar">Importar</button>
+      <button class="tab-int" data-aba-fab="bateladas">Bateladas</button>
+      <button class="tab-int" data-aba-fab="paradas">Paradas de Produção</button>
+      <button class="tab-int" data-aba-fab="viagens">Viagens / Expedição</button>
+    </div>
+
+    <!-- ---------- IMPORTAR ---------- -->
+    <div data-aba-fab-view="importar">
+      <div class="painel">
+        <div class="painel-header"><h2>Importar arquivos do dia</h2></div>
+        <p class="nota" style="margin:0 0 16px;">Selecione os arquivos exportados do sistema da fábrica (Bateladas Completa, Paradas de Produção, Viagem Resumida). Pode selecionar 1, 2 ou os 3 juntos — cada um é reconhecido automaticamente pelo formato. Um arquivo pode ter dados de vários dias juntos; o sistema separa e avisa se algum dia já tiver sido importado antes.</p>
+        <div style="display:flex;gap:12px;flex-wrap:wrap;align-items:center;margin-bottom:14px;">
+          <label class="btn-recolher" style="cursor:pointer;display:inline-flex;align-items:center;gap:6px;" for="fab_inputArquivos">📁 Selecionar arquivo(s)</label>
+          <input type="file" id="fab_inputArquivos" accept=".xls,.xlsx" multiple style="display:none;">
+          <span class="info" id="fab_infoArquivosSelecionados"></span>
+        </div>
+        <div id="fab_previewImportacao" style="display:none;"></div>
+        <p class="nota" id="fab_statusImportacao" style="min-height:16px;"></p>
+      </div>
+
+      <div class="painel">
+        <div class="painel-header"><h2>Histórico de importações — últimos 60 dias</h2><span class="info" id="fab_infoCalendario"></span></div>
+        <p class="nota" style="margin:0 0 14px;">Verde = tem dado importado naquele dia. Cinza claro = sem dado (pode ser dia sem produção, ou um dia que faltou importar — vale conferir).</p>
+        <div id="fab_calendarioImportacoes"></div>
+        <div class="legenda-custom" style="margin-top:12px;">
+          <div class="legenda-item"><span class="barra" style="background:#2E9E6B"></span>Bateladas</div>
+          <div class="legenda-item"><span class="barra" style="background:#1D5A96"></span>Paradas</div>
+          <div class="legenda-item"><span class="barra" style="background:#C1272D"></span>Viagens</div>
+          <div class="legenda-item"><span class="barra" style="background:#E6EAEF"></span>Sem dado</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ---------- BATELADAS ---------- -->
+    <div data-aba-fab-view="bateladas" style="display:none;">
+      <div class="filtros">
+        <div class="filtros-grid">
+          <div class="campo"><label>Ano</label><select id="fab_bAno"><option value="Todos">Todos</option></select></div>
+          <div class="campo"><label>Mês</label><select id="fab_bMes"><option value="Todos">Todos</option></select></div>
+          <div class="campo"><label>Produto</label><select id="fab_bProduto"><option value="Todos">Todos</option></select></div>
+        </div>
+      </div>
+
+      <div class="cards" id="fab_bCards"></div>
+
+      <div class="painel-grafico">
+        <div class="painel-grafico-header">
+          <h2>Produção — Dosado por período</h2>
+          <div class="tabs-internas" id="fab_bSegGranularidade" style="margin:0;">
+            <button class="tab-int ativo" data-gran="dia">Por dia</button>
+            <button class="tab-int" data-gran="mes">Por mês</button>
+          </div>
+          <span class="info" id="fab_bInfoProducao"></span>
+        </div>
+        <div class="chart-wrap" style="height:280px;"><canvas id="fab_bChartProducao"></canvas></div>
+      </div>
+
+      <div class="painel-grafico">
+        <div class="painel-grafico-header">
+          <h2>Erro de dosagem — % de bateladas acima/abaixo de 2%</h2>
+          <span class="info" id="fab_bInfoErro"></span>
+        </div>
+        <p class="nota-grafico" style="margin:0 0 10px;">Cada batelada tem um erro % (diferença entre requisitado e dosado). A linha mostra quantas bateladas por dia ficaram com erro acima de 2% (pra mais ou pra menos) — quanto mais alto, mais bateladas fora da tolerância desejada.</p>
+        <div class="chart-wrap" style="height:260px;"><canvas id="fab_bChartErro"></canvas></div>
+      </div>
+
+      <div class="painel">
+        <div class="painel-header"><h2>Requisitado × Dosado por produto</h2><span class="info" id="fab_bInfoProdutos"></span></div>
+        <p class="nota" style="margin:0 0 14px;">Clique num produto pra abrir as bateladas dele, ordenadas pela que teve o maior erro.</p>
+        <div class="qfc-scroll"><table class="qfc-tabela" id="fab_bTabelaProdutos"></table></div>
+      </div>
+
+      <div class="painel" id="fab_bPainelDetalheProduto" style="display:none;">
+        <div class="painel-header"><h2 id="fab_bTituloDetalheProduto">Bateladas do produto</h2><span class="info" id="fab_bInfoDetalheProduto"></span></div>
+        <div class="qfc-scroll"><table class="qfc-tabela" id="fab_bTabelaDetalheProduto"></table></div>
+      </div>
+    </div>
+
+    <!-- ---------- PARADAS ---------- -->
+    <div data-aba-fab-view="paradas" style="display:none;">
+      <div class="filtros">
+        <div class="filtros-grid">
+          <div class="campo"><label>Ano</label><select id="fab_pAno"><option value="Todos">Todos</option></select></div>
+        </div>
+      </div>
+
+      <div class="cards" id="fab_pCards"></div>
+
+      <div class="painel-grafico">
+        <div class="painel-grafico-header"><h2>Tempo de parada por mês</h2><span class="info" id="fab_pInfoMes"></span></div>
+        <div class="chart-wrap" style="height:280px;"><canvas id="fab_pChartMes"></canvas></div>
+      </div>
+
+      <div class="painel">
+        <div class="painel-header"><h2>Principais motivos de parada</h2><span class="info" id="fab_pInfoMotivos"></span></div>
+        <div class="qfc-scroll"><table class="qfc-tabela" id="fab_pTabelaMotivos"></table></div>
+      </div>
+
+      <div class="painel">
+        <div class="painel-header"><h2>Detalhamento</h2><span class="info" id="fab_pInfoDetalhe"></span></div>
+        <div class="qfc-scroll"><table class="qfc-tabela" id="fab_pTabelaDetalhe"></table></div>
+      </div>
+    </div>
+
+    <!-- ---------- VIAGENS ---------- -->
+    <div data-aba-fab-view="viagens" style="display:none;">
+      <div class="filtros">
+        <div class="filtros-grid">
+          <div class="campo"><label>Ano</label><select id="fab_vAno"></select></div>
+          <div class="campo"><label>Mês</label><select id="fab_vMes"><option value="Todos">Todos</option></select></div>
+          <div class="campo"><label>Núcleo</label><select id="fab_vNucleo"><option value="Todos">Todos</option></select></div>
+          <div class="campo"><label>Produto</label><select id="fab_vProduto"><option value="Todos">Todos</option></select></div>
+        </div>
+      </div>
+
+      <div class="cards" id="fab_vCards"></div>
+
+      <div class="painel-grafico">
+        <div class="painel-grafico-header"><h2>Expedido por dia</h2><span class="info" id="fab_vInfoDia"></span></div>
+        <div class="chart-wrap" style="height:280px;"><canvas id="fab_vChartDia"></canvas></div>
+      </div>
+
+      <div class="painel-grafico">
+        <div class="painel-grafico-header"><h2>Expedido por núcleo</h2><span class="info" id="fab_vInfoNucleo"></span></div>
+        <div class="chart-wrap" style="height:280px;"><canvas id="fab_vChartNucleo"></canvas></div>
+      </div>
+
+      <div class="painel">
+        <div class="painel-header"><h2>Viagens — detalhamento</h2><span class="info" id="fab_vInfoTabela"></span></div>
+        <div class="qfc-scroll"><table class="qfc-tabela" id="fab_vTabela"></table></div>
+        <div id="fab_vPaginacao" style="display:flex;gap:6px;justify-content:center;margin-top:14px;flex-wrap:wrap;"></div>
       </div>
     </div>
   </div>
@@ -2693,6 +2844,7 @@ document.querySelectorAll('.modulo').forEach(btn => {
     document.querySelector('[data-modulo-view="produtos"]').style.display = (mod==='produtos') ? '' : 'none';
     document.querySelector('[data-modulo-view="energiasolar"]').style.display = (mod==='energiasolar') ? '' : 'none';
     document.querySelector('[data-modulo-view="admin"]').style.display = (mod==='admin') ? '' : 'none';
+    document.querySelector('[data-modulo-view="fabrica"]').style.display = (mod==='fabrica') ? '' : 'none';
     document.getElementById('tabsMortalidade').style.display = (mod==='mortalidade') ? '' : 'none';
     // os filtros do topo pertencem ao módulo mortalidade (Resultado e Condenas têm os seus próprios dentro deles)
     document.getElementById('filtrosMortalidade').style.display = (mod==='mortalidade') ? '' : 'none';
@@ -2711,6 +2863,9 @@ document.querySelectorAll('.modulo').forEach(btn => {
     }
     if(mod==='energiasolar' && window.iniciarEnergiaSolar){
       if(!window.energiaSolarCarregado){ window.energiaSolarCarregado = true; window.iniciarEnergiaSolar(); }
+    }
+    if(mod==='fabrica' && window.iniciarFabricaRacoes){
+      if(!window.fabricaRacoesCarregado){ window.fabricaRacoesCarregado = true; window.iniciarFabricaRacoes(); }
     }
     if(mod==='admin'){
       if(window.souAdminPrincipal || window.minhasPermissoes.usuarios){
@@ -6910,6 +7065,8 @@ function atualizarBotoesModulosPermissao(){
   if(btnRegistros) btnRegistros.style.display = podeVerModulo('registros') ? '' : 'none';
   if(btnProdutos) btnProdutos.style.display = podeVerModulo('produtos') ? '' : 'none';
   if(btnEnergiaSolar) btnEnergiaSolar.style.display = podeVerModulo('energiasolar') ? '' : 'none';
+  const btnFabrica = document.getElementById('btnModuloFabrica');
+  if(btnFabrica) btnFabrica.style.display = podeVerModulo('fabrica') ? '' : 'none';
   ['mortalidade','resultado','condenas','peso'].forEach(chave=>{
     const btn = document.querySelector(`.sidebar [data-modulo="${chave}"]`);
     if(btn) btn.style.display = podeVerModulo(chave) ? '' : 'none';
@@ -10284,6 +10441,824 @@ if(regPinForm){
   });
 }
 </script>
+
+<script>
+(function(){
+  let fabricaIniciado = false;
+
+  // ===================== helpers de data/hora =====================
+  function fabParseDataHoraBR(s){
+    // "19/08/2026 08:20:52" -> {iso:'2026-08-19', ts: <timestamp ms>}
+    if(!s || typeof s !== 'string') return null;
+    const m = s.trim().match(/^(\d{2})\/(\d{2})\/(\d{4})[ T](\d{2}):(\d{2}):(\d{2})/);
+    if(!m) return null;
+    const [_, dd, mm, yyyy, hh, mi, ss] = m;
+    const iso = `${yyyy}-${mm}-${dd}`;
+    const ts = new Date(`${yyyy}-${mm}-${dd}T${hh}:${mi}:${ss}`).getTime();
+    return {iso, ts, hora: `${hh}:${mi}`};
+  }
+  function fabEhDataHoraBR(v){
+    return typeof v === 'string' && /^\d{2}\/\d{2}\/\d{4} \d{2}:\d{2}:\d{2}/.test(v.trim());
+  }
+  function fabNum(v){
+    if(v==null || v==='') return null;
+    const n = typeof v==='number' ? v : parseFloat(String(v).replace(',','.'));
+    return isNaN(n) ? null : n;
+  }
+
+  // ===================== detecção de tipo de arquivo =====================
+  function fabDetectarTipo(aoa){
+    // aoa = array de arrays (planilha crua, sem cabeçalho fixo)
+    const header0 = (aoa[0]||[]).map(v=>String(v||'').trim());
+    if(header0.includes('Nº Batelada') || header0.includes('Lote Produção')) return 'bateladas';
+    if(header0.includes('Problema') && header0.includes('Ação')) return 'paradas';
+    if(header0.includes('Viagem') && header0.includes('Motorista')) return 'viagens';
+    return null;
+  }
+
+  // ===================== parser: BATELADAS =====================
+  // devolve { porDia: { '2026-08-19': [lote, lote, ...], ... }, totalLotes, totalBateladas }
+  function fabParseBateladas(aoa){
+    const porDia = {};
+    let totalLotes = 0, totalBateladas = 0;
+    let i = 1;
+    const n = aoa.length;
+    while(i < n){
+      const row = aoa[i] || [];
+      if(fabEhDataHoraBR(row[0])){
+        const dh = fabParseDataHoraBR(row[0]);
+        const lote = {
+          dataProducao: row[0], linha: row[1]||null, producaoQtd: fabNum(row[2]), loteProducao: row[3]||null,
+          numBatelada: fabNum(row[4]), numControle: fabNum(row[5]), comentario: row[6]||null, formula: row[7]||null,
+          versao: fabNum(row[8]), versaoInterna: row[9]||null, produto: row[10]||null, parametro: row[11]||null,
+          dosadoTotal: fabNum(row[12]), bateladas: []
+        };
+        i++;
+        if(i<n && String((aoa[i]||[])[1]||'').trim()==='Data') i++; // cabeçalho de batelada
+        while(i<n && fabEhDataHoraBR((aoa[i]||[])[1])){
+          const brow = aoa[i];
+          const bdh = fabParseDataHoraBR(brow[1]);
+          const batelada = {
+            dataHora: brow[1], produto: brow[2]||null, batelada: fabNum(brow[3]), versao: fabNum(brow[4]),
+            versaoInterna: brow[5]||null, silo: brow[6]||null, tempoMistSeca: brow[7]||null, tempoMistUmida: brow[8]||null,
+            tempoMistTotal: brow[9]||null, tempoMistGeral: brow[10]||null, requisitadoKg: fabNum(brow[11]),
+            dosadoKg: fabNum(brow[12]), ingredientes: []
+          };
+          i++;
+          if(i<n && String((aoa[i]||[])[2]||'').trim()==='Ordem') i++; // cabeçalho de ingrediente
+          while(i<n && typeof (aoa[i]||[])[2]==='number'){
+            const irow = aoa[i];
+            batelada.ingredientes.push({
+              ordem: irow[2], produto: irow[3]||null, balanca: irow[4]||null, silo: irow[5]||null,
+              tDosagem: irow[6]||null, status: irow[7]||null, requisitadoKg: fabNum(irow[8]), dosadoKg: fabNum(irow[9]),
+              toleranciaMenos: fabNum(irow[10]), toleranciaMais: fabNum(irow[11]), erroKg: fabNum(irow[12]), erroPct: fabNum(irow[13])
+            });
+            i++;
+          }
+          // erro % da batelada = erro em relação ao total requisitado/dosado (mais confiável que somar os erros individuais)
+          if(batelada.requisitadoKg && batelada.dosadoKg!=null){
+            batelada.erroKg = +(batelada.dosadoKg - batelada.requisitadoKg).toFixed(3);
+            batelada.erroPct = batelada.requisitadoKg ? +((batelada.erroKg/batelada.requisitadoKg)*100).toFixed(3) : null;
+          }
+          if(i<n && ((aoa[i]||[])[2]==null || (aoa[i]||[])[2]==='')) i++; // linha de totais da batelada
+          while(i<n && (aoa[i]||[]).every(v=>v==null || v==='')) i++; // linha(s) em branco separadoras
+          if(bdh) lote.bateladas.push(batelada);
+          totalBateladas++;
+        }
+        totalLotes++;
+        const diaChave = dh ? dh.iso : null;
+        if(diaChave){
+          if(!porDia[diaChave]) porDia[diaChave] = [];
+          porDia[diaChave].push(lote);
+        }
+      } else {
+        i++;
+      }
+    }
+    return {porDia, totalLotes, totalBateladas};
+  }
+
+  // ===================== parser: PARADAS DE PRODUÇÃO =====================
+  function fabParseParadas(aoa){
+    const porDia = {};
+    const header = (aoa[0]||[]).map(v=>String(v||'').trim());
+    const idx = {
+      inicio: header.indexOf('Inicio'), fim: header.indexOf('Fim'), codigo: header.indexOf('Código'),
+      problema: header.indexOf('Problema'), descricao: header.indexOf('Descrição'), acao: header.indexOf('Ação')
+    };
+    for(let i=1;i<aoa.length;i++){
+      const row = aoa[i]||[];
+      if(!fabEhDataHoraBR(row[idx.inicio])) continue; // pula linha de totais/vazia
+      const dhIni = fabParseDataHoraBR(row[idx.inicio]);
+      const dhFim = fabEhDataHoraBR(row[idx.fim]) ? fabParseDataHoraBR(row[idx.fim]) : null;
+      const duracaoMin = (dhIni && dhFim) ? Math.round((dhFim.ts - dhIni.ts)/60000) : null;
+      const parada = {
+        inicio: row[idx.inicio], fim: row[idx.fim]||null, codigo: fabNum(row[idx.codigo]),
+        problema: row[idx.problema]||null, descricao: row[idx.descricao]||null, acao: row[idx.acao]||null,
+        duracaoMin
+      };
+      const diaChave = dhIni.iso;
+      if(!porDia[diaChave]) porDia[diaChave] = [];
+      porDia[diaChave].push(parada);
+    }
+    return {porDia};
+  }
+
+  // ===================== parser: VIAGEM RESUMIDA =====================
+  function fabParseViagens(aoa){
+    const porDia = {};
+    const header = (aoa[0]||[]).map(v=>String(v||'').trim());
+    const idx = {};
+    ['Inicio','Fim','Cód.','Viagem','Faturamento','Cliente','Integrado','Galpão','Motorista','Placa','Produto','Dosado (Kg)'].forEach(h=>{ idx[h]=header.indexOf(h); });
+    for(let i=1;i<aoa.length;i++){
+      const row = aoa[i]||[];
+      if(!fabEhDataHoraBR(row[idx['Inicio']])) continue;
+      const dhIni = fabParseDataHoraBR(row[idx['Inicio']]);
+      const dhFim = fabEhDataHoraBR(row[idx['Fim']]) ? fabParseDataHoraBR(row[idx['Fim']]) : null;
+      const duracaoMin = (dhIni && dhFim) ? Math.round((dhFim.ts - dhIni.ts)/60000) : null;
+      const viagem = {
+        inicio: row[idx['Inicio']], fim: row[idx['Fim']]||null, codigo: fabNum(row[idx['Cód.']]),
+        viagem: fabNum(row[idx['Viagem']]), faturamento: fabNum(row[idx['Faturamento']]),
+        cliente: row[idx['Cliente']]||null, integrado: row[idx['Integrado']]||null, galpao: fabNum(row[idx['Galpão']]),
+        motorista: row[idx['Motorista']]||null, placa: row[idx['Placa']]||null, produto: row[idx['Produto']]||null,
+        dosadoKg: fabNum(row[idx['Dosado (Kg)']]), duracaoMin
+      };
+      const diaChave = dhIni.iso;
+      if(!porDia[diaChave]) porDia[diaChave] = [];
+      porDia[diaChave].push(viagem);
+    }
+    return {porDia};
+  }
+
+  // ===================== leitura do arquivo (SheetJS) =====================
+  function fabLerArquivo(file){
+    return new Promise((resolve, reject)=>{
+      const reader = new FileReader();
+      reader.onload = (e)=>{
+        try{
+          const wb = XLSX.read(e.target.result, {type:'array'});
+          const ws = wb.Sheets[wb.SheetNames[0]];
+          const aoa = XLSX.utils.sheet_to_json(ws, {header:1, raw:true, defval:null});
+          resolve({nome:file.name, aoa});
+        }catch(err){ reject(err); }
+      };
+      reader.onerror = reject;
+      reader.readAsArrayBuffer(file);
+    });
+  }
+
+  // ===================== importação (preview + gravação) =====================
+  let fabImportacaoPendente = null; // guarda o resultado já parseado, aguardando confirmação
+
+  async function fabProcessarArquivosSelecionados(files){
+    const info = document.getElementById('fab_infoArquivosSelecionados');
+    const statusEl = document.getElementById('fab_statusImportacao');
+    const previewEl = document.getElementById('fab_previewImportacao');
+    info.textContent = `${files.length} arquivo(s) selecionado(s) — lendo...`;
+    statusEl.textContent = ''; previewEl.style.display = 'none'; previewEl.innerHTML = '';
+
+    const resultado = { bateladas: {porDia:{}}, paradas: {porDia:{}}, viagens: {porDia:{}}, arquivosNaoReconhecidos: [] };
+    for(const file of files){
+      try{
+        const {nome, aoa} = await fabLerArquivo(file);
+        const tipo = fabDetectarTipo(aoa);
+        if(tipo==='bateladas'){
+          const r = fabParseBateladas(aoa);
+          Object.keys(r.porDia).forEach(d=>{ resultado.bateladas.porDia[d] = (resultado.bateladas.porDia[d]||[]).concat(r.porDia[d]); });
+        } else if(tipo==='paradas'){
+          const r = fabParseParadas(aoa);
+          Object.keys(r.porDia).forEach(d=>{ resultado.paradas.porDia[d] = (resultado.paradas.porDia[d]||[]).concat(r.porDia[d]); });
+        } else if(tipo==='viagens'){
+          const r = fabParseViagens(aoa);
+          Object.keys(r.porDia).forEach(d=>{ resultado.viagens.porDia[d] = (resultado.viagens.porDia[d]||[]).concat(r.porDia[d]); });
+        } else {
+          resultado.arquivosNaoReconhecidos.push(nome);
+        }
+      }catch(err){
+        resultado.arquivosNaoReconhecidos.push(`${file.name} (erro ao ler: ${err.message})`);
+      }
+    }
+
+    // dias envolvidos, de todos os tipos juntos
+    const diasEnvolvidos = new Set([
+      ...Object.keys(resultado.bateladas.porDia),
+      ...Object.keys(resultado.paradas.porDia),
+      ...Object.keys(resultado.viagens.porDia)
+    ]);
+    if(!diasEnvolvidos.size){
+      info.textContent = '';
+      statusEl.style.color = 'var(--vermelho-alerta)';
+      statusEl.textContent = resultado.arquivosNaoReconhecidos.length
+        ? `Não reconheci o formato: ${resultado.arquivosNaoReconhecidos.join(', ')}`
+        : 'Nenhum dado válido encontrado nos arquivos.';
+      return;
+    }
+
+    // checa quais dias já existem no banco (índice leve fabrica_resumo_dias)
+    const diasOrdenados = Array.from(diasEnvolvidos).sort();
+    const jaExistentes = new Set();
+    for(const dia of diasOrdenados){
+      const doc = await db.collection('fabrica_resumo_dias').doc(dia).get();
+      if(doc.exists){
+        const d = doc.data();
+        const temAlgumTipoQueViriaAgora =
+          (resultado.bateladas.porDia[dia] && d.totalBateladas>0) ||
+          (resultado.paradas.porDia[dia] && d.totalParadas>0) ||
+          (resultado.viagens.porDia[dia] && d.totalViagens>0);
+        if(temAlgumTipoQueViriaAgora) jaExistentes.add(dia);
+      }
+    }
+
+    fabImportacaoPendente = resultado;
+    info.textContent = `${files.length} arquivo(s) lido(s) — ${diasOrdenados.length} dia(s) encontrado(s).`;
+
+    // monta o preview
+    let html = `<div class="painel" style="background:var(--bg);margin-bottom:14px;"><div class="painel-header"><h2 style="font-size:13px;">Prévia da importação</h2></div>
+      <div class="qfc-scroll"><table class="qfc-tabela"><thead><tr><th class="qfc-col-first">Dia</th><th>Bateladas</th><th>Paradas</th><th>Viagens</th><th>Situação</th><th></th></tr></thead><tbody>`;
+    diasOrdenados.forEach(dia=>{
+      const qtdLotes = (resultado.bateladas.porDia[dia]||[]).length;
+      const qtdParadas = (resultado.paradas.porDia[dia]||[]).length;
+      const qtdViagens = (resultado.viagens.porDia[dia]||[]).length;
+      const jaTem = jaExistentes.has(dia);
+      html += `<tr>
+        <td class="qfc-col-first">${reg_formatarDataBR(dia)}</td>
+        <td>${qtdLotes ? qtdLotes+' lote(s)' : '–'}</td>
+        <td>${qtdParadas ? qtdParadas+' registro(s)' : '–'}</td>
+        <td>${qtdViagens ? qtdViagens+' viagem(ns)' : '–'}</td>
+        <td>${jaTem ? '<span class="qfc-status-falta">⚠ Já importado — vai sobrescrever</span>' : '<span style="color:var(--verde-ok);">Novo</span>'}</td>
+        <td><label style="display:flex;align-items:center;gap:5px;font-size:12px;"><input type="checkbox" class="fab-dia-check" data-dia="${dia}" checked> Incluir</label></td>
+      </tr>`;
+    });
+    html += `</tbody></table></div>
+      <div style="display:flex;gap:10px;margin-top:14px;">
+        <button class="comb-btn-registrar" id="fab_btnConfirmarImportacao" style="width:fit-content;">💾 Confirmar importação</button>
+        <button class="btn-recolher" id="fab_btnCancelarImportacao" style="border-color:var(--vermelho);color:var(--vermelho);width:fit-content;">Cancelar</button>
+      </div></div>`;
+    previewEl.innerHTML = html;
+    previewEl.style.display = 'block';
+
+    document.getElementById('fab_btnCancelarImportacao').addEventListener('click', ()=>{
+      previewEl.style.display = 'none'; previewEl.innerHTML = '';
+      info.textContent = ''; fabImportacaoPendente = null;
+      document.getElementById('fab_inputArquivos').value = '';
+    });
+    document.getElementById('fab_btnConfirmarImportacao').addEventListener('click', fabConfirmarImportacao);
+  }
+
+  async function fabConfirmarImportacao(){
+    const statusEl = document.getElementById('fab_statusImportacao');
+    const btn = document.getElementById('fab_btnConfirmarImportacao');
+    if(!fabImportacaoPendente) return;
+    const diasSelecionados = new Set(
+      Array.from(document.querySelectorAll('.fab-dia-check:checked')).map(el=>el.dataset.dia)
+    );
+    if(!diasSelecionados.size){ statusEl.style.color='var(--vermelho-alerta)'; statusEl.textContent='Nenhum dia marcado pra importar.'; return; }
+    btn.disabled = true; btn.textContent = 'Importando...';
+    statusEl.style.color = ''; statusEl.textContent = '';
+
+    try{
+      for(const dia of diasSelecionados){
+        const lotes = fabImportacaoPendente.bateladas.porDia[dia] || [];
+        const paradas = fabImportacaoPendente.paradas.porDia[dia] || [];
+        const viagens = fabImportacaoPendente.viagens.porDia[dia] || [];
+
+        // apaga o que já existia daquele dia/tipo antes de regravar (evita duplicar ou deixar lote órfão)
+        if(lotes.length){
+          const antigos = await db.collection('fabrica_bateladas').where('data','==',dia).get();
+          const loteBatch1 = db.batch();
+          antigos.forEach(d=>loteBatch1.delete(d.ref));
+          if(!antigos.empty) await loteBatch1.commit();
+          const loteBatch2 = db.batch();
+          lotes.forEach((lote, i)=>{
+            const ref = db.collection('fabrica_bateladas').doc(`${dia}_${i}`);
+            loteBatch2.set(ref, {data: dia, ...lote});
+          });
+          await loteBatch2.commit();
+        }
+        if(paradas.length){
+          await db.collection('fabrica_paradas').doc(dia).set({data: dia, paradas, importadoEm: new Date().toISOString()});
+        }
+        if(viagens.length){
+          await db.collection('fabrica_viagens').doc(dia).set({data: dia, viagens, importadoEm: new Date().toISOString()});
+        }
+
+        // atualiza o índice leve do dia (usado no calendário e nos cards rápidos)
+        const totalKgBateladas = lotes.reduce((s,l)=>s + (l.dosadoTotal||0), 0);
+        const totalBateladasQtd = lotes.reduce((s,l)=>s + l.bateladas.length, 0);
+        const totalMinParadas = paradas.reduce((s,p)=>s + (p.duracaoMin||0), 0);
+        const totalKgViagens = viagens.reduce((s,v)=>s + (v.dosadoKg||0), 0);
+        const resumoAnterior = (await db.collection('fabrica_resumo_dias').doc(dia).get()).data() || {};
+        await db.collection('fabrica_resumo_dias').doc(dia).set({
+          data: dia,
+          totalLotes: lotes.length || resumoAnterior.totalLotes || 0,
+          totalBateladas: lotes.length ? totalBateladasQtd : (resumoAnterior.totalBateladas||0),
+          totalKgBateladas: lotes.length ? totalKgBateladas : (resumoAnterior.totalKgBateladas||0),
+          totalParadas: paradas.length || resumoAnterior.totalParadas || 0,
+          totalMinParadas: paradas.length ? totalMinParadas : (resumoAnterior.totalMinParadas||0),
+          totalViagens: viagens.length || resumoAnterior.totalViagens || 0,
+          totalKgViagens: viagens.length ? totalKgViagens : (resumoAnterior.totalKgViagens||0),
+          importadoEm: new Date().toISOString()
+        }, {merge:true});
+      }
+      statusEl.style.color = 'var(--verde-ok)';
+      statusEl.textContent = `✅ ${diasSelecionados.size} dia(s) importado(s) com sucesso.`;
+      document.getElementById('fab_previewImportacao').style.display = 'none';
+      document.getElementById('fab_previewImportacao').innerHTML = '';
+      document.getElementById('fab_infoArquivosSelecionados').textContent = '';
+      document.getElementById('fab_inputArquivos').value = '';
+      fabImportacaoPendente = null;
+      fabRenderCalendarioImportacoes();
+    }catch(err){
+      statusEl.style.color = 'var(--vermelho-alerta)';
+      statusEl.textContent = 'Erro ao importar: ' + err.message;
+    }finally{
+      btn.disabled = false; btn.textContent = '💾 Confirmar importação';
+    }
+  }
+
+  // ===================== calendário de importações (últimos 60 dias) =====================
+  async function fabRenderCalendarioImportacoes(){
+    const cont = document.getElementById('fab_calendarioImportacoes');
+    const info = document.getElementById('fab_infoCalendario');
+    if(!cont) return;
+    cont.innerHTML = '<p class="nota">Carregando...</p>';
+    const hoje = new Date();
+    const dias = [];
+    for(let i=59;i>=0;i--){
+      const d = new Date(hoje); d.setDate(d.getDate()-i);
+      dias.push(d.toISOString().slice(0,10));
+    }
+    const snap = await db.collection('fabrica_resumo_dias')
+      .where('data','>=',dias[0]).where('data','<=',dias[dias.length-1]).get();
+    const porDia = new Map();
+    snap.forEach(doc=>porDia.set(doc.id, doc.data()));
+
+    let faltando = 0;
+    const celulas = dias.map(dia=>{
+      const d = porDia.get(dia);
+      const temB = d && d.totalBateladas>0, temP = d && d.totalParadas>0, temV = d && d.totalViagens>0;
+      if(!temB && !temP && !temV) faltando++;
+      const diaNum = dia.slice(8,10);
+      const titulo = `${reg_formatarDataBR(dia)}${d ? ` — ${d.totalBateladas||0} batelada(s), ${d.totalParadas||0} parada(s), ${d.totalViagens||0} viagem(ns)` : ' — sem dado'}`;
+      return `<div class="fab-cal-dia" title="${titulo}">
+        <div class="fab-cal-num">${diaNum}</div>
+        <div class="fab-cal-barras">
+          <span class="fab-cal-b ${temB?'on':''}" style="background:${temB?'#2E9E6B':'#E6EAEF'}"></span>
+          <span class="fab-cal-b ${temP?'on':''}" style="background:${temP?'#1D5A96':'#E6EAEF'}"></span>
+          <span class="fab-cal-b ${temV?'on':''}" style="background:${temV?'#C1272D':'#E6EAEF'}"></span>
+        </div>
+      </div>`;
+    }).join('');
+    cont.innerHTML = `<div class="fab-cal-grid">${celulas}</div>`;
+    info.textContent = faltando>0 ? `${faltando} dia(s) sem nenhum dado nos últimos 60 dias` : 'Todos os dias com pelo menos um tipo de dado';
+  }
+
+  // ===================== BATELADAS: carga e análise =====================
+  let FAB_BATELADAS_CACHE = { ano: null, lotes: [] }; // lotes = array achatado de "lote" (cada um com .bateladas[])
+
+  async function fabCarregarBateladasAno(ano){
+    if(FAB_BATELADAS_CACHE.ano === ano) return FAB_BATELADAS_CACHE.lotes;
+    const snap = await db.collection('fabrica_bateladas')
+      .where('data','>=', `${ano}-01-01`).where('data','<=', `${ano}-12-31`).get();
+    const lotes = [];
+    snap.forEach(doc=>lotes.push(doc.data()));
+    FAB_BATELADAS_CACHE = {ano, lotes};
+    return lotes;
+  }
+
+  function fabTodasBateladas(lotes){
+    // achata lote+batelada numa lista só, cada item já carregando o produto/data do lote pai
+    const out = [];
+    lotes.forEach(lote=>{
+      (lote.bateladas||[]).forEach(b=>{
+        out.push({...b, data: lote.data, loteProduto: lote.produto, linha: lote.linha});
+      });
+    });
+    return out;
+  }
+
+  async function fabPopularFiltrosBateladas(){
+    const selAno = document.getElementById('fab_bAno');
+    if(selAno.dataset.populado) return;
+    selAno.dataset.populado = '1';
+    const anoAtual = new Date().getFullYear();
+    for(let a=anoAtual; a>=anoAtual-3; a--){
+      selAno.innerHTML += `<option value="${a}">${a}</option>`;
+    }
+    selAno.value = String(anoAtual);
+  }
+
+  async function fabRenderBateladas(){
+    await fabPopularFiltrosBateladas();
+    const ano = document.getElementById('fab_bAno').value;
+    const anoAlvo = ano==='Todos' ? new Date().getFullYear() : +ano;
+    const lotes = await fabCarregarBateladasAno(anoAlvo);
+    let todas = fabTodasBateladas(lotes);
+
+    // popula filtro de produto com o que existe de fato
+    const selProduto = document.getElementById('fab_bProduto');
+    const produtosExistentes = Array.from(new Set(todas.map(b=>b.produto).filter(Boolean))).sort();
+    if(selProduto.dataset.opcoes !== produtosExistentes.join('|')){
+      selProduto.dataset.opcoes = produtosExistentes.join('|');
+      selProduto.innerHTML = '<option value="Todos">Todos</option>' + produtosExistentes.map(p=>`<option value="${p}">${p}</option>`).join('');
+    }
+
+    const mes = document.getElementById('fab_bMes').value;
+    const produtoSel = selProduto.value;
+    todas = todas.filter(b=>{
+      if(mes!=='Todos' && b.data.slice(5,7)!==mes.padStart(2,'0')) return false;
+      if(produtoSel!=='Todos' && b.produto!==produtoSel) return false;
+      return true;
+    });
+
+    fabRenderBateladasCards(todas);
+    fabRenderBateladasChartProducao(todas);
+    fabRenderBateladasChartErro(todas);
+    fabRenderBateladasTabelaProdutos(todas);
+  }
+
+  function fabRenderBateladasCards(todas){
+    const cont = document.getElementById('fab_bCards');
+    if(!todas.length){ cont.innerHTML = '<div class="vazio">Nenhuma batelada nesse filtro.</div>'; return; }
+    const totalKg = todas.reduce((s,b)=>s+(b.dosadoKg||0),0);
+    const comErro = todas.filter(b=>b.erroPct!=null);
+    const erroMedio = comErro.length ? comErro.reduce((s,b)=>s+Math.abs(b.erroPct),0)/comErro.length : null;
+    const acima2 = comErro.filter(b=>Math.abs(b.erroPct)>2).length;
+    cont.innerHTML = `
+      <div class="card"><div class="label">Total produzido</div><div class="valor">${(totalKg/1000).toLocaleString('pt-BR',{maximumFractionDigits:1})} <span style="font-size:14px;color:var(--texto-suave);font-weight:500;">ton</span></div></div>
+      <div class="card"><div class="label">Bateladas no período</div><div class="valor">${todas.length.toLocaleString('pt-BR')}</div></div>
+      <div class="card"><div class="label">Erro médio (abs.)</div><div class="valor">${erroMedio!=null?erroMedio.toFixed(2)+'%':'–'}</div></div>
+      <div class="card"><div class="label">Bateladas com erro > 2%</div><div class="valor" style="color:${acima2>0?'var(--vermelho-alerta)':'inherit'};">${acima2} <span style="font-size:14px;color:var(--texto-suave);font-weight:500;">de ${comErro.length}</span></div></div>
+    `;
+  }
+
+  let fabChartProducao = null;
+  function fabRenderBateladasChartProducao(todas){
+    const gran = document.querySelector('#fab_bSegGranularidade .tab-int.ativo')?.dataset.gran || 'dia';
+    const ctx = document.getElementById('fab_bChartProducao');
+    if(!ctx) return;
+    const porChave = new Map();
+    todas.forEach(b=>{
+      const chave = gran==='mes' ? b.data.slice(0,7) : b.data;
+      porChave.set(chave, (porChave.get(chave)||0) + (b.dosadoKg||0));
+    });
+    const chaves = Array.from(porChave.keys()).sort();
+    const labels = chaves.map(c=> gran==='mes' ? reg_formatarDataBR(c+'-01').slice(3) : reg_formatarDataBR(c).slice(0,5));
+    if(fabChartProducao) fabChartProducao.destroy();
+    fabChartProducao = new Chart(ctx.getContext('2d'), {
+      type:'bar',
+      data:{ labels, datasets:[{ label:'Dosado (kg)', data: chaves.map(c=>Math.round(porChave.get(c))), backgroundColor:'#C1272D', borderRadius:6, maxBarThickness:60 }]},
+      options:{ responsive:true, maintainAspectRatio:false, plugins:{legend:{display:false}, tooltip:{callbacks:{label:c=>`${c.parsed.y.toLocaleString('pt-BR')} kg`}}},
+        scales:{ x:{grid:{display:false}}, y:{beginAtZero:true, title:{display:true,text:'kg',font:{weight:600}}, grid:{color:'#EFEAE0'}} } }
+    });
+    document.getElementById('fab_bInfoProducao').textContent = `${todas.length} batelada(s) no filtro`;
+  }
+
+  let fabChartErro = null;
+  function fabRenderBateladasChartErro(todas){
+    const ctx = document.getElementById('fab_bChartErro');
+    if(!ctx) return;
+    const porDia = new Map();
+    todas.forEach(b=>{
+      if(b.erroPct==null) return;
+      if(!porDia.has(b.data)) porDia.set(b.data, {acima:0, dentro:0});
+      const o = porDia.get(b.data);
+      if(Math.abs(b.erroPct)>2) o.acima++; else o.dentro++;
+    });
+    const dias = Array.from(porDia.keys()).sort();
+    const labels = dias.map(d=>reg_formatarDataBR(d).slice(0,5));
+    if(fabChartErro) fabChartErro.destroy();
+    fabChartErro = new Chart(ctx.getContext('2d'), {
+      type:'line',
+      data:{ labels, datasets:[
+        { label:'Bateladas com erro > 2%', data: dias.map(d=>porDia.get(d).acima), borderColor:'#C1272D', backgroundColor:'rgba(193,39,45,.12)', fill:true, tension:.3, borderWidth:2.4, pointRadius:3 },
+        { label:'Bateladas dentro de 2%', data: dias.map(d=>porDia.get(d).dentro), borderColor:'#2E9E6B', backgroundColor:'rgba(46,158,107,.10)', fill:true, tension:.3, borderWidth:2.4, pointRadius:3 }
+      ]},
+      options:{ responsive:true, maintainAspectRatio:false, interaction:{mode:'index',intersect:false},
+        plugins:{ legend:{position:'top', align:'end', labels:{boxWidth:12,font:{size:11.5}}} },
+        scales:{ x:{grid:{display:false}}, y:{beginAtZero:true, title:{display:true,text:'Qtd. de bateladas',font:{weight:600}}, grid:{color:'#EFEAE0'}} } }
+    });
+    document.getElementById('fab_bInfoErro').textContent = `${dias.length} dia(s) com dado de erro`;
+  }
+
+  function fabRenderBateladasTabelaProdutos(todas){
+    const tabela = document.getElementById('fab_bTabelaProdutos');
+    const info = document.getElementById('fab_bInfoProdutos');
+    const porProduto = new Map();
+    todas.forEach(b=>{
+      if(!b.produto) return;
+      if(!porProduto.has(b.produto)) porProduto.set(b.produto, []);
+      porProduto.get(b.produto).push(b);
+    });
+    const linhas = Array.from(porProduto.entries()).map(([produto, bs])=>{
+      const requisitado = bs.reduce((s,b)=>s+(b.requisitadoKg||0),0);
+      const dosado = bs.reduce((s,b)=>s+(b.dosadoKg||0),0);
+      const comErro = bs.filter(b=>b.erroPct!=null);
+      const piorErro = comErro.length ? comErro.reduce((pior,b)=>Math.abs(b.erroPct)>Math.abs(pior.erroPct)?b:pior) : null;
+      return {produto, qtd: bs.length, requisitado, dosado, diffKg: dosado-requisitado, diffPct: requisitado ? (dosado-requisitado)/requisitado*100 : null, piorErroPct: piorErro?piorErro.erroPct:null};
+    }).sort((a,b)=> Math.abs(b.piorErroPct||0) - Math.abs(a.piorErroPct||0));
+
+    info.textContent = `${linhas.length} produto(s)`;
+    const thead = `<thead><tr><th class="qfc-col-first">Produto</th><th>Bateladas</th><th>Requisitado</th><th>Dosado</th><th>Diferença</th><th class="qfc-status">Pior erro</th></tr></thead>`;
+    const corpo = linhas.map(l=>`<tr data-produto="${l.produto}" style="cursor:pointer;">
+      <td class="qfc-col-first">${l.produto}</td>
+      <td style="text-align:center;">${l.qtd}</td>
+      <td style="text-align:center;">${l.requisitado.toLocaleString('pt-BR',{maximumFractionDigits:0})} kg</td>
+      <td style="text-align:center;">${l.dosado.toLocaleString('pt-BR',{maximumFractionDigits:0})} kg</td>
+      <td style="text-align:center;">${l.diffKg>=0?'+':''}${l.diffKg.toLocaleString('pt-BR',{maximumFractionDigits:0})} kg (${l.diffPct!=null?(l.diffPct>=0?'+':'')+l.diffPct.toFixed(2)+'%':'–'})</td>
+      <td class="qfc-status ${l.piorErroPct!=null && Math.abs(l.piorErroPct)>2?'qfc-status-falta':''}" style="font-weight:700;">${l.piorErroPct!=null ? (l.piorErroPct>=0?'+':'')+l.piorErroPct.toFixed(2)+'%' : '–'}</td>
+    </tr>`).join('');
+    tabela.innerHTML = thead + `<tbody>${corpo}</tbody>`;
+    tabela.querySelectorAll('[data-produto]').forEach(tr=>{
+      tr.addEventListener('click', ()=> fabRenderDetalheProduto(tr.dataset.produto, porProduto.get(tr.dataset.produto)));
+    });
+  }
+
+  function fabRenderDetalheProduto(produto, bateladasProduto){
+    const painel = document.getElementById('fab_bPainelDetalheProduto');
+    const titulo = document.getElementById('fab_bTituloDetalheProduto');
+    const info = document.getElementById('fab_bInfoDetalheProduto');
+    const tabela = document.getElementById('fab_bTabelaDetalheProduto');
+    painel.style.display = 'block';
+    titulo.textContent = `Bateladas — ${produto}`;
+    const ordenadas = bateladasProduto.slice().sort((a,b)=>Math.abs(b.erroPct||0)-Math.abs(a.erroPct||0));
+    info.textContent = `${ordenadas.length} batelada(s) — ordenado pelo maior erro primeiro`;
+    const thead = `<thead><tr><th class="qfc-col-first">Data/Hora</th><th>Batelada</th><th>Silo</th><th>Requisitado</th><th>Dosado</th><th class="qfc-status">Erro</th></tr></thead>`;
+    const corpo = ordenadas.map((b,i)=>`<tr>
+      <td class="qfc-col-first">${b.dataHora||'–'}</td>
+      <td style="text-align:center;">${b.batelada!=null?b.batelada:'–'}</td>
+      <td style="text-align:center;">${b.silo||'–'}</td>
+      <td style="text-align:center;">${b.requisitadoKg!=null?b.requisitadoKg.toLocaleString('pt-BR',{maximumFractionDigits:1})+' kg':'–'}</td>
+      <td style="text-align:center;">${b.dosadoKg!=null?b.dosadoKg.toLocaleString('pt-BR',{maximumFractionDigits:1})+' kg':'–'}</td>
+      <td class="qfc-status ${b.erroPct!=null && Math.abs(b.erroPct)>2?'qfc-status-falta':''}" style="font-weight:${i===0?800:600};">${b.erroPct!=null?(b.erroPct>=0?'+':'')+b.erroPct.toFixed(2)+'%':'–'}${i===0?' 🔴':''}</td>
+    </tr>`).join('');
+    tabela.innerHTML = thead + `<tbody>${corpo}</tbody>`;
+    painel.scrollIntoView({behavior:'smooth', block:'nearest'});
+  }
+
+  // ===================== PARADAS: carga e análise =====================
+  let FAB_PARADAS_CACHE = { ano: null, registros: [] };
+
+  async function fabCarregarParadasAno(ano){
+    if(FAB_PARADAS_CACHE.ano === ano) return FAB_PARADAS_CACHE.registros;
+    const snap = await db.collection('fabrica_paradas')
+      .where('data','>=', `${ano}-01-01`).where('data','<=', `${ano}-12-31`).get();
+    const registros = [];
+    snap.forEach(doc=>{ const d = doc.data(); (d.paradas||[]).forEach(p=>registros.push({...p, data: d.data})); });
+    FAB_PARADAS_CACHE = {ano, registros};
+    return registros;
+  }
+
+  async function fabPopularFiltrosParadas(){
+    const sel = document.getElementById('fab_pAno');
+    if(sel.dataset.populado) return;
+    sel.dataset.populado = '1';
+    const anoAtual = new Date().getFullYear();
+    for(let a=anoAtual; a>=anoAtual-3; a--) sel.innerHTML += `<option value="${a}">${a}</option>`;
+    sel.value = String(anoAtual);
+  }
+
+  async function fabRenderParadas(){
+    await fabPopularFiltrosParadas();
+    const ano = +document.getElementById('fab_pAno').value;
+    const registros = await fabCarregarParadasAno(ano);
+
+    const cont = document.getElementById('fab_pCards');
+    if(!registros.length){
+      cont.innerHTML = '<div class="vazio">Nenhuma parada importada nesse ano.</div>';
+      document.getElementById('fab_pTabelaMotivos').innerHTML = '';
+      document.getElementById('fab_pTabelaDetalhe').innerHTML = '';
+      if(fabChartParadasMes){ fabChartParadasMes.destroy(); fabChartParadasMes=null; }
+      return;
+    }
+    const totalMin = registros.reduce((s,p)=>s+(p.duracaoMin||0),0);
+    cont.innerHTML = `
+      <div class="card"><div class="label">Total de paradas</div><div class="valor">${registros.length}</div></div>
+      <div class="card"><div class="label">Tempo total parado</div><div class="valor">${Math.floor(totalMin/60)}h${totalMin%60>0?' '+(totalMin%60)+'min':''}</div></div>
+      <div class="card"><div class="label">Duração média</div><div class="valor">${Math.round(totalMin/registros.length)} <span style="font-size:14px;color:var(--texto-suave);font-weight:500;">min</span></div></div>
+    `;
+
+    // gráfico por mês
+    const porMes = new Map();
+    registros.forEach(p=>{ const m=p.data.slice(0,7); porMes.set(m, (porMes.get(m)||0)+(p.duracaoMin||0)); });
+    const meses = Array.from(porMes.keys()).sort();
+    const ctx = document.getElementById('fab_pChartMes');
+    if(fabChartParadasMes) fabChartParadasMes.destroy();
+    fabChartParadasMes = new Chart(ctx.getContext('2d'), {
+      type:'bar',
+      data:{ labels: meses.map(m=>reg_formatarDataBR(m+'-01').slice(3)), datasets:[{label:'Minutos parados', data: meses.map(m=>porMes.get(m)), backgroundColor:'#1D5A96', borderRadius:6, maxBarThickness:60}]},
+      options:{ responsive:true, maintainAspectRatio:false, plugins:{legend:{display:false}, tooltip:{callbacks:{label:c=>{const m=c.parsed.y; return `${Math.floor(m/60)}h ${m%60}min`;}}}},
+        scales:{ x:{grid:{display:false}}, y:{beginAtZero:true, title:{display:true,text:'minutos',font:{weight:600}}, grid:{color:'#EFEAE0'}} } }
+    });
+    document.getElementById('fab_pInfoMes').textContent = `${meses.length} mês(es) com parada registrada`;
+
+    // ranking de motivos (por Problema)
+    const porMotivo = new Map();
+    registros.forEach(p=>{
+      const m = p.problema || 'Sem categoria';
+      if(!porMotivo.has(m)) porMotivo.set(m, {qtd:0, min:0});
+      const o = porMotivo.get(m); o.qtd++; o.min += (p.duracaoMin||0);
+    });
+    const motivos = Array.from(porMotivo.entries()).sort((a,b)=>b[1].min-a[1].min);
+    document.getElementById('fab_pInfoMotivos').textContent = `${motivos.length} motivo(s) distinto(s)`;
+    document.getElementById('fab_pTabelaMotivos').innerHTML = `<thead><tr><th class="qfc-col-first">Motivo</th><th>Ocorrências</th><th>Tempo total</th><th>Tempo médio</th></tr></thead>
+      <tbody>${motivos.map(([m,o])=>`<tr>
+        <td class="qfc-col-first">${m}</td>
+        <td style="text-align:center;">${o.qtd}</td>
+        <td style="text-align:center;font-weight:700;">${Math.floor(o.min/60)}h${o.min%60>0?' '+(o.min%60)+'min':''}</td>
+        <td style="text-align:center;">${Math.round(o.min/o.qtd)} min</td>
+      </tr>`).join('')}</tbody>`;
+
+    // detalhamento
+    const ordenados = registros.slice().sort((a,b)=>b.data.localeCompare(a.data) || (b.duracaoMin||0)-(a.duracaoMin||0));
+    document.getElementById('fab_pInfoDetalhe').textContent = `${ordenados.length} registro(s)`;
+    document.getElementById('fab_pTabelaDetalhe').innerHTML = `<thead><tr><th class="qfc-col-first">Data</th><th>Início</th><th>Fim</th><th>Problema</th><th>Descrição</th><th>Ação</th><th>Duração</th></tr></thead>
+      <tbody>${ordenados.map(p=>`<tr>
+        <td class="qfc-col-first">${reg_formatarDataBR(p.data)}</td>
+        <td style="text-align:center;">${(p.inicio||'').split(' ')[1]||'–'}</td>
+        <td style="text-align:center;">${(p.fim||'').split(' ')[1]||'–'}</td>
+        <td>${p.problema||'–'}</td>
+        <td style="font-size:11.5px;">${p.descricao||'–'}</td>
+        <td style="font-size:11.5px;">${p.acao||'–'}</td>
+        <td style="text-align:center;font-weight:700;">${p.duracaoMin!=null?p.duracaoMin+' min':'–'}</td>
+      </tr>`).join('')}</tbody>`;
+  }
+  let fabChartParadasMes = null;
+
+  // ===================== VIAGENS: carga e análise =====================
+  let FAB_VIAGENS_CACHE = { ano: null, registros: [] };
+  let fabVPaginaAtual = 1;
+  const FAB_V_ITENS_POR_PAGINA = 25;
+
+  async function fabCarregarViagensAno(ano){
+    if(FAB_VIAGENS_CACHE.ano === ano) return FAB_VIAGENS_CACHE.registros;
+    const snap = await db.collection('fabrica_viagens')
+      .where('data','>=', `${ano}-01-01`).where('data','<=', `${ano}-12-31`).get();
+    const registros = [];
+    snap.forEach(doc=>{ const d = doc.data(); (d.viagens||[]).forEach(v=>registros.push({...v, data: d.data})); });
+    FAB_VIAGENS_CACHE = {ano, registros};
+    return registros;
+  }
+
+  async function fabPopularFiltrosViagens(){
+    const sel = document.getElementById('fab_vAno');
+    if(sel.dataset.populado) return;
+    sel.dataset.populado = '1';
+    const anoAtual = new Date().getFullYear();
+    for(let a=anoAtual; a>=anoAtual-3; a--) sel.innerHTML += `<option value="${a}">${a}</option>`;
+    sel.value = String(anoAtual);
+  }
+
+  async function fabRenderViagens(){
+    await fabPopularFiltrosViagens();
+    const ano = +document.getElementById('fab_vAno').value;
+    let registros = await fabCarregarViagensAno(ano);
+
+    const selNucleo = document.getElementById('fab_vNucleo');
+    const nucleos = Array.from(new Set(registros.map(v=>v.cliente).filter(Boolean))).sort();
+    if(selNucleo.dataset.opcoes !== nucleos.join('|')){
+      selNucleo.dataset.opcoes = nucleos.join('|');
+      selNucleo.innerHTML = '<option value="Todos">Todos</option>' + nucleos.map(n=>`<option value="${n}">${n}</option>`).join('');
+    }
+    const selProduto = document.getElementById('fab_vProduto');
+    const produtos = Array.from(new Set(registros.map(v=>v.produto).filter(Boolean))).sort();
+    if(selProduto.dataset.opcoes !== produtos.join('|')){
+      selProduto.dataset.opcoes = produtos.join('|');
+      selProduto.innerHTML = '<option value="Todos">Todos</option>' + produtos.map(p=>`<option value="${p}">${p}</option>`).join('');
+    }
+
+    const mes = document.getElementById('fab_vMes').value;
+    const nucleoSel = selNucleo.value, produtoSel = selProduto.value;
+    registros = registros.filter(v=>{
+      if(mes!=='Todos' && v.data.slice(5,7)!==mes.padStart(2,'0')) return false;
+      if(nucleoSel!=='Todos' && v.cliente!==nucleoSel) return false;
+      if(produtoSel!=='Todos' && v.produto!==produtoSel) return false;
+      return true;
+    });
+
+    const cont = document.getElementById('fab_vCards');
+    if(!registros.length){
+      cont.innerHTML = '<div class="vazio">Nenhuma viagem nesse filtro.</div>';
+      document.getElementById('fab_vTabela').innerHTML = ''; document.getElementById('fab_vPaginacao').innerHTML = '';
+      if(fabChartViagensDia){fabChartViagensDia.destroy();fabChartViagensDia=null;}
+      if(fabChartViagensNucleo){fabChartViagensNucleo.destroy();fabChartViagensNucleo=null;}
+      return;
+    }
+    const totalKg = registros.reduce((s,v)=>s+(v.dosadoKg||0),0);
+    cont.innerHTML = `
+      <div class="card"><div class="label">Total expedido</div><div class="valor">${(totalKg/1000).toLocaleString('pt-BR',{maximumFractionDigits:1})} <span style="font-size:14px;color:var(--texto-suave);font-weight:500;">ton</span></div></div>
+      <div class="card"><div class="label">Viagens</div><div class="valor">${registros.length.toLocaleString('pt-BR')}</div></div>
+      <div class="card"><div class="label">Núcleos atendidos</div><div class="valor">${nucleos.length}</div></div>
+    `;
+
+    // gráfico por dia
+    const porDia = new Map();
+    registros.forEach(v=>{ porDia.set(v.data, (porDia.get(v.data)||0)+(v.dosadoKg||0)); });
+    const dias = Array.from(porDia.keys()).sort();
+    const ctxD = document.getElementById('fab_vChartDia');
+    if(fabChartViagensDia) fabChartViagensDia.destroy();
+    fabChartViagensDia = new Chart(ctxD.getContext('2d'), {
+      type:'bar',
+      data:{ labels: dias.map(d=>reg_formatarDataBR(d).slice(0,5)), datasets:[{label:'kg expedido', data: dias.map(d=>Math.round(porDia.get(d))), backgroundColor:'#C1272D', borderRadius:6, maxBarThickness:50}]},
+      options:{ responsive:true, maintainAspectRatio:false, plugins:{legend:{display:false}, tooltip:{callbacks:{label:c=>`${c.parsed.y.toLocaleString('pt-BR')} kg`}}},
+        scales:{ x:{grid:{display:false}}, y:{beginAtZero:true, grid:{color:'#EFEAE0'}} } }
+    });
+    document.getElementById('fab_vInfoDia').textContent = `${dias.length} dia(s) no filtro`;
+
+    // gráfico por núcleo
+    const porNucleo = new Map();
+    registros.forEach(v=>{ const n=v.cliente||'—'; porNucleo.set(n, (porNucleo.get(n)||0)+(v.dosadoKg||0)); });
+    const nucleosOrd = Array.from(porNucleo.keys()).sort((a,b)=>porNucleo.get(b)-porNucleo.get(a));
+    const ctxN = document.getElementById('fab_vChartNucleo');
+    if(fabChartViagensNucleo) fabChartViagensNucleo.destroy();
+    fabChartViagensNucleo = new Chart(ctxN.getContext('2d'), {
+      type:'bar',
+      data:{ labels: nucleosOrd, datasets:[{label:'kg expedido', data: nucleosOrd.map(n=>Math.round(porNucleo.get(n))), backgroundColor:'#1D5A96', borderRadius:6, maxBarThickness:50}]},
+      options:{ indexAxis:'y', responsive:true, maintainAspectRatio:false, plugins:{legend:{display:false}, tooltip:{callbacks:{label:c=>`${c.parsed.x.toLocaleString('pt-BR')} kg`}}},
+        scales:{ x:{beginAtZero:true, grid:{color:'#EFEAE0'}}, y:{grid:{display:false}} } }
+    });
+    document.getElementById('fab_vInfoNucleo').textContent = `${nucleosOrd.length} núcleo(s)`;
+
+    // tabela paginada
+    const ordenadas = registros.slice().sort((a,b)=>b.inicio.localeCompare(a.inicio));
+    const totalPaginas = Math.max(1, Math.ceil(ordenadas.length/FAB_V_ITENS_POR_PAGINA));
+    if(fabVPaginaAtual>totalPaginas) fabVPaginaAtual = totalPaginas;
+    const inicioIdx = (fabVPaginaAtual-1)*FAB_V_ITENS_POR_PAGINA;
+    const pagina = ordenadas.slice(inicioIdx, inicioIdx+FAB_V_ITENS_POR_PAGINA);
+    document.getElementById('fab_vInfoTabela').textContent = `${ordenadas.length} viagem(ns)`;
+    document.getElementById('fab_vTabela').innerHTML = `<thead><tr><th class="qfc-col-first">Data/Hora</th><th>Núcleo</th><th>Integrado</th><th>Produto</th><th>Motorista</th><th>Placa</th><th>Kg</th></tr></thead>
+      <tbody>${pagina.map(v=>`<tr>
+        <td class="qfc-col-first">${(v.inicio||'').replace(' ',' ')}</td>
+        <td>${v.cliente||'–'}</td>
+        <td>${v.integrado||'–'}</td>
+        <td style="font-size:11.5px;">${v.produto||'–'}</td>
+        <td>${v.motorista||'–'}</td>
+        <td>${v.placa||'–'}</td>
+        <td style="text-align:center;font-weight:700;">${v.dosadoKg!=null?v.dosadoKg.toLocaleString('pt-BR'):'–'}</td>
+      </tr>`).join('')}</tbody>`;
+    const pagEl = document.getElementById('fab_vPaginacao');
+    if(totalPaginas>1){
+      pagEl.innerHTML = `<button class="comb-btn-pagina" id="fab_vBtnAnterior" ${fabVPaginaAtual===1?'disabled':''}>‹</button>
+        <span class="comb-pagina-indicador">Página ${fabVPaginaAtual} de ${totalPaginas}</span>
+        <button class="comb-btn-pagina" id="fab_vBtnProxima" ${fabVPaginaAtual===totalPaginas?'disabled':''}>›</button>`;
+      document.getElementById('fab_vBtnAnterior').addEventListener('click', ()=>{ fabVPaginaAtual--; fabRenderViagens(); });
+      document.getElementById('fab_vBtnProxima').addEventListener('click', ()=>{ fabVPaginaAtual++; fabRenderViagens(); });
+    } else pagEl.innerHTML = '';
+  }
+  let fabChartViagensDia = null, fabChartViagensNucleo = null;
+
+  // ===================== inicialização e roteamento de abas =====================
+  let fabAbaAtiva = 'importar';
+  function fabRenderAbaAtiva(){
+    if(fabAbaAtiva==='importar') fabRenderCalendarioImportacoes();
+    else if(fabAbaAtiva==='bateladas') fabRenderBateladas();
+    else if(fabAbaAtiva==='paradas') fabRenderParadas();
+    else if(fabAbaAtiva==='viagens') fabRenderViagens();
+  }
+
+  window.iniciarFabricaRacoes = function(){
+    if(fabricaIniciado) return;
+    fabricaIniciado = true;
+
+    document.querySelectorAll('#tabsFabrica .tab-int').forEach(btn=>{
+      btn.addEventListener('click', ()=>{
+        document.querySelectorAll('#tabsFabrica .tab-int').forEach(b=>b.classList.remove('ativo'));
+        btn.classList.add('ativo');
+        fabAbaAtiva = btn.dataset.abaFab;
+        document.querySelectorAll('[data-aba-fab-view]').forEach(el=>{
+          el.style.display = (el.dataset.abaFabView===fabAbaAtiva) ? '' : 'none';
+        });
+        fabRenderAbaAtiva();
+      });
+    });
+
+    document.getElementById('fab_inputArquivos').addEventListener('change', (e)=>{
+      if(e.target.files.length) fabProcessarArquivosSelecionados(Array.from(e.target.files));
+    });
+
+    ['fab_bAno','fab_bMes','fab_bProduto'].forEach(id=>{
+      document.getElementById(id).addEventListener('change', ()=>{
+        document.getElementById('fab_bPainelDetalheProduto').style.display='none';
+        fabRenderBateladas();
+      });
+    });
+    document.querySelectorAll('#fab_bSegGranularidade .tab-int').forEach(btn=>{
+      btn.addEventListener('click', ()=>{
+        document.querySelectorAll('#fab_bSegGranularidade .tab-int').forEach(b=>b.classList.remove('ativo'));
+        btn.classList.add('ativo');
+        fabRenderBateladas();
+      });
+    });
+    document.getElementById('fab_pAno').addEventListener('change', fabRenderParadas);
+    ['fab_vAno','fab_vMes','fab_vNucleo','fab_vProduto'].forEach(id=>{
+      document.getElementById(id).addEventListener('change', ()=>{ fabVPaginaAtual=1; fabRenderViagens(); });
+    });
+
+    fabRenderAbaAtiva();
+  };
+})();
+</script>
+
 
 <div id="comb-modalTicket" class="comb-modal-fundo" style="display:none;">
   <div class="comb-ticket" id="comb-ticketConteudo">
