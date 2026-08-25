@@ -806,6 +806,9 @@
 #mod-quadro .tabs-internas{display:flex;gap:8px;margin-bottom:18px;flex-wrap:wrap;background:var(--card);padding:6px;border-radius:14px;border:1px solid var(--borda);box-shadow:var(--sombra);width:fit-content;}
 #mod-quadro .tab-int{background:transparent;border:none;color:var(--texto-suave);font-family:inherit;font-size:13.5px;font-weight:600;padding:9px 20px;border-radius:10px;cursor:pointer;transition:.16s;}
 #mod-quadro .tab-int.ativo{background:var(--vermelho);color:#fff;box-shadow:0 2px 10px rgba(193,39,45,.3);}
+#mod-fabrica .tabs-internas{display:flex;gap:8px;margin-bottom:18px;flex-wrap:wrap;background:var(--card);padding:6px;border-radius:14px;border:1px solid var(--borda);box-shadow:var(--sombra);width:fit-content;}
+#mod-fabrica .tab-int{background:transparent;border:none;color:var(--texto-suave);font-family:inherit;font-size:13.5px;font-weight:600;padding:9px 20px;border-radius:10px;cursor:pointer;transition:.16s;}
+#mod-fabrica .tab-int.ativo{background:var(--vermelho);color:#fff;box-shadow:0 2px 10px rgba(193,39,45,.3);}
 #mod-registros .tabs-internas{display:flex;gap:8px;margin-bottom:18px;flex-wrap:wrap;background:var(--card);padding:6px;border-radius:14px;border:1px solid var(--borda);box-shadow:var(--sombra);width:fit-content;}
 #mod-registros .tab-int{background:transparent;border:none;color:var(--texto-suave);font-family:inherit;font-size:13.5px;font-weight:600;padding:9px 20px;border-radius:10px;cursor:pointer;transition:.16s;}
 #mod-registros .tab-int.ativo{background:var(--vermelho);color:#fff;box-shadow:0 2px 10px rgba(193,39,45,.3);}
@@ -2194,6 +2197,7 @@
 
   <!-- ============ MÓDULO: FÁBRICA DE RAÇÕES ============ -->
   <div data-modulo-view="fabrica" style="display:none;">
+    <div id="mod-fabrica">
     <h1 class="pagina-titulo">Fábrica de Rações</h1>
 
     <div class="tabs-internas" id="tabsFabrica">
@@ -2329,6 +2333,7 @@
         <div class="qfc-scroll"><table class="qfc-tabela" id="fab_vTabela"></table></div>
         <div id="fab_vPaginacao" style="display:flex;gap:6px;justify-content:center;margin-top:14px;flex-wrap:wrap;"></div>
       </div>
+    </div>
     </div>
   </div>
 
@@ -10799,8 +10804,8 @@ if(regPinForm){
       const temB = d && d.totalBateladas>0, temP = d && d.totalParadas>0, temV = d && d.totalViagens>0;
       if(!temB && !temP && !temV) faltando++;
       const diaNum = dia.slice(8,10);
-      const titulo = `${reg_formatarDataBR(dia)}${d ? ` — ${d.totalBateladas||0} batelada(s), ${d.totalParadas||0} parada(s), ${d.totalViagens||0} viagem(ns)` : ' — sem dado'}`;
-      return `<div class="fab-cal-dia" title="${titulo}">
+      const titulo = `${reg_formatarDataBR(dia)}${d ? ` — ${d.totalBateladas||0} batelada(s), ${d.totalParadas||0} parada(s), ${d.totalViagens||0} viagem(ns). Clique pra ver detalhe ou excluir.` : ' — sem dado'}`;
+      return `<div class="fab-cal-dia" data-dia="${dia}" title="${titulo}" style="cursor:pointer;">
         <div class="fab-cal-num">${diaNum}</div>
         <div class="fab-cal-barras">
           <span class="fab-cal-b ${temB?'on':''}" style="background:${temB?'#2E9E6B':'#E6EAEF'}"></span>
@@ -10809,8 +10814,61 @@ if(regPinForm){
         </div>
       </div>`;
     }).join('');
-    cont.innerHTML = `<div class="fab-cal-grid">${celulas}</div>`;
+    cont.innerHTML = `<div class="fab-cal-grid">${celulas}</div><div id="fab_painelDiaDetalhe" style="margin-top:16px;"></div>`;
     info.textContent = faltando>0 ? `${faltando} dia(s) sem nenhum dado nos últimos 60 dias` : 'Todos os dias com pelo menos um tipo de dado';
+
+    cont.querySelectorAll('[data-dia]').forEach(el=>{
+      el.addEventListener('click', ()=> fabAbrirDetalheDia(el.dataset.dia, porDia.get(el.dataset.dia)));
+    });
+  }
+
+  function fabAbrirDetalheDia(dia, resumo){
+    const cont = document.getElementById('fab_painelDiaDetalhe');
+    if(!resumo){
+      cont.innerHTML = `<div class="painel" style="background:var(--bg);"><p class="nota" style="margin:0;">Sem nenhum dado importado em ${reg_formatarDataBR(dia)}.</p></div>`;
+      return;
+    }
+    const linha = (label, qtd, tipo, cor)=>{
+      if(!qtd) return `<div style="display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid var(--borda);"><span style="color:var(--texto-suave);">${label}</span><span style="color:var(--texto-suave);">sem dado</span></div>`;
+      return `<div style="display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid var(--borda);">
+        <span><strong style="color:${cor};">${label}</strong> — ${qtd}</span>
+        <button class="btn-recolher" data-excluir-tipo="${tipo}" data-excluir-dia="${dia}" style="border-color:var(--vermelho-alerta);color:var(--vermelho-alerta);padding:5px 12px;font-size:12px;">🗑️ Excluir</button>
+      </div>`;
+    };
+    cont.innerHTML = `<div class="painel" style="background:var(--bg);">
+      <div class="painel-header"><h2 style="font-size:14px;">📅 ${reg_formatarDataBR(dia)}</h2></div>
+      ${linha('Bateladas', resumo.totalBateladas ? `${resumo.totalLotes} lote(s), ${resumo.totalBateladas} batelada(s)` : 0, 'bateladas', '#2E9E6B')}
+      ${linha('Paradas de Produção', resumo.totalParadas, 'paradas', '#1D5A96')}
+      ${linha('Viagens', resumo.totalViagens, 'viagens', '#C1272D')}
+      <p class="nota" style="margin:10px 0 0;">Pra corrigir um dia com informação errada ou incompleta: exclua aqui e importe o arquivo certo de novo na seção acima — ou simplesmente importe o arquivo corrigido direto, que ele já pergunta se quer sobrescrever.</p>
+    </div>`;
+    cont.querySelectorAll('[data-excluir-tipo]').forEach(btn=>{
+      btn.addEventListener('click', ()=> fabExcluirDadosDoDia(btn.dataset.excluirDia, btn.dataset.excluirTipo));
+    });
+  }
+
+  async function fabExcluirDadosDoDia(dia, tipo){
+    const nomes = {bateladas:'Bateladas', paradas:'Paradas de Produção', viagens:'Viagens'};
+    if(!confirm(`Tem certeza que quer excluir os dados de "${nomes[tipo]}" do dia ${reg_formatarDataBR(dia)}? Essa ação não pode ser desfeita — se quiser recuperar, vai precisar importar o arquivo de novo.`)) return;
+    try{
+      if(tipo==='bateladas'){
+        const snap = await db.collection('fabrica_bateladas').where('data','==',dia).get();
+        const lote = db.batch();
+        snap.forEach(d=>lote.delete(d.ref));
+        if(!snap.empty) await lote.commit();
+        await db.collection('fabrica_resumo_dias').doc(dia).set({totalLotes:0, totalBateladas:0, totalKgBateladas:0}, {merge:true});
+      } else if(tipo==='paradas'){
+        await db.collection('fabrica_paradas').doc(dia).delete();
+        await db.collection('fabrica_resumo_dias').doc(dia).set({totalParadas:0, totalMinParadas:0}, {merge:true});
+      } else if(tipo==='viagens'){
+        await db.collection('fabrica_viagens').doc(dia).delete();
+        await db.collection('fabrica_resumo_dias').doc(dia).set({totalViagens:0, totalKgViagens:0}, {merge:true});
+      }
+      FAB_BATELADAS_CACHE = {ano:null, lotes:[]}; FAB_PARADAS_CACHE = {ano:null, registros:[]}; FAB_VIAGENS_CACHE = {ano:null, registros:[]};
+      fabRenderCalendarioImportacoes();
+    }catch(err){
+      alert('Erro ao excluir: ' + err.message);
+    }
   }
 
   // ===================== BATELADAS: carga e análise =====================
