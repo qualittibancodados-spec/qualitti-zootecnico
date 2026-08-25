@@ -260,8 +260,8 @@ def processar_resultado(xl):
     if 'dataAloj' in sub.columns:
         sub['dataAloj'] = pd.to_datetime(sub['dataAloj'], errors='coerce').dt.strftime('%Y-%m-%d')
     round_map = {'fp': 1, 'gmd': 2, 'ca': 3, 'iep': 1, 'mortElim': 2, 'idadeAbate': 0, 'pmAbate': 3, 'condenas': 2,
-                 'unif': 1, 'custo': 3, 'consumoRacao': 3, 'pmAlojamento': 4, 'pm1': 2, 'pm7': 2, 'pm14': 2, 'pm21': 2, 'pm28': 2, 'pm35': 2,
-                 'pm42': 2, 'mediaPrev': 3, 'mediaReal': 3, 'difMedia': 3,
+                 'unif': 1, 'custo': 3, 'consumoRacao': 3, 'pmAlojamento': 4, 'pm1': 3, 'pm7': 3, 'pm14': 3, 'pm21': 3, 'pm28': 3, 'pm35': 3,
+                 'pm42': 3, 'mediaPrev': 3, 'mediaReal': 3, 'difMedia': 3,
                  'r7': 2, 'r14': 2, 'r21': 2, 'r28': 2, 'r35': 2, 'r42': 2}
     for c, d in round_map.items():
         if c in sub.columns:
