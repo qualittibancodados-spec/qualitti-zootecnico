@@ -6604,7 +6604,7 @@ function renderChartPesoAndamento(){
 }
 
 let rzMdRecolhidos = new Set();
-function atualizarBotaoRecolherAndamento(){
+function atualizarBotaoRecolherAndamento_ORFA_rz(){
   const btn = document.getElementById('rz_btnRecolherAndamento');
   if(!btn) return;
   const nucs = Array.from(new Set(filtrar().filter(l=>l.situacao==='Aberto').map(l=>l.nucleo)));
@@ -6618,14 +6618,14 @@ function atualizarBotaoRecolherAndamento(){
     const nucs = Array.from(new Set(filtrar().filter(l=>l.situacao==='Aberto').map(l=>l.nucleo)));
     const todosRec = nucs.length>0 && nucs.every(n=>rzMdRecolhidos.has(n));
     if(todosRec) rzMdRecolhidos.clear(); else nucs.forEach(n=>rzMdRecolhidos.add(n));
-    renderMatrizPeso();
+    renderMatrizPeso_ORFA_rz();
   });
 })();
 
-function renderMatrizPeso(){
+function renderMatrizPeso_ORFA_rz(){
   const dados = filtrar().filter(l=>l.situacao==='Aberto');
   const tabela = document.getElementById('rz_tabelaPesoMatriz');
-  atualizarBotaoRecolherAndamento();
+  atualizarBotaoRecolherAndamento_ORFA_rz();
   if(!dados.length){ tabela.innerHTML=''; return; }
 
   const porNucleo = new Map();
@@ -6675,7 +6675,7 @@ function renderMatrizPeso(){
     el.addEventListener('click', ()=>{
       const n = el.dataset.nucToggleRz;
       if(rzMdRecolhidos.has(n)) rzMdRecolhidos.delete(n); else rzMdRecolhidos.add(n);
-      renderMatrizPeso();
+      renderMatrizPeso_ORFA_rz();
     });
   });
 
