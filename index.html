@@ -2247,37 +2247,135 @@
 
       <div class="cards" id="fab_bCards"></div>
 
-      <div class="painel-grafico">
-        <div class="painel-grafico-header">
-          <h2>Produção — Dosado por período</h2>
-          <div class="tabs-internas" id="fab_bSegGranularidade" style="margin:0;">
-            <button class="tab-int ativo" data-gran="dia">Por dia</button>
-            <button class="tab-int" data-gran="mes">Por mês</button>
+      <div class="tabs-internas" id="tabsBateladasSub">
+        <button class="tab-int ativo" data-sub-bat="producao">Produção</button>
+        <button class="tab-int" data-sub-bat="erros">Erros de Dosagens</button>
+        <button class="tab-int" data-sub-bat="consumo">Consumo</button>
+      </div>
+
+      <!-- ---------- SUBABA: PRODUÇÃO ---------- -->
+      <div data-sub-bat-view="producao">
+        <div class="painel-grafico">
+          <div class="painel-grafico-header">
+            <h2>Produção — Dosado por período</h2>
+            <div class="tabs-internas" id="fab_bSegGranularidade" style="margin:0;">
+              <button class="tab-int ativo" data-gran="dia">Por dia</button>
+              <button class="tab-int" data-gran="mes">Por mês</button>
+            </div>
+            <span class="info" id="fab_bInfoProducao"></span>
           </div>
-          <span class="info" id="fab_bInfoProducao"></span>
+          <div class="chart-wrap" style="height:260px;"><canvas id="fab_bChartProducao"></canvas></div>
         </div>
-        <div class="chart-wrap" style="height:280px;"><canvas id="fab_bChartProducao"></canvas></div>
-      </div>
 
-      <div class="painel-grafico">
-        <div class="painel-grafico-header">
-          <h2>Erro de dosagem — % de bateladas acima/abaixo de 2%</h2>
-          <span class="info" id="fab_bInfoErro"></span>
+        <div class="painel-grafico">
+          <div class="painel-grafico-header">
+            <h2>Mensal — por Tipo de Ração</h2>
+            <div class="tabs-internas" id="fab_bSegTipoMetrica" style="margin:0;">
+              <button class="tab-int ativo" data-metrica="pct">% do mês</button>
+              <button class="tab-int" data-metrica="kg">Quantidade (kg)</button>
+            </div>
+            <span class="info" id="fab_bInfoTipo"></span>
+          </div>
+          <p class="nota-grafico" style="margin:0 0 10px;">Tipo de ração = fase (Inicial, Crescimento, Abate...), extraída do nome do produto.</p>
+          <div class="chart-wrap" style="height:280px;"><canvas id="fab_bChartTipoMensal"></canvas></div>
         </div>
-        <p class="nota-grafico" style="margin:0 0 10px;">Cada batelada tem um erro % (diferença entre requisitado e dosado). A linha mostra quantas bateladas por dia ficaram com erro acima de 2% (pra mais ou pra menos) — quanto mais alto, mais bateladas fora da tolerância desejada.</p>
-        <div class="chart-wrap" style="height:260px;"><canvas id="fab_bChartErro"></canvas></div>
+
+        <div class="painel-grafico">
+          <div class="painel-grafico-header">
+            <h2>Mensal — por Nutrição</h2>
+            <div class="tabs-internas" id="fab_bSegNutriMetrica" style="margin:0;">
+              <button class="tab-int ativo" data-metrica="pct">% do mês</button>
+              <button class="tab-int" data-metrica="kg">Quantidade (kg)</button>
+            </div>
+            <span class="info" id="fab_bInfoNutri"></span>
+          </div>
+          <p class="nota-grafico" style="margin:0 0 10px;">Nutrição = linha/fornecedor da fórmula (Vaccinar, DSM...), extraída do nome do produto.</p>
+          <div class="chart-wrap" style="height:280px;"><canvas id="fab_bChartNutriMensal"></canvas></div>
+        </div>
+
+        <div class="painel-grafico">
+          <div class="painel-grafico-header">
+            <h2>Diária — por Nutrição</h2>
+            <div class="tabs-internas" id="fab_bSegNutriDiaMetrica" style="margin:0;">
+              <button class="tab-int ativo" data-metrica="kg">Quantidade (kg)</button>
+              <button class="tab-int" data-metrica="pct">% do dia</button>
+            </div>
+            <span class="info" id="fab_bInfoNutriDia"></span>
+          </div>
+          <div class="chart-wrap" style="height:280px;"><canvas id="fab_bChartNutriDia"></canvas></div>
+        </div>
+
+        <div class="painel-grafico">
+          <div class="painel-grafico-header"><h2>Semanal — por Tipo de Ração</h2><span class="info" id="fab_bInfoSemanal"></span></div>
+          <p class="nota-grafico" style="margin:0 0 10px;">Semana de segunda a sábado — domingo não entra na conta (dia sem produção).</p>
+          <div class="chart-wrap" style="height:280px;"><canvas id="fab_bChartSemanal"></canvas></div>
+        </div>
       </div>
 
-      <div class="painel">
-        <div class="painel-header"><h2>Requisitado × Dosado por produto</h2><span class="info" id="fab_bInfoProdutos"></span></div>
-        <p class="nota" style="margin:0 0 14px;">Clique num produto pra abrir as bateladas dele, ordenadas pela que teve o maior erro.</p>
-        <div class="qfc-scroll"><table class="qfc-tabela" id="fab_bTabelaProdutos"></table></div>
+      <!-- ---------- SUBABA: ERROS DE DOSAGENS ---------- -->
+      <div data-sub-bat-view="erros" style="display:none;">
+        <div class="painel-grafico">
+          <div class="painel-grafico-header">
+            <h2>Erro de dosagem — bateladas fora de 2%</h2>
+            <span class="info" id="fab_bInfoErro"></span>
+          </div>
+          <p class="nota-grafico" style="margin:0 0 10px;">Cada batelada tem um erro % (diferença entre requisitado e dosado). A linha mostra quantas bateladas por dia ficaram acima de +2% (dosou a mais) ou abaixo de -2% (dosou a menos).</p>
+          <div class="chart-wrap" style="height:260px;"><canvas id="fab_bChartErro"></canvas></div>
+        </div>
+
+        <div class="painel-grafico">
+          <div class="painel-grafico-header"><h2>Pareto — produtos com mais erro de dosagem</h2><span class="info" id="fab_bInfoPareto"></span></div>
+          <p class="nota-grafico" style="margin:0 0 10px;">Barras empilhadas: vermelho = dosou mais de 2% acima do previsto; azul = mais de 2% abaixo. A linha é o percentual acumulado.</p>
+          <div class="chart-wrap" style="height:300px;"><canvas id="fab_bChartPareto"></canvas></div>
+        </div>
+
+        <div class="painel">
+          <div class="painel-header">
+            <h2>Erro % por produto e por dia</h2>
+            <div class="tabs-internas" id="fab_bSegDirecaoErro" style="margin:0;">
+              <button class="tab-int ativo" data-direcao="acima">Acima de +2%</button>
+              <button class="tab-int" data-direcao="abaixo">Abaixo de -2%</button>
+            </div>
+            <span class="info" id="fab_bInfoMatriz"></span>
+          </div>
+          <p class="nota" style="margin:0 0 14px;">Clique numa célula preenchida pra ver, naquele dia, as bateladas daquele produto ordenadas da pior pra melhor.</p>
+          <div class="qfc-scroll"><table class="qfc-tabela" id="fab_bTabelaMatrizErro"></table></div>
+        </div>
+
+        <div class="painel">
+          <div class="painel-header"><h2>Requisitado × Dosado por produto</h2><span class="info" id="fab_bInfoProdutos"></span></div>
+          <p class="nota" style="margin:0 0 14px;">Clique num produto pra abrir as bateladas dele, ordenadas pela que teve o maior erro.</p>
+          <div class="qfc-scroll"><table class="qfc-tabela" id="fab_bTabelaProdutos"></table></div>
+        </div>
+
+        <div class="painel" id="fab_bPainelDetalheProduto" style="display:none;">
+          <div class="painel-header"><h2 id="fab_bTituloDetalheProduto">Bateladas do produto</h2><span class="info" id="fab_bInfoDetalheProduto"></span></div>
+          <div class="qfc-scroll"><table class="qfc-tabela" id="fab_bTabelaDetalheProduto"></table></div>
+        </div>
       </div>
 
-      <div class="painel" id="fab_bPainelDetalheProduto" style="display:none;">
-        <div class="painel-header"><h2 id="fab_bTituloDetalheProduto">Bateladas do produto</h2><span class="info" id="fab_bInfoDetalheProduto"></span></div>
-        <div class="qfc-scroll"><table class="qfc-tabela" id="fab_bTabelaDetalheProduto"></table></div>
+      <!-- ---------- SUBABA: CONSUMO ---------- -->
+      <div data-sub-bat-view="consumo" style="display:none;">
+        <div class="painel-grafico">
+          <div class="painel-grafico-header">
+            <h2>Consumo por matéria-prima</h2>
+            <div class="tabs-internas" id="fab_bSegConsumoGran" style="margin:0;">
+              <button class="tab-int" data-gran-consumo="dia">Diário</button>
+              <button class="tab-int" data-gran-consumo="semana">Semanal</button>
+              <button class="tab-int ativo" data-gran-consumo="mes">Mensal</button>
+            </div>
+            <span class="info" id="fab_bInfoConsumo"></span>
+          </div>
+          <p class="nota-grafico" style="margin:0 0 10px;">As 8 matérias-primas de maior consumo, individualmente — o restante agrupado em "Outros".</p>
+          <div class="chart-wrap" style="height:320px;"><canvas id="fab_bChartConsumo"></canvas></div>
+        </div>
+
+        <div class="painel">
+          <div class="painel-header"><h2>Ranking — total consumido no período</h2><span class="info" id="fab_bInfoConsumoTabela"></span></div>
+          <div class="qfc-scroll"><table class="qfc-tabela" id="fab_bTabelaConsumo"></table></div>
+        </div>
       </div>
+
     </div>
 
     <!-- ---------- PARADAS ---------- -->
@@ -10885,12 +10983,341 @@ if(regPinForm){
     return lotes;
   }
 
-  function fabTodasBateladas(lotes){
-    // achata lote+batelada numa lista só, cada item já carregando o produto/data do lote pai
+  // ===================== classificação de produto (Tipo de Ração / Nutrição) =====================
+  const FAB_NUTRICAO_LABEL = {DSM:'DSM', VACCINAR:'Vaccinar'}; // grafias conhecidas -- cai no title-case genérico se não achar
+  function fabTitleCase(s){ return s ? s.charAt(0).toUpperCase()+s.slice(1).toLowerCase() : '—'; }
+  function fabClassificarProduto(nome){
+    if(!nome) return {tipo:'—', nutricao:'—'};
+    const partes = nome.trim().split(/\s+/);
+    const tipo = partes[1] ? fabTitleCase(partes[1]) : '—';
+    let nutriRaw = partes[2] || '';
+    if(/^\d+$/.test(nutriRaw)) nutriRaw = ''; // era só código numérico da fórmula, não é a nutrição
+    const nutricao = nutriRaw ? (FAB_NUTRICAO_LABEL[nutriRaw.toUpperCase()] || fabTitleCase(nutriRaw)) : '—';
+    return {tipo, nutricao};
+  }
+
+  function fabTodasIngredientes(lotes){
     const out = [];
     lotes.forEach(lote=>{
       (lote.bateladas||[]).forEach(b=>{
-        out.push({...b, data: lote.data, loteProduto: lote.produto, linha: lote.linha});
+        (b.ingredientes||[]).forEach(ing=>{
+          out.push({...ing, data: lote.data, batelada: b.batelada, produtoBatelada: b.produto});
+        });
+      });
+    });
+    return out;
+  }
+
+  // segunda-feira da semana daquela data (semana opera de seg a sáb; domingo é ignorado)
+  function fabSegundaDaSemana(dataISO){
+    const d = new Date(dataISO+'T00:00:00');
+    const diaSemana = d.getDay(); // 0=domingo
+    if(diaSemana===0) return null; // domingo não conta (dia sem produção)
+    const offset = diaSemana - 1; // segunda=1 -> offset 0
+    const seg = new Date(d); seg.setDate(d.getDate()-offset);
+    return seg.toISOString().slice(0,10);
+  }
+  function fabRotuloSemana(segundaISO){
+    const seg = new Date(segundaISO+'T00:00:00');
+    const sab = new Date(seg); sab.setDate(seg.getDate()+5);
+    const fmt = d => `${String(d.getDate()).padStart(2,'0')}/${String(d.getMonth()+1).padStart(2,'0')}`;
+    return `${fmt(seg)}-${fmt(sab)}`;
+  }
+
+  const FAB_CORES_SERIE = ['#C1272D','#1D5A96','#2E9E6B','#F2A900','#8A6D00','#5B3FA6','#0B7285','#B3261E','#6A7686','#9A6700'];
+
+  // ===================== PRODUÇÃO: gráficos mensal/diário/semanal ===================== 
+  let fabChartTipoMensal=null, fabChartNutriMensal=null, fabChartNutriDia=null, fabChartSemanal=null;
+
+  function fabRenderProducaoSub(todas){
+    fabRenderBateladasChartProducao(todas);
+    fabRenderChartAgrupadoMensal(todas, 'tipo', document.querySelector('#fab_bSegTipoMetrica .tab-int.ativo')?.dataset.metrica||'pct', 'fab_bChartTipoMensal', 'fabChartTipoMensal', 'fab_bInfoTipo');
+    fabRenderChartAgrupadoMensal(todas, 'nutricao', document.querySelector('#fab_bSegNutriMetrica .tab-int.ativo')?.dataset.metrica||'pct', 'fab_bChartNutriMensal', 'fabChartNutriMensal', 'fab_bInfoNutri');
+    fabRenderChartNutriDiaria(todas, document.querySelector('#fab_bSegNutriDiaMetrica .tab-int.ativo')?.dataset.metrica||'kg');
+    fabRenderChartSemanal(todas);
+  }
+
+  function fabRenderChartAgrupadoMensal(todas, campo, metrica, canvasId, varName, infoId){
+    const ctx = document.getElementById(canvasId);
+    if(!ctx) return;
+    const meses = Array.from(new Set(todas.map(b=>b.data.slice(0,7)))).sort();
+    const categorias = Array.from(new Set(todas.map(b=>b[campo]))).sort();
+    const porMesCategoria = new Map(); // "mes|categoria" -> kg
+    meses.forEach(m=>categorias.forEach(c=>porMesCategoria.set(`${m}|${c}`,0)));
+    todas.forEach(b=>{
+      const chave = `${b.data.slice(0,7)}|${b[campo]}`;
+      porMesCategoria.set(chave, (porMesCategoria.get(chave)||0) + (b.dosadoKg||0));
+    });
+    const totaisPorMes = new Map(meses.map(m=>[m, categorias.reduce((s,c)=>s+porMesCategoria.get(`${m}|${c}`),0)]));
+
+    const datasets = categorias.map((cat,i)=>({
+      label: cat,
+      data: meses.map(m=>{
+        const kg = porMesCategoria.get(`${m}|${cat}`);
+        if(metrica==='pct'){ const tot=totaisPorMes.get(m); return tot ? +((kg/tot)*100).toFixed(1) : 0; }
+        return Math.round(kg);
+      }),
+      backgroundColor: FAB_CORES_SERIE[i%FAB_CORES_SERIE.length],
+      borderRadius:4, maxBarThickness:60
+    }));
+
+    if(window[varName]) window[varName].destroy();
+    window[varName] = new Chart(ctx.getContext('2d'), {
+      type:'bar',
+      data:{ labels: meses.map(m=>reg_formatarDataBR(m+'-01').slice(3)), datasets },
+      options:{ responsive:true, maintainAspectRatio:false,
+        plugins:{ legend:{position:'top', align:'end', labels:{boxWidth:11, font:{size:11}}},
+          tooltip:{callbacks:{label:c=>`${c.dataset.label}: ${c.parsed.y.toLocaleString('pt-BR')}${metrica==='pct'?'%':' kg'}`}} },
+        scales:{ x:{stacked:true, grid:{display:false}}, y:{stacked:true, beginAtZero:true, max: metrica==='pct'?100:undefined, grid:{color:'#EFEAE0'}} } }
+    });
+    document.getElementById(infoId).textContent = `${categorias.length} categoria(s) — ${meses.length} mês(es)`;
+  }
+
+  function fabRenderChartNutriDiaria(todas, metrica){
+    const ctx = document.getElementById('fab_bChartNutriDia');
+    if(!ctx) return;
+    const dias = Array.from(new Set(todas.map(b=>b.data))).sort();
+    const categorias = Array.from(new Set(todas.map(b=>b.nutricao))).sort();
+    const porDiaCategoria = new Map();
+    dias.forEach(d=>categorias.forEach(c=>porDiaCategoria.set(`${d}|${c}`,0)));
+    todas.forEach(b=>{
+      const chave = `${b.data}|${b.nutricao}`;
+      porDiaCategoria.set(chave, (porDiaCategoria.get(chave)||0) + (b.dosadoKg||0));
+    });
+    const totaisPorDia = new Map(dias.map(d=>[d, categorias.reduce((s,c)=>s+porDiaCategoria.get(`${d}|${c}`),0)]));
+
+    const datasets = categorias.map((cat,i)=>({
+      label: cat,
+      data: dias.map(d=>{
+        const kg = porDiaCategoria.get(`${d}|${cat}`);
+        if(metrica==='pct'){ const tot=totaisPorDia.get(d); return tot ? +((kg/tot)*100).toFixed(1) : 0; }
+        return Math.round(kg);
+      }),
+      backgroundColor: FAB_CORES_SERIE[i%FAB_CORES_SERIE.length],
+      borderRadius:4, maxBarThickness:40
+    }));
+    if(fabChartNutriDia) fabChartNutriDia.destroy();
+    fabChartNutriDia = new Chart(ctx.getContext('2d'), {
+      type:'bar',
+      data:{ labels: dias.map(d=>reg_formatarDataBR(d).slice(0,5)), datasets },
+      options:{ responsive:true, maintainAspectRatio:false,
+        plugins:{ legend:{position:'top', align:'end', labels:{boxWidth:11, font:{size:11}}},
+          tooltip:{callbacks:{label:c=>`${c.dataset.label}: ${c.parsed.y.toLocaleString('pt-BR')}${metrica==='pct'?'%':' kg'}`}} },
+        scales:{ x:{stacked:true, grid:{display:false}}, y:{stacked:true, beginAtZero:true, max: metrica==='pct'?100:undefined, grid:{color:'#EFEAE0'}} } }
+    });
+    document.getElementById('fab_bInfoNutriDia').textContent = `${dias.length} dia(s)`;
+  }
+
+  function fabRenderChartSemanal(todas){
+    const ctx = document.getElementById('fab_bChartSemanal');
+    if(!ctx) return;
+    const porSemana = new Map(); // segunda -> {tipo: kg}
+    todas.forEach(b=>{
+      const seg = fabSegundaDaSemana(b.data);
+      if(!seg) return; // domingo, ignora
+      if(!porSemana.has(seg)) porSemana.set(seg, {});
+      const o = porSemana.get(seg);
+      o[b.tipo] = (o[b.tipo]||0) + (b.dosadoKg||0);
+    });
+    const semanas = Array.from(porSemana.keys()).sort();
+    const categorias = Array.from(new Set(todas.map(b=>b.tipo))).sort();
+    const datasets = categorias.map((cat,i)=>({
+      label: cat,
+      data: semanas.map(s=>Math.round(porSemana.get(s)[cat]||0)),
+      backgroundColor: FAB_CORES_SERIE[i%FAB_CORES_SERIE.length],
+      borderRadius:4, maxBarThickness:50
+    }));
+    if(fabChartSemanal) fabChartSemanal.destroy();
+    fabChartSemanal = new Chart(ctx.getContext('2d'), {
+      type:'bar',
+      data:{ labels: semanas.map(fabRotuloSemana), datasets },
+      options:{ responsive:true, maintainAspectRatio:false,
+        plugins:{ legend:{position:'top', align:'end', labels:{boxWidth:11, font:{size:11}}},
+          tooltip:{callbacks:{label:c=>`${c.dataset.label}: ${c.parsed.y.toLocaleString('pt-BR')} kg`}} },
+        scales:{ x:{stacked:true, grid:{display:false}}, y:{stacked:true, beginAtZero:true, grid:{color:'#EFEAE0'}} } }
+    });
+    document.getElementById('fab_bInfoSemanal').textContent = `${semanas.length} semana(s)`;
+  }
+
+  // ===================== ERROS DE DOSAGENS: pareto + matriz produto×dia =====================
+  let fabChartPareto = null;
+  let fabDirecaoErroAtiva = 'acima'; // 'acima' = erro > +2% | 'abaixo' = erro < -2%
+
+  function fabRenderErrosSub(todas){
+    fabRenderBateladasChartErro(todas);
+    fabRenderChartPareto(todas);
+    fabRenderMatrizErro(todas);
+  }
+
+  function fabRenderChartPareto(todas){
+    const ctx = document.getElementById('fab_bChartPareto');
+    if(!ctx) return;
+    const porProduto = new Map();
+    todas.forEach(b=>{
+      if(b.erroPct==null || !b.produto) return;
+      if(!porProduto.has(b.produto)) porProduto.set(b.produto, {acima:0, abaixo:0});
+      const o = porProduto.get(b.produto);
+      if(b.erroPct>2) o.acima++;
+      else if(b.erroPct<-2) o.abaixo++;
+    });
+    const linhas = Array.from(porProduto.entries())
+      .map(([produto,o])=>({produto, total:o.acima+o.abaixo, acima:o.acima, abaixo:o.abaixo}))
+      .filter(l=>l.total>0)
+      .sort((a,b)=>b.total-a.total);
+    const totalGeral = linhas.reduce((s,l)=>s+l.total,0);
+    let acumulado = 0;
+    const pctAcumulado = linhas.map(l=>{ acumulado+=l.total; return totalGeral ? +((acumulado/totalGeral)*100).toFixed(1) : 0; });
+
+    if(fabChartPareto) fabChartPareto.destroy();
+    fabChartPareto = new Chart(ctx.getContext('2d'), {
+      data:{
+        labels: linhas.map(l=>l.produto),
+        datasets:[
+          { type:'bar', label:'Acima de +2%', data: linhas.map(l=>l.acima), backgroundColor:'#C1272D', borderRadius:4, yAxisID:'y', stack:'e' },
+          { type:'bar', label:'Abaixo de -2%', data: linhas.map(l=>l.abaixo), backgroundColor:'#1D5A96', borderRadius:4, yAxisID:'y', stack:'e' },
+          { type:'line', label:'% acumulado', data: pctAcumulado, borderColor:'#F2A900', backgroundColor:'#F2A900', borderWidth:2.4, pointRadius:3, yAxisID:'y1', tension:.25 }
+        ]
+      },
+      options:{ responsive:true, maintainAspectRatio:false, interaction:{mode:'index',intersect:false},
+        plugins:{ legend:{position:'top', align:'end', labels:{boxWidth:11,font:{size:11}}} },
+        scales:{
+          x:{ stacked:true, grid:{display:false}, ticks:{autoSkip:false, maxRotation:60, minRotation:40, font:{size:10}} },
+          y:{ stacked:true, beginAtZero:true, title:{display:true,text:'Qtd. de bateladas',font:{weight:600}}, grid:{color:'#EFEAE0'} },
+          y1:{ position:'right', beginAtZero:true, max:100, grid:{display:false}, title:{display:true,text:'% acumulado',font:{weight:600}} }
+        } }
+    });
+    document.getElementById('fab_bInfoPareto').textContent = `${linhas.length} produto(s) com erro fora de 2%`;
+  }
+
+  function fabRenderMatrizErro(todas){
+    const tabela = document.getElementById('fab_bTabelaMatrizErro');
+    const info = document.getElementById('fab_bInfoMatriz');
+    const direcao = fabDirecaoErroAtiva;
+    const bater = (v)=> direcao==='acima' ? (v!=null && v>2) : (v!=null && v<-2);
+
+    const dias = Array.from(new Set(todas.map(b=>b.data))).sort();
+    const porProdutoDia = new Map(); // "produto|dia" -> pior batelada que bate com a direção
+    todas.forEach(b=>{
+      if(!bater(b.erroPct)) return;
+      const chave = `${b.produto}|${b.data}`;
+      const atual = porProdutoDia.get(chave);
+      if(!atual || Math.abs(b.erroPct) > Math.abs(atual.erroPct)) porProdutoDia.set(chave, b);
+    });
+    const produtos = Array.from(new Set(Array.from(porProdutoDia.keys()).map(k=>k.split('|')[0]))).sort();
+
+    if(!produtos.length){
+      tabela.innerHTML = '';
+      info.textContent = `Nenhuma batelada ${direcao==='acima'?'acima de +2%':'abaixo de -2%'} nesse filtro`;
+      return;
+    }
+    info.textContent = `${produtos.length} produto(s) com ocorrência ${direcao==='acima'?'acima de +2%':'abaixo de -2%'}`;
+
+    const cor = direcao==='acima' ? '#C1272D' : '#1D5A96';
+    const bg = direcao==='acima' ? '#FCE4E4' : '#E5EEF7';
+    const thead = `<thead><tr><th class="qfc-col-first">Produto</th>${dias.map(d=>`<th style="min-width:56px;">${reg_formatarDataBR(d).slice(0,5)}</th>`).join('')}</tr></thead>`;
+    const corpo = produtos.map(produto=>{
+      const celulas = dias.map(d=>{
+        const b = porProdutoDia.get(`${produto}|${d}`);
+        if(!b) return `<td style="text-align:center;color:#D5D9DE;">–</td>`;
+        return `<td data-produto-cel="${produto}" data-dia-cel="${d}" style="text-align:center;cursor:pointer;font-weight:700;color:${cor};background:${bg};">${b.erroPct>=0?'+':''}${b.erroPct.toFixed(1)}%</td>`;
+      }).join('');
+      return `<tr><td class="qfc-col-first">${produto}</td>${celulas}</tr>`;
+    }).join('');
+    tabela.innerHTML = thead + `<tbody>${corpo}</tbody>`;
+
+    tabela.querySelectorAll('[data-produto-cel]').forEach(td=>{
+      td.addEventListener('click', ()=>{
+        const produto = td.dataset.produtoCel, dia = td.dataset.diaCel;
+        const bateladasDoDia = todas.filter(b=>b.produto===produto && b.data===dia);
+        fabRenderDetalheProduto(`${produto} — ${reg_formatarDataBR(dia)}`, bateladasDoDia);
+      });
+    });
+  }
+
+  // ===================== CONSUMO: matéria-prima por dia/semana/mês =====================
+  let fabChartConsumo = null;
+  let fabConsumoGranAtiva = 'mes';
+
+  function fabRenderConsumoSub(lotes, todas){
+    // consumo é no nível de INGREDIENTE (matéria-prima), não de batelada -- pega do lote inteiro,
+    // já filtrado pelas mesmas bateladas que sobraram no filtro (produto/mês/ano)
+    const chavesPermitidas = new Set(todas.map(b=>`${b.data}|${b.batelada}|${b.produto}`));
+    const ingredientes = fabTodasIngredientes(lotes).filter(i=>chavesPermitidas.has(`${i.data}|${i.batelada}|${i.produtoBatelada}`));
+
+    const chaveTempo = (dataISO)=>{
+      if(fabConsumoGranAtiva==='dia') return dataISO;
+      if(fabConsumoGranAtiva==='semana') return fabSegundaDaSemana(dataISO) || dataISO;
+      return dataISO.slice(0,7); // mes
+    };
+    const rotuloTempo = (chave)=>{
+      if(fabConsumoGranAtiva==='dia') return reg_formatarDataBR(chave).slice(0,5);
+      if(fabConsumoGranAtiva==='semana') return fabRotuloSemana(chave);
+      return reg_formatarDataBR(chave+'-01').slice(3);
+    };
+
+    const totalPorMateria = new Map();
+    const porTempoMateria = new Map();
+    ingredientes.forEach(ing=>{
+      if(!ing.produto) return;
+      const t = chaveTempo(ing.data);
+      totalPorMateria.set(ing.produto, (totalPorMateria.get(ing.produto)||0) + (ing.dosadoKg||0));
+      const chaveTM = `${t}|${ing.produto}`;
+      porTempoMateria.set(chaveTM, (porTempoMateria.get(chaveTM)||0) + (ing.dosadoKg||0));
+    });
+
+    const rankingCompleto = Array.from(totalPorMateria.entries()).sort((a,b)=>b[1]-a[1]);
+    const top8 = rankingCompleto.slice(0,8).map(([nome])=>nome);
+    const temOutros = rankingCompleto.length>8;
+
+    const tempos = Array.from(new Set(ingredientes.map(i=>chaveTempo(i.data)))).sort();
+    const datasets = top8.map((materia,i)=>({
+      label: materia,
+      data: tempos.map(t=>Math.round(porTempoMateria.get(`${t}|${materia}`)||0)),
+      backgroundColor: FAB_CORES_SERIE[i%FAB_CORES_SERIE.length],
+      borderRadius:4, maxBarThickness:50, stack:'s'
+    }));
+    if(temOutros){
+      datasets.push({
+        label:'Outros',
+        data: tempos.map(t=>{
+          let soma=0;
+          rankingCompleto.slice(8).forEach(([nome])=>{ soma += porTempoMateria.get(`${t}|${nome}`)||0; });
+          return Math.round(soma);
+        }),
+        backgroundColor:'#C7CDD6', borderRadius:4, maxBarThickness:50, stack:'s'
+      });
+    }
+
+    const ctx = document.getElementById('fab_bChartConsumo');
+    if(fabChartConsumo) fabChartConsumo.destroy();
+    fabChartConsumo = new Chart(ctx.getContext('2d'), {
+      type:'bar',
+      data:{ labels: tempos.map(rotuloTempo), datasets },
+      options:{ responsive:true, maintainAspectRatio:false,
+        plugins:{ legend:{position:'top', align:'end', labels:{boxWidth:11,font:{size:10.5}}},
+          tooltip:{callbacks:{label:c=>`${c.dataset.label}: ${c.parsed.y.toLocaleString('pt-BR')} kg`}} },
+        scales:{ x:{stacked:true, grid:{display:false}}, y:{stacked:true, beginAtZero:true, title:{display:true,text:'kg',font:{weight:600}}, grid:{color:'#EFEAE0'}} } }
+    });
+    document.getElementById('fab_bInfoConsumo').textContent = `${rankingCompleto.length} matéria(s)-prima(s) — ${tempos.length} período(s)`;
+
+    const totalGeralKg = rankingCompleto.reduce((s,[,kg])=>s+kg,0);
+    document.getElementById('fab_bInfoConsumoTabela').textContent = `${(totalGeralKg/1000).toLocaleString('pt-BR',{maximumFractionDigits:1})} ton no total`;
+    document.getElementById('fab_bTabelaConsumo').innerHTML = `<thead><tr><th class="qfc-col-first">Matéria-prima</th><th>Total consumido</th><th>% do total</th></tr></thead>
+      <tbody>${rankingCompleto.map(([nome,kg])=>`<tr>
+        <td class="qfc-col-first">${nome}</td>
+        <td style="text-align:center;font-weight:700;">${kg.toLocaleString('pt-BR',{maximumFractionDigits:1})} kg</td>
+        <td style="text-align:center;">${totalGeralKg?((kg/totalGeralKg)*100).toFixed(1):'0'}%</td>
+      </tr>`).join('')}</tbody>`;
+  }
+
+  function fabTodasBateladas(lotes){
+    // achata lote+batelada numa lista só, cada item já carregando o produto/data do lote pai
+    // e já classificado em Tipo de Ração / Nutrição (extraído do nome do produto)
+    const out = [];
+    lotes.forEach(lote=>{
+      (lote.bateladas||[]).forEach(b=>{
+        const {tipo, nutricao} = fabClassificarProduto(b.produto);
+        out.push({...b, data: lote.data, loteProduto: lote.produto, linha: lote.linha, tipo, nutricao});
       });
     });
     return out;
@@ -10906,6 +11333,9 @@ if(regPinForm){
     }
     selAno.value = String(anoAtual);
   }
+
+  let FAB_BATELADAS_LOTES_FILTRADOS = [], FAB_BATELADAS_TODAS_FILTRADAS = [];
+  let fabSubAbaBateladasAtiva = 'producao';
 
   async function fabRenderBateladas(){
     await fabPopularFiltrosBateladas();
@@ -10929,11 +11359,20 @@ if(regPinForm){
       if(produtoSel!=='Todos' && b.produto!==produtoSel) return false;
       return true;
     });
+    const lotesFiltrados = produtoSel==='Todos' && mes==='Todos' ? lotes
+      : lotes.filter(l=>(l.bateladas||[]).some(b=> (mes==='Todos'||l.data.slice(5,7)===mes.padStart(2,'0')) && (produtoSel==='Todos'||b.produto===produtoSel) ));
+    FAB_BATELADAS_LOTES_FILTRADOS = lotesFiltrados;
+    FAB_BATELADAS_TODAS_FILTRADAS = todas;
 
     fabRenderBateladasCards(todas);
-    fabRenderBateladasChartProducao(todas);
-    fabRenderBateladasChartErro(todas);
-    fabRenderBateladasTabelaProdutos(todas);
+    fabRenderSubAbaBateladasAtiva();
+  }
+
+  function fabRenderSubAbaBateladasAtiva(){
+    const todas = FAB_BATELADAS_TODAS_FILTRADAS, lotes = FAB_BATELADAS_LOTES_FILTRADOS;
+    if(fabSubAbaBateladasAtiva==='producao') fabRenderProducaoSub(todas);
+    else if(fabSubAbaBateladasAtiva==='erros'){ fabRenderErrosSub(todas); fabRenderBateladasTabelaProdutos(todas); }
+    else if(fabSubAbaBateladasAtiva==='consumo') fabRenderConsumoSub(lotes, todas);
   }
 
   function fabRenderBateladasCards(todas){
@@ -11305,9 +11744,39 @@ if(regPinForm){
       btn.addEventListener('click', ()=>{
         document.querySelectorAll('#fab_bSegGranularidade .tab-int').forEach(b=>b.classList.remove('ativo'));
         btn.classList.add('ativo');
-        fabRenderBateladas();
+        fabRenderBateladasChartProducao(FAB_BATELADAS_TODAS_FILTRADAS);
       });
     });
+
+    // subabas dentro de Bateladas (Produção / Erros de Dosagens / Consumo)
+    document.querySelectorAll('#tabsBateladasSub .tab-int').forEach(btn=>{
+      btn.addEventListener('click', ()=>{
+        document.querySelectorAll('#tabsBateladasSub .tab-int').forEach(b=>b.classList.remove('ativo'));
+        btn.classList.add('ativo');
+        fabSubAbaBateladasAtiva = btn.dataset.subBat;
+        document.querySelectorAll('[data-sub-bat-view]').forEach(el=>{
+          el.style.display = (el.dataset.subBatView===fabSubAbaBateladasAtiva) ? '' : 'none';
+        });
+        document.getElementById('fab_bPainelDetalheProduto').style.display = 'none';
+        fabRenderSubAbaBateladasAtiva();
+      });
+    });
+    // toggles de métrica (%/kg) e direção (acima/abaixo) — só redesenham o pedaço que mudou
+    const fabToggle = (seletorGrupo, callback)=>{
+      document.querySelectorAll(`${seletorGrupo} .tab-int`).forEach(btn=>{
+        btn.addEventListener('click', ()=>{
+          document.querySelectorAll(`${seletorGrupo} .tab-int`).forEach(b=>b.classList.remove('ativo'));
+          btn.classList.add('ativo');
+          callback(btn);
+        });
+      });
+    };
+    fabToggle('#fab_bSegTipoMetrica', btn=>fabRenderChartAgrupadoMensal(FAB_BATELADAS_TODAS_FILTRADAS,'tipo',btn.dataset.metrica,'fab_bChartTipoMensal','fabChartTipoMensal','fab_bInfoTipo'));
+    fabToggle('#fab_bSegNutriMetrica', btn=>fabRenderChartAgrupadoMensal(FAB_BATELADAS_TODAS_FILTRADAS,'nutricao',btn.dataset.metrica,'fab_bChartNutriMensal','fabChartNutriMensal','fab_bInfoNutri'));
+    fabToggle('#fab_bSegNutriDiaMetrica', btn=>fabRenderChartNutriDiaria(FAB_BATELADAS_TODAS_FILTRADAS, btn.dataset.metrica));
+    fabToggle('#fab_bSegDirecaoErro', btn=>{ fabDirecaoErroAtiva = btn.dataset.direcao; fabRenderMatrizErro(FAB_BATELADAS_TODAS_FILTRADAS); });
+    fabToggle('#fab_bSegConsumoGran', btn=>{ fabConsumoGranAtiva = btn.dataset.granConsumo; fabRenderConsumoSub(FAB_BATELADAS_LOTES_FILTRADOS, FAB_BATELADAS_TODAS_FILTRADAS); });
+
     document.getElementById('fab_pAno').addEventListener('change', fabRenderParadas);
     ['fab_vAno','fab_vMes','fab_vNucleo','fab_vProduto'].forEach(id=>{
       document.getElementById(id).addEventListener('change', ()=>{ fabVPaginaAtual=1; fabRenderViagens(); });
