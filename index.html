@@ -11199,6 +11199,9 @@ if(regPinForm){
 
   const FAB_MARCAS_CONHECIDAS = ['VACCINAR','VACCINA','DSM'];
   const FAB_CORES_SERIE = ['#C1272D','#1D5A96','#2E9E6B','#F2A900','#8A6D00','#5B3FA6','#0B7285','#B3261E','#6A7686','#9A6700'];
+  // tons bem claros, pareados 1-a-1 com as cores acima -- usados como fundo de coluna/bloco pra
+  // separar visualmente categorias numa tabela (mesma cor do gráfico, só que suave)
+  const FAB_CORES_TINT = ['#FDEBEC','#E7F0F9','#E5F5EE','#FDF3DC','#F5EFDC','#EFEAFA','#E1F1F3','#FBE4E3','#EEF0F2','#FBF3DC'];
   function fabTitleCase(s){ return s ? s.split(' ').map(w=>w?w.charAt(0)+w.slice(1).toLowerCase():'').join(' ') : '—'; }
   function fabClassificarProduto(nome){
     if(!nome) return {tipo:'—', nutricao:'—'};
@@ -11331,15 +11334,15 @@ if(regPinForm){
       const chave = `${s}|${b.nutricao}`;
       porSemanaNutri.set(chave, (porSemanaNutri.get(chave)||0) + (b.dosadoKg||0));
     });
-    const thead = `<thead><tr><th class="qfc-col-first">Semana</th>${nutricoes.map(n=>`<th>${n}</th>`).join('')}</tr></thead>`;
+    const thead = `<thead><tr><th class="qfc-col-first">Semana</th>${nutricoes.map((n,i)=>`<th style="background:${FAB_CORES_TINT[i%FAB_CORES_TINT.length]};color:${FAB_CORES_SERIE[i%FAB_CORES_SERIE.length]};border-bottom:2px solid ${FAB_CORES_SERIE[i%FAB_CORES_SERIE.length]};">${n}</th>`).join('')}</tr></thead>`;
     const corpo = tempos.chaves.map((s,i)=>{
       const totalSemana = nutricoes.reduce((acc,n)=>acc+(porSemanaNutri.get(`${s}|${n}`)||0),0);
       return `<tr>
         <td class="qfc-col-first">Semana ${i+1} <span style="color:var(--texto-suave);font-weight:400;">(${tempos.rotulos[i]})</span></td>
-        ${nutricoes.map(n=>{
+        ${nutricoes.map((n,idx)=>{
           const kg = porSemanaNutri.get(`${s}|${n}`)||0;
           const pct = totalSemana ? (kg/totalSemana*100) : 0;
-          return `<td style="text-align:center;">${totalSemana?pct.toFixed(1)+'%':'–'}</td>`;
+          return `<td style="text-align:center;background:${FAB_CORES_TINT[idx%FAB_CORES_TINT.length]};font-weight:600;">${totalSemana?pct.toFixed(1)+'%':'–'}</td>`;
         }).join('')}
       </tr>`;
     }).join('');
@@ -11472,15 +11475,16 @@ if(regPinForm){
     const totalPorDia = new Map(dias.map(d=>[d, nutricoes.reduce((s,n)=>s+(porDiaNutri.get(`${d}|${n}`)||0),0)]));
 
     const thead = `<thead>
-      <tr><th class="qfc-col-first" rowspan="2">Data</th>${nutricoes.map(n=>`<th colspan="2">${n}</th>`).join('')}</tr>
-      <tr>${nutricoes.map(()=>`<th style="min-width:60px;">Quantidade</th><th style="min-width:56px;">%</th>`).join('')}</tr>
+      <tr><th class="qfc-col-first" rowspan="2">Data</th>${nutricoes.map((n,i)=>`<th colspan="2" style="background:${FAB_CORES_TINT[i%FAB_CORES_TINT.length]};color:${FAB_CORES_SERIE[i%FAB_CORES_SERIE.length]};border-bottom:2px solid ${FAB_CORES_SERIE[i%FAB_CORES_SERIE.length]};">${n}</th>`).join('')}</tr>
+      <tr>${nutricoes.map((n,i)=>`<th style="min-width:60px;background:${FAB_CORES_TINT[i%FAB_CORES_TINT.length]};">Quantidade</th><th style="min-width:56px;background:${FAB_CORES_TINT[i%FAB_CORES_TINT.length]};">%</th>`).join('')}</tr>
     </thead>`;
     const corpo = dias.map(d=>{
       const tot = totalPorDia.get(d);
-      return `<tr><td class="qfc-col-first">${reg_formatarDataBR(d)}</td>${nutricoes.map(n=>{
+      return `<tr><td class="qfc-col-first">${reg_formatarDataBR(d)}</td>${nutricoes.map((n,i)=>{
         const kg = porDiaNutri.get(`${d}|${n}`)||0;
         const pct = tot ? (kg/tot*100) : 0;
-        return `<td style="text-align:center;">${kg?Math.round(kg).toLocaleString('pt-BR'):''}</td><td style="text-align:center;">${tot?pct.toFixed(2)+'%':'0,00%'}</td>`;
+        const tint = FAB_CORES_TINT[i%FAB_CORES_TINT.length];
+        return `<td style="text-align:center;background:${tint};">${kg?Math.round(kg).toLocaleString('pt-BR'):'–'}</td><td style="text-align:center;background:${tint};font-weight:600;">${tot?pct.toFixed(2)+'%':'0,00%'}</td>`;
       }).join('')}</tr>`;
     }).join('');
     tabela.innerHTML = thead + `<tbody>${corpo}</tbody>`;
