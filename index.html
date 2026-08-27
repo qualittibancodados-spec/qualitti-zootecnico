@@ -208,6 +208,8 @@
   .qfc-tabela{ width:100%; border-collapse:collapse; font-size:12.5px; min-width:560px; }
   .qfc-tabela thead th{ background:#FBF7EE; border-bottom:1px solid var(--borda); color:var(--texto-suave); font-weight:700; font-size:10.5px; text-transform:uppercase; letter-spacing:.03em; text-align:left; padding:9px 12px; white-space:nowrap; position:sticky; top:0; }
   #mod-fabrica .qfc-tabela thead th:not(.qfc-col-first){ text-align:center; }
+  #fab_bTabelaErroDia td{ min-width:52px; }
+  #fab_bTabelaErroDia .qfc-col-first{ min-width:170px; }
   .qfc-tabela th.qfc-status, .qfc-tabela td.qfc-status{ text-align:center; }
   .qfc-tabela th.qfc-col-first, .qfc-tabela td.qfc-col-first{ position:sticky; left:0; background:var(--card); z-index:1; min-width:150px; text-align:left; }
   .qfc-tabela thead th.qfc-col-first{ background:#FBF7EE; z-index:2; }
@@ -638,6 +640,19 @@
     .cards{ grid-template-columns:1fr 1fr; }
   }
 
+  /* ===== Fábrica de Rações — ajustes de celular ===== */
+  @media (max-width:600px){
+    #mod-fabrica .fab-cal-grid, #mod-fabrica .fab-cal-semana-header{ gap:3px; }
+    #mod-fabrica .fab-cal-dia{ padding:4px 2px 5px; border-radius:7px; }
+    #mod-fabrica .fab-cal-num{ font-size:9.5px; }
+    #mod-fabrica .fab-cal-dia span{ width:13px !important; height:13px !important; font-size:7px !important; }
+    #mod-fabrica .fab-cal-semana-header div{ font-size:8.5px; }
+    #mod-fabrica #tabsBateladasSub .tab-int{ padding:7px 10px; font-size:11.5px; }
+    #mod-fabrica .tabs-internas{ width:100%; justify-content:center; }
+    #mod-fabrica .painel-header h2{ font-size:14px; }
+    #mod-fabrica .filtros-grid{ grid-template-columns:1fr 1fr; }
+  }
+
 /* ===== CSS do módulo Resultado Zootécnico (prefixado com #mod-resultado) ===== */
   #mod-resultado .tabs-internas{ display:flex; gap:8px; margin-bottom:18px; flex-wrap:wrap; background:var(--card); padding:6px; border-radius:14px; border:1px solid var(--borda); box-shadow:var(--sombra); width:fit-content; }
   #mod-resultado .tab-int{ background:transparent; border:none; color:var(--texto-suave);
@@ -955,7 +970,7 @@
   #mod-fabrica [data-aba-fab-view="relatorio"] *,
   #mod-fabrica [data-aba-fab-view="relatorio"]{ visibility:visible; }
   .sidebar, .topbar-mobile, .tabs-internas,
-  #fab_rBtnExportarPDF, #fab_rBtnSalvar, #fab_rBtnLimpar,
+  #fab_rBtnExportarPDF, #fab_rBtnSalvar, #fab_rBtnLimpar, #fab_rBtnExpandirTodos, #fab_rBtnRecolherTodos,
   #mod-fabrica [data-aba-fab-view="relatorio"] .filtros,
   #mod-fabrica [data-aba-fab-view="relatorio"] .cards,
   #mod-fabrica [data-aba-fab-view="relatorio"] .painel-grafico,
@@ -966,8 +981,29 @@
   #fab_r-print-header .qf-print-titulos h1{ font-size:16px; margin:0; font-family:'Sora',sans-serif; }
   #fab_r-print-header .qf-print-titulos p{ font-size:10px; margin:2px 0 0; color:#666; }
   #fab_rScrollTabela{ overflow:visible !important; width:100% !important; }
-  #fab_rTabela{ width:100% !important; table-layout:fixed !important; font-size:7px; }
-  #fab_rTabela th, #fab_rTabela td{ min-width:0 !important; max-width:none !important; padding:3px 2px !important; overflow-wrap:break-word; word-break:break-word; white-space:normal !important; }
+  #fab_rTabela{ width:100% !important; table-layout:fixed !important; font-size:8px; border-collapse:collapse !important; }
+  #fab_rTabela th, #fab_rTabela td{ min-width:0 !important; max-width:none !important; padding:4px 3px !important; overflow-wrap:break-word; word-break:break-word; white-space:normal !important; line-height:1.25; border:1px solid #DDD !important; }
+  #fab_rTabela thead th{ background:#F2F2F2 !important; color:#333 !important; font-size:7px !important; border-bottom:1.5px solid #999 !important; }
+  #fab_rTabela .qfc-linha-nucleo td{ background:#F7F3E8 !important; border-top:1.5px solid #C1272D !important; border-bottom:1.5px solid #C1272D !important; }
+  /* larguras fixas por coluna, somando 100% -- evita título quebrando linha à toa e célula espremida */
+  #fab_rTabela th:nth-child(1), #fab_rTabela td:nth-child(1){ width:10% !important; text-align:left !important; }
+  #fab_rTabela th:nth-child(2), #fab_rTabela td:nth-child(2){ width:5% !important; }
+  #fab_rTabela th:nth-child(3), #fab_rTabela td:nth-child(3){ width:9% !important; }
+  #fab_rTabela th:nth-child(4), #fab_rTabela td:nth-child(4){ width:9% !important; }
+  #fab_rTabela th:nth-child(5), #fab_rTabela td:nth-child(5){ width:8% !important; }
+  #fab_rTabela th:nth-child(6), #fab_rTabela td:nth-child(6){ width:6% !important; }
+  #fab_rTabela th:nth-child(7), #fab_rTabela td:nth-child(7){ width:6% !important; }
+  #fab_rTabela th:nth-child(8), #fab_rTabela td:nth-child(8){ width:7% !important; }
+  #fab_rTabela th:nth-child(9), #fab_rTabela td:nth-child(9){ width:7% !important; }
+  #fab_rTabela th:nth-child(10), #fab_rTabela td:nth-child(10){ width:9% !important; }
+  #fab_rTabela th:nth-child(11), #fab_rTabela td:nth-child(11){ width:9% !important; }
+  #fab_rTabela th:nth-child(12), #fab_rTabela td:nth-child(12){ width:8% !important; }
+  #fab_rTabela th:nth-child(13), #fab_rTabela td:nth-child(13){ width:7% !important; }
+  /* rendimento (5ª coluna) em destaque discreto na impressão também */
+  #fab_rTabela th:nth-child(5){ background:#EADFC2 !important; }
+  #fab_rTabela td:nth-child(5){ background:#FBF6EA !important; font-weight:700 !important; color:#7A5F00 !important; }
+  #fab_rTabela tr{ page-break-inside:avoid; }
+  thead{ display:table-header-group; }
 }
 @media print{
   @page{ size: landscape; margin: 8mm; }
@@ -2239,31 +2275,21 @@
     <!-- ---------- RELATÓRIO DIÁRIO ---------- -->
     <div data-aba-fab-view="relatorio" style="display:none;">
       <div class="painel">
-        <div class="painel-header"><h2>📝 Lançamento manual do dia</h2></div>
+        <h2 style="margin-top:0;">📝 Lançamento manual do dia</h2>
         <p class="nota" style="margin:0 0 16px;">Esses dados não vêm de nenhum arquivo importado — precisa preencher manualmente todo dia. Produção e Expedição são calculadas sozinhas a partir do que já foi importado em Bateladas/Viagens.</p>
 
-        <div class="campo" style="max-width:220px;margin-bottom:16px;"><label>Data</label><input type="date" id="fab_rData"></div>
-
-        <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:14px;margin-bottom:18px;">
-          <div style="background:var(--bg);border:1px solid var(--borda);border-radius:12px;padding:14px 16px;">
-            <div style="font-size:11px;font-weight:700;color:var(--texto-suave);text-transform:uppercase;letter-spacing:.03em;margin-bottom:10px;">📦 Estoques</div>
-            <div class="campo" style="margin-bottom:8px;"><label>Estoque Granja (kg)</label><input type="number" id="fab_rEstoqueGranja" step="0.01"></div>
-            <div class="campo"><label>Estoque Fábrica (kg)</label><input type="number" id="fab_rEstoqueFabrica" step="0.01"></div>
+        <form id="fab_rForm" class="reg-form">
+          <div class="campo"><label>Data</label><input type="date" id="fab_rData"></div>
+          <div class="campo"><label>Estoque Granja (kg)</label><input type="number" id="fab_rEstoqueGranja" step="0.01"></div>
+          <div class="campo"><label>Estoque Fábrica (kg)</label><input type="number" id="fab_rEstoqueFabrica" step="0.01"></div>
+          <div class="campo"><label>Horas Disponíveis</label><input type="number" id="fab_rHorasDisponiveis" step="0.5" value="8"></div>
+          <div class="campo"><label>Horas Trabalhadas</label><input type="number" id="fab_rHorasTrabalhadas" step="0.5"></div>
+          <div class="campo"><label>Produção Prevista (ton)</label><input type="number" id="fab_rProducaoPrevista" step="1" value="400"></div>
+          <div style="grid-column:1/-1;display:flex;gap:10px;">
+            <button type="submit" class="btn-recolher" id="fab_rBtnSalvar" style="background:var(--vermelho);color:#fff;border-color:var(--vermelho);">💾 Salvar dia</button>
+            <button type="button" class="btn-recolher" id="fab_rBtnLimpar">🆕 Novo lançamento</button>
           </div>
-          <div style="background:var(--bg);border:1px solid var(--borda);border-radius:12px;padding:14px 16px;">
-            <div style="font-size:11px;font-weight:700;color:var(--texto-suave);text-transform:uppercase;letter-spacing:.03em;margin-bottom:10px;">⏱️ Horas</div>
-            <div class="campo" style="margin-bottom:8px;"><label>Horas Disponíveis</label><input type="number" id="fab_rHorasDisponiveis" step="0.5" value="8"></div>
-            <div class="campo"><label>Horas Trabalhadas</label><input type="number" id="fab_rHorasTrabalhadas" step="0.5"></div>
-          </div>
-          <div style="background:var(--bg);border:1px solid var(--borda);border-radius:12px;padding:14px 16px;">
-            <div style="font-size:11px;font-weight:700;color:var(--texto-suave);text-transform:uppercase;letter-spacing:.03em;margin-bottom:10px;">🎯 Meta</div>
-            <div class="campo"><label>Produção Prevista (ton)</label><input type="number" id="fab_rProducaoPrevista" step="1" value="400"></div>
-          </div>
-        </div>
-        <div style="display:flex;gap:10px;align-items:center;border-top:1px solid var(--borda);padding-top:16px;">
-          <button class="fab-btn-primario" id="fab_rBtnSalvar" style="width:fit-content;padding:10px 22px;font-size:13.5px;">💾 Salvar dia</button>
-          <button class="btn-recolher" id="fab_rBtnLimpar" style="width:fit-content;display:inline-flex;align-items:center;gap:6px;line-height:1.2;padding:10px 18px;font-size:13px;">🆕 Novo lançamento</button>
-        </div>
+        </form>
         <p class="nota" id="fab_rStatus" style="min-height:16px;margin-top:10px;"></p>
       </div>
 
@@ -2284,6 +2310,8 @@
       <div class="painel">
         <div class="painel-header">
           <h2>Relatório Diário</h2>
+          <button class="btn-recolher" id="fab_rBtnExpandirTodos" type="button" style="font-size:11.5px;padding:6px 12px;">⊞ Expandir todos</button>
+          <button class="btn-recolher" id="fab_rBtnRecolherTodos" type="button" style="font-size:11.5px;padding:6px 12px;">⊟ Recolher todos</button>
           <button class="btn-recolher" id="fab_rBtnExportarPDF" type="button">📄 Exportar PDF</button>
           <span class="info" id="fab_rInfoTabela"></span>
         </div>
@@ -2430,16 +2458,30 @@
 
         <div class="painel">
           <div class="painel-header"><h2>Semanal — por Tipo de Ração</h2><span class="info" id="fab_bInfoSemanal"></span></div>
-          <p class="nota" style="margin:0 0 10px;">Semana de segunda a sábado — domingo não entra na conta (dia sem produção).</p>
+          <p class="nota" style="margin:0 0 10px;">Semana de segunda a sábado — domingo não entra na conta (dia sem produção). Sempre mostra o ano inteiro, independente do filtro de Mês (visão consolidada).</p>
           <div class="qfc-scroll"><table class="qfc-tabela" id="fab_bTabelaSemanal"></table></div>
+        </div>
+
+        <div class="painel">
+          <div class="painel-header"><h2>Semanal — % por Nutrição</h2><span class="info" id="fab_bInfoSemanalNutricao"></span></div>
+          <p class="nota" style="margin:0 0 10px;">Como a composição por nutrição (DSM, Vaccinar...) mudou de semana pra semana.</p>
+          <div class="qfc-scroll"><table class="qfc-tabela" id="fab_bTabelaSemanalNutricao"></table></div>
         </div>
       </div>
 
       <!-- ===== SUBABA: ERROS DE DOSAGENS ===== -->
       <div data-sub-bat-view="erros" style="display:none;">
         <div class="painel">
-          <div class="painel-header"><h2>Pareto — erros de dosagem por matéria-prima (pra mais e pra menos)</h2><span class="info" id="fab_bInfoPareto"></span></div>
-          <p class="nota" style="margin:0 0 14px;">Erro calculado por matéria-prima dentro de cada batelada (não pela ração inteira) — considera acima de 2% em módulo, tanto dosou a mais quanto a menos. Ordenado da matéria-prima com mais ocorrência pra menos, com % acumulado.</p>
+          <div class="painel-header">
+            <h2>Pareto — erros de dosagem por matéria-prima</h2>
+            <div class="tabs-internas" id="fab_bSegParetoDirecao" style="margin:0;">
+              <button class="tab-int ativo" data-direcao="total">Total (pra mais e pra menos)</button>
+              <button class="tab-int" data-direcao="acima">Só acima de +2%</button>
+              <button class="tab-int" data-direcao="abaixo">Só abaixo de -2%</button>
+            </div>
+            <span class="info" id="fab_bInfoPareto"></span>
+          </div>
+          <p class="nota" style="margin:0 0 14px;">Erro calculado por matéria-prima dentro de cada batelada (não pela ração inteira). Ordenado da matéria-prima com mais ocorrência pra menos, com % acumulado.</p>
           <div class="chart-wrap" style="height:320px;margin-bottom:18px;"><canvas id="fab_bChartPareto"></canvas></div>
           <div class="qfc-scroll"><table class="qfc-tabela" id="fab_bTabelaPareto"></table></div>
         </div>
@@ -2447,7 +2489,7 @@
         <div class="painel">
           <div class="painel-header"><h2>Percentual de erros de dosagem — diário, por matéria-prima</h2><span class="info" id="fab_bInfoErro"></span></div>
           <p class="nota" style="margin:0 0 14px;">Matérias-primas agrupadas conforme já tiveram (ou não) algum dia com erro acima de 2% no período. Clique no grupo pra recolher/expandir.</p>
-          <div class="qfc-scroll"><table class="qfc-tabela" id="fab_bTabelaErroDia"></table></div>
+          <div class="qfc-scroll arrastavel" id="fab_bScrollErroDia"><table class="qfc-tabela" id="fab_bTabelaErroDia"></table></div>
         </div>
 
         <div class="painel">
@@ -11083,8 +11125,17 @@ if(regPinForm){
     if(incompletos>0) partesInfo.push(`<strong style="color:#8A6D00;">${incompletos} dia(s) incompleto(s) (faltou pelo menos 1 relatório)</strong>`);
     info.innerHTML = partesInfo.length ? partesInfo.join(' · ') : '<strong style="color:var(--verde-ok);">Todos os dias completos ✓</strong>';
 
+    let diaDetalheAberto = null;
     cont.querySelectorAll('[data-dia]').forEach(el=>{
-      el.addEventListener('click', ()=> fabAbrirDetalheDia(el.dataset.dia, porDia.get(el.dataset.dia)));
+      el.addEventListener('click', ()=>{
+        if(diaDetalheAberto === el.dataset.dia){
+          document.getElementById('fab_painelDiaDetalhe').innerHTML = '';
+          diaDetalheAberto = null;
+        } else {
+          fabAbrirDetalheDia(el.dataset.dia, porDia.get(el.dataset.dia));
+          diaDetalheAberto = el.dataset.dia;
+        }
+      });
     });
   }
 
@@ -11222,6 +11273,7 @@ if(regPinForm){
     const anoAtual = new Date().getFullYear();
     for(let a=anoAtual; a>=anoAtual-3; a--) selAno.innerHTML += `<option value="${a}">${a}</option>`;
     selAno.value = String(anoAtual);
+    document.getElementById('fab_bMes').value = String(new Date().getMonth()+1).padStart(2,'0');
   }
 
   // ===================== BATELADAS: helpers de tempo (dia/semana/mês) =====================
@@ -11255,12 +11307,44 @@ if(regPinForm){
   }
 
   // ===================== SUBABA PRODUÇÃO =====================
-  function fabRenderProducaoSub(todas){
+  function fabRenderProducaoSub(todas, todasAno){
     fabRenderTabelaProducaoPeriodo(todas, document.querySelector('#fab_bSegGranularidade .tab-int.ativo')?.dataset.gran || 'dia');
-    fabRenderTabelaCategoriaProduto({todas, campo:'tipo', campoFilha:'nutricao', tempos:fabTemposMensais(todas), metrica: document.querySelector('#fab_bSegTipoMetrica .tab-int.ativo')?.dataset.metrica || 'pct', tabelaId:'fab_bTabelaTipoMensal', infoId:'fab_bInfoTipo'});
-    fabRenderTabelaCategoriaProduto({todas, campo:'nutricao', campoFilha:'tipo', tempos:fabTemposMensais(todas), metrica: document.querySelector('#fab_bSegNutriMetrica .tab-int.ativo')?.dataset.metrica || 'pct', tabelaId:'fab_bTabelaNutriMensal', infoId:'fab_bInfoNutri'});
+    fabRenderTabelaCategoriaProduto({todas:todasAno, campo:'tipo', campoFilha:'nutricao', tempos:fabTemposMensais(todasAno), metrica: document.querySelector('#fab_bSegTipoMetrica .tab-int.ativo')?.dataset.metrica || 'pct', tabelaId:'fab_bTabelaTipoMensal', infoId:'fab_bInfoTipo'});
+    fabRenderTabelaCategoriaProduto({todas:todasAno, campo:'nutricao', campoFilha:'tipo', tempos:fabTemposMensais(todasAno), metrica: document.querySelector('#fab_bSegNutriMetrica .tab-int.ativo')?.dataset.metrica || 'pct', tabelaId:'fab_bTabelaNutriMensal', infoId:'fab_bInfoNutri'});
     fabRenderTabelaNutriDiaria(todas);
-    fabRenderTabelaSemanal(todas);
+    fabRenderTabelaSemanal(todasAno);
+    fabRenderTabelaSemanalNutricao(todasAno);
+  }
+
+  // percentual semanal por nutrição (DSM/Vaccinar/...) -- pergunta 14 do pedido
+  function fabRenderTabelaSemanalNutricao(todas){
+    const tabela = document.getElementById('fab_bTabelaSemanalNutricao');
+    const info = document.getElementById('fab_bInfoSemanalNutricao');
+    if(!tabela) return;
+    if(!todas.length){ tabela.innerHTML=''; info.textContent=''; return; }
+    const tempos = fabTemposSemanais(todas);
+    const nutricoes = Array.from(new Set(todas.map(b=>b.nutricao))).sort();
+    const porSemanaNutri = new Map();
+    todas.forEach(b=>{
+      const s = fabSegundaDaSemana(b.data);
+      if(!s) return;
+      const chave = `${s}|${b.nutricao}`;
+      porSemanaNutri.set(chave, (porSemanaNutri.get(chave)||0) + (b.dosadoKg||0));
+    });
+    const thead = `<thead><tr><th class="qfc-col-first">Semana</th>${nutricoes.map(n=>`<th>${n}</th>`).join('')}</tr></thead>`;
+    const corpo = tempos.chaves.map((s,i)=>{
+      const totalSemana = nutricoes.reduce((acc,n)=>acc+(porSemanaNutri.get(`${s}|${n}`)||0),0);
+      return `<tr>
+        <td class="qfc-col-first">Semana ${i+1} <span style="color:var(--texto-suave);font-weight:400;">(${tempos.rotulos[i]})</span></td>
+        ${nutricoes.map(n=>{
+          const kg = porSemanaNutri.get(`${s}|${n}`)||0;
+          const pct = totalSemana ? (kg/totalSemana*100) : 0;
+          return `<td style="text-align:center;">${totalSemana?pct.toFixed(1)+'%':'–'}</td>`;
+        }).join('')}
+      </tr>`;
+    }).join('');
+    tabela.innerHTML = thead + `<tbody>${corpo}</tbody>`;
+    info.textContent = `${tempos.chaves.length} semana(s) — ${nutricoes.length} nutrição(ões)`;
   }
 
   function fabRenderTabelaProducaoPeriodo(todas, gran){
@@ -11449,40 +11533,49 @@ if(regPinForm){
       .filter(i=>i.produto && i.erroPct!=null);
   }
 
+  let FAB_ULTIMOS_INGREDIENTES_ERRO = [];
   function fabRenderErrosSub(lotes, todas){
     const ingredientes = fabIngredientesComErro(lotes, todas);
+    FAB_ULTIMOS_INGREDIENTES_ERRO = ingredientes;
     fabRenderParetoErros(ingredientes);
     fabRenderTabelaErroDia(ingredientes);
     fabRenderTabelaMateriaPrima(ingredientes);
   }
 
+  let fabParetoDirecaoAtiva = 'total';
+
   function fabRenderParetoErros(ingredientes){
     const tabela = document.getElementById('fab_bTabelaPareto');
     const info = document.getElementById('fab_bInfoPareto');
+    const direcao = fabParetoDirecaoAtiva;
+    const bater = (v)=> direcao==='acima' ? v>2 : direcao==='abaixo' ? v<-2 : Math.abs(v)>2;
+    const rotuloDirecao = direcao==='acima' ? 'acima de +2%' : direcao==='abaixo' ? 'abaixo de -2%' : 'acima de 2% em módulo (pra mais ou pra menos)';
+
     const porMateria = new Map();
     ingredientes.forEach(ing=>{
-      if(Math.abs(ing.erroPct)<=2) return; // pareto só considera quem estourou 2% em módulo, pra mais ou pra menos
+      if(!bater(ing.erroPct)) return;
       porMateria.set(ing.produto, (porMateria.get(ing.produto)||0) + 1);
     });
     const linhas = Array.from(porMateria.entries()).map(([produto,total])=>({produto,total})).sort((a,b)=>b.total-a.total);
     const ctx = document.getElementById('fab_bChartPareto');
     if(!linhas.length){
-      tabela.innerHTML = ''; info.textContent = 'Nenhum erro acima de 2% nesse filtro';
+      tabela.innerHTML = ''; info.textContent = `Nenhum erro ${rotuloDirecao} nesse filtro`;
       if(fabChartPareto){ fabChartPareto.destroy(); fabChartPareto=null; }
       return;
     }
     const totalGeral = linhas.reduce((s,l)=>s+l.total,0);
     let acumulado = 0;
     const pctAcumulado = linhas.map(l=>{ acumulado+=l.total; return +((acumulado/totalGeral)*100).toFixed(2); });
+    const corBarra = direcao==='acima' ? '#C1272D' : direcao==='abaixo' ? '#1D5A96' : '#7FA8D9';
 
     if(fabChartPareto) fabChartPareto.destroy();
     fabChartPareto = new Chart(ctx.getContext('2d'), {
       data:{ labels: linhas.map(l=>l.produto), datasets:[
-        { type:'bar', label:'Erros Totais', data: linhas.map(l=>l.total), backgroundColor:'#7FA8D9', borderRadius:3, yAxisID:'y' },
+        { type:'bar', label:'Erros', data: linhas.map(l=>l.total), backgroundColor:corBarra, borderRadius:3, yAxisID:'y' },
         { type:'line', label:'%', data: pctAcumulado, borderColor:'#ED7D31', backgroundColor:'#ED7D31', borderWidth:2.2, pointRadius:3, yAxisID:'y1', tension:.2 }
       ]},
       options:{ responsive:true, maintainAspectRatio:false, interaction:{mode:'index',intersect:false},
-        plugins:{ legend:{position:'bottom', labels:{boxWidth:11,font:{size:11}}}, title:{display:true, text:'Pareto dos Erros de Dosagens por Matéria-Prima (considerando tanto pra mais, quanto pra menos)', font:{size:12.5,weight:600}} },
+        plugins:{ legend:{position:'bottom', labels:{boxWidth:11,font:{size:11}}}, title:{display:true, text:`Pareto dos Erros de Dosagens — ${rotuloDirecao}`, font:{size:12.5,weight:600}} },
         scales:{
           x:{ grid:{display:false}, ticks:{autoSkip:false, maxRotation:65, minRotation:45, font:{size:9.5}} },
           y:{ beginAtZero:true, grid:{color:'#EFEAE0'} },
@@ -11490,7 +11583,7 @@ if(regPinForm){
         } }
     });
 
-    tabela.innerHTML = `<thead><tr><th class="qfc-col-first">Matéria-Prima</th><th>Erros Totais</th><th>%</th></tr></thead>
+    tabela.innerHTML = `<thead><tr><th class="qfc-col-first">Matéria-Prima</th><th>Erros</th><th>%</th></tr></thead>
       <tbody>${linhas.map((l,i)=>`<tr>
         <td class="qfc-col-first">${l.produto}</td>
         <td style="text-align:center;font-weight:700;">${l.total}</td>
@@ -11498,7 +11591,7 @@ if(regPinForm){
       </tr>`).join('')}
       <tr class="qfc-linha-nucleo"><td class="qfc-col-first" style="font-weight:800;">Total Geral</td><td style="text-align:center;font-weight:800;">${totalGeral}</td><td></td></tr>
       </tbody>`;
-    info.textContent = `${linhas.length} matéria(s)-prima(s) com erro acima de 2%`;
+    info.textContent = `${linhas.length} matéria(s)-prima(s) com erro ${rotuloDirecao}`;
   }
 
   // matérias-primas agrupadas em "Acima de 2%" (se teve algum dia acima do limite, em módulo) ou
@@ -11547,9 +11640,14 @@ if(regPinForm){
         {chave:'dentro', rotulo:'Igual ou Abaixo de 2%', materias: materias.filter(m=>grupoDe.get(m)==='dentro')}
       ];
 
+      const mediaMesDe = (materia)=>{
+        const vals = dias.map(d=>mediaDe(materia,d)).filter(v=>v!=null);
+        return vals.length ? vals.reduce((a,b)=>a+b,0)/vals.length : null;
+      };
+
       // linha "pai" do mês
       const linhaMes = `<tr class="qfc-linha-nucleo" data-mes-erro-toggle="${mes}" style="cursor:pointer;background:#1F3A5F;">
-        <td class="qfc-col-first" style="color:#fff;" colspan="${dias.length+1}">${expandidoMes?'▾':'▸'} ${fabNomeMes(mes)} <span style="font-weight:400;color:#C9D6E8;">(${materias.length} matéria(s)-prima, ${dias.length} dia(s))</span></td>
+        <td class="qfc-col-first" style="color:#fff;" colspan="${dias.length+2}">${expandidoMes?'▾':'▸'} ${fabNomeMes(mes)} <span style="font-weight:400;color:#C9D6E8;">(${materias.length} matéria(s)-prima, ${dias.length} dia(s))</span></td>
       </tr>`;
       if(!expandidoMes) return linhaMes;
 
@@ -11557,12 +11655,15 @@ if(regPinForm){
       const linhaCabecalhoDias = `<tr data-filha-mes-erro="${mes}">
         <td class="qfc-col-first" style="background:#FBF7EE;color:var(--texto-suave);font-weight:700;font-size:10.5px;text-transform:uppercase;letter-spacing:.03em;">Matérias-Primas</td>
         ${dias.map(d=>`<td style="min-width:56px;background:#FBF7EE;color:var(--texto-suave);font-weight:700;font-size:10.5px;text-transform:uppercase;letter-spacing:.03em;text-align:center;">${reg_formatarDataBR(d).slice(0,5)}</td>`).join('')}
+        <td style="min-width:64px;background:#F5E6C8;color:#7A5F00;font-weight:800;font-size:10.5px;text-transform:uppercase;letter-spacing:.03em;text-align:center;">Média mês</td>
       </tr>`;
 
       const corpoGrupos = grupos.map(g=>{
         if(!g.materias.length) return '';
         const chaveGrupo = `${mes}|${g.chave}`;
         const expandidoGrupo = fabExpandidoGrupoErro.has(chaveGrupo);
+        const mediasGrupo = g.materias.map(mediaMesDe).filter(v=>v!=null);
+        const mediaDoGrupo = mediasGrupo.length ? mediasGrupo.reduce((a,b)=>a+b,0)/mediasGrupo.length : null;
         const linhaGrupo = `<tr class="qfc-linha-nucleo" data-grupo-erro-toggle="${chaveGrupo}" style="cursor:pointer;" data-filha-mes-erro="${mes}">
           <td class="qfc-col-first" style="padding-left:18px;">${expandidoGrupo?'▾':'▸'} ${g.rotulo}</td>
           ${dias.map(d=>{
@@ -11570,9 +11671,11 @@ if(regPinForm){
             const media = vals.length ? vals.reduce((a,b)=>a+b,0)/vals.length : null;
             return `<td style="text-align:center;font-weight:800;">${media!=null?media.toFixed(2)+'%':'–'}</td>`;
           }).join('')}
+          <td style="text-align:center;font-weight:800;background:#FDF1DC;">${mediaDoGrupo!=null?mediaDoGrupo.toFixed(2)+'%':'–'}</td>
         </tr>`;
 
         const linhasMateria = g.materias.map(materia=>{
+          const mediaMes = mediaMesDe(materia);
           const linhaMateria = `<tr style="display:${expandidoGrupo?'':'none'};" data-grupo-erro-filha="${chaveGrupo}" data-filha-mes-erro="${mes}">
             <td class="qfc-col-first" style="padding-left:34px;font-size:12px;">${materia}</td>
             ${dias.map(d=>{
@@ -11582,6 +11685,7 @@ if(regPinForm){
               const celExpandida = fabExpandidoCelulaErro.has(chaveCel);
               return `<td data-cel-erro-toggle="${temDado?chaveCel:''}" style="text-align:center;font-size:12px;${temDado?'cursor:pointer;':''}${v!=null&&v>2?'color:#B3261E;font-weight:700;':'color:var(--texto-suave);'}${celExpandida?'background:#FDF1DC;':''}">${v!=null?v.toFixed(2)+'%':'0,00%'}${celExpandida?' 🔽':''}</td>`;
             }).join('')}
+            <td style="text-align:center;font-size:12px;font-weight:700;background:#FFFBF0;color:${mediaMes!=null&&mediaMes>2?'#B3261E':'#7A5F00'};">${mediaMes!=null?mediaMes.toFixed(2)+'%':'–'}</td>
           </tr>`;
 
           // linha de detalhe (dosagens daquele produto, naquele mês, ordenadas da pior pra melhor) --
@@ -11591,7 +11695,7 @@ if(regPinForm){
           if(diaExpandido && expandidoGrupo){
             const dosagens = (porMateriaDia.get(`${materia}|${diaExpandido}`)||[]).slice().sort((a,b)=>Math.abs(b.erroPct)-Math.abs(a.erroPct));
             linhaDetalhe = `<tr style="display:${expandidoGrupo?'':'none'};" data-grupo-erro-filha="${chaveGrupo}" data-filha-mes-erro="${mes}">
-              <td colspan="${dias.length+1}" style="background:#FFFBF0;padding:10px 14px 14px 34px;">
+              <td colspan="${dias.length+2}" style="background:#FFFBF0;padding:10px 14px 14px 34px;">
                 <div style="font-size:11.5px;font-weight:700;color:var(--texto-suave);margin-bottom:6px;text-transform:uppercase;letter-spacing:.03em;">
                   ${materia} — ${reg_formatarDataBR(diaExpandido)} — dosagens ordenadas da pior pra melhor
                 </div>
@@ -11810,7 +11914,8 @@ if(regPinForm){
     document.getElementById('fab_rData').value = new Date().toISOString().slice(0,10);
   }
 
-  async function fabSalvarRelatorioDiario(){
+  async function fabSalvarRelatorioDiario(e){
+    if(e) e.preventDefault();
     const statusEl = document.getElementById('fab_rStatus');
     const btn = document.getElementById('fab_rBtnSalvar');
     const data = document.getElementById('fab_rData').value;
@@ -11911,14 +12016,23 @@ if(regPinForm){
   }
 
   const fabRelatorioMesesExpandidos = new Set([new Date().toISOString().slice(0,7)]); // mês atual começa aberto
+  let FAB_RELATORIO_ULTIMAS_LINHAS = null, FAB_RELATORIO_ULTIMOS_REGISTROS = null;
+  function fabRelatorioExpandirTodosOsMeses(expandir){
+    if(!FAB_RELATORIO_ULTIMAS_LINHAS) return;
+    const meses = new Set(FAB_RELATORIO_ULTIMAS_LINHAS.map(l=>l.data.slice(0,7)));
+    fabRelatorioMesesExpandidos.clear();
+    if(expandir) meses.forEach(m=>fabRelatorioMesesExpandidos.add(m));
+    fabRenderRelatorioTabela(FAB_RELATORIO_ULTIMAS_LINHAS, FAB_RELATORIO_ULTIMOS_REGISTROS);
+  }
 
   function fabRenderRelatorioTabela(linhas, registrosManual){
+    FAB_RELATORIO_ULTIMAS_LINHAS = linhas; FAB_RELATORIO_ULTIMOS_REGISTROS = registrosManual;
     const tabela = document.getElementById('fab_rTabela');
     const info = document.getElementById('fab_rInfoTabela');
     if(!linhas.length){ tabela.innerHTML=''; info.textContent=''; return; }
     const DIAS_SEMANA = ['Dom','Seg','Ter','Qua','Qui','Sex','Sáb'];
     const thead = `<thead><tr>
-      <th class="qfc-col-first">Data</th><th>Dia</th><th>Produção</th><th>Expedição</th><th>Rend. Ton/H</th>
+      <th class="qfc-col-first">Data</th><th>Dia</th><th>Produção</th><th>Expedição</th><th style="background:#F5E6C8;">Rend. Ton/H</th>
       <th>H. Disp.</th><th>H. Trab.</th><th>H. Perdidas</th><th>% H. Trab.</th>
       <th>Estoque Granja</th><th>Estoque Fábrica</th><th>Prod. Prev.</th><th>% Realizado</th>
     </tr></thead>`;
@@ -11943,6 +12057,10 @@ if(regPinForm){
       const totalHorasDisp = linhasDoMes.reduce((s,l)=>s+(l.horasDisponiveis||0),0);
       const totalHorasTrab = linhasDoMes.reduce((s,l)=>s+(l.horasTrabalhadas||0),0);
       const totalHorasPerd = linhasDoMes.reduce((s,l)=>s+(l.horasPerdidas||0),0);
+      // média ponderada (total trabalhado / total disponível), matematicamente mais correta que
+      // somar os percentuais diários -- assim um dia com poucas horas disponíveis não pesa igual
+      // a um dia cheio
+      const pctHorasTrabMedio = totalHorasDisp ? (totalHorasTrab/totalHorasDisp*100) : null;
       const totalEstoqueGranja = linhasDoMes.reduce((s,l)=>s+(l.reg.estoqueGranja||0),0);
       const totalEstoqueFabrica = linhasDoMes.reduce((s,l)=>s+(l.reg.estoqueFabrica||0),0);
       const totalProdPrev = linhasDoMes.reduce((s,l)=>s+(l.reg.producaoPrevista||0),0);
@@ -11951,11 +12069,11 @@ if(regPinForm){
         <td class="qfc-col-first" colspan="2">${expandido?'▾':'▸'} ${fabNomeMes(m)} <span style="font-weight:400;color:var(--texto-suave);">(${linhasDoMes.length} dia(s))</span></td>
         <td style="text-align:center;font-weight:800;">${Math.round(totalProd).toLocaleString('pt-BR')}</td>
         <td style="text-align:center;font-weight:800;">${Math.round(totalExp).toLocaleString('pt-BR')}</td>
-        <td style="text-align:center;font-weight:800;">${rendMedio!=null?rendMedio.toFixed(2):'–'}</td>
+        <td style="text-align:center;font-weight:800;background:#FDF1DC;">${rendMedio!=null?rendMedio.toFixed(2):'–'}</td>
         <td style="text-align:center;font-weight:800;">${totalHorasDisp||'–'}</td>
         <td style="text-align:center;font-weight:800;">${totalHorasTrab||'–'}</td>
         <td style="text-align:center;font-weight:800;">${totalHorasPerd?totalHorasPerd.toFixed(1):'–'}</td>
-        <td></td>
+        <td style="text-align:center;font-weight:800;">${pctHorasTrabMedio!=null?pctHorasTrabMedio.toFixed(0)+'%':'–'}</td>
         <td style="text-align:center;font-weight:800;">${totalEstoqueGranja?totalEstoqueGranja.toLocaleString('pt-BR'):'–'}</td>
         <td style="text-align:center;font-weight:800;">${totalEstoqueFabrica?totalEstoqueFabrica.toLocaleString('pt-BR'):'–'}</td>
         <td style="text-align:center;font-weight:800;">${totalProdPrev?totalProdPrev.toLocaleString('pt-BR'):'–'}</td>
@@ -11970,7 +12088,7 @@ if(regPinForm){
           <td style="text-align:center;">${diaSemana}</td>
           <td style="text-align:center;font-weight:700;">${l.producaoKg?Math.round(l.producaoKg).toLocaleString('pt-BR'):'–'}</td>
           <td style="text-align:center;">${l.expedicaoKg?Math.round(l.expedicaoKg).toLocaleString('pt-BR'):'–'}</td>
-          <td style="text-align:center;">${l.rendTonH!=null?l.rendTonH.toFixed(2):'–'}</td>
+          <td style="text-align:center;font-weight:700;background:#FFFBF0;color:#8A6D00;">${l.rendTonH!=null?l.rendTonH.toFixed(2):'–'}</td>
           <td style="text-align:center;">${l.horasDisponiveis ?? '–'}</td>
           <td style="text-align:center;">${l.horasTrabalhadas || '–'}</td>
           <td style="text-align:center;">${l.horasPerdidas!=null?l.horasPerdidas.toFixed(1):'–'}</td>
@@ -12034,6 +12152,7 @@ if(regPinForm){
   let FAB_BATELADAS_LOTES_FILTRADOS = [], FAB_BATELADAS_TODAS_FILTRADAS = [];
   let fabSubAbaBateladasAtiva = 'producao';
 
+  let FAB_BATELADAS_TODAS_ANO = []; // filtrado só por Ano+Produto -- alimenta as visões consolidadas (mensal/semanal/pareto/consumo)
   async function fabRenderBateladas(){
     await fabPopularFiltrosBateladas();
     const ano = document.getElementById('fab_bAno').value;
@@ -12051,25 +12170,29 @@ if(regPinForm){
 
     const mes = document.getElementById('fab_bMes').value;
     const produtoSel = selProduto.value;
-    todas = todas.filter(b=>{
+    // visão consolidada: filtra só por produto, NUNCA por mês -- Mensal/Semanal/Pareto/Consumo
+    // precisam do ano inteiro pra fazer sentido como tendência, senão mostrariam 1 barra só
+    const todasAno = produtoSel==='Todos' ? todas : todas.filter(b=>b.produto===produtoSel);
+    FAB_BATELADAS_TODAS_ANO = todasAno;
+    // visão do dia/mês selecionado: usada só pela tabela simples "Produção por período"
+    todas = todasAno.filter(b=>{
       if(mes!=='Todos' && b.data.slice(5,7)!==mes.padStart(2,'0')) return false;
-      if(produtoSel!=='Todos' && b.produto!==produtoSel) return false;
       return true;
     });
-    const lotesFiltrados = (produtoSel==='Todos' && mes==='Todos') ? lotes
-      : lotes.filter(l=>(l.bateladas||[]).some(b=> (mes==='Todos'||l.data.slice(5,7)===mes.padStart(2,'0')) && (produtoSel==='Todos'||b.produto===produtoSel) ));
+    const lotesFiltrados = produtoSel==='Todos' ? lotes
+      : lotes.filter(l=>(l.bateladas||[]).some(b=>b.produto===produtoSel));
     FAB_BATELADAS_LOTES_FILTRADOS = lotesFiltrados;
     FAB_BATELADAS_TODAS_FILTRADAS = todas;
 
-    fabRenderBateladasCards(todas);
+    fabRenderBateladasCards(todasAno);
     fabRenderSubAbaBateladasAtiva();
   }
 
   function fabRenderSubAbaBateladasAtiva(){
-    const todas = FAB_BATELADAS_TODAS_FILTRADAS, lotes = FAB_BATELADAS_LOTES_FILTRADOS;
-    if(fabSubAbaBateladasAtiva==='producao') fabRenderProducaoSub(todas);
-    else if(fabSubAbaBateladasAtiva==='erros') fabRenderErrosSub(lotes, todas);
-    else if(fabSubAbaBateladasAtiva==='consumo') fabRenderConsumoSub(lotes, todas);
+    const todas = FAB_BATELADAS_TODAS_FILTRADAS, todasAno = FAB_BATELADAS_TODAS_ANO, lotes = FAB_BATELADAS_LOTES_FILTRADOS;
+    if(fabSubAbaBateladasAtiva==='producao') fabRenderProducaoSub(todas, todasAno);
+    else if(fabSubAbaBateladasAtiva==='erros') fabRenderErrosSub(lotes, todasAno);
+    else if(fabSubAbaBateladasAtiva==='consumo') fabRenderConsumoSub(lotes, todasAno);
   }
 
   function fabRenderBateladasCards(todas){
@@ -12386,13 +12509,16 @@ if(regPinForm){
 
     document.getElementById('fab_btnLimparTudo').addEventListener('click', fabLimparTodosOsDados);
 
-    document.getElementById('fab_rBtnSalvar').addEventListener('click', fabSalvarRelatorioDiario);
+    document.getElementById('fab_rForm').addEventListener('submit', fabSalvarRelatorioDiario);
     document.getElementById('fab_rBtnLimpar').addEventListener('click', ()=> fabPreencherFormularioRelatorio(new Date().toISOString().slice(0,10), null));
     document.getElementById('fab_rBtnExportarPDF').addEventListener('click', ()=>{
       document.getElementById('fab_r-print-data').textContent = 'Gerado em ' + new Date().toLocaleString('pt-BR');
       window.print();
     });
+    document.getElementById('fab_rBtnExpandirTodos').addEventListener('click', ()=> fabRelatorioExpandirTodosOsMeses(true));
+    document.getElementById('fab_rBtnRecolherTodos').addEventListener('click', ()=> fabRelatorioExpandirTodosOsMeses(false));
     ativarArrastar(document.getElementById('fab_rScrollTabela'));
+    ativarArrastar(document.getElementById('fab_bScrollErroDia'));
     ['fab_rAno','fab_rMes'].forEach(id=>{
       document.getElementById(id).addEventListener('change', fabRenderRelatorio);
     });
@@ -12434,9 +12560,10 @@ if(regPinForm){
         });
       });
     };
-    fabToggle('#fab_bSegTipoMetrica', btn=>fabRenderTabelaCategoriaProduto({todas:FAB_BATELADAS_TODAS_FILTRADAS, campo:'tipo', campoFilha:'nutricao', tempos:fabTemposMensais(FAB_BATELADAS_TODAS_FILTRADAS), metrica:btn.dataset.metrica, tabelaId:'fab_bTabelaTipoMensal', infoId:'fab_bInfoTipo'}));
-    fabToggle('#fab_bSegNutriMetrica', btn=>fabRenderTabelaCategoriaProduto({todas:FAB_BATELADAS_TODAS_FILTRADAS, campo:'nutricao', campoFilha:'tipo', tempos:fabTemposMensais(FAB_BATELADAS_TODAS_FILTRADAS), metrica:btn.dataset.metrica, tabelaId:'fab_bTabelaNutriMensal', infoId:'fab_bInfoNutri'}));
-    fabToggle('#fab_bSegConsumoGran', btn=>{ fabConsumoGranAtiva = btn.dataset.granConsumo; fabRenderConsumoSub(FAB_BATELADAS_LOTES_FILTRADOS, FAB_BATELADAS_TODAS_FILTRADAS); });
+    fabToggle('#fab_bSegTipoMetrica', btn=>fabRenderTabelaCategoriaProduto({todas:FAB_BATELADAS_TODAS_ANO, campo:'tipo', campoFilha:'nutricao', tempos:fabTemposMensais(FAB_BATELADAS_TODAS_ANO), metrica:btn.dataset.metrica, tabelaId:'fab_bTabelaTipoMensal', infoId:'fab_bInfoTipo'}));
+    fabToggle('#fab_bSegNutriMetrica', btn=>fabRenderTabelaCategoriaProduto({todas:FAB_BATELADAS_TODAS_ANO, campo:'nutricao', campoFilha:'tipo', tempos:fabTemposMensais(FAB_BATELADAS_TODAS_ANO), metrica:btn.dataset.metrica, tabelaId:'fab_bTabelaNutriMensal', infoId:'fab_bInfoNutri'}));
+    fabToggle('#fab_bSegConsumoGran', btn=>{ fabConsumoGranAtiva = btn.dataset.granConsumo; fabRenderConsumoSub(FAB_BATELADAS_LOTES_FILTRADOS, FAB_BATELADAS_TODAS_ANO); });
+    fabToggle('#fab_bSegParetoDirecao', btn=>{ fabParetoDirecaoAtiva = btn.dataset.direcao; fabRenderParetoErros(FAB_ULTIMOS_INGREDIENTES_ERRO); });
 
     document.getElementById('fab_pAno').addEventListener('change', fabRenderParadas);
     ['fab_vAno','fab_vMes','fab_vNucleo','fab_vProduto'].forEach(id=>{
