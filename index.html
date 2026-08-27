@@ -2203,9 +2203,43 @@
 
     <div class="tabs-internas" id="tabsFabrica">
       <button class="tab-int ativo" data-aba-fab="importar">Importar</button>
+      <button class="tab-int" data-aba-fab="relatorio">Relatório Diário</button>
       <button class="tab-int" data-aba-fab="bateladas">Bateladas</button>
       <button class="tab-int" data-aba-fab="paradas">Paradas de Produção</button>
       <button class="tab-int" data-aba-fab="viagens">Viagens / Expedição</button>
+    </div>
+
+    <!-- ---------- RELATÓRIO DIÁRIO ---------- -->
+    <div data-aba-fab-view="relatorio" style="display:none;">
+      <div class="painel">
+        <div class="painel-header"><h2>Lançamento manual do dia</h2></div>
+        <p class="nota" style="margin:0 0 16px;">Esses dados não vêm de nenhum arquivo importado — precisa preencher manualmente todo dia. O resto (Produção, Expedição) é calculado sozinho a partir do que já foi importado em Bateladas/Viagens.</p>
+        <div class="filtros-grid" style="margin-bottom:14px;">
+          <div class="campo"><label>Data</label><input type="date" id="fab_rData"></div>
+          <div class="campo"><label>Estoque Granja (kg)</label><input type="number" id="fab_rEstoqueGranja" step="0.01"></div>
+          <div class="campo"><label>Estoque Fábrica (kg)</label><input type="number" id="fab_rEstoqueFabrica" step="0.01"></div>
+          <div class="campo"><label>Horas Disponíveis</label><input type="number" id="fab_rHorasDisponiveis" step="0.5" value="8"></div>
+          <div class="campo"><label>Horas Trabalhadas</label><input type="number" id="fab_rHorasTrabalhadas" step="0.5"></div>
+          <div class="campo"><label>Produção Prevista (kg)</label><input type="number" id="fab_rProducaoPrevista" step="1" value="400"></div>
+        </div>
+        <button class="comb-btn-registrar" id="fab_rBtnSalvar" style="width:fit-content;">💾 Salvar dia</button>
+        <p class="nota" id="fab_rStatus" style="min-height:16px;margin-top:10px;"></p>
+      </div>
+
+      <div class="filtros">
+        <div class="filtros-grid">
+          <div class="campo"><label>Ano</label><select id="fab_rAno"><option value="Todos">Todos</option></select></div>
+          <div class="campo"><label>Mês</label><select id="fab_rMes"><option value="Todos">Todos</option></select></div>
+        </div>
+      </div>
+
+      <div class="cards" id="fab_rCards"></div>
+
+      <div class="painel">
+        <div class="painel-header"><h2>Relatório Diário</h2><span class="info" id="fab_rInfoTabela"></span></div>
+        <p class="nota" style="margin:0 0 14px;">Clique numa linha pra editar os valores manuais daquele dia no formulário acima.</p>
+        <div class="qfc-scroll"><table class="qfc-tabela" id="fab_rTabela"></table></div>
+      </div>
     </div>
 
     <!-- ---------- IMPORTAR ---------- -->
@@ -2309,26 +2343,26 @@
       <!-- ===== SUBABA: ERROS DE DOSAGENS ===== -->
       <div data-sub-bat-view="erros" style="display:none;">
         <div class="painel">
-          <div class="painel-header"><h2>Pareto — erros de dosagem totais (pra mais e pra menos)</h2><span class="info" id="fab_bInfoPareto"></span></div>
-          <p class="nota" style="margin:0 0 14px;">Considera erro acima de 2% em módulo (tanto dosou a mais quanto a menos). Ordenado do produto com mais ocorrência pro com menos, com % acumulado.</p>
+          <div class="painel-header"><h2>Pareto — erros de dosagem por matéria-prima (pra mais e pra menos)</h2><span class="info" id="fab_bInfoPareto"></span></div>
+          <p class="nota" style="margin:0 0 14px;">Erro calculado por matéria-prima dentro de cada batelada (não pela ração inteira) — considera acima de 2% em módulo, tanto dosou a mais quanto a menos. Ordenado da matéria-prima com mais ocorrência pra menos, com % acumulado.</p>
           <div class="chart-wrap" style="height:320px;margin-bottom:18px;"><canvas id="fab_bChartPareto"></canvas></div>
           <div class="qfc-scroll"><table class="qfc-tabela" id="fab_bTabelaPareto"></table></div>
         </div>
 
         <div class="painel">
-          <div class="painel-header"><h2>Percentual de erros de dosagem — diário</h2><span class="info" id="fab_bInfoErro"></span></div>
-          <p class="nota" style="margin:0 0 14px;">Produtos agrupados conforme já tiveram (ou não) algum dia com erro acima de 2% no período. Clique no grupo pra recolher/expandir.</p>
+          <div class="painel-header"><h2>Percentual de erros de dosagem — diário, por matéria-prima</h2><span class="info" id="fab_bInfoErro"></span></div>
+          <p class="nota" style="margin:0 0 14px;">Matérias-primas agrupadas conforme já tiveram (ou não) algum dia com erro acima de 2% no período. Clique no grupo pra recolher/expandir.</p>
           <div class="qfc-scroll"><table class="qfc-tabela" id="fab_bTabelaErroDia"></table></div>
         </div>
 
         <div class="painel">
-          <div class="painel-header"><h2>Requisitado × Dosado por produto</h2><span class="info" id="fab_bInfoProdutos"></span></div>
-          <p class="nota" style="margin:0 0 14px;">Clique num produto pra abrir as bateladas dele, ordenadas pela que teve o maior erro.</p>
+          <div class="painel-header"><h2>Requisitado × Dosado por matéria-prima</h2><span class="info" id="fab_bInfoProdutos"></span></div>
+          <p class="nota" style="margin:0 0 14px;">Clique numa matéria-prima pra abrir as dosagens dela, ordenadas pela que teve o maior erro.</p>
           <div class="qfc-scroll"><table class="qfc-tabela" id="fab_bTabelaProdutos"></table></div>
         </div>
 
         <div class="painel" id="fab_bPainelDetalheProduto" style="display:none;">
-          <div class="painel-header"><h2 id="fab_bTituloDetalheProduto">Bateladas do produto</h2><span class="info" id="fab_bInfoDetalheProduto"></span></div>
+          <div class="painel-header"><h2 id="fab_bTituloDetalheProduto">Dosagens da matéria-prima</h2><span class="info" id="fab_bInfoDetalheProduto"></span></div>
           <div class="qfc-scroll"><table class="qfc-tabela" id="fab_bTabelaDetalheProduto"></table></div>
         </div>
       </div>
@@ -10999,7 +11033,16 @@ if(regPinForm){
     return out;
   }
 
+  const FAB_MESES_NOME = ['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'];
+  function fabPopularMeses(selectId){
+    const sel = document.getElementById(selectId);
+    if(!sel || sel.dataset.populadoMes) return;
+    sel.dataset.populadoMes = '1';
+    FAB_MESES_NOME.forEach((nome,i)=>{ sel.innerHTML += `<option value="${String(i+1).padStart(2,'0')}">${nome}</option>`; });
+  }
+
   async function fabPopularFiltrosBateladas(){
+    fabPopularMeses('fab_bMes');
     const selAno = document.getElementById('fab_bAno');
     if(selAno.dataset.populado) return;
     selAno.dataset.populado = '1';
@@ -11196,26 +11239,37 @@ if(regPinForm){
     info.textContent = `${tempos.chaves.length} semana(s)`;
   }
 
-  // ===================== SUBABA ERROS DE DOSAGENS =====================
+  // ===================== SUBABA ERROS DE DOSAGENS (por matéria-prima, não por ração) =====================
+  // IMPORTANTE: o erro de dosagem é medido por MATÉRIA-PRIMA dentro de cada batelada, não pela
+  // ração como um todo -- é assim que a planilha de referência calcula (uma linha de ingrediente
+  // pode estourar mesmo que a batelada inteira feche certinho no total).
   let fabChartPareto = null;
   let fabExpandidoGrupoErro = new Set(['acima']); // grupo "acima" começa expandido
 
-  function fabRenderErrosSub(todas){
-    fabRenderParetoErros(todas);
-    fabRenderTabelaErroDia(todas);
-    fabRenderBateladasTabelaProdutos(todas);
+  function fabIngredientesComErro(lotes, todas){
+    // só ingredientes das bateladas que sobreviveram ao filtro (ano/mês/produto)
+    const chavesPermitidas = new Set(todas.map(b=>`${b.data}|${b.batelada}|${b.produto}`));
+    return fabTodasIngredientes(lotes)
+      .filter(i=>chavesPermitidas.has(`${i.data}|${i.batelada}|${i.produtoBatelada}`))
+      .filter(i=>i.produto && i.erroPct!=null);
   }
 
-  function fabRenderParetoErros(todas){
+  function fabRenderErrosSub(lotes, todas){
+    const ingredientes = fabIngredientesComErro(lotes, todas);
+    fabRenderParetoErros(ingredientes);
+    fabRenderTabelaErroDia(ingredientes);
+    fabRenderTabelaMateriaPrima(ingredientes);
+  }
+
+  function fabRenderParetoErros(ingredientes){
     const tabela = document.getElementById('fab_bTabelaPareto');
     const info = document.getElementById('fab_bInfoPareto');
-    const porProduto = new Map();
-    todas.forEach(b=>{
-      if(b.erroPct==null || !b.produto) return;
-      if(Math.abs(b.erroPct)<=2) return; // pareto só considera quem estourou 2% em módulo, pra mais ou pra menos
-      porProduto.set(b.produto, (porProduto.get(b.produto)||0) + 1);
+    const porMateria = new Map();
+    ingredientes.forEach(ing=>{
+      if(Math.abs(ing.erroPct)<=2) return; // pareto só considera quem estourou 2% em módulo, pra mais ou pra menos
+      porMateria.set(ing.produto, (porMateria.get(ing.produto)||0) + 1);
     });
-    const linhas = Array.from(porProduto.entries()).map(([produto,total])=>({produto,total})).sort((a,b)=>b.total-a.total);
+    const linhas = Array.from(porMateria.entries()).map(([produto,total])=>({produto,total})).sort((a,b)=>b.total-a.total);
     const ctx = document.getElementById('fab_bChartPareto');
     if(!linhas.length){
       tabela.innerHTML = ''; info.textContent = 'Nenhum erro acima de 2% nesse filtro';
@@ -11233,7 +11287,7 @@ if(regPinForm){
         { type:'line', label:'%', data: pctAcumulado, borderColor:'#ED7D31', backgroundColor:'#ED7D31', borderWidth:2.2, pointRadius:3, yAxisID:'y1', tension:.2 }
       ]},
       options:{ responsive:true, maintainAspectRatio:false, interaction:{mode:'index',intersect:false},
-        plugins:{ legend:{position:'bottom', labels:{boxWidth:11,font:{size:11}}}, title:{display:true, text:'Pareto dos Erros de Dosagens Totais (considerando tanto pra mais, quanto pra menos)', font:{size:12.5,weight:600}} },
+        plugins:{ legend:{position:'bottom', labels:{boxWidth:11,font:{size:11}}}, title:{display:true, text:'Pareto dos Erros de Dosagens por Matéria-Prima (considerando tanto pra mais, quanto pra menos)', font:{size:12.5,weight:600}} },
         scales:{
           x:{ grid:{display:false}, ticks:{autoSkip:false, maxRotation:65, minRotation:45, font:{size:9.5}} },
           y:{ beginAtZero:true, grid:{color:'#EFEAE0'} },
@@ -11241,7 +11295,7 @@ if(regPinForm){
         } }
     });
 
-    tabela.innerHTML = `<thead><tr><th class="qfc-col-first">Produto</th><th>Erros Totais</th><th>%</th></tr></thead>
+    tabela.innerHTML = `<thead><tr><th class="qfc-col-first">Matéria-Prima</th><th>Erros Totais</th><th>%</th></tr></thead>
       <tbody>${linhas.map((l,i)=>`<tr>
         <td class="qfc-col-first">${l.produto}</td>
         <td style="text-align:center;font-weight:700;">${l.total}</td>
@@ -11249,124 +11303,122 @@ if(regPinForm){
       </tr>`).join('')}
       <tr class="qfc-linha-nucleo"><td class="qfc-col-first" style="font-weight:800;">Total Geral</td><td style="text-align:center;font-weight:800;">${totalGeral}</td><td></td></tr>
       </tbody>`;
-    info.textContent = `${linhas.length} produto(s) com erro acima de 2%`;
+    info.textContent = `${linhas.length} matéria(s)-prima(s) com erro acima de 2%`;
   }
 
-  // produtos agrupados em "Acima de 2%" (se teve algum dia acima do limite, em módulo) ou
+  // matérias-primas agrupadas em "Acima de 2%" (se teve algum dia acima do limite, em módulo) ou
   // "Igual ou Abaixo de 2%", mostrando o histórico completo dia a dia (não só onde estourou)
-  function fabRenderTabelaErroDia(todas){
+  function fabRenderTabelaErroDia(ingredientes){
     const tabela = document.getElementById('fab_bTabelaErroDia');
     const info = document.getElementById('fab_bInfoErro');
-    const dias = Array.from(new Set(todas.map(b=>b.data))).sort();
-    const produtos = Array.from(new Set(todas.map(b=>b.produto).filter(Boolean))).sort();
-    if(!dias.length || !produtos.length){ tabela.innerHTML=''; info.textContent=''; return; }
+    const dias = Array.from(new Set(ingredientes.map(i=>i.data))).sort();
+    const materias = Array.from(new Set(ingredientes.map(i=>i.produto))).sort();
+    if(!dias.length || !materias.length){ tabela.innerHTML=''; info.textContent=''; return; }
 
-    const porProdutoDia = new Map();
-    todas.forEach(b=>{
-      if(b.erroPct==null || !b.produto) return;
-      const chave = `${b.produto}|${b.data}`;
-      if(!porProdutoDia.has(chave)) porProdutoDia.set(chave, []);
-      porProdutoDia.get(chave).push(Math.abs(b.erroPct));
+    const porMateriaDia = new Map();
+    ingredientes.forEach(ing=>{
+      const chave = `${ing.produto}|${ing.data}`;
+      if(!porMateriaDia.has(chave)) porMateriaDia.set(chave, []);
+      porMateriaDia.get(chave).push(Math.abs(ing.erroPct));
     });
-    const mediaDe = (produto, dia)=>{
-      const arr = porProdutoDia.get(`${produto}|${dia}`);
+    const mediaDe = (materia, dia)=>{
+      const arr = porMateriaDia.get(`${materia}|${dia}`);
       return arr && arr.length ? arr.reduce((a,b)=>a+b,0)/arr.length : null;
     };
 
     const grupoDe = new Map();
-    produtos.forEach(p=>{
-      const teveAcima = dias.some(d=>{ const m = mediaDe(p,d); return m!=null && m>2; });
-      grupoDe.set(p, teveAcima ? 'acima' : 'dentro');
+    materias.forEach(m=>{
+      const teveAcima = dias.some(d=>{ const v = mediaDe(m,d); return v!=null && v>2; });
+      grupoDe.set(m, teveAcima ? 'acima' : 'dentro');
     });
     const grupos = [
-      {chave:'acima', rotulo:'Acima de 2%', produtos: produtos.filter(p=>grupoDe.get(p)==='acima')},
-      {chave:'dentro', rotulo:'Igual ou Abaixo de 2%', produtos: produtos.filter(p=>grupoDe.get(p)==='dentro')}
+      {chave:'acima', rotulo:'Acima de 2%', materias: materias.filter(m=>grupoDe.get(m)==='acima')},
+      {chave:'dentro', rotulo:'Igual ou Abaixo de 2%', materias: materias.filter(m=>grupoDe.get(m)==='dentro')}
     ];
 
-    const thead = `<thead><tr><th class="qfc-col-first">Produtos</th>${dias.map(d=>`<th style="min-width:56px;">${reg_formatarDataBR(d).slice(0,5)}</th>`).join('')}</tr></thead>`;
+    const thead = `<thead><tr><th class="qfc-col-first">Matérias-Primas</th>${dias.map(d=>`<th style="min-width:56px;">${reg_formatarDataBR(d).slice(0,5)}</th>`).join('')}</tr></thead>`;
     const corpo = grupos.map(g=>{
-      if(!g.produtos.length) return '';
+      if(!g.materias.length) return '';
       const expandido = fabExpandidoGrupoErro.has(g.chave);
       const linhaGrupo = `<tr class="qfc-linha-nucleo" data-grupo-erro-toggle="${g.chave}" style="cursor:pointer;">
         <td class="qfc-col-first">${expandido?'▾':'▸'} ${g.rotulo}</td>
         ${dias.map(d=>{
-          const vals = g.produtos.map(p=>mediaDe(p,d)).filter(v=>v!=null);
+          const vals = g.materias.map(m=>mediaDe(m,d)).filter(v=>v!=null);
           const media = vals.length ? vals.reduce((a,b)=>a+b,0)/vals.length : null;
           return `<td style="text-align:center;font-weight:800;">${media!=null?media.toFixed(2)+'%':'–'}</td>`;
         }).join('')}
       </tr>`;
-      const linhasProduto = g.produtos.map(p=>`<tr style="display:${expandido?'':'none'};" data-grupo-erro-filha="${g.chave}">
-        <td class="qfc-col-first" style="padding-left:26px;font-size:12px;">${p}</td>
+      const linhasMateria = g.materias.map(m=>`<tr style="display:${expandido?'':'none'};" data-grupo-erro-filha="${g.chave}">
+        <td class="qfc-col-first" style="padding-left:26px;font-size:12px;">${m}</td>
         ${dias.map(d=>{
-          const m = mediaDe(p,d);
-          return `<td style="text-align:center;font-size:12px;${m!=null&&m>2?'color:#B3261E;font-weight:700;':'color:var(--texto-suave);'}">${m!=null?m.toFixed(2)+'%':'0,00%'}</td>`;
+          const v = mediaDe(m,d);
+          return `<td style="text-align:center;font-size:12px;${v!=null&&v>2?'color:#B3261E;font-weight:700;':'color:var(--texto-suave);'}">${v!=null?v.toFixed(2)+'%':'0,00%'}</td>`;
         }).join('')}
       </tr>`).join('');
-      return linhaGrupo + linhasProduto;
+      return linhaGrupo + linhasMateria;
     }).join('');
 
     tabela.innerHTML = thead + `<tbody>${corpo}</tbody>`;
-    info.textContent = `${grupos[0].produtos.length} produto(s) acima de 2% — ${grupos[1].produtos.length} dentro do padrão`;
+    info.textContent = `${grupos[0].materias.length} matéria(s)-prima(s) acima de 2% — ${grupos[1].materias.length} dentro do padrão`;
 
     tabela.querySelectorAll('[data-grupo-erro-toggle]').forEach(tr=>{
       tr.addEventListener('click', ()=>{
         const chave = tr.dataset.grupoErroToggle;
         if(fabExpandidoGrupoErro.has(chave)) fabExpandidoGrupoErro.delete(chave); else fabExpandidoGrupoErro.add(chave);
-        fabRenderTabelaErroDia(todas);
+        fabRenderTabelaErroDia(ingredientes);
       });
     });
   }
 
-  function fabRenderBateladasTabelaProdutos(todas){
+  function fabRenderTabelaMateriaPrima(ingredientes){
     const tabela = document.getElementById('fab_bTabelaProdutos');
     const info = document.getElementById('fab_bInfoProdutos');
-    const porProduto = new Map();
-    todas.forEach(b=>{
-      if(!b.produto) return;
-      if(!porProduto.has(b.produto)) porProduto.set(b.produto, []);
-      porProduto.get(b.produto).push(b);
+    const porMateria = new Map();
+    ingredientes.forEach(ing=>{
+      if(!ing.produto) return;
+      if(!porMateria.has(ing.produto)) porMateria.set(ing.produto, []);
+      porMateria.get(ing.produto).push(ing);
     });
-    const linhas = Array.from(porProduto.entries()).map(([produto, bs])=>{
-      const requisitado = bs.reduce((s,b)=>s+(b.requisitadoKg||0),0);
-      const dosado = bs.reduce((s,b)=>s+(b.dosadoKg||0),0);
-      const comErro = bs.filter(b=>b.erroPct!=null);
-      const piorErro = comErro.length ? comErro.reduce((pior,b)=>Math.abs(b.erroPct)>Math.abs(pior.erroPct)?b:pior) : null;
-      return {produto, qtd: bs.length, requisitado, dosado, diffKg: dosado-requisitado, diffPct: requisitado ? (dosado-requisitado)/requisitado*100 : null, piorErroPct: piorErro?piorErro.erroPct:null};
+    const linhas = Array.from(porMateria.entries()).map(([produto, ings])=>{
+      const requisitado = ings.reduce((s,i)=>s+(i.requisitadoKg||0),0);
+      const dosado = ings.reduce((s,i)=>s+(i.dosadoKg||0),0);
+      const piorErro = ings.reduce((pior,i)=>Math.abs(i.erroPct)>Math.abs(pior.erroPct)?i:pior);
+      return {produto, qtd: ings.length, requisitado, dosado, diffKg: dosado-requisitado, diffPct: requisitado ? (dosado-requisitado)/requisitado*100 : null, piorErroPct: piorErro.erroPct};
     }).sort((a,b)=> Math.abs(b.piorErroPct||0) - Math.abs(a.piorErroPct||0));
 
-    info.textContent = `${linhas.length} produto(s)`;
-    const thead = `<thead><tr><th class="qfc-col-first">Produto</th><th>Bateladas</th><th>Requisitado</th><th>Dosado</th><th>Diferença</th><th class="qfc-status">Pior erro</th></tr></thead>`;
-    const corpo = linhas.map(l=>`<tr data-produto="${l.produto}" style="cursor:pointer;">
+    info.textContent = `${linhas.length} matéria(s)-prima(s)`;
+    const thead = `<thead><tr><th class="qfc-col-first">Matéria-Prima</th><th>Dosagens</th><th>Requisitado</th><th>Dosado</th><th>Diferença</th><th class="qfc-status">Pior erro</th></tr></thead>`;
+    const corpo = linhas.map(l=>`<tr data-materia="${l.produto}" style="cursor:pointer;">
       <td class="qfc-col-first">${l.produto}</td>
       <td style="text-align:center;">${l.qtd}</td>
       <td style="text-align:center;">${l.requisitado.toLocaleString('pt-BR',{maximumFractionDigits:0})} kg</td>
       <td style="text-align:center;">${l.dosado.toLocaleString('pt-BR',{maximumFractionDigits:0})} kg</td>
       <td style="text-align:center;">${l.diffKg>=0?'+':''}${l.diffKg.toLocaleString('pt-BR',{maximumFractionDigits:0})} kg (${l.diffPct!=null?(l.diffPct>=0?'+':'')+l.diffPct.toFixed(2)+'%':'–'})</td>
-      <td class="qfc-status ${l.piorErroPct!=null && Math.abs(l.piorErroPct)>2?'qfc-status-falta':''}" style="font-weight:700;">${l.piorErroPct!=null ? (l.piorErroPct>=0?'+':'')+l.piorErroPct.toFixed(2)+'%' : '–'}</td>
+      <td class="qfc-status ${Math.abs(l.piorErroPct)>2?'qfc-status-falta':''}" style="font-weight:700;">${(l.piorErroPct>=0?'+':'')+l.piorErroPct.toFixed(2)+'%'}</td>
     </tr>`).join('');
     tabela.innerHTML = thead + `<tbody>${corpo}</tbody>`;
-    tabela.querySelectorAll('[data-produto]').forEach(tr=>{
-      tr.addEventListener('click', ()=> fabRenderDetalheProduto(tr.dataset.produto, porProduto.get(tr.dataset.produto)));
+    tabela.querySelectorAll('[data-materia]').forEach(tr=>{
+      tr.addEventListener('click', ()=> fabRenderDetalheMateria(tr.dataset.materia, porMateria.get(tr.dataset.materia)));
     });
   }
 
-  function fabRenderDetalheProduto(produto, bateladasProduto){
+  function fabRenderDetalheMateria(materia, ingredientesMateria){
     const painel = document.getElementById('fab_bPainelDetalheProduto');
     const titulo = document.getElementById('fab_bTituloDetalheProduto');
     const info = document.getElementById('fab_bInfoDetalheProduto');
     const tabela = document.getElementById('fab_bTabelaDetalheProduto');
     painel.style.display = 'block';
-    titulo.textContent = `Bateladas — ${produto}`;
-    const ordenadas = bateladasProduto.slice().sort((a,b)=>Math.abs(b.erroPct||0)-Math.abs(a.erroPct||0));
-    info.textContent = `${ordenadas.length} batelada(s) — ordenado pelo maior erro primeiro`;
-    tabela.innerHTML = `<thead><tr><th class="qfc-col-first">Data/Hora</th><th>Batelada</th><th>Silo</th><th>Requisitado</th><th>Dosado</th><th class="qfc-status">Erro</th></tr></thead>
-      <tbody>${ordenadas.map((b,i)=>`<tr>
-        <td class="qfc-col-first">${b.dataHora||'–'}</td>
-        <td style="text-align:center;">${b.batelada!=null?b.batelada:'–'}</td>
-        <td style="text-align:center;">${b.silo||'–'}</td>
-        <td style="text-align:center;">${b.requisitadoKg!=null?b.requisitadoKg.toLocaleString('pt-BR',{maximumFractionDigits:1})+' kg':'–'}</td>
-        <td style="text-align:center;">${b.dosadoKg!=null?b.dosadoKg.toLocaleString('pt-BR',{maximumFractionDigits:1})+' kg':'–'}</td>
-        <td class="qfc-status ${b.erroPct!=null && Math.abs(b.erroPct)>2?'qfc-status-falta':''}" style="font-weight:${i===0?800:600};">${b.erroPct!=null?(b.erroPct>=0?'+':'')+b.erroPct.toFixed(2)+'%':'–'}${i===0?' 🔴':''}</td>
+    titulo.textContent = `Dosagens — ${materia}`;
+    const ordenadas = ingredientesMateria.slice().sort((a,b)=>Math.abs(b.erroPct)-Math.abs(a.erroPct));
+    info.textContent = `${ordenadas.length} dosagem(ns) — ordenado pelo maior erro primeiro`;
+    tabela.innerHTML = `<thead><tr><th class="qfc-col-first">Data</th><th>Ração (batelada)</th><th>Batelada</th><th>Requisitado</th><th>Dosado</th><th class="qfc-status">Erro</th></tr></thead>
+      <tbody>${ordenadas.map((i,idx)=>`<tr>
+        <td class="qfc-col-first">${reg_formatarDataBR(i.data)}</td>
+        <td>${i.produtoBatelada||'–'}</td>
+        <td style="text-align:center;">${i.batelada!=null?i.batelada:'–'}</td>
+        <td style="text-align:center;">${i.requisitadoKg!=null?i.requisitadoKg.toLocaleString('pt-BR',{maximumFractionDigits:2})+' kg':'–'}</td>
+        <td style="text-align:center;">${i.dosadoKg!=null?i.dosadoKg.toLocaleString('pt-BR',{maximumFractionDigits:2})+' kg':'–'}</td>
+        <td class="qfc-status ${Math.abs(i.erroPct)>2?'qfc-status-falta':''}" style="font-weight:${idx===0?800:600};">${(i.erroPct>=0?'+':'')+i.erroPct.toFixed(2)+'%'}${idx===0?' 🔴':''}</td>
       </tr>`).join('')}</tbody>`;
     painel.scrollIntoView({behavior:'smooth', block:'nearest'});
   }
@@ -11440,6 +11492,168 @@ if(regPinForm){
     if(btnOutros) btnOutros.addEventListener('click', ()=>{ fabConsumoOutrosExpandido = !fabConsumoOutrosExpandido; fabRenderConsumoSub(lotes, todas); });
   }
 
+  // ===================== RELATÓRIO DIÁRIO (entrada manual + cálculo cruzado) =====================
+  let FAB_RELATORIO_CACHE = { ano: null, registros: new Map() }; // data -> {estoqueGranja, estoqueFabrica, horasDisponiveis, horasTrabalhadas, producaoPrevista}
+
+  async function fabCarregarRelatorioAno(ano){
+    if(FAB_RELATORIO_CACHE.ano === ano) return FAB_RELATORIO_CACHE.registros;
+    const snap = await db.collection('fabrica_relatorio_diario')
+      .where('data','>=', `${ano}-01-01`).where('data','<=', `${ano}-12-31`).get();
+    const registros = new Map();
+    snap.forEach(doc=>registros.set(doc.id, doc.data()));
+    FAB_RELATORIO_CACHE = {ano, registros};
+    return registros;
+  }
+
+  async function fabPopularFiltrosRelatorio(){
+    fabPopularMeses('fab_rMes');
+    const selAno = document.getElementById('fab_rAno');
+    if(selAno.dataset.populado) return;
+    selAno.dataset.populado = '1';
+    const anoAtual = new Date().getFullYear();
+    for(let a=anoAtual; a>=anoAtual-3; a--) selAno.innerHTML += `<option value="${a}">${a}</option>`;
+    selAno.value = String(anoAtual);
+    document.getElementById('fab_rData').value = new Date().toISOString().slice(0,10);
+  }
+
+  async function fabSalvarRelatorioDiario(){
+    const statusEl = document.getElementById('fab_rStatus');
+    const btn = document.getElementById('fab_rBtnSalvar');
+    const data = document.getElementById('fab_rData').value;
+    if(!data){ statusEl.style.color='var(--vermelho-alerta)'; statusEl.textContent='Escolha uma data.'; return; }
+    const dados = {
+      data,
+      estoqueGranja: parseFloat(document.getElementById('fab_rEstoqueGranja').value) || null,
+      estoqueFabrica: parseFloat(document.getElementById('fab_rEstoqueFabrica').value) || null,
+      horasDisponiveis: parseFloat(document.getElementById('fab_rHorasDisponiveis').value) || null,
+      horasTrabalhadas: parseFloat(document.getElementById('fab_rHorasTrabalhadas').value) || null,
+      producaoPrevista: parseFloat(document.getElementById('fab_rProducaoPrevista').value) || null,
+      atualizadoEm: new Date().toISOString()
+    };
+    btn.disabled = true; btn.innerHTML = 'Salvando... <span class="fab-spinner"></span>';
+    statusEl.style.color=''; statusEl.textContent='';
+    try{
+      await db.collection('fabrica_relatorio_diario').doc(data).set(dados, {merge:true});
+      FAB_RELATORIO_CACHE.registros.set(data, dados);
+      statusEl.style.color = 'var(--verde-ok)';
+      statusEl.textContent = `✅ Dia ${reg_formatarDataBR(data)} salvo.`;
+      fabRenderRelatorio();
+    }catch(err){
+      statusEl.style.color = 'var(--vermelho-alerta)';
+      statusEl.textContent = 'Erro ao salvar: ' + err.message;
+    }finally{
+      btn.disabled = false; btn.textContent = '💾 Salvar dia';
+    }
+  }
+
+  function fabPreencherFormularioRelatorio(data, reg){
+    document.getElementById('fab_rData').value = data;
+    document.getElementById('fab_rEstoqueGranja').value = reg?.estoqueGranja ?? '';
+    document.getElementById('fab_rEstoqueFabrica').value = reg?.estoqueFabrica ?? '';
+    document.getElementById('fab_rHorasDisponiveis').value = reg?.horasDisponiveis ?? 8;
+    document.getElementById('fab_rHorasTrabalhadas').value = reg?.horasTrabalhadas ?? '';
+    document.getElementById('fab_rProducaoPrevista').value = reg?.producaoPrevista ?? 400;
+  }
+
+  async function fabRenderRelatorio(){
+    await fabPopularFiltrosRelatorio();
+    const ano = document.getElementById('fab_rAno').value;
+    const anoAlvo = ano==='Todos' ? new Date().getFullYear() : +ano;
+    const [lotes, viagens, registrosManual] = await Promise.all([
+      fabCarregarBateladasAno(anoAlvo),
+      fabCarregarViagensAno(anoAlvo),
+      fabCarregarRelatorioAno(anoAlvo)
+    ]);
+
+    // produção real (kg) por dia, a partir das bateladas já importadas
+    const producaoPorDia = new Map();
+    lotes.forEach(lote=>(lote.bateladas||[]).forEach(b=>{
+      producaoPorDia.set(lote.data, (producaoPorDia.get(lote.data)||0) + (b.dosadoKg||0));
+    }));
+    // expedição real (kg) por dia, a partir das viagens já importadas
+    const expedicaoPorDia = new Map();
+    viagens.forEach(v=>{ expedicaoPorDia.set(v.data, (expedicaoPorDia.get(v.data)||0) + (v.dosadoKg||0)); });
+
+    // dias que existem em QUALQUER uma das 3 fontes (manual, produção, expedição)
+    const diasSet = new Set([...registrosManual.keys(), ...producaoPorDia.keys(), ...expedicaoPorDia.keys()]);
+    let dias = Array.from(diasSet).sort();
+    const mes = document.getElementById('fab_rMes').value;
+    if(mes!=='Todos') dias = dias.filter(d=>d.slice(5,7)===mes.padStart(2,'0'));
+
+    const linhas = dias.map(data=>{
+      const reg = registrosManual.get(data) || {};
+      const producaoKg = producaoPorDia.get(data) || 0;
+      const expedicaoKg = expedicaoPorDia.get(data) || 0;
+      const horasTrabalhadas = reg.horasTrabalhadas || 0;
+      const horasDisponiveis = reg.horasDisponiveis!=null ? reg.horasDisponiveis : 8;
+      const horasPerdidas = horasDisponiveis - horasTrabalhadas;
+      const pctHorasTrab = horasDisponiveis ? (horasTrabalhadas/horasDisponiveis*100) : null;
+      const rendTonH = horasTrabalhadas ? (producaoKg/1000/horasTrabalhadas) : null;
+      const pctRealizado = reg.producaoPrevista ? (producaoKg/reg.producaoPrevista*100) : null;
+      return {data, reg, producaoKg, expedicaoKg, horasTrabalhadas, horasDisponiveis, horasPerdidas, pctHorasTrab, rendTonH, pctRealizado};
+    });
+
+    fabRenderRelatorioCards(linhas);
+    fabRenderRelatorioTabela(linhas, registrosManual);
+  }
+
+  function fabRenderRelatorioCards(linhas){
+    const cont = document.getElementById('fab_rCards');
+    if(!linhas.length){ cont.innerHTML = '<div class="vazio">Nenhum dado nesse período.</div>'; return; }
+    const totalProducao = linhas.reduce((s,l)=>s+l.producaoKg,0);
+    const totalExpedicao = linhas.reduce((s,l)=>s+l.expedicaoKg,0);
+    const comRend = linhas.filter(l=>l.rendTonH!=null);
+    const rendMedio = comRend.length ? comRend.reduce((s,l)=>s+l.rendTonH,0)/comRend.length : null;
+    const comReal = linhas.filter(l=>l.pctRealizado!=null);
+    const realMedio = comReal.length ? comReal.reduce((s,l)=>s+l.pctRealizado,0)/comReal.length : null;
+    cont.innerHTML = `
+      <div class="card"><div class="label">Produção total</div><div class="valor">${(totalProducao/1000).toLocaleString('pt-BR',{maximumFractionDigits:1})} <span style="font-size:14px;color:var(--texto-suave);font-weight:500;">ton</span></div></div>
+      <div class="card"><div class="label">Expedição total</div><div class="valor">${(totalExpedicao/1000).toLocaleString('pt-BR',{maximumFractionDigits:1})} <span style="font-size:14px;color:var(--texto-suave);font-weight:500;">ton</span></div></div>
+      <div class="card"><div class="label">Rendimento médio</div><div class="valor">${rendMedio!=null?rendMedio.toLocaleString('pt-BR',{maximumFractionDigits:1}):'–'} <span style="font-size:14px;color:var(--texto-suave);font-weight:500;">ton/h</span></div></div>
+      <div class="card"><div class="label">% Realizado médio</div><div class="valor" style="color:${realMedio!=null && realMedio<100?'var(--vermelho-alerta)':'var(--verde-ok)'};">${realMedio!=null?realMedio.toFixed(1)+'%':'–'}</div></div>
+    `;
+  }
+
+  function fabRenderRelatorioTabela(linhas, registrosManual){
+    const tabela = document.getElementById('fab_rTabela');
+    const info = document.getElementById('fab_rInfoTabela');
+    if(!linhas.length){ tabela.innerHTML=''; info.textContent=''; return; }
+    const DIAS_SEMANA = ['Dom','Seg','Ter','Qua','Qui','Sex','Sáb'];
+    const thead = `<thead><tr>
+      <th class="qfc-col-first">Data</th><th>Dia</th><th>Produção</th><th>Expedição</th><th>Rend. Ton/H</th>
+      <th>H. Disp.</th><th>H. Trab.</th><th>H. Perdidas</th><th>% H. Trab.</th>
+      <th>Estoque Granja</th><th>Estoque Fábrica</th><th>Prod. Prev.</th><th>% Realizado</th>
+    </tr></thead>`;
+    const corpo = linhas.map(l=>{
+      const diaSemana = DIAS_SEMANA[new Date(l.data+'T00:00:00').getDay()];
+      const reg = l.reg;
+      return `<tr data-editar-dia="${l.data}" style="cursor:pointer;">
+        <td class="qfc-col-first">${reg_formatarDataBR(l.data)}</td>
+        <td style="text-align:center;">${diaSemana}</td>
+        <td style="text-align:center;font-weight:700;">${l.producaoKg?Math.round(l.producaoKg).toLocaleString('pt-BR'):'–'}</td>
+        <td style="text-align:center;">${l.expedicaoKg?Math.round(l.expedicaoKg).toLocaleString('pt-BR'):'–'}</td>
+        <td style="text-align:center;">${l.rendTonH!=null?l.rendTonH.toFixed(2):'–'}</td>
+        <td style="text-align:center;">${l.horasDisponiveis ?? '–'}</td>
+        <td style="text-align:center;">${l.horasTrabalhadas || '–'}</td>
+        <td style="text-align:center;">${l.horasPerdidas!=null?l.horasPerdidas.toFixed(1):'–'}</td>
+        <td style="text-align:center;">${l.pctHorasTrab!=null?l.pctHorasTrab.toFixed(0)+'%':'–'}</td>
+        <td style="text-align:center;">${reg.estoqueGranja!=null?reg.estoqueGranja.toLocaleString('pt-BR'):'–'}</td>
+        <td style="text-align:center;">${reg.estoqueFabrica!=null?reg.estoqueFabrica.toLocaleString('pt-BR'):'–'}</td>
+        <td style="text-align:center;">${reg.producaoPrevista!=null?reg.producaoPrevista.toLocaleString('pt-BR'):'–'}</td>
+        <td class="qfc-status ${l.pctRealizado!=null && l.pctRealizado<100?'qfc-status-falta':''}" style="text-align:center;font-weight:700;">${l.pctRealizado!=null?l.pctRealizado.toFixed(1)+'%':'–'}</td>
+      </tr>`;
+    }).join('');
+    tabela.innerHTML = thead + `<tbody>${corpo}</tbody>`;
+    info.textContent = `${linhas.length} dia(s)`;
+    tabela.querySelectorAll('[data-editar-dia]').forEach(tr=>{
+      tr.addEventListener('click', ()=>{
+        const data = tr.dataset.editarDia;
+        fabPreencherFormularioRelatorio(data, registrosManual.get(data));
+        document.getElementById('fab_rData').scrollIntoView({behavior:'smooth', block:'center'});
+      });
+    });
+  }
+
   // ===================== ORQUESTRAÇÃO GERAL DA ABA BATELADAS =====================
   let FAB_BATELADAS_LOTES_FILTRADOS = [], FAB_BATELADAS_TODAS_FILTRADAS = [];
   let fabSubAbaBateladasAtiva = 'producao';
@@ -11477,7 +11691,7 @@ if(regPinForm){
   function fabRenderSubAbaBateladasAtiva(){
     const todas = FAB_BATELADAS_TODAS_FILTRADAS, lotes = FAB_BATELADAS_LOTES_FILTRADOS;
     if(fabSubAbaBateladasAtiva==='producao') fabRenderProducaoSub(todas);
-    else if(fabSubAbaBateladasAtiva==='erros') fabRenderErrosSub(todas);
+    else if(fabSubAbaBateladasAtiva==='erros') fabRenderErrosSub(lotes, todas);
     else if(fabSubAbaBateladasAtiva==='consumo') fabRenderConsumoSub(lotes, todas);
   }
 
@@ -11601,6 +11815,7 @@ if(regPinForm){
   }
 
   async function fabPopularFiltrosViagens(){
+    fabPopularMeses('fab_vMes');
     const sel = document.getElementById('fab_vAno');
     if(sel.dataset.populado) return;
     sel.dataset.populado = '1';
@@ -11711,6 +11926,7 @@ if(regPinForm){
   let fabAbaAtiva = 'importar';
   function fabRenderAbaAtiva(){
     if(fabAbaAtiva==='importar') fabRenderCalendarioImportacoes();
+    else if(fabAbaAtiva==='relatorio') fabRenderRelatorio();
     else if(fabAbaAtiva==='bateladas') fabRenderBateladas();
     else if(fabAbaAtiva==='paradas') fabRenderParadas();
     else if(fabAbaAtiva==='viagens') fabRenderViagens();
@@ -11734,6 +11950,11 @@ if(regPinForm){
 
     document.getElementById('fab_inputArquivos').addEventListener('change', (e)=>{
       if(e.target.files.length) fabProcessarArquivosSelecionados(Array.from(e.target.files));
+    });
+
+    document.getElementById('fab_rBtnSalvar').addEventListener('click', fabSalvarRelatorioDiario);
+    ['fab_rAno','fab_rMes'].forEach(id=>{
+      document.getElementById(id).addEventListener('change', fabRenderRelatorio);
     });
 
     ['fab_bAno','fab_bMes','fab_bProduto'].forEach(id=>{
