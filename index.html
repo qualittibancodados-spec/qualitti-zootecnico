@@ -1158,11 +1158,11 @@
       <button class="modulo" data-modulo="energiasolar" id="btnModuloEnergiaSolar" style="display:none;">
         <span class="modulo-ic">☀️</span> Energia Solar
       </button>
-      <button class="modulo" data-modulo="admin" id="btnModuloAdmin" style="display:none;">
-        <span class="modulo-ic">⚙️</span> Administração
-      </button>
       <button class="modulo" data-modulo="fabrica" id="btnModuloFabrica" style="display:none;">
         <span class="modulo-ic">🏭</span> Fábrica de Rações
+      </button>
+      <button class="modulo" data-modulo="admin" id="btnModuloAdmin" style="display:none;">
+        <span class="modulo-ic">⚙️</span> Administração
       </button>
     </div>
   </nav>
@@ -2212,17 +2212,31 @@
     <!-- ---------- RELATÓRIO DIÁRIO ---------- -->
     <div data-aba-fab-view="relatorio" style="display:none;">
       <div class="painel">
-        <div class="painel-header"><h2>Lançamento manual do dia</h2></div>
-        <p class="nota" style="margin:0 0 16px;">Esses dados não vêm de nenhum arquivo importado — precisa preencher manualmente todo dia. O resto (Produção, Expedição) é calculado sozinho a partir do que já foi importado em Bateladas/Viagens.</p>
-        <div class="filtros-grid" style="margin-bottom:14px;">
-          <div class="campo"><label>Data</label><input type="date" id="fab_rData"></div>
-          <div class="campo"><label>Estoque Granja (kg)</label><input type="number" id="fab_rEstoqueGranja" step="0.01"></div>
-          <div class="campo"><label>Estoque Fábrica (kg)</label><input type="number" id="fab_rEstoqueFabrica" step="0.01"></div>
-          <div class="campo"><label>Horas Disponíveis</label><input type="number" id="fab_rHorasDisponiveis" step="0.5" value="8"></div>
-          <div class="campo"><label>Horas Trabalhadas</label><input type="number" id="fab_rHorasTrabalhadas" step="0.5"></div>
-          <div class="campo"><label>Produção Prevista (kg)</label><input type="number" id="fab_rProducaoPrevista" step="1" value="400"></div>
+        <div class="painel-header"><h2>📝 Lançamento manual do dia</h2></div>
+        <p class="nota" style="margin:0 0 16px;">Esses dados não vêm de nenhum arquivo importado — precisa preencher manualmente todo dia. Produção e Expedição são calculadas sozinhas a partir do que já foi importado em Bateladas/Viagens.</p>
+
+        <div class="campo" style="max-width:220px;margin-bottom:16px;"><label>Data</label><input type="date" id="fab_rData"></div>
+
+        <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:14px;margin-bottom:18px;">
+          <div style="background:var(--bg);border:1px solid var(--borda);border-radius:12px;padding:14px 16px;">
+            <div style="font-size:11px;font-weight:700;color:var(--texto-suave);text-transform:uppercase;letter-spacing:.03em;margin-bottom:10px;">📦 Estoques</div>
+            <div class="campo" style="margin-bottom:8px;"><label>Estoque Granja (kg)</label><input type="number" id="fab_rEstoqueGranja" step="0.01"></div>
+            <div class="campo"><label>Estoque Fábrica (kg)</label><input type="number" id="fab_rEstoqueFabrica" step="0.01"></div>
+          </div>
+          <div style="background:var(--bg);border:1px solid var(--borda);border-radius:12px;padding:14px 16px;">
+            <div style="font-size:11px;font-weight:700;color:var(--texto-suave);text-transform:uppercase;letter-spacing:.03em;margin-bottom:10px;">⏱️ Horas</div>
+            <div class="campo" style="margin-bottom:8px;"><label>Horas Disponíveis</label><input type="number" id="fab_rHorasDisponiveis" step="0.5" value="8"></div>
+            <div class="campo"><label>Horas Trabalhadas</label><input type="number" id="fab_rHorasTrabalhadas" step="0.5"></div>
+          </div>
+          <div style="background:var(--bg);border:1px solid var(--borda);border-radius:12px;padding:14px 16px;">
+            <div style="font-size:11px;font-weight:700;color:var(--texto-suave);text-transform:uppercase;letter-spacing:.03em;margin-bottom:10px;">🎯 Meta</div>
+            <div class="campo"><label>Produção Prevista (kg)</label><input type="number" id="fab_rProducaoPrevista" step="1" value="400"></div>
+          </div>
         </div>
-        <button class="comb-btn-registrar" id="fab_rBtnSalvar" style="width:fit-content;">💾 Salvar dia</button>
+        <div style="display:flex;gap:10px;align-items:center;">
+          <button class="comb-btn-registrar" id="fab_rBtnSalvar" style="width:fit-content;">💾 Salvar dia</button>
+          <button class="btn-recolher" id="fab_rBtnLimpar" style="width:fit-content;">Novo lançamento</button>
+        </div>
         <p class="nota" id="fab_rStatus" style="min-height:16px;margin-top:10px;"></p>
       </div>
 
@@ -2235,23 +2249,56 @@
 
       <div class="cards" id="fab_rCards"></div>
 
+      <div class="painel-grafico">
+        <div class="painel-grafico-header"><h2>Produção Real × Prevista, e Rendimento</h2><span class="info" id="fab_rInfoChart"></span></div>
+        <div class="chart-wrap" style="height:280px;"><canvas id="fab_rChartTendencia"></canvas></div>
+      </div>
+
       <div class="painel">
         <div class="painel-header"><h2>Relatório Diário</h2><span class="info" id="fab_rInfoTabela"></span></div>
-        <p class="nota" style="margin:0 0 14px;">Clique numa linha pra editar os valores manuais daquele dia no formulário acima.</p>
+        <p class="nota" style="margin:0 0 14px;">Clique no mês pra abrir/fechar os dias. Clique numa linha de dia pra editar no formulário acima.</p>
         <div class="qfc-scroll"><table class="qfc-tabela" id="fab_rTabela"></table></div>
       </div>
     </div>
 
     <!-- ---------- IMPORTAR ---------- -->
     <div data-aba-fab-view="importar">
+      <div class="painel" style="background:linear-gradient(135deg, #1F3A5F 0%, #2E5590 100%);border:none;">
+        <div style="display:flex;align-items:center;gap:16px;flex-wrap:wrap;">
+          <div style="font-size:38px;">🏭</div>
+          <div>
+            <h2 style="color:#fff;margin:0 0 4px;font-size:17px;">Fábrica de Rações</h2>
+            <p style="color:#C9D6E8;margin:0;font-size:12.5px;">Importe os 3 relatórios diários e acompanhe produção, erros de dosagem, paradas e expedição — tudo num só lugar.</p>
+          </div>
+        </div>
+      </div>
+
       <div class="painel">
         <div class="painel-header"><h2>Importar arquivos do dia</h2></div>
-        <p class="nota" style="margin:0 0 16px;">Selecione os arquivos exportados do sistema da fábrica (Bateladas Completa, Paradas de Produção, Viagem Resumida). Pode selecionar 1, 2 ou os 3 juntos — cada um é reconhecido automaticamente pelo formato. Um arquivo pode ter dados de vários dias juntos; o sistema separa e avisa se algum dia já tiver sido importado antes.</p>
-        <div style="display:flex;gap:12px;flex-wrap:wrap;align-items:center;margin-bottom:14px;">
-          <label class="btn-recolher" style="cursor:pointer;display:inline-flex;align-items:center;gap:6px;" for="fab_inputArquivos">📁 Selecionar arquivo(s)</label>
-          <input type="file" id="fab_inputArquivos" accept=".xls,.xlsx" multiple style="display:none;">
-          <span class="info" id="fab_infoArquivosSelecionados"></span>
+        <p class="nota" style="margin:0 0 16px;">Um arquivo pode ter dados de vários dias juntos; o sistema separa e avisa se algum dia já tiver sido importado antes.</p>
+
+        <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;margin-bottom:18px;">
+          <div style="background:#E7F6EF;border:1px solid #A9DCC0;border-radius:12px;padding:12px 14px;">
+            <div style="font-size:11px;font-weight:700;color:#1E7B4D;text-transform:uppercase;letter-spacing:.03em;">🧪 Bateladas</div>
+            <div style="font-size:11.5px;color:#5B6470;margin-top:2px;">Produção e erros de dosagem</div>
+          </div>
+          <div style="background:#EAF1FB;border:1px solid #B9CFEA;border-radius:12px;padding:12px 14px;">
+            <div style="font-size:11px;font-weight:700;color:#1D5A96;text-transform:uppercase;letter-spacing:.03em;">⏸️ Paradas</div>
+            <div style="font-size:11.5px;color:#5B6470;margin-top:2px;">Tempo parado e motivos</div>
+          </div>
+          <div style="background:#FCE4E4;border:1px solid #F0AFAF;border-radius:12px;padding:12px 14px;">
+            <div style="font-size:11px;font-weight:700;color:#B3261E;text-transform:uppercase;letter-spacing:.03em;">🚚 Viagens</div>
+            <div style="font-size:11.5px;color:#5B6470;margin-top:2px;">Expedição por núcleo</div>
+          </div>
         </div>
+
+        <label id="fab_dropZone" for="fab_inputArquivos" style="display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;border:2px dashed var(--borda);border-radius:14px;padding:32px 16px;cursor:pointer;background:var(--bg);transition:.15s;">
+          <div style="font-size:30px;">📁</div>
+          <div style="font-weight:700;font-size:13.5px;">Clique pra selecionar os arquivos</div>
+          <div style="font-size:11.5px;color:var(--texto-suave);">Aceita .xls e .xlsx — pode escolher 1, 2 ou os 3 de uma vez</div>
+        </label>
+        <input type="file" id="fab_inputArquivos" accept=".xls,.xlsx" multiple style="display:none;">
+        <p class="info" id="fab_infoArquivosSelecionados" style="margin-top:10px;"></p>
         <div id="fab_previewImportacao" style="display:none;"></div>
         <p class="nota" id="fab_statusImportacao" style="min-height:16px;"></p>
       </div>
@@ -2266,6 +2313,13 @@
           <div class="legenda-item"><span class="barra" style="background:#C1272D"></span>Viagens</div>
           <div class="legenda-item"><span class="barra" style="background:#E6EAEF"></span>Sem dado</div>
         </div>
+      </div>
+
+      <div class="painel" style="border:1.5px solid #F0AFAF;background:#FFF8F8;">
+        <div class="painel-header"><h2 style="color:#B3261E;">⚠️ Zona de risco</h2></div>
+        <p class="nota" style="margin:0 0 14px;">Apaga <strong>todos</strong> os dados já importados (Bateladas, Paradas e Viagens de todos os anos). Não apaga o Relatório Diário (é lançamento manual, não importado). Essa ação não pode ser desfeita.</p>
+        <button class="btn-recolher" id="fab_btnLimparTudo" style="border-color:#B3261E;color:#B3261E;">🗑️ Apagar todos os dados importados</button>
+        <p class="nota" id="fab_statusLimparTudo" style="min-height:16px;margin-top:10px;"></p>
       </div>
     </div>
 
@@ -2311,6 +2365,7 @@
             <span class="info" id="fab_bInfoTipo"></span>
           </div>
           <p class="nota" style="margin:0 0 10px;">Tipo de ração = fase (Inicial, Crescimento, Abate...). Clique na linha pra expandir e ver a nutrição por trás.</p>
+          <div class="chart-wrap" style="height:220px;margin-bottom:16px;"><canvas id="fab_bChartTipoMensal"></canvas></div>
           <div class="qfc-scroll"><table class="qfc-tabela" id="fab_bTabelaTipoMensal"></table></div>
         </div>
 
@@ -2324,6 +2379,7 @@
             <span class="info" id="fab_bInfoNutri"></span>
           </div>
           <p class="nota" style="margin:0 0 10px;">Nutrição = linha/fornecedor da fórmula (Vaccinar, DSM...). Clique na linha pra expandir os tipos por trás.</p>
+          <div class="chart-wrap" style="height:220px;margin-bottom:16px;"><canvas id="fab_bChartNutriMensal"></canvas></div>
           <div class="qfc-scroll"><table class="qfc-tabela" id="fab_bTabelaNutriMensal"></table></div>
         </div>
 
@@ -2380,6 +2436,7 @@
             <span class="info" id="fab_bInfoConsumo"></span>
           </div>
           <p class="nota" style="margin:0 0 14px;">Clique na linha "Outros" pra expandir e ver as matérias-primas de menor volume, uma a uma.</p>
+          <div class="chart-wrap" style="height:260px;margin-bottom:16px;"><canvas id="fab_bChartConsumo"></canvas></div>
           <div class="qfc-scroll"><table class="qfc-tabela" id="fab_bTabelaConsumo"></table></div>
         </div>
       </div>
@@ -10888,6 +10945,43 @@ if(regPinForm){
   }
 
   // ===================== calendário de importações (últimos 60 dias) =====================
+  // ===================== limpar todos os dados importados =====================
+  async function fabLimparTodosOsDados(){
+    const status = document.getElementById('fab_statusLimparTudo');
+    const btn = document.getElementById('fab_btnLimparTudo');
+    if(!confirm('Tem certeza? Isso vai apagar TODOS os dados importados de Bateladas, Paradas e Viagens, de todos os anos. Não tem como desfazer.')) return;
+    const digitado = prompt('Pra confirmar de vez, digite APAGAR (em maiúsculo):');
+    if(digitado !== 'APAGAR'){ status.style.color='var(--vermelho-alerta)'; status.textContent = 'Cancelado — texto não bateu.'; return; }
+
+    btn.disabled = true; btn.innerHTML = 'Apagando... <span class="fab-spinner"></span>';
+    status.style.color = ''; status.textContent = '';
+    try{
+      const colecoes = ['fabrica_bateladas','fabrica_paradas','fabrica_viagens','fabrica_resumo_dias'];
+      let totalApagado = 0;
+      for(const nome of colecoes){
+        const snap = await db.collection(nome).get();
+        const docs = snap.docs;
+        for(let i=0; i<docs.length; i+=400){ // lotes de 400 (limite de 500 por batch do Firestore)
+          const lote = db.batch();
+          docs.slice(i, i+400).forEach(d=>lote.delete(d.ref));
+          await lote.commit();
+        }
+        totalApagado += docs.length;
+      }
+      FAB_BATELADAS_CACHE = {ano:null, lotes:[]};
+      FAB_PARADAS_CACHE = {ano:null, registros:[]};
+      FAB_VIAGENS_CACHE = {ano:null, registros:[]};
+      status.style.color = 'var(--verde-ok)';
+      status.textContent = `✅ ${totalApagado} documento(s) apagado(s). Pode importar do zero.`;
+      fabRenderCalendarioImportacoes();
+    }catch(err){
+      status.style.color = 'var(--vermelho-alerta)';
+      status.textContent = 'Erro ao apagar: ' + err.message;
+    }finally{
+      btn.disabled = false; btn.textContent = '🗑️ Apagar todos os dados importados';
+    }
+  }
+
   async function fabRenderCalendarioImportacoes(){
     const cont = document.getElementById('fab_calendarioImportacoes');
     const info = document.getElementById('fab_infoCalendario');
@@ -10982,6 +11076,7 @@ if(regPinForm){
   // mais de uma palavra (ex: "PRE INICIAL") -- por isso achamos a marca primeiro, e tudo antes
   // dela vira o tipo, em vez de fixar "2ª palavra = tipo, 3ª = nutrição"
   const FAB_MARCAS_CONHECIDAS = ['VACCINAR','VACCINA','DSM'];
+  const FAB_CORES_SERIE = ['#C1272D','#1D5A96','#2E9E6B','#F2A900','#8A6D00','#5B3FA6','#0B7285','#B3261E','#6A7686','#9A6700'];
   function fabTitleCase(s){ return s ? s.split(' ').map(w=>w?w.charAt(0)+w.slice(1).toLowerCase():'').join(' ') : '—'; }
   function fabClassificarProduto(nome){
     if(!nome) return {tipo:'—', nutricao:'—'};
@@ -11178,7 +11273,29 @@ if(regPinForm){
         fabRenderTabelaCategoriaProduto({todas, campo, campoFilha, tempos, metrica, tabelaId, infoId});
       });
     });
+
+    // gráfico complementar (barras empilhadas por categoria, sempre em kg — mais fácil de ler que %)
+    const canvasId = tabelaId==='fab_bTabelaTipoMensal' ? 'fab_bChartTipoMensal' : tabelaId==='fab_bTabelaNutriMensal' ? 'fab_bChartNutriMensal' : null;
+    if(canvasId){
+      const ctx = document.getElementById(canvasId);
+      if(ctx){
+        if(FAB_CHARTS_CATEGORIA[canvasId]) FAB_CHARTS_CATEGORIA[canvasId].destroy();
+        FAB_CHARTS_CATEGORIA[canvasId] = new Chart(ctx.getContext('2d'), {
+          type:'bar',
+          data:{ labels: tempos.rotulos, datasets: categorias.map((cat,i)=>({
+            label: cat,
+            data: tempos.chaves.map(t=>Math.round(porCategoriaTempo.get(`${t}|${cat}`)||0)),
+            backgroundColor: FAB_CORES_SERIE[i%FAB_CORES_SERIE.length], borderRadius:4, maxBarThickness:50
+          })) },
+          options:{ responsive:true, maintainAspectRatio:false,
+            plugins:{ legend:{position:'top', align:'end', labels:{boxWidth:11,font:{size:10.5}}},
+              tooltip:{callbacks:{label:c=>`${c.dataset.label}: ${c.parsed.y.toLocaleString('pt-BR')} kg`}} },
+            scales:{ x:{stacked:true, grid:{display:false}}, y:{stacked:true, beginAtZero:true, grid:{color:'#EFEAE0'}} } }
+        });
+      }
+    }
   }
+  const FAB_CHARTS_CATEGORIA = {};
 
   // dia a dia, Quantidade e % lado a lado por nutrição (sem toggle -- os dois já vêm juntos)
   function fabRenderTabelaNutriDiaria(todas){
@@ -11490,7 +11607,26 @@ if(regPinForm){
 
     const btnOutros = tabela.querySelector('[data-materia-toggle="outros"]');
     if(btnOutros) btnOutros.addEventListener('click', ()=>{ fabConsumoOutrosExpandido = !fabConsumoOutrosExpandido; fabRenderConsumoSub(lotes, todas); });
+
+    // gráfico complementar -- top 8 matérias-primas empilhadas ao longo do tempo
+    const ctxConsumo = document.getElementById('fab_bChartConsumo');
+    if(ctxConsumo){
+      if(fabChartConsumo) fabChartConsumo.destroy();
+      fabChartConsumo = new Chart(ctxConsumo.getContext('2d'), {
+        type:'bar',
+        data:{ labels: tempos.rotulos, datasets: top8.map(([nome],i)=>({
+          label: nome,
+          data: tempos.chaves.map(t=>Math.round(porTempoMateria.get(`${t}|${nome}`)||0)),
+          backgroundColor: FAB_CORES_SERIE[i%FAB_CORES_SERIE.length], borderRadius:4, maxBarThickness:50
+        })) },
+        options:{ responsive:true, maintainAspectRatio:false,
+          plugins:{ legend:{position:'top', align:'end', labels:{boxWidth:11,font:{size:10}}},
+            tooltip:{callbacks:{label:c=>`${c.dataset.label}: ${c.parsed.y.toLocaleString('pt-BR')} kg`}} },
+          scales:{ x:{stacked:true, grid:{display:false}}, y:{stacked:true, beginAtZero:true, grid:{color:'#EFEAE0'}} } }
+      });
+    }
   }
+  let fabChartConsumo = null;
 
   // ===================== RELATÓRIO DIÁRIO (entrada manual + cálculo cruzado) =====================
   let FAB_RELATORIO_CACHE = { ano: null, registros: new Map() }; // data -> {estoqueGranja, estoqueFabrica, horasDisponiveis, horasTrabalhadas, producaoPrevista}
@@ -11594,6 +11730,7 @@ if(regPinForm){
     });
 
     fabRenderRelatorioCards(linhas);
+    fabRenderRelatorioChart(linhas);
     fabRenderRelatorioTabela(linhas, registrosManual);
   }
 
@@ -11614,6 +11751,8 @@ if(regPinForm){
     `;
   }
 
+  const fabRelatorioMesesExpandidos = new Set([new Date().toISOString().slice(0,7)]); // mês atual começa aberto
+
   function fabRenderRelatorioTabela(linhas, registrosManual){
     const tabela = document.getElementById('fab_rTabela');
     const info = document.getElementById('fab_rInfoTabela');
@@ -11624,34 +11763,101 @@ if(regPinForm){
       <th>H. Disp.</th><th>H. Trab.</th><th>H. Perdidas</th><th>% H. Trab.</th>
       <th>Estoque Granja</th><th>Estoque Fábrica</th><th>Prod. Prev.</th><th>% Realizado</th>
     </tr></thead>`;
-    const corpo = linhas.map(l=>{
-      const diaSemana = DIAS_SEMANA[new Date(l.data+'T00:00:00').getDay()];
-      const reg = l.reg;
-      return `<tr data-editar-dia="${l.data}" style="cursor:pointer;">
-        <td class="qfc-col-first">${reg_formatarDataBR(l.data)}</td>
-        <td style="text-align:center;">${diaSemana}</td>
-        <td style="text-align:center;font-weight:700;">${l.producaoKg?Math.round(l.producaoKg).toLocaleString('pt-BR'):'–'}</td>
-        <td style="text-align:center;">${l.expedicaoKg?Math.round(l.expedicaoKg).toLocaleString('pt-BR'):'–'}</td>
-        <td style="text-align:center;">${l.rendTonH!=null?l.rendTonH.toFixed(2):'–'}</td>
-        <td style="text-align:center;">${l.horasDisponiveis ?? '–'}</td>
-        <td style="text-align:center;">${l.horasTrabalhadas || '–'}</td>
-        <td style="text-align:center;">${l.horasPerdidas!=null?l.horasPerdidas.toFixed(1):'–'}</td>
-        <td style="text-align:center;">${l.pctHorasTrab!=null?l.pctHorasTrab.toFixed(0)+'%':'–'}</td>
-        <td style="text-align:center;">${reg.estoqueGranja!=null?reg.estoqueGranja.toLocaleString('pt-BR'):'–'}</td>
-        <td style="text-align:center;">${reg.estoqueFabrica!=null?reg.estoqueFabrica.toLocaleString('pt-BR'):'–'}</td>
-        <td style="text-align:center;">${reg.producaoPrevista!=null?reg.producaoPrevista.toLocaleString('pt-BR'):'–'}</td>
-        <td class="qfc-status ${l.pctRealizado!=null && l.pctRealizado<100?'qfc-status-falta':''}" style="text-align:center;font-weight:700;">${l.pctRealizado!=null?l.pctRealizado.toFixed(1)+'%':'–'}</td>
+
+    const porMes = new Map();
+    linhas.forEach(l=>{
+      const m = l.data.slice(0,7);
+      if(!porMes.has(m)) porMes.set(m, []);
+      porMes.get(m).push(l);
+    });
+    const meses = Array.from(porMes.keys()).sort().reverse(); // mês mais recente primeiro
+
+    const corpo = meses.map(m=>{
+      const linhasDoMes = porMes.get(m);
+      const expandido = fabRelatorioMesesExpandidos.has(m);
+      const totalProd = linhasDoMes.reduce((s,l)=>s+l.producaoKg,0);
+      const totalExp = linhasDoMes.reduce((s,l)=>s+l.expedicaoKg,0);
+      const comRend = linhasDoMes.filter(l=>l.rendTonH!=null);
+      const rendMedio = comRend.length ? comRend.reduce((s,l)=>s+l.rendTonH,0)/comRend.length : null;
+      const comReal = linhasDoMes.filter(l=>l.pctRealizado!=null);
+      const realMedio = comReal.length ? comReal.reduce((s,l)=>s+l.pctRealizado,0)/comReal.length : null;
+
+      const linhaMes = `<tr class="qfc-linha-nucleo" data-mes-toggle="${m}" style="cursor:pointer;">
+        <td class="qfc-col-first" colspan="2">${expandido?'▾':'▸'} ${reg_formatarDataBR(m+'-01').slice(3)} <span style="font-weight:400;color:var(--texto-suave);">(${linhasDoMes.length} dia(s))</span></td>
+        <td style="text-align:center;font-weight:800;">${Math.round(totalProd).toLocaleString('pt-BR')}</td>
+        <td style="text-align:center;font-weight:800;">${Math.round(totalExp).toLocaleString('pt-BR')}</td>
+        <td style="text-align:center;font-weight:800;">${rendMedio!=null?rendMedio.toFixed(2):'–'}</td>
+        <td colspan="4"></td>
+        <td colspan="2"></td>
+        <td style="text-align:center;font-weight:800;">${realMedio!=null?realMedio.toFixed(1)+'%':'–'}</td>
       </tr>`;
+
+      const linhasDia = linhasDoMes.slice().sort((a,b)=>b.data.localeCompare(a.data)).map(l=>{
+        const diaSemana = DIAS_SEMANA[new Date(l.data+'T00:00:00').getDay()];
+        const reg = l.reg;
+        return `<tr data-editar-dia="${l.data}" style="cursor:pointer;display:${expandido?'':'none'};" data-filha-mes="${m}">
+          <td class="qfc-col-first" style="padding-left:26px;">${reg_formatarDataBR(l.data)}</td>
+          <td style="text-align:center;">${diaSemana}</td>
+          <td style="text-align:center;font-weight:700;">${l.producaoKg?Math.round(l.producaoKg).toLocaleString('pt-BR'):'–'}</td>
+          <td style="text-align:center;">${l.expedicaoKg?Math.round(l.expedicaoKg).toLocaleString('pt-BR'):'–'}</td>
+          <td style="text-align:center;">${l.rendTonH!=null?l.rendTonH.toFixed(2):'–'}</td>
+          <td style="text-align:center;">${l.horasDisponiveis ?? '–'}</td>
+          <td style="text-align:center;">${l.horasTrabalhadas || '–'}</td>
+          <td style="text-align:center;">${l.horasPerdidas!=null?l.horasPerdidas.toFixed(1):'–'}</td>
+          <td style="text-align:center;">${l.pctHorasTrab!=null?l.pctHorasTrab.toFixed(0)+'%':'–'}</td>
+          <td style="text-align:center;">${reg.estoqueGranja!=null?reg.estoqueGranja.toLocaleString('pt-BR'):'–'}</td>
+          <td style="text-align:center;">${reg.estoqueFabrica!=null?reg.estoqueFabrica.toLocaleString('pt-BR'):'–'}</td>
+          <td style="text-align:center;">${reg.producaoPrevista!=null?reg.producaoPrevista.toLocaleString('pt-BR'):'–'}</td>
+          <td class="qfc-status ${l.pctRealizado!=null && l.pctRealizado<100?'qfc-status-falta':''}" style="text-align:center;font-weight:700;">${l.pctRealizado!=null?l.pctRealizado.toFixed(1)+'%':'–'}</td>
+        </tr>`;
+      }).join('');
+      return linhaMes + linhasDia;
     }).join('');
+
     tabela.innerHTML = thead + `<tbody>${corpo}</tbody>`;
-    info.textContent = `${linhas.length} dia(s)`;
-    tabela.querySelectorAll('[data-editar-dia]').forEach(tr=>{
+    info.textContent = `${linhas.length} dia(s) — ${meses.length} mês(es)`;
+
+    tabela.querySelectorAll('[data-mes-toggle]').forEach(tr=>{
       tr.addEventListener('click', ()=>{
+        const m = tr.dataset.mesToggle;
+        if(fabRelatorioMesesExpandidos.has(m)) fabRelatorioMesesExpandidos.delete(m); else fabRelatorioMesesExpandidos.add(m);
+        fabRenderRelatorioTabela(linhas, registrosManual);
+      });
+    });
+    tabela.querySelectorAll('[data-editar-dia]').forEach(tr=>{
+      tr.addEventListener('click', (e)=>{
+        e.stopPropagation();
         const data = tr.dataset.editarDia;
         fabPreencherFormularioRelatorio(data, registrosManual.get(data));
         document.getElementById('fab_rData').scrollIntoView({behavior:'smooth', block:'center'});
       });
     });
+  }
+
+  let fabChartRelatorio = null;
+  function fabRenderRelatorioChart(linhas){
+    const ctx = document.getElementById('fab_rChartTendencia');
+    const info = document.getElementById('fab_rInfoChart');
+    if(!ctx) return;
+    const ordenadas = linhas.slice().sort((a,b)=>a.data.localeCompare(b.data));
+    if(!ordenadas.length){ if(fabChartRelatorio){fabChartRelatorio.destroy();fabChartRelatorio=null;} info.textContent=''; return; }
+    const labels = ordenadas.map(l=>reg_formatarDataBR(l.data).slice(0,5));
+    if(fabChartRelatorio) fabChartRelatorio.destroy();
+    fabChartRelatorio = new Chart(ctx.getContext('2d'), {
+      data:{ labels, datasets:[
+        { type:'bar', label:'Produção Real (kg)', data: ordenadas.map(l=>Math.round(l.producaoKg)), backgroundColor:'#C1272D', borderRadius:4, yAxisID:'y' },
+        { type:'line', label:'Produção Prevista (kg)', data: ordenadas.map(l=>l.reg.producaoPrevista||null), borderColor:'#8A6D00', borderDash:[5,4], borderWidth:2, pointRadius:0, yAxisID:'y', tension:0 },
+        { type:'line', label:'Rendimento (ton/h)', data: ordenadas.map(l=>l.rendTonH!=null?+l.rendTonH.toFixed(2):null), borderColor:'#1D5A96', backgroundColor:'#1D5A96', borderWidth:2.2, pointRadius:2.5, yAxisID:'y1', tension:.25 }
+      ]},
+      options:{ responsive:true, maintainAspectRatio:false, interaction:{mode:'index',intersect:false},
+        plugins:{ legend:{position:'top', align:'end', labels:{boxWidth:11,font:{size:11}}} },
+        scales:{
+          x:{ grid:{display:false} },
+          y:{ beginAtZero:true, title:{display:true,text:'kg',font:{weight:600}}, grid:{color:'#EFEAE0'} },
+          y1:{ position:'right', beginAtZero:true, grid:{display:false}, title:{display:true,text:'ton/h',font:{weight:600}} }
+        } }
+    });
+    info.textContent = `${ordenadas.length} dia(s)`;
   }
 
   // ===================== ORQUESTRAÇÃO GERAL DA ABA BATELADAS =====================
@@ -11783,26 +11989,58 @@ if(regPinForm){
         <td style="text-align:center;">${Math.round(o.min/o.qtd)} min</td>
       </tr>`).join('')}</tbody>`;
 
-    // detalhamento
-    const ordenados = registros.slice().sort((a,b)=>b.data.localeCompare(a.data) || (b.duracaoMin||0)-(a.duracaoMin||0));
-    document.getElementById('fab_pInfoDetalhe').textContent = `${ordenados.length} registro(s)`;
-    document.getElementById('fab_pTabelaDetalhe').innerHTML = `<thead><tr><th class="qfc-col-first">Data</th><th>Início</th><th>Fim</th><th>Problema</th><th>Descrição</th><th>Ação</th><th>Duração</th></tr></thead>
-      <tbody>${ordenados.map(p=>`<tr>
-        <td class="qfc-col-first">${reg_formatarDataBR(p.data)}</td>
+    // detalhamento -- agrupado por mês, expansível (mesmo padrão do Relatório Diário)
+    fabRenderParadasTabelaDetalhe(registros);
+  }
+
+  const fabParadasMesesExpandidos = new Set([new Date().toISOString().slice(0,7)]);
+  function fabRenderParadasTabelaDetalhe(registros){
+    const tabela = document.getElementById('fab_pTabelaDetalhe');
+    const info = document.getElementById('fab_pInfoDetalhe');
+    if(!registros.length){ tabela.innerHTML=''; info.textContent=''; return; }
+    const thead = `<thead><tr><th class="qfc-col-first">Data</th><th>Início</th><th>Fim</th><th>Problema</th><th>Descrição</th><th>Ação</th><th>Duração</th></tr></thead>`;
+
+    const porMes = new Map();
+    registros.forEach(p=>{ const m=p.data.slice(0,7); if(!porMes.has(m)) porMes.set(m,[]); porMes.get(m).push(p); });
+    const meses = Array.from(porMes.keys()).sort().reverse();
+
+    const corpo = meses.map(m=>{
+      const doMes = porMes.get(m);
+      const expandido = fabParadasMesesExpandidos.has(m);
+      const totalMin = doMes.reduce((s,p)=>s+(p.duracaoMin||0),0);
+      const linhaMes = `<tr class="qfc-linha-nucleo" data-mes-parada-toggle="${m}" style="cursor:pointer;">
+        <td class="qfc-col-first" colspan="3">${expandido?'▾':'▸'} ${reg_formatarDataBR(m+'-01').slice(3)} <span style="font-weight:400;color:var(--texto-suave);">(${doMes.length} parada(s))</span></td>
+        <td colspan="2"></td>
+        <td></td>
+        <td style="text-align:center;font-weight:800;">${Math.floor(totalMin/60)}h${totalMin%60>0?' '+(totalMin%60)+'min':''}</td>
+      </tr>`;
+      const linhasDia = doMes.slice().sort((a,b)=>b.data.localeCompare(a.data) || (b.duracaoMin||0)-(a.duracaoMin||0)).map(p=>`<tr style="display:${expandido?'':'none'};" data-filha-mes-parada="${m}">
+        <td class="qfc-col-first" style="padding-left:26px;">${reg_formatarDataBR(p.data)}</td>
         <td style="text-align:center;">${(p.inicio||'').split(' ')[1]||'–'}</td>
         <td style="text-align:center;">${(p.fim||'').split(' ')[1]||'–'}</td>
         <td>${p.problema||'–'}</td>
         <td style="font-size:11.5px;">${p.descricao||'–'}</td>
         <td style="font-size:11.5px;">${p.acao||'–'}</td>
         <td style="text-align:center;font-weight:700;">${p.duracaoMin!=null?p.duracaoMin+' min':'–'}</td>
-      </tr>`).join('')}</tbody>`;
+      </tr>`).join('');
+      return linhaMes + linhasDia;
+    }).join('');
+
+    tabela.innerHTML = thead + `<tbody>${corpo}</tbody>`;
+    info.textContent = `${registros.length} registro(s) — ${meses.length} mês(es)`;
+    tabela.querySelectorAll('[data-mes-parada-toggle]').forEach(tr=>{
+      tr.addEventListener('click', ()=>{
+        const m = tr.dataset.mesParadaToggle;
+        if(fabParadasMesesExpandidos.has(m)) fabParadasMesesExpandidos.delete(m); else fabParadasMesesExpandidos.add(m);
+        fabRenderParadasTabelaDetalhe(registros);
+      });
+    });
   }
   let fabChartParadasMes = null;
 
   // ===================== VIAGENS: carga e análise =====================
   let FAB_VIAGENS_CACHE = { ano: null, registros: [] };
-  let fabVPaginaAtual = 1;
-  const FAB_V_ITENS_POR_PAGINA = 25;
+  const FAB_V_ITENS_POR_PAGINA = 25; // não usado mais (tabela agora agrupa por dia), mantido só por segurança
 
   async function fabCarregarViagensAno(ano){
     if(FAB_VIAGENS_CACHE.ano === ano) return FAB_VIAGENS_CACHE.registros;
@@ -11894,33 +12132,54 @@ if(regPinForm){
     });
     document.getElementById('fab_vInfoNucleo').textContent = `${nucleosOrd.length} núcleo(s)`;
 
-    // tabela paginada
-    const ordenadas = registros.slice().sort((a,b)=>b.inicio.localeCompare(a.inicio));
-    const totalPaginas = Math.max(1, Math.ceil(ordenadas.length/FAB_V_ITENS_POR_PAGINA));
-    if(fabVPaginaAtual>totalPaginas) fabVPaginaAtual = totalPaginas;
-    const inicioIdx = (fabVPaginaAtual-1)*FAB_V_ITENS_POR_PAGINA;
-    const pagina = ordenadas.slice(inicioIdx, inicioIdx+FAB_V_ITENS_POR_PAGINA);
-    document.getElementById('fab_vInfoTabela').textContent = `${ordenadas.length} viagem(ns)`;
-    document.getElementById('fab_vTabela').innerHTML = `<thead><tr><th class="qfc-col-first">Data/Hora</th><th>Núcleo</th><th>Integrado</th><th>Produto</th><th>Motorista</th><th>Placa</th><th>Kg</th></tr></thead>
-      <tbody>${pagina.map(v=>`<tr>
-        <td class="qfc-col-first">${(v.inicio||'').replace(' ',' ')}</td>
+    // tabela agrupada por dia, expansível (dia mais recente já vem aberto)
+    fabRenderViagensTabela(registros);
+  }
+  let fabChartViagensDia = null, fabChartViagensNucleo = null;
+  const fabViagensDiasExpandidos = new Set();
+
+  function fabRenderViagensTabela(registros){
+    const tabela = document.getElementById('fab_vTabela');
+    const info = document.getElementById('fab_vInfoTabela');
+    document.getElementById('fab_vPaginacao').innerHTML = ''; // paginação antiga não é mais usada
+    if(!registros.length){ tabela.innerHTML=''; info.textContent=''; return; }
+
+    const porDia = new Map();
+    registros.forEach(v=>{ if(!porDia.has(v.data)) porDia.set(v.data,[]); porDia.get(v.data).push(v); });
+    const dias = Array.from(porDia.keys()).sort().reverse();
+    if(fabViagensDiasExpandidos.size===0) fabViagensDiasExpandidos.add(dias[0]); // dia mais recente abre sozinho
+
+    const thead = `<thead><tr><th class="qfc-col-first">Data/Hora</th><th>Núcleo</th><th>Integrado</th><th>Produto</th><th>Motorista</th><th>Placa</th><th>Kg</th></tr></thead>`;
+    const corpo = dias.map(d=>{
+      const doDia = porDia.get(d);
+      const expandido = fabViagensDiasExpandidos.has(d);
+      const totalKgDia = doDia.reduce((s,v)=>s+(v.dosadoKg||0),0);
+      const linhaDia = `<tr class="qfc-linha-nucleo" data-dia-viagem-toggle="${d}" style="cursor:pointer;">
+        <td class="qfc-col-first" colspan="6">${expandido?'▾':'▸'} ${reg_formatarDataBR(d)} <span style="font-weight:400;color:var(--texto-suave);">(${doDia.length} viagem(ns))</span></td>
+        <td style="text-align:center;font-weight:800;">${Math.round(totalKgDia).toLocaleString('pt-BR')}</td>
+      </tr>`;
+      const linhasViagem = doDia.slice().sort((a,b)=>b.inicio.localeCompare(a.inicio)).map(v=>`<tr style="display:${expandido?'':'none'};" data-filha-dia-viagem="${d}">
+        <td class="qfc-col-first" style="padding-left:26px;">${(v.inicio||'').split(' ')[1]||'–'}</td>
         <td>${v.cliente||'–'}</td>
         <td>${v.integrado||'–'}</td>
         <td style="font-size:11.5px;">${v.produto||'–'}</td>
         <td>${v.motorista||'–'}</td>
         <td>${v.placa||'–'}</td>
         <td style="text-align:center;font-weight:700;">${v.dosadoKg!=null?v.dosadoKg.toLocaleString('pt-BR'):'–'}</td>
-      </tr>`).join('')}</tbody>`;
-    const pagEl = document.getElementById('fab_vPaginacao');
-    if(totalPaginas>1){
-      pagEl.innerHTML = `<button class="comb-btn-pagina" id="fab_vBtnAnterior" ${fabVPaginaAtual===1?'disabled':''}>‹</button>
-        <span class="comb-pagina-indicador">Página ${fabVPaginaAtual} de ${totalPaginas}</span>
-        <button class="comb-btn-pagina" id="fab_vBtnProxima" ${fabVPaginaAtual===totalPaginas?'disabled':''}>›</button>`;
-      document.getElementById('fab_vBtnAnterior').addEventListener('click', ()=>{ fabVPaginaAtual--; fabRenderViagens(); });
-      document.getElementById('fab_vBtnProxima').addEventListener('click', ()=>{ fabVPaginaAtual++; fabRenderViagens(); });
-    } else pagEl.innerHTML = '';
+      </tr>`).join('');
+      return linhaDia + linhasViagem;
+    }).join('');
+
+    tabela.innerHTML = thead + `<tbody>${corpo}</tbody>`;
+    info.textContent = `${registros.length} viagem(ns) — ${dias.length} dia(s)`;
+    tabela.querySelectorAll('[data-dia-viagem-toggle]').forEach(tr=>{
+      tr.addEventListener('click', ()=>{
+        const d = tr.dataset.diaViagemToggle;
+        if(fabViagensDiasExpandidos.has(d)) fabViagensDiasExpandidos.delete(d); else fabViagensDiasExpandidos.add(d);
+        fabRenderViagensTabela(registros);
+      });
+    });
   }
-  let fabChartViagensDia = null, fabChartViagensNucleo = null;
 
   // ===================== inicialização e roteamento de abas =====================
   let fabAbaAtiva = 'importar';
@@ -11952,7 +12211,10 @@ if(regPinForm){
       if(e.target.files.length) fabProcessarArquivosSelecionados(Array.from(e.target.files));
     });
 
+    document.getElementById('fab_btnLimparTudo').addEventListener('click', fabLimparTodosOsDados);
+
     document.getElementById('fab_rBtnSalvar').addEventListener('click', fabSalvarRelatorioDiario);
+    document.getElementById('fab_rBtnLimpar').addEventListener('click', ()=> fabPreencherFormularioRelatorio(new Date().toISOString().slice(0,10), null));
     ['fab_rAno','fab_rMes'].forEach(id=>{
       document.getElementById(id).addEventListener('change', fabRenderRelatorio);
     });
@@ -12000,7 +12262,7 @@ if(regPinForm){
 
     document.getElementById('fab_pAno').addEventListener('change', fabRenderParadas);
     ['fab_vAno','fab_vMes','fab_vNucleo','fab_vProduto'].forEach(id=>{
-      document.getElementById(id).addEventListener('change', ()=>{ fabVPaginaAtual=1; fabRenderViagens(); });
+      document.getElementById(id).addEventListener('change', fabRenderViagens);
     });
 
     fabRenderAbaAtiva();
