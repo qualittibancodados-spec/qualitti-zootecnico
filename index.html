@@ -207,6 +207,7 @@
   .qfc-scroll{ overflow-x:auto; border:1px solid var(--borda); border-radius:10px; }
   .qfc-tabela{ width:100%; border-collapse:collapse; font-size:12.5px; min-width:560px; }
   .qfc-tabela thead th{ background:#FBF7EE; border-bottom:1px solid var(--borda); color:var(--texto-suave); font-weight:700; font-size:10.5px; text-transform:uppercase; letter-spacing:.03em; text-align:left; padding:9px 12px; white-space:nowrap; position:sticky; top:0; }
+  #mod-fabrica .qfc-tabela thead th:not(.qfc-col-first){ text-align:center; }
   .qfc-tabela th.qfc-status, .qfc-tabela td.qfc-status{ text-align:center; }
   .qfc-tabela th.qfc-col-first, .qfc-tabela td.qfc-col-first{ position:sticky; left:0; background:var(--card); z-index:1; min-width:150px; text-align:left; }
   .qfc-tabela thead th.qfc-col-first{ background:#FBF7EE; z-index:2; }
@@ -318,6 +319,9 @@
   .comb-galpao-check input{ width:14px; height:14px; }
   .comb-btn-registrar{ width:100%; padding:16px; border:none; border-radius:14px; background:linear-gradient(135deg, var(--vermelho), #E8542E); color:#fff; font-family:'Sora',sans-serif; font-weight:800; font-size:15.5px; cursor:pointer; box-shadow:0 6px 16px rgba(193,39,45,.3); transition:.15s; }
   .comb-btn-registrar:hover{ filter:brightness(1.05); }
+  .fab-btn-primario{ background:linear-gradient(135deg, var(--vermelho), #E8542E); border:none; color:#fff; font-family:inherit; font-size:12.5px; font-weight:700; padding:9px 18px; border-radius:9px; cursor:pointer; transition:.15s; white-space:nowrap; box-shadow:0 3px 10px rgba(193,39,45,.25); }
+  .fab-btn-primario:hover{ filter:brightness(1.06); }
+  .fab-btn-primario:disabled{ opacity:.6; cursor:default; }
   .comb-btn-registrar:disabled{ opacity:.6; cursor:default; }
 
   .comb-modal-fundo{ position:fixed; inset:0; background:rgba(20,20,20,.55); z-index:900; display:flex; align-items:center; justify-content:center; padding:20px; overflow-y:auto; }
@@ -2234,7 +2238,7 @@
           </div>
         </div>
         <div style="display:flex;gap:10px;align-items:center;">
-          <button class="comb-btn-registrar" id="fab_rBtnSalvar" style="width:fit-content;">💾 Salvar dia</button>
+          <button class="fab-btn-primario" id="fab_rBtnSalvar" style="width:fit-content;">💾 Salvar dia</button>
           <button class="btn-recolher" id="fab_rBtnLimpar" style="width:fit-content;">Novo lançamento</button>
         </div>
         <p class="nota" id="fab_rStatus" style="min-height:16px;margin-top:10px;"></p>
@@ -10859,7 +10863,7 @@ if(regPinForm){
     });
     html += `</tbody></table></div>
       <div style="display:flex;gap:10px;margin-top:14px;">
-        <button class="comb-btn-registrar" id="fab_btnConfirmarImportacao" style="width:fit-content;">💾 Confirmar importação</button>
+        <button class="fab-btn-primario" id="fab_btnConfirmarImportacao" style="width:fit-content;">💾 Confirmar importação</button>
         <button class="btn-recolher" id="fab_btnCancelarImportacao" style="border-color:var(--vermelho);color:var(--vermelho);width:fit-content;">Cancelar</button>
       </div></div>`;
     previewEl.innerHTML = html;
@@ -11129,6 +11133,7 @@ if(regPinForm){
   }
 
   const FAB_MESES_NOME = ['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'];
+  function fabNomeMes(mesYYYYMM){ return FAB_MESES_NOME[+mesYYYYMM.slice(5,7)-1]; }
   function fabPopularMeses(selectId){
     const sel = document.getElementById(selectId);
     if(!sel || sel.dataset.populadoMes) return;
@@ -11167,7 +11172,7 @@ if(regPinForm){
   }
   function fabTemposMensais(todas){
     const chaves = Array.from(new Set(todas.map(b=>b.data.slice(0,7)))).sort();
-    return { chaves, rotulos: chaves.map(m=>reg_formatarDataBR(m+'-01').slice(3)), chaveDe:(d)=>d.slice(0,7) };
+    return { chaves, rotulos: chaves.map(fabNomeMes), chaveDe:(d)=>d.slice(0,7) };
   }
   function fabTemposSemanais(todas){
     const chavesSet = new Set();
@@ -11198,7 +11203,7 @@ if(regPinForm){
     const totalGeral = chaves.reduce((s,c)=>s+porChave.get(c),0);
     tabela.innerHTML = `<thead><tr><th class="qfc-col-first">${gran==='mes'?'Mês':'Dia'}</th><th>Dosado (kg)</th><th>% do total</th></tr></thead>
       <tbody>${chaves.map(c=>`<tr>
-        <td class="qfc-col-first">${gran==='mes'?reg_formatarDataBR(c+'-01').slice(3):reg_formatarDataBR(c)}</td>
+        <td class="qfc-col-first">${gran==='mes'?fabNomeMes(c):reg_formatarDataBR(c)}</td>
         <td style="text-align:center;font-weight:700;">${Math.round(porChave.get(c)).toLocaleString('pt-BR')}</td>
         <td style="text-align:center;">${totalGeral?((porChave.get(c)/totalGeral)*100).toFixed(2):'0'}%</td>
       </tr>`).join('')}
@@ -11361,7 +11366,7 @@ if(regPinForm){
   // ração como um todo -- é assim que a planilha de referência calcula (uma linha de ingrediente
   // pode estourar mesmo que a batelada inteira feche certinho no total).
   let fabChartPareto = null;
-  let fabExpandidoGrupoErro = new Set(['acima']); // grupo "acima" começa expandido
+  let fabExpandidoGrupoErro = new Set([`${new Date().toISOString().slice(0,7)}|acima`]); // grupo "acima" do mês atual começa expandido
 
   function fabIngredientesComErro(lotes, todas){
     // só ingredientes das bateladas que sobreviveram ao filtro (ano/mês/produto)
@@ -11425,63 +11430,143 @@ if(regPinForm){
 
   // matérias-primas agrupadas em "Acima de 2%" (se teve algum dia acima do limite, em módulo) ou
   // "Igual ou Abaixo de 2%", mostrando o histórico completo dia a dia (não só onde estourou)
+  const fabExpandidoMesErro = new Set([new Date().toISOString().slice(0,7)]); // mês atual começa aberto
+  const fabExpandidoCelulaErro = new Set(); // chaves "mes|materia|dia" com o detalhe de dosagens aberto
+
   function fabRenderTabelaErroDia(ingredientes){
     const tabela = document.getElementById('fab_bTabelaErroDia');
     const info = document.getElementById('fab_bInfoErro');
-    const dias = Array.from(new Set(ingredientes.map(i=>i.data))).sort();
-    const materias = Array.from(new Set(ingredientes.map(i=>i.produto))).sort();
-    if(!dias.length || !materias.length){ tabela.innerHTML=''; info.textContent=''; return; }
+    if(!ingredientes.length){ tabela.innerHTML=''; info.textContent=''; return; }
 
-    const porMateriaDia = new Map();
+    // nível 1: agrupa por MÊS (pai)
+    const porMes = new Map();
     ingredientes.forEach(ing=>{
-      const chave = `${ing.produto}|${ing.data}`;
-      if(!porMateriaDia.has(chave)) porMateriaDia.set(chave, []);
-      porMateriaDia.get(chave).push(Math.abs(ing.erroPct));
+      const m = ing.data.slice(0,7);
+      if(!porMes.has(m)) porMes.set(m, []);
+      porMes.get(m).push(ing);
     });
-    const mediaDe = (materia, dia)=>{
-      const arr = porMateriaDia.get(`${materia}|${dia}`);
-      return arr && arr.length ? arr.reduce((a,b)=>a+b,0)/arr.length : null;
-    };
+    const meses = Array.from(porMes.keys()).sort().reverse();
 
-    const grupoDe = new Map();
-    materias.forEach(m=>{
-      const teveAcima = dias.some(d=>{ const v = mediaDe(m,d); return v!=null && v>2; });
-      grupoDe.set(m, teveAcima ? 'acima' : 'dentro');
-    });
-    const grupos = [
-      {chave:'acima', rotulo:'Acima de 2%', materias: materias.filter(m=>grupoDe.get(m)==='acima')},
-      {chave:'dentro', rotulo:'Igual ou Abaixo de 2%', materias: materias.filter(m=>grupoDe.get(m)==='dentro')}
-    ];
+    const corpo = meses.map(mes=>{
+      const ingredientesDoMes = porMes.get(mes);
+      const expandidoMes = fabExpandidoMesErro.has(mes);
+      const dias = Array.from(new Set(ingredientesDoMes.map(i=>i.data))).sort();
+      const materias = Array.from(new Set(ingredientesDoMes.map(i=>i.produto))).sort();
 
-    const thead = `<thead><tr><th class="qfc-col-first">Matérias-Primas</th>${dias.map(d=>`<th style="min-width:56px;">${reg_formatarDataBR(d).slice(0,5)}</th>`).join('')}</tr></thead>`;
-    const corpo = grupos.map(g=>{
-      if(!g.materias.length) return '';
-      const expandido = fabExpandidoGrupoErro.has(g.chave);
-      const linhaGrupo = `<tr class="qfc-linha-nucleo" data-grupo-erro-toggle="${g.chave}" style="cursor:pointer;">
-        <td class="qfc-col-first">${expandido?'▾':'▸'} ${g.rotulo}</td>
-        ${dias.map(d=>{
-          const vals = g.materias.map(m=>mediaDe(m,d)).filter(v=>v!=null);
-          const media = vals.length ? vals.reduce((a,b)=>a+b,0)/vals.length : null;
-          return `<td style="text-align:center;font-weight:800;">${media!=null?media.toFixed(2)+'%':'–'}</td>`;
-        }).join('')}
+      const porMateriaDia = new Map();
+      ingredientesDoMes.forEach(ing=>{
+        const chave = `${ing.produto}|${ing.data}`;
+        if(!porMateriaDia.has(chave)) porMateriaDia.set(chave, []);
+        porMateriaDia.get(chave).push(ing);
+      });
+      const mediaDe = (materia, dia)=>{
+        const arr = porMateriaDia.get(`${materia}|${dia}`);
+        return arr && arr.length ? arr.reduce((a,b)=>a+Math.abs(b.erroPct),0)/arr.length : null;
+      };
+
+      const grupoDe = new Map();
+      materias.forEach(m=>{
+        const teveAcima = dias.some(d=>{ const v = mediaDe(m,d); return v!=null && v>2; });
+        grupoDe.set(m, teveAcima ? 'acima' : 'dentro');
+      });
+      const grupos = [
+        {chave:'acima', rotulo:'Acima de 2%', materias: materias.filter(m=>grupoDe.get(m)==='acima')},
+        {chave:'dentro', rotulo:'Igual ou Abaixo de 2%', materias: materias.filter(m=>grupoDe.get(m)==='dentro')}
+      ];
+
+      // linha "pai" do mês
+      const linhaMes = `<tr class="qfc-linha-nucleo" data-mes-erro-toggle="${mes}" style="cursor:pointer;background:#1F3A5F;">
+        <td class="qfc-col-first" style="color:#fff;" colspan="${dias.length+1}">${expandidoMes?'▾':'▸'} ${fabNomeMes(mes)} <span style="font-weight:400;color:#C9D6E8;">(${materias.length} matéria(s)-prima, ${dias.length} dia(s))</span></td>
       </tr>`;
-      const linhasMateria = g.materias.map(m=>`<tr style="display:${expandido?'':'none'};" data-grupo-erro-filha="${g.chave}">
-        <td class="qfc-col-first" style="padding-left:26px;font-size:12px;">${m}</td>
-        ${dias.map(d=>{
-          const v = mediaDe(m,d);
-          return `<td style="text-align:center;font-size:12px;${v!=null&&v>2?'color:#B3261E;font-weight:700;':'color:var(--texto-suave);'}">${v!=null?v.toFixed(2)+'%':'0,00%'}</td>`;
-        }).join('')}
-      </tr>`).join('');
-      return linhaGrupo + linhasMateria;
+      if(!expandidoMes) return linhaMes;
+
+      // cabeçalho dos dias, específico desse mês (só aparece quando o mês está aberto)
+      const linhaCabecalhoDias = `<tr data-filha-mes-erro="${mes}">
+        <td class="qfc-col-first" style="background:#FBF7EE;color:var(--texto-suave);font-weight:700;font-size:10.5px;text-transform:uppercase;letter-spacing:.03em;">Matérias-Primas</td>
+        ${dias.map(d=>`<td style="min-width:56px;background:#FBF7EE;color:var(--texto-suave);font-weight:700;font-size:10.5px;text-transform:uppercase;letter-spacing:.03em;text-align:center;">${reg_formatarDataBR(d).slice(0,5)}</td>`).join('')}
+      </tr>`;
+
+      const corpoGrupos = grupos.map(g=>{
+        if(!g.materias.length) return '';
+        const chaveGrupo = `${mes}|${g.chave}`;
+        const expandidoGrupo = fabExpandidoGrupoErro.has(chaveGrupo);
+        const linhaGrupo = `<tr class="qfc-linha-nucleo" data-grupo-erro-toggle="${chaveGrupo}" style="cursor:pointer;" data-filha-mes-erro="${mes}">
+          <td class="qfc-col-first" style="padding-left:18px;">${expandidoGrupo?'▾':'▸'} ${g.rotulo}</td>
+          ${dias.map(d=>{
+            const vals = g.materias.map(m=>mediaDe(m,d)).filter(v=>v!=null);
+            const media = vals.length ? vals.reduce((a,b)=>a+b,0)/vals.length : null;
+            return `<td style="text-align:center;font-weight:800;">${media!=null?media.toFixed(2)+'%':'–'}</td>`;
+          }).join('')}
+        </tr>`;
+
+        const linhasMateria = g.materias.map(materia=>{
+          const linhaMateria = `<tr style="display:${expandidoGrupo?'':'none'};" data-grupo-erro-filha="${chaveGrupo}" data-filha-mes-erro="${mes}">
+            <td class="qfc-col-first" style="padding-left:34px;font-size:12px;">${materia}</td>
+            ${dias.map(d=>{
+              const v = mediaDe(materia,d);
+              const temDado = v!=null;
+              const chaveCel = `${mes}|${materia}|${d}`;
+              const celExpandida = fabExpandidoCelulaErro.has(chaveCel);
+              return `<td data-cel-erro-toggle="${temDado?chaveCel:''}" style="text-align:center;font-size:12px;${temDado?'cursor:pointer;':''}${v!=null&&v>2?'color:#B3261E;font-weight:700;':'color:var(--texto-suave);'}${celExpandida?'background:#FDF1DC;':''}">${v!=null?v.toFixed(2)+'%':'0,00%'}${celExpandida?' 🔽':''}</td>`;
+            }).join('')}
+          </tr>`;
+
+          // linha de detalhe (dosagens daquele produto, naquele mês, ordenadas da pior pra melhor) --
+          // aparece logo abaixo quando QUALQUER célula daquela matéria-prima, nesse mês, é clicada
+          const diaExpandido = dias.find(d=>fabExpandidoCelulaErro.has(`${mes}|${materia}|${d}`));
+          let linhaDetalhe = '';
+          if(diaExpandido && expandidoGrupo){
+            const dosagens = (porMateriaDia.get(`${materia}|${diaExpandido}`)||[]).slice().sort((a,b)=>Math.abs(b.erroPct)-Math.abs(a.erroPct));
+            linhaDetalhe = `<tr style="display:${expandidoGrupo?'':'none'};" data-grupo-erro-filha="${chaveGrupo}" data-filha-mes-erro="${mes}">
+              <td colspan="${dias.length+1}" style="background:#FFFBF0;padding:10px 14px 14px 34px;">
+                <div style="font-size:11.5px;font-weight:700;color:var(--texto-suave);margin-bottom:6px;text-transform:uppercase;letter-spacing:.03em;">
+                  ${materia} — ${reg_formatarDataBR(diaExpandido)} — dosagens ordenadas da pior pra melhor
+                </div>
+                <table class="qfc-tabela" style="width:100%;">
+                  <thead><tr><th class="qfc-col-first">Ração (batelada)</th><th>Batelada</th><th>Requisitado</th><th>Dosado</th><th>Erro</th></tr></thead>
+                  <tbody>${dosagens.map((d,i)=>`<tr>
+                    <td class="qfc-col-first">${d.produtoBatelada||'–'}</td>
+                    <td style="text-align:center;">${d.batelada!=null?d.batelada:'–'}</td>
+                    <td style="text-align:center;">${d.requisitadoKg!=null?d.requisitadoKg.toLocaleString('pt-BR',{maximumFractionDigits:2})+' kg':'–'}</td>
+                    <td style="text-align:center;">${d.dosadoKg!=null?d.dosadoKg.toLocaleString('pt-BR',{maximumFractionDigits:2})+' kg':'–'}</td>
+                    <td class="qfc-status ${Math.abs(d.erroPct)>2?'qfc-status-falta':''}" style="font-weight:${i===0?800:600};">${(d.erroPct>=0?'+':'')+d.erroPct.toFixed(2)+'%'}${i===0?' 🔴':''}</td>
+                  </tr>`).join('')}</tbody>
+                </table>
+              </td>
+            </tr>`;
+          }
+          return linhaMateria + linhaDetalhe;
+        }).join('');
+        return linhaGrupo + linhasMateria;
+      }).join('');
+
+      return linhaMes + linhaCabecalhoDias + corpoGrupos;
     }).join('');
 
-    tabela.innerHTML = thead + `<tbody>${corpo}</tbody>`;
-    info.textContent = `${grupos[0].materias.length} matéria(s)-prima(s) acima de 2% — ${grupos[1].materias.length} dentro do padrão`;
+    tabela.innerHTML = `<thead><tr><th class="qfc-col-first">Matérias-Primas</th></tr></thead><tbody>${corpo}</tbody>`;
+    const totalMaterias = new Set(ingredientes.map(i=>i.produto)).size;
+    info.textContent = `${meses.length} mês(es) — ${totalMaterias} matéria(s)-prima(s) no total`;
 
+    tabela.querySelectorAll('[data-mes-erro-toggle]').forEach(tr=>{
+      tr.addEventListener('click', ()=>{
+        const mes = tr.dataset.mesErroToggle;
+        if(fabExpandidoMesErro.has(mes)) fabExpandidoMesErro.delete(mes); else fabExpandidoMesErro.add(mes);
+        fabRenderTabelaErroDia(ingredientes);
+      });
+    });
     tabela.querySelectorAll('[data-grupo-erro-toggle]').forEach(tr=>{
       tr.addEventListener('click', ()=>{
         const chave = tr.dataset.grupoErroToggle;
         if(fabExpandidoGrupoErro.has(chave)) fabExpandidoGrupoErro.delete(chave); else fabExpandidoGrupoErro.add(chave);
+        fabRenderTabelaErroDia(ingredientes);
+      });
+    });
+    tabela.querySelectorAll('[data-cel-erro-toggle]').forEach(td=>{
+      if(!td.dataset.celErroToggle) return;
+      td.addEventListener('click', (e)=>{
+        e.stopPropagation();
+        const chave = td.dataset.celErroToggle;
+        if(fabExpandidoCelulaErro.has(chave)) fabExpandidoCelulaErro.delete(chave); else fabExpandidoCelulaErro.add(chave);
         fabRenderTabelaErroDia(ingredientes);
       });
     });
@@ -11783,7 +11868,7 @@ if(regPinForm){
       const realMedio = comReal.length ? comReal.reduce((s,l)=>s+l.pctRealizado,0)/comReal.length : null;
 
       const linhaMes = `<tr class="qfc-linha-nucleo" data-mes-toggle="${m}" style="cursor:pointer;">
-        <td class="qfc-col-first" colspan="2">${expandido?'▾':'▸'} ${reg_formatarDataBR(m+'-01').slice(3)} <span style="font-weight:400;color:var(--texto-suave);">(${linhasDoMes.length} dia(s))</span></td>
+        <td class="qfc-col-first" colspan="2">${expandido?'▾':'▸'} ${fabNomeMes(m)} <span style="font-weight:400;color:var(--texto-suave);">(${linhasDoMes.length} dia(s))</span></td>
         <td style="text-align:center;font-weight:800;">${Math.round(totalProd).toLocaleString('pt-BR')}</td>
         <td style="text-align:center;font-weight:800;">${Math.round(totalExp).toLocaleString('pt-BR')}</td>
         <td style="text-align:center;font-weight:800;">${rendMedio!=null?rendMedio.toFixed(2):'–'}</td>
@@ -11966,7 +12051,7 @@ if(regPinForm){
     if(fabChartParadasMes) fabChartParadasMes.destroy();
     fabChartParadasMes = new Chart(ctx.getContext('2d'), {
       type:'bar',
-      data:{ labels: meses.map(m=>reg_formatarDataBR(m+'-01').slice(3)), datasets:[{label:'Minutos parados', data: meses.map(m=>porMes.get(m)), backgroundColor:'#1D5A96', borderRadius:6, maxBarThickness:60}]},
+      data:{ labels: meses.map(fabNomeMes), datasets:[{label:'Minutos parados', data: meses.map(m=>porMes.get(m)), backgroundColor:'#1D5A96', borderRadius:6, maxBarThickness:60}]},
       options:{ responsive:true, maintainAspectRatio:false, plugins:{legend:{display:false}, tooltip:{callbacks:{label:c=>{const m=c.parsed.y; return `${Math.floor(m/60)}h ${m%60}min`;}}}},
         scales:{ x:{grid:{display:false}}, y:{beginAtZero:true, title:{display:true,text:'minutos',font:{weight:600}}, grid:{color:'#EFEAE0'}} } }
     });
@@ -12009,7 +12094,7 @@ if(regPinForm){
       const expandido = fabParadasMesesExpandidos.has(m);
       const totalMin = doMes.reduce((s,p)=>s+(p.duracaoMin||0),0);
       const linhaMes = `<tr class="qfc-linha-nucleo" data-mes-parada-toggle="${m}" style="cursor:pointer;">
-        <td class="qfc-col-first" colspan="3">${expandido?'▾':'▸'} ${reg_formatarDataBR(m+'-01').slice(3)} <span style="font-weight:400;color:var(--texto-suave);">(${doMes.length} parada(s))</span></td>
+        <td class="qfc-col-first" colspan="3">${expandido?'▾':'▸'} ${fabNomeMes(m)} <span style="font-weight:400;color:var(--texto-suave);">(${doMes.length} parada(s))</span></td>
         <td colspan="2"></td>
         <td></td>
         <td style="text-align:center;font-weight:800;">${Math.floor(totalMin/60)}h${totalMin%60>0?' '+(totalMin%60)+'min':''}</td>
