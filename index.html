@@ -319,7 +319,7 @@
   .comb-galpao-check input{ width:14px; height:14px; }
   .comb-btn-registrar{ width:100%; padding:16px; border:none; border-radius:14px; background:linear-gradient(135deg, var(--vermelho), #E8542E); color:#fff; font-family:'Sora',sans-serif; font-weight:800; font-size:15.5px; cursor:pointer; box-shadow:0 6px 16px rgba(193,39,45,.3); transition:.15s; }
   .comb-btn-registrar:hover{ filter:brightness(1.05); }
-  .fab-btn-primario{ background:linear-gradient(135deg, var(--vermelho), #E8542E); border:none; color:#fff; font-family:inherit; font-size:12.5px; font-weight:700; padding:9px 18px; border-radius:9px; cursor:pointer; transition:.15s; white-space:nowrap; box-shadow:0 3px 10px rgba(193,39,45,.25); }
+  .fab-btn-primario{ display:inline-flex; align-items:center; gap:6px; background:linear-gradient(135deg, var(--vermelho), #E8542E); border:none; color:#fff; font-family:inherit; font-size:12.5px; font-weight:700; padding:8px 18px; border-radius:9px; cursor:pointer; transition:.15s; white-space:nowrap; box-shadow:0 3px 10px rgba(193,39,45,.25); line-height:1.2; }
   .fab-btn-primario:hover{ filter:brightness(1.06); }
   .fab-btn-primario:disabled{ opacity:.6; cursor:default; }
   .comb-btn-registrar:disabled{ opacity:.6; cursor:default; }
@@ -946,6 +946,28 @@
 }
 
 #fer2-print-header{ display:none; }
+#fab_r-print-header{ display:none; }
+@media print{
+  @page{ size: landscape; margin: 8mm; }
+  html, body{ background:#fff !important; }
+  body *{ visibility:hidden; }
+  #mod-fabrica [data-aba-fab-view="relatorio"] *,
+  #mod-fabrica [data-aba-fab-view="relatorio"]{ visibility:visible; }
+  .sidebar, .topbar-mobile, .tabs-internas,
+  #fab_rBtnExportarPDF, #fab_rBtnSalvar, #fab_rBtnLimpar,
+  #mod-fabrica [data-aba-fab-view="relatorio"] .filtros,
+  #mod-fabrica [data-aba-fab-view="relatorio"] .cards,
+  #mod-fabrica [data-aba-fab-view="relatorio"] .painel-grafico,
+  #mod-fabrica [data-aba-fab-view="relatorio"] > .painel:first-of-type,
+  #mod-fabrica [data-aba-fab-view="relatorio"] p.nota{ display:none !important; }
+  #fab_r-print-header{ display:flex !important; visibility:visible; align-items:center; gap:14px; margin-bottom:14px; border-bottom:2px solid #C1272D; padding-bottom:12px; }
+  #fab_r-print-header img{ height:44px; }
+  #fab_r-print-header .qf-print-titulos h1{ font-size:16px; margin:0; font-family:'Sora',sans-serif; }
+  #fab_r-print-header .qf-print-titulos p{ font-size:10px; margin:2px 0 0; color:#666; }
+  #fab_rScrollTabela{ overflow:visible !important; width:100% !important; }
+  #fab_rTabela{ width:100% !important; table-layout:fixed !important; font-size:7px; }
+  #fab_rTabela th, #fab_rTabela td{ min-width:0 !important; max-width:none !important; padding:3px 2px !important; overflow-wrap:break-word; word-break:break-word; white-space:normal !important; }
+}
 @media print{
   @page{ size: landscape; margin: 8mm; }
   html, body{ background:#fff !important; }
@@ -2234,12 +2256,12 @@
           </div>
           <div style="background:var(--bg);border:1px solid var(--borda);border-radius:12px;padding:14px 16px;">
             <div style="font-size:11px;font-weight:700;color:var(--texto-suave);text-transform:uppercase;letter-spacing:.03em;margin-bottom:10px;">🎯 Meta</div>
-            <div class="campo"><label>Produção Prevista (kg)</label><input type="number" id="fab_rProducaoPrevista" step="1" value="400"></div>
+            <div class="campo"><label>Produção Prevista (ton)</label><input type="number" id="fab_rProducaoPrevista" step="1" value="400"></div>
           </div>
         </div>
         <div style="display:flex;gap:10px;align-items:center;">
           <button class="fab-btn-primario" id="fab_rBtnSalvar" style="width:fit-content;">💾 Salvar dia</button>
-          <button class="btn-recolher" id="fab_rBtnLimpar" style="width:fit-content;">Novo lançamento</button>
+          <button class="btn-recolher" id="fab_rBtnLimpar" style="width:fit-content;display:inline-flex;align-items:center;gap:6px;line-height:1.2;">🆕 Novo lançamento</button>
         </div>
         <p class="nota" id="fab_rStatus" style="min-height:16px;margin-top:10px;"></p>
       </div>
@@ -2259,9 +2281,20 @@
       </div>
 
       <div class="painel">
-        <div class="painel-header"><h2>Relatório Diário</h2><span class="info" id="fab_rInfoTabela"></span></div>
-        <p class="nota" style="margin:0 0 14px;">Clique no mês pra abrir/fechar os dias. Clique numa linha de dia pra editar no formulário acima.</p>
-        <div class="qfc-scroll"><table class="qfc-tabela" id="fab_rTabela"></table></div>
+        <div class="painel-header">
+          <h2>Relatório Diário</h2>
+          <button class="btn-recolher" id="fab_rBtnExportarPDF" type="button">📄 Exportar PDF</button>
+          <span class="info" id="fab_rInfoTabela"></span>
+        </div>
+        <p class="nota" style="margin:0 0 14px;">Clique no mês pra abrir/fechar os dias. Clique numa linha de dia pra editar no formulário acima. Clique e arraste a tabela pros lados pra ver as colunas do final.</p>
+        <div id="fab_r-print-header">
+          <img src="logo.png" alt="Qualitti">
+          <div class="qf-print-titulos">
+            <h1>Relatório Diário — Fábrica de Rações</h1>
+            <p id="fab_r-print-data"></p>
+          </div>
+        </div>
+        <div class="qfc-scroll arrastavel" id="fab_rScrollTabela"><table class="qfc-tabela" id="fab_rTabela"></table></div>
       </div>
     </div>
 
@@ -11810,7 +11843,7 @@ if(regPinForm){
       const horasPerdidas = horasDisponiveis - horasTrabalhadas;
       const pctHorasTrab = horasDisponiveis ? (horasTrabalhadas/horasDisponiveis*100) : null;
       const rendTonH = horasTrabalhadas ? (producaoKg/1000/horasTrabalhadas) : null;
-      const pctRealizado = reg.producaoPrevista ? (producaoKg/reg.producaoPrevista*100) : null;
+      const pctRealizado = reg.producaoPrevista ? ((producaoKg/1000)/reg.producaoPrevista*100) : null;
       return {data, reg, producaoKg, expedicaoKg, horasTrabalhadas, horasDisponiveis, horasPerdidas, pctHorasTrab, rendTonH, pctRealizado};
     });
 
@@ -11866,14 +11899,25 @@ if(regPinForm){
       const rendMedio = comRend.length ? comRend.reduce((s,l)=>s+l.rendTonH,0)/comRend.length : null;
       const comReal = linhasDoMes.filter(l=>l.pctRealizado!=null);
       const realMedio = comReal.length ? comReal.reduce((s,l)=>s+l.pctRealizado,0)/comReal.length : null;
+      const totalHorasDisp = linhasDoMes.reduce((s,l)=>s+(l.horasDisponiveis||0),0);
+      const totalHorasTrab = linhasDoMes.reduce((s,l)=>s+(l.horasTrabalhadas||0),0);
+      const totalHorasPerd = linhasDoMes.reduce((s,l)=>s+(l.horasPerdidas||0),0);
+      const totalEstoqueGranja = linhasDoMes.reduce((s,l)=>s+(l.reg.estoqueGranja||0),0);
+      const totalEstoqueFabrica = linhasDoMes.reduce((s,l)=>s+(l.reg.estoqueFabrica||0),0);
+      const totalProdPrev = linhasDoMes.reduce((s,l)=>s+(l.reg.producaoPrevista||0),0);
 
       const linhaMes = `<tr class="qfc-linha-nucleo" data-mes-toggle="${m}" style="cursor:pointer;">
         <td class="qfc-col-first" colspan="2">${expandido?'▾':'▸'} ${fabNomeMes(m)} <span style="font-weight:400;color:var(--texto-suave);">(${linhasDoMes.length} dia(s))</span></td>
         <td style="text-align:center;font-weight:800;">${Math.round(totalProd).toLocaleString('pt-BR')}</td>
         <td style="text-align:center;font-weight:800;">${Math.round(totalExp).toLocaleString('pt-BR')}</td>
         <td style="text-align:center;font-weight:800;">${rendMedio!=null?rendMedio.toFixed(2):'–'}</td>
-        <td colspan="4"></td>
-        <td colspan="2"></td>
+        <td style="text-align:center;font-weight:800;">${totalHorasDisp||'–'}</td>
+        <td style="text-align:center;font-weight:800;">${totalHorasTrab||'–'}</td>
+        <td style="text-align:center;font-weight:800;">${totalHorasPerd?totalHorasPerd.toFixed(1):'–'}</td>
+        <td></td>
+        <td style="text-align:center;font-weight:800;">${totalEstoqueGranja?totalEstoqueGranja.toLocaleString('pt-BR'):'–'}</td>
+        <td style="text-align:center;font-weight:800;">${totalEstoqueFabrica?totalEstoqueFabrica.toLocaleString('pt-BR'):'–'}</td>
+        <td style="text-align:center;font-weight:800;">${totalProdPrev?totalProdPrev.toLocaleString('pt-BR'):'–'}</td>
         <td style="text-align:center;font-weight:800;">${realMedio!=null?realMedio.toFixed(1)+'%':'–'}</td>
       </tr>`;
 
@@ -11931,7 +11975,7 @@ if(regPinForm){
     fabChartRelatorio = new Chart(ctx.getContext('2d'), {
       data:{ labels, datasets:[
         { type:'bar', label:'Produção Real (kg)', data: ordenadas.map(l=>Math.round(l.producaoKg)), backgroundColor:'#C1272D', borderRadius:4, yAxisID:'y' },
-        { type:'line', label:'Produção Prevista (kg)', data: ordenadas.map(l=>l.reg.producaoPrevista||null), borderColor:'#8A6D00', borderDash:[5,4], borderWidth:2, pointRadius:0, yAxisID:'y', tension:0 },
+        { type:'line', label:'Produção Prevista (ton, em kg pra comparar)', data: ordenadas.map(l=>l.reg.producaoPrevista!=null?l.reg.producaoPrevista*1000:null), borderColor:'#8A6D00', borderDash:[5,4], borderWidth:2, pointRadius:0, yAxisID:'y', tension:0 },
         { type:'line', label:'Rendimento (ton/h)', data: ordenadas.map(l=>l.rendTonH!=null?+l.rendTonH.toFixed(2):null), borderColor:'#1D5A96', backgroundColor:'#1D5A96', borderWidth:2.2, pointRadius:2.5, yAxisID:'y1', tension:.25 }
       ]},
       options:{ responsive:true, maintainAspectRatio:false, interaction:{mode:'index',intersect:false},
@@ -12300,6 +12344,11 @@ if(regPinForm){
 
     document.getElementById('fab_rBtnSalvar').addEventListener('click', fabSalvarRelatorioDiario);
     document.getElementById('fab_rBtnLimpar').addEventListener('click', ()=> fabPreencherFormularioRelatorio(new Date().toISOString().slice(0,10), null));
+    document.getElementById('fab_rBtnExportarPDF').addEventListener('click', ()=>{
+      document.getElementById('fab_r-print-data').textContent = 'Gerado em ' + new Date().toLocaleString('pt-BR');
+      window.print();
+    });
+    ativarArrastar(document.getElementById('fab_rScrollTabela'));
     ['fab_rAno','fab_rMes'].forEach(id=>{
       document.getElementById(id).addEventListener('change', fabRenderRelatorio);
     });
