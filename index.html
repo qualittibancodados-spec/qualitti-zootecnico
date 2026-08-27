@@ -498,11 +498,12 @@
   .legenda-item .barra{ width:16px; height:3px; border-radius:2px;}
 
   /* calendário de importações — Fábrica de Rações */
-  .fab-cal-grid{ display:grid; grid-template-columns:repeat(auto-fill, minmax(46px, 1fr)); gap:4px; }
-  .fab-cal-dia{ border:1px solid var(--borda); border-radius:8px; padding:5px 4px; text-align:center; background:var(--card); }
-  .fab-cal-num{ font-size:11px; font-weight:700; color:var(--texto-suave); margin-bottom:4px; }
-  .fab-cal-barras{ display:flex; flex-direction:column; gap:2px; }
-  .fab-cal-b{ display:block; height:4px; border-radius:2px; }
+  .fab-cal-semana-header{ display:grid; grid-template-columns:repeat(7, 1fr); gap:4px; margin-bottom:6px; }
+  .fab-cal-semana-header div{ text-align:center; font-size:10px; font-weight:700; color:var(--texto-suave); text-transform:uppercase; letter-spacing:.03em; }
+  .fab-cal-grid{ display:grid; grid-template-columns:repeat(7, 1fr); gap:4px; }
+  .fab-cal-dia{ border:1.5px solid var(--borda); border-radius:9px; padding:6px 4px 7px; text-align:center; background:var(--card); transition:.12s; }
+  .fab-cal-dia:hover{ filter:brightness(0.97); transform:translateY(-1px); }
+  .fab-cal-num{ font-size:11px; font-weight:700; color:var(--texto); white-space:nowrap; }
 
   .linha-nucleo{ font-weight:600; }
   .linha-nucleo td{ padding:10px; }
@@ -2259,9 +2260,9 @@
             <div class="campo"><label>Produção Prevista (ton)</label><input type="number" id="fab_rProducaoPrevista" step="1" value="400"></div>
           </div>
         </div>
-        <div style="display:flex;gap:10px;align-items:center;">
-          <button class="fab-btn-primario" id="fab_rBtnSalvar" style="width:fit-content;">💾 Salvar dia</button>
-          <button class="btn-recolher" id="fab_rBtnLimpar" style="width:fit-content;display:inline-flex;align-items:center;gap:6px;line-height:1.2;">🆕 Novo lançamento</button>
+        <div style="display:flex;gap:10px;align-items:center;border-top:1px solid var(--borda);padding-top:16px;">
+          <button class="fab-btn-primario" id="fab_rBtnSalvar" style="width:fit-content;padding:10px 22px;font-size:13.5px;">💾 Salvar dia</button>
+          <button class="btn-recolher" id="fab_rBtnLimpar" style="width:fit-content;display:inline-flex;align-items:center;gap:6px;line-height:1.2;padding:10px 18px;font-size:13px;">🆕 Novo lançamento</button>
         </div>
         <p class="nota" id="fab_rStatus" style="min-height:16px;margin-top:10px;"></p>
       </div>
@@ -2342,13 +2343,14 @@
 
       <div class="painel">
         <div class="painel-header"><h2>Histórico de importações — últimos 60 dias</h2><span class="info" id="fab_infoCalendario"></span></div>
-        <p class="nota" style="margin:0 0 14px;">Verde = tem dado importado naquele dia. Cinza claro = sem dado (pode ser dia sem produção, ou um dia que faltou importar — vale conferir).</p>
+        <p class="nota" style="margin:0 0 14px;">Cada dia mostra 3 selos: <strong>B</strong>ateladas, <strong>P</strong>aradas, <strong>V</strong>iagens — colorido quando importado, cinza quando falta. Fundo verde = dia completo (os 3), amarelo = faltou pelo menos 1, branco = nenhum importado ainda.</p>
         <div id="fab_calendarioImportacoes"></div>
         <div class="legenda-custom" style="margin-top:12px;">
-          <div class="legenda-item"><span class="barra" style="background:#2E9E6B"></span>Bateladas</div>
-          <div class="legenda-item"><span class="barra" style="background:#1D5A96"></span>Paradas</div>
-          <div class="legenda-item"><span class="barra" style="background:#C1272D"></span>Viagens</div>
-          <div class="legenda-item"><span class="barra" style="background:#E6EAEF"></span>Sem dado</div>
+          <div class="legenda-item"><span style="display:inline-flex;align-items:center;justify-content:center;width:16px;height:16px;border-radius:5px;font-size:8.5px;font-weight:800;color:#fff;background:#2E9E6B;">B</span>Bateladas</div>
+          <div class="legenda-item"><span style="display:inline-flex;align-items:center;justify-content:center;width:16px;height:16px;border-radius:5px;font-size:8.5px;font-weight:800;color:#fff;background:#1D5A96;">P</span>Paradas</div>
+          <div class="legenda-item"><span style="display:inline-flex;align-items:center;justify-content:center;width:16px;height:16px;border-radius:5px;font-size:8.5px;font-weight:800;color:#fff;background:#C1272D;">V</span>Viagens</div>
+          <div class="legenda-item"><span class="barra" style="background:#E3F5EA;border:1px solid #A9DCC0;"></span>Dia completo</div>
+          <div class="legenda-item"><span class="barra" style="background:#FFF6DA;border:1px solid #F0DA8C;"></span>Faltou 1 ou 2</div>
         </div>
       </div>
 
@@ -11023,7 +11025,7 @@ if(regPinForm){
     const cont = document.getElementById('fab_calendarioImportacoes');
     const info = document.getElementById('fab_infoCalendario');
     if(!cont) return;
-    cont.innerHTML = '<p class="nota">Carregando...</p>';
+    cont.innerHTML = `<div class="vazio" style="display:flex;align-items:center;gap:8px;justify-content:center;">Carregando... <span class="fab-spinner" style="border-top-color:var(--vermelho);border-color:rgba(193,39,45,.25);"></span></div>`;
     const hoje = new Date();
     const dias = [];
     for(let i=59;i>=0;i--){
@@ -11035,24 +11037,51 @@ if(regPinForm){
     const porDia = new Map();
     snap.forEach(doc=>porDia.set(doc.id, doc.data()));
 
-    let faltando = 0;
-    const celulas = dias.map(dia=>{
+    let faltando = 0, incompletos = 0;
+    dias.forEach(dia=>{
       const d = porDia.get(dia);
       const temB = d && d.totalBateladas>0, temP = d && d.totalParadas>0, temV = d && d.totalViagens>0;
-      if(!temB && !temP && !temV) faltando++;
-      const diaNum = dia.slice(8,10);
-      const titulo = `${reg_formatarDataBR(dia)}${d ? ` — ${d.totalBateladas||0} batelada(s), ${d.totalParadas||0} parada(s), ${d.totalViagens||0} viagem(ns). Clique pra ver detalhe ou excluir.` : ' — sem dado'}`;
-      return `<div class="fab-cal-dia" data-dia="${dia}" title="${titulo}" style="cursor:pointer;">
-        <div class="fab-cal-num">${diaNum}</div>
-        <div class="fab-cal-barras">
-          <span class="fab-cal-b ${temB?'on':''}" style="background:${temB?'#2E9E6B':'#E6EAEF'}"></span>
-          <span class="fab-cal-b ${temP?'on':''}" style="background:${temP?'#1D5A96':'#E6EAEF'}"></span>
-          <span class="fab-cal-b ${temV?'on':''}" style="background:${temV?'#C1272D':'#E6EAEF'}"></span>
+      const qtd = [temB,temP,temV].filter(Boolean).length;
+      if(qtd===0) faltando++;
+      else if(qtd<3) incompletos++;
+    });
+
+    // monta um calendário de verdade (domingo a sábado), preenchendo com células vazias
+    // no início/fim pra alinhar os dias da semana certinho
+    const primeiroDia = new Date(dias[0]+'T00:00:00');
+    const offsetInicio = primeiroDia.getDay(); // 0=domingo
+    const celulasVazias = Array.from({length: offsetInicio}, ()=>'<div></div>');
+
+    const badge = (letra, tem, cor)=>`<span title="${letra==='B'?'Bateladas':letra==='P'?'Paradas':'Viagens'}: ${tem?'importado':'faltando'}" style="display:inline-flex;align-items:center;justify-content:center;width:16px;height:16px;border-radius:5px;font-size:8.5px;font-weight:800;color:${tem?'#fff':'#B5BCC5'};background:${tem?cor:'#EDF0F3'};border:1px solid ${tem?cor:'#D9DEE6'};">${letra}</span>`;
+
+    const celulasDias = dias.map(dia=>{
+      const d = porDia.get(dia);
+      const temB = d && d.totalBateladas>0, temP = d && d.totalParadas>0, temV = d && d.totalViagens>0;
+      const qtd = [temB,temP,temV].filter(Boolean).length;
+      const diaNum = +dia.slice(8,10);
+      const ehPrimeiroDoMes = diaNum===1;
+      const statusCor = qtd===3 ? '#E3F5EA' : qtd===0 ? '#fff' : '#FFF6DA'; // completo=verde clarinho, parcial=amarelo, vazio=branco
+      const statusBorda = qtd===3 ? '#A9DCC0' : qtd===0 ? '#E6EAEF' : '#F0DA8C';
+      const titulo = `${reg_formatarDataBR(dia)}${d ? ` — ${d.totalBateladas||0} batelada(s), ${d.totalParadas||0} parada(s), ${d.totalViagens||0} viagem(ns). Clique pra ver detalhe ou excluir.` : ' — sem nenhum dado importado'}`;
+      return `<div class="fab-cal-dia" data-dia="${dia}" title="${titulo}" style="cursor:pointer;background:${statusCor};border-color:${statusBorda};">
+        <div class="fab-cal-num">${ehPrimeiroDoMes?FAB_MESES_NOME[new Date(dia+'T00:00:00').getMonth()].slice(0,3)+' ':''}${diaNum}</div>
+        <div style="display:flex;gap:3px;justify-content:center;margin-top:4px;">
+          ${badge('B', temB, '#2E9E6B')}
+          ${badge('P', temP, '#1D5A96')}
+          ${badge('V', temV, '#C1272D')}
         </div>
       </div>`;
-    }).join('');
-    cont.innerHTML = `<div class="fab-cal-grid">${celulas}</div><div id="fab_painelDiaDetalhe" style="margin-top:16px;"></div>`;
-    info.textContent = faltando>0 ? `${faltando} dia(s) sem nenhum dado nos últimos 60 dias` : 'Todos os dias com pelo menos um tipo de dado';
+    });
+
+    cont.innerHTML = `
+      <div class="fab-cal-semana-header">${['Dom','Seg','Ter','Qua','Qui','Sex','Sáb'].map(d=>`<div>${d}</div>`).join('')}</div>
+      <div class="fab-cal-grid">${celulasVazias.join('')}${celulasDias.join('')}</div>
+      <div id="fab_painelDiaDetalhe" style="margin-top:16px;"></div>`;
+
+    const partesInfo = [];
+    if(faltando>0) partesInfo.push(`<strong style="color:var(--texto-suave);">${faltando} dia(s) sem nenhum dado</strong>`);
+    if(incompletos>0) partesInfo.push(`<strong style="color:#8A6D00;">${incompletos} dia(s) incompleto(s) (faltou pelo menos 1 relatório)</strong>`);
+    info.innerHTML = partesInfo.length ? partesInfo.join(' · ') : '<strong style="color:var(--verde-ok);">Todos os dias completos ✓</strong>';
 
     cont.querySelectorAll('[data-dia]').forEach(el=>{
       el.addEventListener('click', ()=> fabAbrirDetalheDia(el.dataset.dia, porDia.get(el.dataset.dia)));
@@ -11112,6 +11141,11 @@ if(regPinForm){
   // marca/linha de nutrição pode vir em qualquer posição do nome, e o "tipo" (fase) pode ter
   // mais de uma palavra (ex: "PRE INICIAL") -- por isso achamos a marca primeiro, e tudo antes
   // dela vira o tipo, em vez de fixar "2ª palavra = tipo, 3ª = nutrição"
+  function fabMostrarCarregando(idContainer){
+    const el = document.getElementById(idContainer);
+    if(el) el.innerHTML = `<div class="vazio" style="display:flex;align-items:center;gap:8px;justify-content:center;">Carregando dados... <span class="fab-spinner" style="border-top-color:var(--vermelho);border-color:rgba(193,39,45,.25);"></span></div>`;
+  }
+
   const FAB_MARCAS_CONHECIDAS = ['VACCINAR','VACCINA','DSM'];
   const FAB_CORES_SERIE = ['#C1272D','#1D5A96','#2E9E6B','#F2A900','#8A6D00','#5B3FA6','#0B7285','#B3261E','#6A7686','#9A6700'];
   function fabTitleCase(s){ return s ? s.split(' ').map(w=>w?w.charAt(0)+w.slice(1).toLowerCase():'').join(' ') : '—'; }
@@ -11153,7 +11187,12 @@ if(regPinForm){
     return out;
   }
 
+  // cache: "achatar" ingrediente por ingrediente é uma operação pesada (percorre lote > batelada >
+  // ingrediente pra cada lote carregado) -- sem isso, ela rodava de novo toda vez que trocava de
+  // subaba (Produção/Erros/Consumo) ou clicava num toggle, mesmo sem os dados terem mudado
+  let FAB_INGREDIENTES_CACHE = { lotesRef: null, out: null };
   function fabTodasIngredientes(lotes){
+    if(FAB_INGREDIENTES_CACHE.lotesRef === lotes) return FAB_INGREDIENTES_CACHE.out;
     const out = [];
     lotes.forEach(lote=>{
       (lote.bateladas||[]).forEach(b=>{
@@ -11162,6 +11201,7 @@ if(regPinForm){
         });
       });
     });
+    FAB_INGREDIENTES_CACHE = { lotesRef: lotes, out };
     return out;
   }
 
@@ -11813,6 +11853,7 @@ if(regPinForm){
     await fabPopularFiltrosRelatorio();
     const ano = document.getElementById('fab_rAno').value;
     const anoAlvo = ano==='Todos' ? new Date().getFullYear() : +ano;
+    if(FAB_BATELADAS_CACHE.ano !== anoAlvo) fabMostrarCarregando('fab_rCards');
     const [lotes, viagens, registrosManual] = await Promise.all([
       fabCarregarBateladasAno(anoAlvo),
       fabCarregarViagensAno(anoAlvo),
@@ -11997,6 +12038,7 @@ if(regPinForm){
     await fabPopularFiltrosBateladas();
     const ano = document.getElementById('fab_bAno').value;
     const anoAlvo = ano==='Todos' ? new Date().getFullYear() : +ano;
+    if(FAB_BATELADAS_CACHE.ano !== anoAlvo) fabMostrarCarregando('fab_bCards');
     const lotes = await fabCarregarBateladasAno(anoAlvo);
     let todas = fabTodasBateladas(lotes);
 
@@ -12070,6 +12112,7 @@ if(regPinForm){
   async function fabRenderParadas(){
     await fabPopularFiltrosParadas();
     const ano = +document.getElementById('fab_pAno').value;
+    if(FAB_PARADAS_CACHE.ano !== ano) fabMostrarCarregando('fab_pCards');
     const registros = await fabCarregarParadasAno(ano);
 
     const cont = document.getElementById('fab_pCards');
@@ -12194,6 +12237,7 @@ if(regPinForm){
   async function fabRenderViagens(){
     await fabPopularFiltrosViagens();
     const ano = +document.getElementById('fab_vAno').value;
+    if(FAB_VIAGENS_CACHE.ano !== ano) fabMostrarCarregando('fab_vCards');
     let registros = await fabCarregarViagensAno(ano);
 
     const selNucleo = document.getElementById('fab_vNucleo');
