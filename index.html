@@ -906,6 +906,67 @@
 #mod-condenas ::-webkit-scrollbar-thumb{background:var(--borda);border-radius:4px;}
 @media(max-width:560px){#mod-condenas .tipo-row{grid-template-columns:130px 1fr 70px;font-size:11.5px;}}
 
+
+/* ═══════════ QUADRO DE FUNCIONÁRIOS — painel executivo (RH) ═══════════ */
+#mod-quadro .qfx-faixa{ display:grid; grid-template-columns:1.3fr 1fr 1fr 1fr; gap:0; background:#fff;
+  border:1px solid var(--borda); border-radius:var(--r-lg); overflow:hidden; margin-bottom:16px; box-shadow:var(--e1); }
+#mod-quadro .qfx-cel{ padding:17px 20px; border-right:1px solid var(--borda); }
+#mod-quadro .qfx-cel:last-child{ border-right:none; }
+#mod-quadro .qfx-cel.destaque{ background:linear-gradient(140deg,#fff,#FDF4F4); }
+#mod-quadro .qfx-cel .l{ font-size:9.5px; font-weight:800; color:var(--n500); text-transform:uppercase;
+  letter-spacing:.1em; margin-bottom:9px; }
+#mod-quadro .qfx-cel .v{ font-family:'Sora',sans-serif; font-size:28px; font-weight:800; letter-spacing:-.04em;
+  line-height:1; color:var(--n900); }
+#mod-quadro .qfx-cel .v small{ font-size:13px; font-weight:600; color:var(--n400); margin-left:3px; letter-spacing:0; }
+#mod-quadro .qfx-cel .s{ font-size:11px; color:var(--n500); margin-top:8px; }
+#mod-quadro .qfx-prog{ height:7px; border-radius:5px; background:var(--n150); margin-top:11px; overflow:hidden; }
+#mod-quadro .qfx-prog i{ display:block; height:100%; border-radius:5px; transition:width .6s cubic-bezier(.2,.7,.3,1); }
+
+#mod-quadro .qfx-dupla{ display:grid; grid-template-columns:1.15fr 1fr; gap:16px; }
+#mod-quadro .qfx-bloco{ margin-bottom:16px; }
+#mod-quadro .qfx-leg{ display:flex; gap:15px; flex-wrap:wrap; margin-top:12px; padding-top:11px;
+  border-top:1px solid var(--n150); font-size:10.5px; color:var(--n500); font-weight:600; }
+#mod-quadro .qfx-leg span{ display:inline-flex; align-items:center; gap:6px; }
+#mod-quadro .qfx-leg i{ width:9px; height:9px; border-radius:3px; }
+
+#mod-quadro .qfx-alerta{ display:flex; align-items:center; gap:11px; padding:10px 13px; border-radius:10px;
+  margin-bottom:7px; border:1px solid var(--borda); background:#fff; }
+#mod-quadro .qfx-alerta.g1{ background:#FDF0F0; border-color:#F2C9CA; }
+#mod-quadro .qfx-alerta.g2{ background:#FEF6E7; border-color:#F5E2B8; }
+#mod-quadro .qfx-alerta.g3{ background:#EBF8F2; border-color:#BEE6D3; }
+#mod-quadro .qfx-alerta .tg{ font-size:8.5px; font-weight:800; padding:3px 8px; border-radius:6px;
+  flex-shrink:0; letter-spacing:.05em; }
+#mod-quadro .qfx-alerta.g1 .tg{ background:var(--vermelho); color:#fff; }
+#mod-quadro .qfx-alerta.g2 .tg{ background:#F2A900; color:#4A3300; }
+#mod-quadro .qfx-alerta.g3 .tg{ background:#1B8A57; color:#fff; }
+#mod-quadro .qfx-alerta .tx{ flex:1; min-width:0; }
+#mod-quadro .qfx-alerta .tt{ font-size:12.3px; font-weight:700; color:var(--n900); }
+#mod-quadro .qfx-alerta .st{ font-size:10.8px; color:var(--n500); margin-top:2px; }
+#mod-quadro .qfx-alerta .nm{ font-family:'Sora',sans-serif; font-size:16px; font-weight:800; flex-shrink:0; }
+#mod-quadro .qfx-alerta.g1 .nm{ color:var(--vermelho); }
+#mod-quadro .qfx-alerta.g2 .nm{ color:#B87A00; }
+
+#mod-quadro .qfx-saidas{ max-height:330px; overflow-y:auto; }
+#mod-quadro .qfx-saida{ display:flex; align-items:center; gap:10px; padding:9px 0; border-bottom:1px solid var(--n150); }
+#mod-quadro .qfx-saida:last-child{ border-bottom:none; }
+#mod-quadro .qfx-saida .nm{ font-size:12.3px; font-weight:650; color:var(--n900); }
+#mod-quadro .qfx-saida .sb{ font-size:10.5px; color:var(--n500); }
+#mod-quadro .qfx-ini{ width:26px; height:26px; border-radius:50%; display:grid; place-items:center;
+  font-size:9.5px; font-weight:800; flex-shrink:0; }
+#mod-quadro .qfx-ini.g{ background:#E8EEF7; color:#1D5A96; }
+#mod-quadro .qfx-ini.a{ background:#FEF8EA; color:#8A6300; }
+#mod-quadro .qfx-pl{ display:inline-flex; align-items:center; font-size:9.5px; font-weight:800;
+  padding:3px 9px; border-radius:20px; background:#FEF6E7; color:#B87A00; white-space:nowrap; }
+@media (max-width:1080px){
+  #mod-quadro .qfx-dupla{ grid-template-columns:1fr; }
+  #mod-quadro .qfx-faixa{ grid-template-columns:1fr 1fr; }
+  #mod-quadro .qfx-cel{ border-bottom:1px solid var(--borda); }
+}
+@media print{
+  #mod-quadro .qfx-dupla, #mod-quadro #qfx-blocoAlertas{ display:none !important; }
+  #mod-quadro .qfx-faixa{ box-shadow:none; break-inside:avoid; }
+}
+
 #qf-print-header{ display:none; }
 @media print{
   @page{ size: portrait; margin: 10mm; } /* padrão vertical — vira paisagem só quando "Ambos" está selecionado (ver JS) */
@@ -2149,6 +2210,33 @@ select:focus, input:focus,
           <button class="btn-recolher" id="qf-btnImprimir" type="button">🖨️ Imprimir</button>
           <button class="btn-recolher" id="qf-btnExportarExcel" type="button">📊 Exportar Excel</button>
         </div>
+
+        <!-- ===== painel executivo (RH) ===== -->
+        <div class="qfx-faixa" id="qfx-faixa"></div>
+
+        <div class="painel qfx-bloco" id="qfx-blocoAlertas">
+          <div class="painel-header"><h2>Núcleos que precisam de reposição</h2><span class="info" id="qfx-infoAlertas"></span></div>
+          <div id="qfx-alertas"></div>
+        </div>
+
+        <div class="qfx-dupla">
+          <div class="painel qfx-bloco">
+            <div class="painel-header"><h2>Cobertura por núcleo</h2><span class="info">granjeiro e ajudante</span></div>
+            <p class="nota" style="margin:0 0 14px;">Barras cheias indicam quadro completo. O trecho claro no fim é o que falta preencher.</p>
+            <div class="chart-wrap" style="height:300px;"><canvas id="qfx-chartCobertura"></canvas></div>
+            <div class="qfx-leg">
+              <span><i style="background:#1D5A96"></i>Granjeiros</span>
+              <span><i style="background:#F2A900"></i>Ajudantes</span>
+              <span><i style="background:#E9ECF1"></i>Vagas em aberto</span>
+            </div>
+          </div>
+          <div class="painel qfx-bloco">
+            <div class="painel-header"><h2>Saídas previstas</h2><span class="info" id="qfx-infoSaidas"></span></div>
+            <p class="nota" style="margin:0 0 12px;">Pessoas com desligamento ou aviso prévio já lançado pelo técnico responsável.</p>
+            <div id="qfx-saidas" class="qfx-saidas"></div>
+          </div>
+        </div>
+
         <div class="painel">
           <div id="qf-print-header">
             <img src="logo.png" alt="Qualitti">
@@ -8987,6 +9075,116 @@ window.iniciarQuadroFuncionarios = iniciarQuadroFuncionarios;
 
 window.qfVisaoAtiva = window.qfVisaoAtiva || 'atual';
 
+
+/* ═══════════ Painel executivo do Quadro (visão do RH) ═══════════
+   Só apresentação: reaproveita calcularResumoNucleo, respeita a mesma
+   visão atual/futuro e o mesmo recorte de núcleos da tabela abaixo.     */
+window.qfxChartCobertura = null;
+function qfxIniciais(nome){
+  return String(nome||'').trim().split(/\s+/).map(x=>x[0]).slice(0,2).join('').toUpperCase();
+}
+function renderQuadroPainelExecutivo(resumos, futuro){
+  const faixa = document.getElementById('qfx-faixa');
+  if(!faixa) return;
+
+  const R = resumos.map(({nuc, postos, r})=>{
+    const g = futuro ? r.futuroGranj : r.atualGranj;
+    const a = futuro ? r.futuroAjud  : r.atualAjud;
+    return {nuc, postos, r, g, a,
+      falta: Math.max(0, r.necessidadeGranjeiro-g) + Math.max(0, r.necessidadeAjudante-a)};
+  });
+
+  const necT   = R.reduce((s,x)=>s + x.r.necessidadeGranjeiro + x.r.necessidadeAjudante, 0);
+  const atT    = R.reduce((s,x)=>s + x.g + x.a, 0);
+  const faltaT = R.reduce((s,x)=>s + x.falta, 0);
+  const compl  = R.filter(x=>x.falta===0).length;
+  const pct    = necT ? atT/necT*100 : 0;
+  const cor    = pct>=97 ? 'var(--verde-ok)' : pct>=90 ? '#B87A00' : 'var(--vermelho)';
+
+  let saidas = [];
+  R.forEach(({nuc, postos})=>postos.forEach(p=>{
+    if(p.granjeiroSaindo && p.granjeiro && p.granjeiro.trim())
+      saidas.push({n:p.granjeiro, f:'Granjeiro', nuc, av:p.aviarios});
+    if(p.ajudanteSaindo && p.ajudante && p.ajudante.trim())
+      saidas.push({n:p.ajudante, f:'Ajudante', nuc, av:p.aviarios});
+  }));
+  saidas.sort((x,y)=>nomeNucleo(x.nuc).localeCompare(nomeNucleo(y.nuc)));
+
+  faixa.innerHTML = `
+    <div class="qfx-cel destaque"><div class="l">Cobertura do quadro</div>
+      <div class="v" style="color:${cor}">${pct.toFixed(1)}<small>%</small></div>
+      <div class="s"><b>${atT}</b> de <b>${necT}</b> posições preenchidas</div>
+      <div class="qfx-prog"><i style="width:${Math.min(100,pct)}%;background:${cor}"></i></div></div>
+    <div class="qfx-cel"><div class="l">Vagas em aberto</div>
+      <div class="v" style="color:${faltaT?'var(--vermelho)':'var(--verde-ok)'}">${faltaT}</div>
+      <div class="s">${faltaT?'posições a preencher':'quadro completo'}</div></div>
+    <div class="qfx-cel"><div class="l">Núcleos completos</div>
+      <div class="v">${compl}<small>de ${R.length}</small></div>
+      <div class="s">${R.length-compl} com pendência</div></div>
+    <div class="qfx-cel"><div class="l">Saídas previstas</div>
+      <div class="v" style="color:${saidas.length?'#B87A00':'inherit'}">${saidas.length}</div>
+      <div class="s">pessoa(s) com aviso lançado</div></div>`;
+
+  // --- núcleos que precisam de reposição ---
+  const pend = R.filter(x=>x.falta>0).sort((a,b)=>b.falta-a.falta);
+  const info = document.getElementById('qfx-infoAlertas');
+  if(info) info.textContent = pend.length ? `${pend.length} de ${R.length} núcleos` : 'todos completos';
+  const cont = document.getElementById('qfx-alertas');
+  if(cont){
+    cont.innerHTML = pend.length ? pend.slice(0,6).map(x=>{
+      const fg = Math.max(0, x.r.necessidadeGranjeiro - x.g);
+      const fa = Math.max(0, x.r.necessidadeAjudante  - x.a);
+      const partes = [];
+      if(fg) partes.push(`${fg} granjeiro${fg>1?'s':''}`);
+      if(fa) partes.push(`${fa} ajudante${fa>1?'s':''}`);
+      const tot = x.postos.reduce((s,p)=>s+contarAviarios(p.aviarios),0);
+      return `<div class="qfx-alerta ${x.falta>=3?'g1':'g2'}">
+        <span class="tg">${x.falta>=3?'CRÍTICO':'ATENÇÃO'}</span>
+        <div class="tx"><div class="tt">${nomeNucleo(x.nuc)}</div>
+        <div class="st">Falta ${partes.join(' e ')} · ${tot} aviário(s) · ${x.postos.length} posto(s)</div></div>
+        <div class="nm">−${x.falta}</div></div>`;
+    }).join('')
+    : `<div class="qfx-alerta g3"><span class="tg">OK</span><div class="tx">
+       <div class="tt">Todos os núcleos com quadro completo</div>
+       <div class="st">Nenhuma vaga em aberto nesta visão.</div></div></div>`;
+  }
+
+  // --- saídas ---
+  const infoS = document.getElementById('qfx-infoSaidas');
+  if(infoS) infoS.textContent = `${saidas.length} pessoa(s)`;
+  const contS = document.getElementById('qfx-saidas');
+  if(contS){
+    contS.innerHTML = saidas.length ? saidas.map(x=>`
+      <div class="qfx-saida"><div class="qfx-ini ${x.f==='Granjeiro'?'g':'a'}">${qfxIniciais(x.n)}</div>
+        <div style="flex:1;min-width:0;"><div class="nm">${x.n}</div>
+        <div class="sb">${x.f} · ${nomeNucleo(x.nuc)} · aviários ${x.av||'—'}</div></div>
+        <span class="qfx-pl">saindo</span></div>`).join('')
+      : '<div class="nota" style="padding:20px;text-align:center;">Nenhuma saída lançada.</div>';
+  }
+
+  // --- gráfico de cobertura ---
+  const cv = document.getElementById('qfx-chartCobertura');
+  if(cv && window.Chart){
+    const ord = R.slice().sort((a,b)=>b.falta-a.falta || nomeNucleo(a.nuc).localeCompare(nomeNucleo(b.nuc)));
+    if(window.qfxChartCobertura) window.qfxChartCobertura.destroy();
+    window.qfxChartCobertura = new Chart(cv.getContext('2d'), {
+      type:'bar',
+      data:{ labels: ord.map(x=>nomeNucleo(x.nuc)), datasets:[
+        {label:'Granjeiros', data:ord.map(x=>x.g), backgroundColor:'#1D5A96', borderRadius:3, stack:'s'},
+        {label:'Ajudantes',  data:ord.map(x=>x.a), backgroundColor:'#F2A900', borderRadius:3, stack:'s'},
+        {label:'Vagas',      data:ord.map(x=>x.falta), backgroundColor:'#E9ECF1', borderRadius:3, stack:'s'}]},
+      options:{ indexAxis:'y', responsive:true, maintainAspectRatio:false,
+        plugins:{ legend:{display:false},
+          tooltip:{ backgroundColor:'rgba(16,20,24,.94)', padding:11, cornerRadius:9,
+            boxWidth:8, boxHeight:8, usePointStyle:true,
+            callbacks:{ footer:i=>{ const x=ord[i[0].dataIndex];
+              return `Necessário: ${x.r.necessidadeGranjeiro} granjeiros + ${x.r.necessidadeAjudante} ajudantes`; } } } },
+        scales:{ x:{stacked:true, grid:{color:'#EAEFF5'}, ticks:{font:{size:10}, precision:0}},
+                 y:{stacked:true, grid:{display:false}, ticks:{font:{size:10.5}}} } }
+    });
+  }
+}
+
 function renderQuadroConsolidado(){
   const totaisEl = document.getElementById('qf-resumoTotais');
   const gridEl = document.getElementById('qf-scrollConsolidada');
@@ -9025,6 +9223,10 @@ function renderQuadroConsolidado(){
   const nucleosOrdenados = resumosPorNucleo.map(x=>x.nuc);
   if(!nucleosOrdenados.length){
     gridEl.innerHTML = '<div class="vazio">Nenhum posto cadastrado ainda.</div>';
+    // limpa o painel do topo também, senão ficariam números de um filtro anterior
+    ['qfx-faixa','qfx-alertas','qfx-saidas'].forEach(id=>{ const e=document.getElementById(id); if(e) e.innerHTML=''; });
+    ['qfx-infoAlertas','qfx-infoSaidas'].forEach(id=>{ const e=document.getElementById(id); if(e) e.textContent=''; });
+    if(window.qfxChartCobertura){ window.qfxChartCobertura.destroy(); window.qfxChartCobertura=null; }
     return;
   }
   // por padrão a visão consolidada abre com tudo expandido — só entra aqui na 1ª vez;
@@ -9039,6 +9241,10 @@ function renderQuadroConsolidado(){
     totNecessidadeG += r.necessidadeGranjeiro; totNecessidadeA += r.necessidadeAjudante;
     totAtualG += r.atualGranj; totAtualA += r.atualAjud; totFutG += r.futuroGranj; totFutA += r.futuroAjud;
   });
+
+  // painel executivo do topo (KPIs, alertas, gráfico e saídas) — usa os mesmos
+  // resumos e a mesma visão atual/futuro da tabela detalhada abaixo
+  renderQuadroPainelExecutivo(resumosPorNucleo, futuro);
 
   function statusPosto(p, futuro){
     const temG = p.granjeiro && p.granjeiro.trim();
