@@ -3408,8 +3408,7 @@ function ativarArrastar(el){
 })();
 
 // ========================= Módulos (nível principal) =========================
-document.querySelectorAll('.modulo').forEach(btn => {
-  btn.addEventListener('click', () => {
+function ativarModulo(btn){
     document.querySelectorAll('.modulo').forEach(b => b.classList.remove('ativo'));
     btn.classList.add('ativo');
     const mod = btn.dataset.modulo;
@@ -3460,8 +3459,42 @@ document.querySelectorAll('.modulo').forEach(btn => {
     }
     if(window.registrarModulo) window.registrarModulo(mod);
     window.scrollTo({top:0, behavior:'smooth'});
-  });
+}
+
+document.querySelectorAll('.modulo').forEach(btn => {
+  btn.addEventListener('click', () => ativarModulo(btn));
 });
+
+// Abre o primeiro módulo que a pessoa realmente pode ver. Antes o HTML já vinha com
+// "mortalidade" marcado como ativo, então quem não tinha acesso a ele caía numa tela
+// vazia sem entender o motivo.
+window.abrirPrimeiroModuloPermitido = function(){
+  const visiveis = Array.from(document.querySelectorAll('.sidebar .modulo'))
+    .filter(b => b.style.display !== 'none' && b.offsetParent !== null);
+  const jaAtivo = document.querySelector('.modulo.ativo');
+  // se o módulo já ativo é um dos visíveis, respeita a escolha e não faz nada
+  if(jaAtivo && visiveis.includes(jaAtivo)) return;
+  document.querySelectorAll('.modulo').forEach(b => b.classList.remove('ativo'));
+  if(visiveis.length){
+    ativarModulo(visiveis[0]);
+  } else {
+    // ninguém liberou nada pra essa pessoa — esconde tudo e explica, em vez de deixar a tela quebrada
+    document.querySelectorAll('[data-modulo-view]').forEach(v => v.style.display = 'none');
+    const t = document.getElementById('tabsMortalidade'); if(t) t.style.display = 'none';
+    const f = document.getElementById('filtrosMortalidade'); if(f) f.style.display = 'none';
+    const main = document.querySelector('main');
+    if(main && !document.getElementById('semAcessoAviso')){
+      const d = document.createElement('div');
+      d.id = 'semAcessoAviso';
+      d.className = 'painel';
+      d.style.cssText = 'text-align:center;padding:44px 24px;';
+      d.innerHTML = '<div style="font-size:34px;margin-bottom:12px;">🔒</div>'
+        + '<h2 style="font-size:16px;margin-bottom:8px;">Nenhum módulo liberado</h2>'
+        + '<p class="nota" style="margin:0;">Sua conta ainda não tem acesso a nenhuma área do painel. Fale com o administrador para liberar.</p>';
+      main.appendChild(d);
+    }
+  }
+};
 
 // ========================= Tabs de Visão =========================
 document.querySelectorAll('.tab-visao').forEach(btn => {
@@ -7639,7 +7672,10 @@ function atualizarBotoesModulosPermissao(){
   const btnProdutos = document.getElementById('btnModuloProdutos');
   const btnEnergiaSolar = document.getElementById('btnModuloEnergiaSolar');
   if(btnAdmin) btnAdmin.style.display = (window.souAdminPrincipal || window.minhasPermissoes.metas || window.minhasPermissoes.usuarios || window.minhasPermissoes.produtos || window.minhasPermissoes.energiaSolar) ? '' : 'none';
-  if(btnQuadro) btnQuadro.style.display = ((window.souAdminPrincipal || (window.minhasPermissoes.funcionariosNucleos||[]).length>0) && podeVerModulo('quadro')) ? '' : 'none';
+  // ver o módulo depende SÓ de modulosPermitidos. A lista funcionariosNucleos define o que a
+  // pessoa pode EDITAR, não o que pode ver — antes as duas coisas estavam coladas, e quem tinha
+  // o módulo liberado mas nenhum núcleo pra editar simplesmente não via o botão.
+  if(btnQuadro) btnQuadro.style.display = podeVerModulo('quadro') ? '' : 'none';
   if(btnRegistros) btnRegistros.style.display = podeVerModulo('registros') ? '' : 'none';
   if(btnProdutos) btnProdutos.style.display = podeVerModulo('produtos') ? '' : 'none';
   if(btnEnergiaSolar) btnEnergiaSolar.style.display = podeVerModulo('energiasolar') ? '' : 'none';
@@ -7649,6 +7685,9 @@ function atualizarBotoesModulosPermissao(){
     const btn = document.querySelector(`.sidebar [data-modulo="${chave}"]`);
     if(btn) btn.style.display = podeVerModulo(chave) ? '' : 'none';
   });
+  // logo depois de esconder/mostrar os botões, garante que a tela aberta é uma que a
+  // pessoa pode ver (roda nas 4 chamadas: cache, admin principal, permissões e falha)
+  if(window.abrirPrimeiroModuloPermitido) window.abrirPrimeiroModuloPermitido();
 }
 
 const QF_CACHE_CHAVE = 'qualitti_sessao_cache_v1';
@@ -8961,6 +9000,13 @@ function renderQuadroConsolidado(){
     if(!porNucleo.has(p.nucleo)) porNucleo.set(p.nucleo, []);
     porNucleo.get(p.nucleo).push(p);
   });
+  // mesma regra da aba de edicao: lista de nucleos vazia = ve todos (RH),
+  // lista com nucleos = ve so os dele. Sem isso a Visao Consolidada mostrava
+  // todos os nucleos mesmo pra quem so tem 1 ou 2 liberados.
+  const meusNucleosCons = nucleosQueEditoPodeQuadro();
+  if(!window.souAdminPrincipal && meusNucleosCons.length > 0){
+    Array.from(porNucleo.keys()).forEach(n=>{ if(!meusNucleosCons.includes(n)) porNucleo.delete(n); });
+  }
   // pré-calcula o resumo de cada núcleo primeiro, pra poder ordenar por quem precisa de mais atenção
   const resumosPorNucleo = Array.from(porNucleo.keys()).map(nuc=>{
     const postos = porNucleo.get(nuc);
@@ -9179,11 +9225,15 @@ function renderQuadroFuncionarios(){
     porNucleo.get(p.nucleo).push(p);
   });
   let nucleosOrdenados = Array.from(porNucleo.keys()).sort();
-  if(!window.souAdminPrincipal){
+  // Regra de visibilidade:
+  //  - admin principal          -> vê e edita tudo
+  //  - lista de núcleos VAZIA   -> vê todos, só leitura (caso RH: precisa da visão da empresa)
+  //  - lista COM núcleos        -> vê e edita apenas os núcleos dele
+  if(!window.souAdminPrincipal && podeEditarLista.length > 0){
     nucleosOrdenados = nucleosOrdenados.filter(n => podeEditarLista.includes(n));
   }
   if(!nucleosOrdenados.length){
-    cont.innerHTML = '<p class="nota">' + (window.souAdminPrincipal ? 'Nenhum posto cadastrado ainda.' : 'Você ainda não tem núcleos liberados pra editar aqui. Fale com o administrador do painel.') + '</p>';
+    cont.innerHTML = '<p class="nota">Nenhum posto cadastrado ainda.</p>';
     return;
   }
   cont.innerHTML = nucleosOrdenados.map(nuc=>{
