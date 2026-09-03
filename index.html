@@ -972,16 +972,7 @@
    Mesma linguagem do painel executivo, aplicada nas 3 abas (Consolidada,
    Atualizar e Férias). Só apresentação — não muda estrutura nem lógica.     */
 
-/* --- abas do módulo: sublinhado editorial no lugar da pílula vermelha --- */
-#mod-quadro .tabs-internas{ background:transparent; border:none; box-shadow:none; padding:0;
-  gap:26px; border-bottom:1px solid var(--borda); border-radius:0; width:100%;
-  margin-bottom:20px; }
-#mod-quadro .tab-int{ padding:0 0 11px; border-radius:0; font-size:13px; font-weight:600;
-  color:var(--n400); position:relative; }
-#mod-quadro .tab-int:hover{ color:var(--n800); background:transparent; }
-#mod-quadro .tab-int.ativo{ background:transparent; color:var(--vermelho); font-weight:750; box-shadow:none; }
-#mod-quadro .tab-int.ativo::after{ content:''; position:absolute; left:0; right:0; bottom:-1px;
-  height:2px; background:var(--vermelho); border-radius:2px; }
+/* abas do módulo: mantém o padrão pílula usado nos demais módulos do site */
 
 /* --- tipografia e números --- */
 #mod-quadro, #mod-quadro table, #mod-quadro input, #mod-quadro select{
@@ -1050,8 +1041,162 @@
 #mod-quadro .qf-totais-grid{ gap:11px; margin-bottom:16px; }
 
 @media (max-width:860px){
-  #mod-quadro .tabs-internas{ gap:16px; overflow-x:auto; }
-  #mod-quadro .tab-int{ font-size:12px; white-space:nowrap; }
+  #mod-quadro .tabs-internas{ overflow-x:auto; }
+}
+
+
+/* ══════════════════════════════════════════════════════════════════════
+   PADRÃO INTERNO DOS MÓDULOS
+   Escopo: [data-modulo-view] — ou seja, só o conteúdo dentro de cada
+   módulo/guia. Menu lateral, topo e login ficam como estão.
+   Só apresentação: nenhuma estrutura ou lógica é alterada.
+   ══════════════════════════════════════════════════════════════════════ */
+[data-modulo-view]{ --pad-bloco:20px 22px; }
+[data-modulo-view], [data-modulo-view] table, [data-modulo-view] input, [data-modulo-view] select{
+  font-variant-numeric:tabular-nums; font-feature-settings:"tnum" 1; }
+
+/* --- título da página --- */
+[data-modulo-view] .pagina-titulo, [data-modulo-view] > h1{
+  font-family:'Sora',sans-serif; font-size:23px; font-weight:800; letter-spacing:-.032em;
+  color:var(--n900); margin-bottom:4px; }
+
+/* --- guias internas: pílula, igual em todos os módulos --- */
+[data-modulo-view] .tabs-internas, [data-modulo-view] .tabs-visao{
+  display:flex; gap:6px; flex-wrap:wrap; background:var(--card); padding:5px;
+  border-radius:12px; border:1px solid var(--borda); box-shadow:var(--e1);
+  width:fit-content; margin-bottom:18px; }
+[data-modulo-view] .tab-int, [data-modulo-view] .tab-visao{
+  background:transparent; border:none; color:var(--n500); font-family:inherit;
+  font-size:12.5px; font-weight:700; padding:8px 16px; border-radius:8px;
+  cursor:pointer; transition:.15s; display:inline-flex; align-items:center; gap:7px; }
+[data-modulo-view] .tab-int:hover, [data-modulo-view] .tab-visao:hover{
+  background:var(--n100); color:var(--n900); }
+[data-modulo-view] .tab-int.ativo, [data-modulo-view] .tab-visao.ativo{
+  background:var(--vermelho); color:#fff; box-shadow:0 2px 8px rgba(193,39,45,.26); }
+[data-modulo-view] .tab-visao .count{
+  font-size:10.5px; font-weight:800; padding:1.5px 7px; border-radius:20px;
+  background:var(--n100); color:var(--n500); }
+[data-modulo-view] .tab-visao.ativo .count{ background:rgba(255,255,255,.24); color:#fff; }
+
+/* --- filtros --- */
+[data-modulo-view] .filtros{
+  background:var(--card); border:1px solid var(--borda); border-radius:var(--r-md);
+  padding:15px 17px; box-shadow:var(--e1); margin-bottom:16px; }
+[data-modulo-view] .filtros-grid{ gap:11px; }
+[data-modulo-view] .campo label{
+  font-size:9.5px; font-weight:800; color:var(--n500); text-transform:uppercase;
+  letter-spacing:.1em; margin-bottom:6px; display:block; }
+[data-modulo-view] select,
+[data-modulo-view] input[type="text"], [data-modulo-view] input[type="date"],
+[data-modulo-view] input[type="number"], [data-modulo-view] input[type="search"]{
+  border:1px solid var(--n200); border-radius:9px; padding:8px 11px; font-family:inherit;
+  font-size:12.8px; font-weight:550; color:var(--n900); background:var(--card);
+  transition:border-color .15s, box-shadow .15s; }
+[data-modulo-view] select:hover,
+[data-modulo-view] input[type="text"]:hover, [data-modulo-view] input[type="date"]:hover,
+[data-modulo-view] input[type="number"]:hover{ border-color:var(--n300); }
+[data-modulo-view] select:focus, [data-modulo-view] input:focus{
+  outline:none; border-color:var(--vermelho); box-shadow:0 0 0 3px rgba(193,39,45,.1); }
+
+/* --- cards de indicador --- */
+[data-modulo-view] .cards{ gap:11px; margin-bottom:16px; }
+[data-modulo-view] .card{
+  background:var(--card); border:1px solid var(--borda); border-radius:var(--r-md);
+  padding:15px 17px; box-shadow:var(--e1); position:relative; overflow:hidden;
+  transition:box-shadow .18s, transform .18s; }
+[data-modulo-view] .card::before{
+  content:''; position:absolute; left:0; top:0; bottom:0; width:3px; background:var(--dourado); }
+[data-modulo-view] .card:hover{ box-shadow:var(--e2); transform:translateY(-1px); }
+[data-modulo-view] .card .label{
+  font-size:9.5px; font-weight:800; color:var(--n500); text-transform:uppercase;
+  letter-spacing:.1em; margin-bottom:8px; }
+[data-modulo-view] .card .valor{
+  font-family:'Sora',sans-serif; font-size:25px; font-weight:800;
+  letter-spacing:-.04em; line-height:1.02; color:var(--n900); }
+[data-modulo-view] .card .sub{ font-size:11px; color:var(--n500); margin-top:7px; font-weight:500; }
+
+/* --- painéis --- */
+[data-modulo-view] .painel, [data-modulo-view] .painel-grafico, [data-modulo-view] .quadro{
+  background:var(--card); border:1px solid var(--borda); border-radius:var(--r-lg);
+  box-shadow:var(--e1); margin-bottom:16px; }
+[data-modulo-view] .painel, [data-modulo-view] .painel-grafico{ padding:var(--pad-bloco); }
+[data-modulo-view] .painel-header, [data-modulo-view] .painel-grafico-header,
+[data-modulo-view] .quadro-header{
+  display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap;
+  gap:10px; margin-bottom:14px; padding-bottom:12px; border-bottom:1px solid var(--n150); }
+[data-modulo-view] .painel-header h2, [data-modulo-view] .painel-grafico-header h2,
+[data-modulo-view] .quadro-header h2{
+  font-family:'Sora',sans-serif; font-size:14px; font-weight:800;
+  letter-spacing:-.025em; color:var(--n900); margin:0; }
+[data-modulo-view] .painel-header .info, [data-modulo-view] .painel-grafico-header .info,
+[data-modulo-view] .quadro-header .info{ font-size:11.2px; color:var(--n500); font-weight:600; }
+[data-modulo-view] .nota, [data-modulo-view] .nota-grafico{
+  font-size:11.8px; color:var(--n500); line-height:1.6; }
+[data-modulo-view] .nota b, [data-modulo-view] .nota-grafico b{ color:var(--n700); font-weight:700; }
+
+/* --- segmentos --- */
+[data-modulo-view] .segmented{
+  background:var(--n100); border:1px solid var(--borda); border-radius:10px; padding:3px; gap:2px; }
+[data-modulo-view] .segmented button{
+  padding:7px 14px; border-radius:7px; font-size:11.8px; font-weight:700; color:var(--n500); }
+[data-modulo-view] .segmented button:hover{ color:var(--n900); background:rgba(255,255,255,.65); }
+[data-modulo-view] .segmented button.ativo{
+  background:var(--card); color:var(--vermelho); box-shadow:var(--e1); }
+
+/* --- botões --- */
+[data-modulo-view] .btn-recolher{
+  border:1px solid var(--n200); border-radius:9px; padding:8px 15px; font-size:12px;
+  font-weight:700; color:var(--n700); background:var(--card); transition:.15s;
+  display:inline-flex; align-items:center; gap:6px; line-height:1.3; }
+[data-modulo-view] .btn-recolher:hover{ border-color:var(--n400); background:var(--n50); }
+
+/* --- tabelas --- */
+[data-modulo-view] .qfc-scroll, [data-modulo-view] .tabela-scroll,
+[data-modulo-view] .quadro-tabela-wrap{
+  border:1px solid var(--borda); border-radius:var(--r-md); overflow:auto; }
+[data-modulo-view] .qfc-tabela, [data-modulo-view] .matriz-diaria,
+[data-modulo-view] table.matriz{ font-size:12.2px; }
+[data-modulo-view] .qfc-tabela thead th, [data-modulo-view] .matriz-diaria thead th,
+[data-modulo-view] table.matriz thead th{
+  background:var(--n100); color:var(--n500); font-size:9px; font-weight:800;
+  text-transform:uppercase; letter-spacing:.09em; padding:9px 11px;
+  border-bottom:1px solid var(--n200); }
+[data-modulo-view] .qfc-tabela td, [data-modulo-view] .matriz-diaria td,
+[data-modulo-view] table.matriz td{
+  padding:8.5px 11px; border-bottom:1px solid var(--n150); color:var(--n800); font-weight:500; }
+[data-modulo-view] .qfc-tabela tbody tr:hover td,
+[data-modulo-view] .matriz-diaria tbody tr:hover td{ background:var(--n50); }
+[data-modulo-view] .matriz-diaria th.rowhead{
+  background:var(--card); font-weight:600; color:var(--n800);
+  box-shadow:5px 0 10px -6px rgba(17,24,35,.14); }
+[data-modulo-view] .matriz-diaria thead th.rowhead{ background:var(--n100); }
+
+/* linha de agrupamento: faixa creme com fio dourado (padrão do Quadro) */
+[data-modulo-view] .matriz-diaria tr.linha-nuc th.rowhead,
+[data-modulo-view] .matriz-diaria tr.linha-nuc td,
+[data-modulo-view] .qfc-linha-nucleo th, [data-modulo-view] .qfc-linha-nucleo td{
+  background:#FFFAF0 !important; color:var(--vermelho-escuro); font-weight:800;
+  border-top:1px solid #F2E3C4; border-bottom:1px solid #F2E3C4; }
+[data-modulo-view] .matriz-diaria tr.linha-nuc th.rowhead,
+[data-modulo-view] .qfc-linha-nucleo th.qfc-col-first{ box-shadow:inset 3px 0 0 var(--dourado); }
+[data-modulo-view] .qfc-linha-total th, [data-modulo-view] .qfc-linha-total td{
+  background:var(--n100) !important; font-weight:800; border-top:1.5px solid var(--n200); }
+
+/* --- formulários de lançamento --- */
+[data-modulo-view] .reg-form{ gap:13px; }
+[data-modulo-view] .reg-form .campo input, [data-modulo-view] .reg-form .campo select{
+  width:100%; box-sizing:border-box; }
+
+/* --- vazio --- */
+[data-modulo-view] .vazio{ padding:40px 20px; color:var(--n400); font-size:13px; text-align:center; }
+
+@media (max-width:860px){
+  [data-modulo-view]{ --pad-bloco:15px 14px; }
+  [data-modulo-view] .pagina-titulo, [data-modulo-view] > h1{ font-size:19px; }
+  [data-modulo-view] .card .valor{ font-size:21px; }
+  [data-modulo-view] .tabs-internas, [data-modulo-view] .tabs-visao{
+    width:100%; overflow-x:auto; flex-wrap:nowrap; }
+  [data-modulo-view] .tab-int, [data-modulo-view] .tab-visao{ white-space:nowrap; }
 }
 
 #qf-print-header{ display:none; }
