@@ -1199,6 +1199,99 @@
   [data-modulo-view] .tab-int, [data-modulo-view] .tab-visao{ white-space:nowrap; }
 }
 
+
+/* ═══════════ ADMINISTRAÇÃO — organização interna ═══════════ */
+#mod-admin .adm-ct{ font-size:10px; font-weight:800; padding:1.5px 7px; border-radius:20px;
+  background:var(--vermelho-bg,#FDF0F0); color:var(--vermelho); margin-left:6px; }
+#mod-admin .adm-ct:empty{ display:none; }
+#mod-admin .tab-int.ativo .adm-ct{ background:rgba(255,255,255,.25); color:#fff; }
+
+/* pendências em destaque */
+#mod-admin .adm-destaque{ border-color:#F2C9CA; background:linear-gradient(180deg,#FEFAFA,var(--card) 70px); }
+
+/* campo de e-mail: input com largura própria, não colado na borda */
+#mod-admin .adm-form-email{ display:flex; gap:11px; align-items:flex-end; flex-wrap:wrap; }
+#mod-admin .adm-campo-email{ flex:1; min-width:250px; max-width:430px; }
+#mod-admin .adm-campo-email input{
+  width:100%; border:1px solid var(--n200); border-radius:9px; padding:9px 12px;
+  font-family:inherit; font-size:13px; font-weight:500; color:var(--n900); background:var(--card);
+  box-sizing:border-box; transition:border-color .15s, box-shadow .15s; }
+#mod-admin .adm-campo-email input::placeholder{ color:var(--n400); font-weight:400; }
+#mod-admin .adm-campo-email input:hover{ border-color:var(--n300); }
+#mod-admin .adm-campo-email input:focus{ outline:none; border-color:var(--vermelho);
+  box-shadow:0 0 0 3px rgba(193,39,45,.1); }
+
+#mod-admin .adm-btn-pri{ background:var(--vermelho); border-color:var(--vermelho); color:#fff; }
+#mod-admin .adm-btn-pri:hover{ background:var(--vermelho-escuro,#A31F25); border-color:var(--vermelho-escuro,#A31F25); }
+
+/* checkbox explicativo */
+#mod-admin .adm-check{ display:flex; gap:10px; align-items:flex-start; padding:11px 13px;
+  border:1px solid var(--borda); border-radius:10px; background:var(--n50); cursor:pointer;
+  transition:.14s; margin-top:12px; max-width:640px; }
+#mod-admin .adm-check:hover{ border-color:var(--n300); }
+#mod-admin .adm-check input{ width:16px; height:16px; margin-top:1px; accent-color:var(--vermelho); flex-shrink:0; }
+#mod-admin .adm-check b{ display:block; font-size:12.3px; font-weight:700; margin-bottom:2px; }
+#mod-admin .adm-check span{ font-size:11px; color:var(--n500); line-height:1.5; }
+
+/* aviso informativo */
+#mod-admin .adm-aviso{ display:flex; gap:11px; align-items:flex-start; background:#EAF1F9;
+  border:1px solid #C5D9EC; border-radius:11px; padding:13px 15px; font-size:11.8px;
+  line-height:1.6; color:#154A7D; margin-bottom:16px; }
+#mod-admin .adm-aviso-ic{ width:19px; height:19px; border-radius:50%; background:#1D5A96; color:#fff;
+  display:grid; place-items:center; font-size:11px; font-weight:800; font-style:italic; flex-shrink:0; margin-top:1px; }
+
+/* passos numerados */
+#mod-admin .adm-passo{ display:flex; align-items:center; gap:10px; margin:22px 0 12px; }
+#mod-admin .adm-num{ width:21px; height:21px; border-radius:50%; background:var(--n900); color:#fff;
+  display:grid; place-items:center; font-size:10.5px; font-weight:800; flex-shrink:0; }
+#mod-admin .adm-passo-t{ font-size:12.8px; font-weight:750; color:var(--n900); }
+#mod-admin .adm-passo-t span{ font-weight:500; color:var(--n400); font-size:11.3px; margin-left:5px; }
+
+/* grade de módulos */
+#mod-admin .adm-grade{ display:grid; grid-template-columns:repeat(auto-fit,minmax(195px,1fr)); gap:8px; }
+#mod-admin .adm-mod{ display:flex; align-items:center; gap:9px; font-size:12.3px; font-weight:550;
+  padding:9px 12px; border:1px solid var(--borda); border-radius:9px; cursor:pointer;
+  background:var(--card); transition:.14s; }
+#mod-admin .adm-mod:hover{ border-color:var(--n300); }
+#mod-admin .adm-mod.sel{ border-color:#F2C9CA; background:#FDF4F4; }
+#mod-admin .adm-mod input{ width:15px; height:15px; accent-color:var(--vermelho); flex-shrink:0; }
+
+/* núcleos em pílula */
+#mod-admin .adm-nucleos{ display:flex; flex-wrap:wrap; gap:7px; }
+#mod-admin .adm-nucleos label{ display:flex; align-items:center; gap:7px; font-size:11.8px;
+  font-weight:600; padding:7px 13px; border:1px solid var(--borda); border-radius:20px;
+  cursor:pointer; background:var(--card); transition:.14s; }
+#mod-admin .adm-nucleos label:hover{ border-color:var(--n300); }
+#mod-admin .adm-nucleos label.sel{ border-color:var(--vermelho); background:#FDF4F4; color:var(--vermelho-escuro,#A31F25); }
+#mod-admin .adm-nucleos input{ width:14px; height:14px; accent-color:var(--vermelho); }
+
+/* resumo do que será salvo */
+#mod-admin .adm-resumo{ margin-top:22px; padding:14px 16px; background:var(--n50);
+  border:1px solid var(--borda); border-left:3px solid var(--n900); border-radius:10px; }
+#mod-admin .adm-resumo-t{ font-size:9px; font-weight:800; color:var(--n400); text-transform:uppercase;
+  letter-spacing:.12em; margin-bottom:7px; }
+#mod-admin .adm-resumo-c{ font-size:12.3px; line-height:1.65; color:var(--n800); }
+#mod-admin .adm-resumo-c b{ font-weight:750; color:var(--n900); }
+
+/* metas */
+#mod-admin .adm-metas{ display:grid; grid-template-columns:repeat(auto-fit,minmax(132px,1fr)); gap:11px; }
+#mod-admin .adm-meta{ border:1px solid var(--borda); border-radius:11px; padding:13px 14px; background:var(--card); }
+#mod-admin .adm-meta label{ display:block; font-size:9.5px; font-weight:800; color:var(--n400);
+  text-transform:uppercase; letter-spacing:.1em; margin-bottom:8px; }
+#mod-admin .adm-meta input{ width:100%; border:1px solid var(--n200); border-radius:8px; padding:8px 10px;
+  font-family:'Sora',sans-serif; font-size:16px; font-weight:750; letter-spacing:-.02em;
+  color:var(--n900); box-sizing:border-box; }
+#mod-admin .adm-meta input:focus{ outline:none; border-color:var(--vermelho); box-shadow:0 0 0 3px rgba(193,39,45,.09); }
+#mod-admin .adm-meta span{ font-size:10px; color:var(--n400); font-weight:700; margin-top:5px; display:block; }
+#mod-admin .adm-curva{ margin-top:18px; padding-top:16px; border-top:1px solid var(--n150); }
+#mod-admin .adm-curva-t{ font-size:9px; font-weight:800; color:var(--n400); text-transform:uppercase;
+  letter-spacing:.12em; margin-bottom:11px; }
+
+@media (max-width:820px){
+  #mod-admin .adm-campo-email{ min-width:0; max-width:none; }
+  #mod-admin .adm-form-email button{ width:100%; justify-content:center; }
+}
+
 #qf-print-header{ display:none; }
 @media print{
   @page{ size: portrait; margin: 10mm; } /* padrão vertical — vira paisagem só quando "Ambos" está selecionado (ver JS) */
@@ -2877,93 +2970,142 @@ select:focus, input:focus,
   <div data-modulo-view="admin" style="display:none;">
     <div id="mod-admin">
       <div class="pagina-head"><h1 class="pagina-titulo">Administração</h1></div>
+      <p class="nota" style="margin:0 0 18px;">Usuários, permissões e configurações do painel.</p>
 
+      <!-- guias: cada uma abre uma das seções, que continuam controladas por permissão -->
+      <div class="tabs-internas" id="admTabs">
+        <button class="tab-int" type="button" data-alvo="admin-secao-usuarios">Pessoas e acesso <span class="adm-ct" id="admCtPend"></span></button>
+        <button class="tab-int" type="button" data-alvo="admin-secao-promover">Permissões</button>
+        <button class="tab-int" type="button" data-alvo="admin-secao-metas">Metas de peso</button>
+        <button class="tab-int" type="button" data-alvo="admin-secao-acessos">Uso do painel</button>
+      </div>
+
+      <!-- ══════════ PESSOAS E ACESSO ══════════ -->
       <div id="admin-secao-usuarios" style="display:none;">
-        <div class="admin-secao-titulo">👥 Gestão de Usuários</div>
-        <div class="painel">
-          <div class="painel-header"><h2>⏳ Cadastros pendentes de aprovação</h2><span class="info" id="infoPendentes"></span></div>
-          <p class="nota" style="margin-top:0;">Mesmo usando um e-mail já autorizado, toda conta nova precisa dessa aprovação antes de acessar o painel — proteção extra contra alguém criar conta com um e-mail que não é seu.</p>
+        <div class="painel adm-destaque">
+          <div class="painel-header"><h2>Cadastros pendentes de aprovação</h2><span class="info" id="infoPendentes"></span></div>
+          <p class="nota" style="margin:0 0 14px;">Mesmo usando um e-mail já autorizado, toda conta nova precisa dessa aprovação antes de acessar o painel — proteção extra contra alguém criar conta com um e-mail que não é seu.</p>
           <div id="listaPendentesAprovacao"></div>
         </div>
+
         <div class="painel">
-          <div class="painel-header"><h2>Adicionar e-mail autorizado</h2></div>
-          <form id="formAddEmail" style="display:flex;gap:10px;align-items:flex-end;flex-wrap:wrap;">
-            <div class="campo" style="flex:1;min-width:220px;"><label>E-mail</label><input type="email" id="novoEmailAdmin" required style="width:100%;padding:10px 12px;border-radius:9px;border:1.5px solid var(--borda);font-size:14px;font-family:inherit;box-sizing:border-box;"></div>
-            <label style="display:flex;align-items:center;gap:6px;font-size:12.5px;font-weight:600;color:var(--texto-suave);white-space:nowrap;"><input type="checkbox" id="novoEmailPularConfirmacao" style="width:16px;height:16px;"> Dispensar confirmação de e-mail (só pra quem você conhece pessoalmente)</label>
-            <button type="submit" class="btn-recolher" style="background:var(--vermelho);color:#fff;border-color:var(--vermelho);">+ Adicionar</button>
+          <div class="painel-header"><h2>Autorizar novo e-mail</h2></div>
+          <p class="nota" style="margin:0 0 14px;">Só e-mails desta lista conseguem criar conta no painel.</p>
+          <form id="formAddEmail" class="adm-form-email">
+            <div class="campo adm-campo-email">
+              <label for="novoEmailAdmin">E-mail</label>
+              <input type="email" id="novoEmailAdmin" required placeholder="nome@qualitti.com.br" autocomplete="off">
+            </div>
+            <button type="submit" class="btn-recolher adm-btn-pri">+ Autorizar</button>
           </form>
-          <p class="nota" id="erroAddEmail" style="min-height:16px;margin-top:8px;"></p>
+          <label class="adm-check">
+            <input type="checkbox" id="novoEmailPularConfirmacao">
+            <div><b>Dispensar confirmação de e-mail</b>
+            <span>Use só para pessoas que você conhece pessoalmente — a pessoa entra sem validar a caixa de entrada.</span></div>
+          </label>
+          <p class="nota" id="erroAddEmail" style="min-height:16px;margin-top:10px;"></p>
         </div>
+
         <div class="painel">
           <div class="painel-header"><h2>E-mails autorizados</h2><span class="info" id="infoListaEmails"></span></div>
           <div id="listaEmailsAdmin"></div>
         </div>
       </div>
 
-      <div id="admin-secao-metas" style="display:none;">
-        <div class="admin-secao-titulo">🎯 Metas de Peso</div>
-        <div class="painel">
-          <div class="painel-header"><h2>Metas de peso por idade</h2></div>
-          <p class="nota" style="margin-top:0;">Defina o peso esperado (kg) em cada idade. A matriz de peso em "Evolução de Pesos → Em andamento" passa a sinalizar quem está acima ou abaixo dessas metas.</p>
-          <form id="formMetasPeso" style="display:flex;gap:12px;flex-wrap:wrap;align-items:flex-end;">
-            <div class="campo"><label>7 dias (kg)</label><input type="number" step="0.001" id="meta7" style="width:100px;padding:10px;border-radius:9px;border:1.5px solid var(--borda);font-size:14px;font-family:inherit;"></div>
-            <div class="campo"><label>14 dias (kg)</label><input type="number" step="0.001" id="meta14" style="width:100px;padding:10px;border-radius:9px;border:1.5px solid var(--borda);font-size:14px;font-family:inherit;"></div>
-            <div class="campo"><label>21 dias (kg)</label><input type="number" step="0.001" id="meta21" style="width:100px;padding:10px;border-radius:9px;border:1.5px solid var(--borda);font-size:14px;font-family:inherit;"></div>
-            <div class="campo"><label>28 dias (kg)</label><input type="number" step="0.001" id="meta28" style="width:100px;padding:10px;border-radius:9px;border:1.5px solid var(--borda);font-size:14px;font-family:inherit;"></div>
-            <div class="campo"><label>35 dias (kg)</label><input type="number" step="0.001" id="meta35" style="width:100px;padding:10px;border-radius:9px;border:1.5px solid var(--borda);font-size:14px;font-family:inherit;"></div>
-            <button type="submit" class="btn-recolher" style="background:var(--vermelho);color:#fff;border-color:var(--vermelho);">Salvar metas</button>
-          </form>
-          <p class="nota" id="erroMetasPeso" style="min-height:16px;margin-top:8px;"></p>
-        </div>
-      </div>
-
+      <!-- ══════════ PERMISSÕES ══════════ -->
       <div id="admin-secao-promover" style="display:none;">
-        <div class="admin-secao-titulo">🔑 Permissões de Administrador</div>
-        <div class="painel">
-          <div class="painel-header"><h2>Promover administrador</h2></div>
-          <p class="nota" style="margin-top:0;">Dá acesso parcial ao painel de Administração pra outra pessoa — só o que você marcar abaixo.</p>
-          <form id="formPromoverAdmin" style="display:flex;gap:16px;flex-wrap:wrap;align-items:flex-end;">
-            <div class="campo" style="flex:1;min-width:220px;"><label>E-mail (já cadastrado em "E-mails autorizados")</label><select id="emailPromover" required style="width:100%;padding:10px 12px;border-radius:9px;border:1.5px solid var(--borda);font-size:14px;font-family:inherit;box-sizing:border-box;"><option value="">Selecione...</option></select></div>
-            <label style="display:flex;align-items:center;gap:6px;font-size:13px;font-weight:600;"><input type="checkbox" id="permMetas" style="width:16px;height:16px;"> Pode gerenciar metas</label>
-            <label style="display:flex;align-items:center;gap:6px;font-size:13px;font-weight:600;"><input type="checkbox" id="permUsuarios" style="width:16px;height:16px;"> Pode gerenciar usuários</label>
-            <label style="display:flex;align-items:center;gap:6px;font-size:13px;font-weight:600;"><input type="checkbox" id="permCombustivel" style="width:16px;height:16px;"> Pode lançar Requisição de Combustível</label>
-            <div style="width:100%;">
-              <label style="display:block;font-size:11.5px;font-weight:700;color:var(--texto-suave);text-transform:uppercase;letter-spacing:.03em;margin-bottom:6px;">Pode editar o Quadro de Funcionários destes núcleos:</label>
-              <div id="permNucleosQuadro" style="display:flex;flex-wrap:wrap;gap:10px;"></div>
-            </div>
-            <div style="width:100%;">
-              <label style="display:block;font-size:11.5px;font-weight:700;color:var(--texto-suave);text-transform:uppercase;letter-spacing:.03em;margin-bottom:6px;">Módulos visíveis pra essa pessoa (deixe tudo desmarcado pra liberar acesso a todos):</label>
-              <div style="display:flex;flex-wrap:wrap;gap:10px;">
-                <label style="display:flex;align-items:center;gap:5px;font-size:12.5px;"><input type="checkbox" class="perm-modulo-check" value="mortalidade"> Mortalidade</label>
-                <label style="display:flex;align-items:center;gap:5px;font-size:12.5px;"><input type="checkbox" class="perm-modulo-check" value="resultado"> Resultado Zootécnico</label>
-                <label style="display:flex;align-items:center;gap:5px;font-size:12.5px;"><input type="checkbox" class="perm-modulo-check" value="condenas"> Condenas</label>
-                <label style="display:flex;align-items:center;gap:5px;font-size:12.5px;"><input type="checkbox" class="perm-modulo-check" value="peso"> Evolução de Pesos</label>
-                <label style="display:flex;align-items:center;gap:5px;font-size:12.5px;"><input type="checkbox" class="perm-modulo-check" value="quadro"> Quadro de Funcionários</label>
-                <label style="display:flex;align-items:center;gap:5px;font-size:12.5px;"><input type="checkbox" class="perm-modulo-check" value="registros"> Registros</label>
-                <label style="display:flex;align-items:center;gap:5px;font-size:12.5px;"><input type="checkbox" class="perm-modulo-check" value="produtos"> Consulta de Produtos</label>
-                <label style="display:flex;align-items:center;gap:5px;font-size:12.5px;"><input type="checkbox" class="perm-modulo-check" value="energiasolar"> Energia Solar</label>
-                <label style="display:flex;align-items:center;gap:5px;font-size:12.5px;"><input type="checkbox" class="perm-modulo-check" value="fabrica"> Fábrica de Rações</label>
-              </div>
-            </div>
-            <button type="submit" class="btn-recolher" style="background:var(--vermelho);color:#fff;border-color:var(--vermelho);">Promover / Atualizar</button>
-          </form>
-          <p class="nota" id="erroPromoverAdmin" style="min-height:16px;margin-top:8px;"></p>
+        <div class="adm-aviso">
+          <span class="adm-aviso-ic">i</span>
+          <div><b>Como funciona o acesso ao Quadro de Funcionários.</b> Deixar a lista de núcleos <b>vazia</b> dá acesso de <b>leitura a todos</b> os núcleos — é assim que se libera o RH. Marcar núcleos restringe a visão àqueles e permite editá-los.</div>
         </div>
+
         <div class="painel">
-          <div class="painel-header"><h2>Administradores promovidos</h2><span class="info" id="infoAdminsPromovidos"></span></div>
+          <div class="painel-header"><h2>Definir acesso de uma pessoa</h2></div>
+          <p class="nota" style="margin:0 0 4px;">Dá acesso parcial ao painel pra outra pessoa — só o que você marcar abaixo.</p>
+
+          <form id="formPromoverAdmin">
+            <div class="adm-passo"><span class="adm-num">1</span><div class="adm-passo-t">Escolha a pessoa</div></div>
+            <div class="campo" style="max-width:430px;">
+              <label for="emailPromover">E-mail (já cadastrado em "E-mails autorizados")</label>
+              <select id="emailPromover" required style="width:100%;"><option value="">Selecione...</option></select>
+            </div>
+
+            <div class="adm-passo"><span class="adm-num">2</span><div class="adm-passo-t">Módulos visíveis <span>nenhum marcado = vê todos</span></div></div>
+            <div class="adm-grade" id="admGradeModulos">
+              <label class="adm-mod"><input type="checkbox" class="perm-modulo-check" value="mortalidade"><span>Mortalidade</span></label>
+              <label class="adm-mod"><input type="checkbox" class="perm-modulo-check" value="peso"><span>Evolução de Pesos</span></label>
+              <label class="adm-mod"><input type="checkbox" class="perm-modulo-check" value="resultado"><span>Resultado Zootécnico</span></label>
+              <label class="adm-mod"><input type="checkbox" class="perm-modulo-check" value="condenas"><span>Condenas</span></label>
+              <label class="adm-mod"><input type="checkbox" class="perm-modulo-check" value="fabrica"><span>Fábrica de Rações</span></label>
+              <label class="adm-mod"><input type="checkbox" class="perm-modulo-check" value="quadro"><span>Quadro de Funcionários</span></label>
+              <label class="adm-mod"><input type="checkbox" class="perm-modulo-check" value="registros"><span>Registros</span></label>
+              <label class="adm-mod"><input type="checkbox" class="perm-modulo-check" value="produtos"><span>Consulta de Produtos</span></label>
+              <label class="adm-mod"><input type="checkbox" class="perm-modulo-check" value="energiasolar"><span>Energia Solar</span></label>
+            </div>
+
+            <div class="adm-passo"><span class="adm-num">3</span><div class="adm-passo-t">Pode editar o Quadro destes núcleos <span>nenhum marcado = vê todos, sem editar</span></div></div>
+            <div id="permNucleosQuadro" class="adm-nucleos"></div>
+
+            <div class="adm-passo"><span class="adm-num">4</span><div class="adm-passo-t">Acesso à Administração <span>opcional</span></div></div>
+            <div class="adm-grade">
+              <label class="adm-mod"><input type="checkbox" id="permUsuarios"><span>Gerenciar usuários</span></label>
+              <label class="adm-mod"><input type="checkbox" id="permMetas"><span>Gerenciar metas de peso</span></label>
+              <label class="adm-mod"><input type="checkbox" id="permCombustivel"><span>Lançar Requisição de Combustível</span></label>
+            </div>
+
+            <div class="adm-resumo">
+              <div class="adm-resumo-t">Resumo do que será salvo</div>
+              <div class="adm-resumo-c" id="admResumo">Selecione uma pessoa acima para ver o resumo.</div>
+            </div>
+
+            <div style="display:flex;gap:9px;margin-top:16px;">
+              <button type="submit" class="btn-recolher adm-btn-pri">Salvar permissões</button>
+            </div>
+          </form>
+          <p class="nota" id="erroPromoverAdmin" style="min-height:16px;margin-top:10px;"></p>
+        </div>
+
+        <div class="painel">
+          <div class="painel-header"><h2>Quem já tem permissão</h2><span class="info" id="infoAdminsPromovidos"></span></div>
           <div id="listaAdminsPromovidos"></div>
         </div>
       </div>
 
+      <!-- ══════════ METAS ══════════ -->
+      <div id="admin-secao-metas" style="display:none;">
+        <div class="painel">
+          <div class="painel-header"><h2>Metas de peso por idade</h2><span class="info">usadas em Evolução de Pesos</span></div>
+          <p class="nota" style="margin:0 0 16px;">Peso alvo em cada faixa de idade. Serve de referência nos gráficos e no cálculo de % da meta.</p>
+          <form id="formMetasPeso">
+            <div class="adm-metas">
+              <div class="adm-meta"><label for="meta7">7 dias</label><input type="number" step="0.001" id="meta7"><span>kg</span></div>
+              <div class="adm-meta"><label for="meta14">14 dias</label><input type="number" step="0.001" id="meta14"><span>kg</span></div>
+              <div class="adm-meta"><label for="meta21">21 dias</label><input type="number" step="0.001" id="meta21"><span>kg</span></div>
+              <div class="adm-meta"><label for="meta28">28 dias</label><input type="number" step="0.001" id="meta28"><span>kg</span></div>
+              <div class="adm-meta"><label for="meta35">35 dias</label><input type="number" step="0.001" id="meta35"><span>kg</span></div>
+            </div>
+            <div class="adm-curva">
+              <div class="adm-curva-t">Curva resultante</div>
+              <div class="chart-wrap" style="height:180px;"><canvas id="admChartMetas"></canvas></div>
+            </div>
+            <div style="display:flex;gap:9px;margin-top:16px;padding-top:14px;border-top:1px solid var(--borda);">
+              <button type="submit" class="btn-recolher adm-btn-pri">Salvar metas</button>
+            </div>
+          </form>
+          <p class="nota" id="erroMetasPeso" style="min-height:16px;margin-top:10px;"></p>
+        </div>
+      </div>
+
+      <!-- ══════════ USO DO PAINEL ══════════ -->
       <div id="admin-secao-acessos" style="display:none;">
-        <div class="admin-secao-titulo">📊 Acessos e Uso do Painel</div>
         <div class="painel">
           <div class="painel-header"><h2>Acessos e uso do painel</h2><span class="info" id="infoAcessos"></span></div>
-          <p class="nota" style="margin-top:0;">Quem está usando o painel de verdade — ordenado por acesso mais recente. Atualiza sozinho conforme as pessoas usam o site.</p>
+          <p class="nota" style="margin:0 0 14px;">Quem está usando o painel de verdade — ordenado por acesso mais recente. Atualiza sozinho conforme as pessoas usam o site.</p>
           <div class="tabela-scroll"><table class="matriz-diaria" id="tabelaAcessos"></table></div>
         </div>
       </div>
     </div>
+  </div>
   </div>
 
   <!-- ============ MÓDULO: FÁBRICA DE RAÇÕES ============ -->
@@ -7968,15 +8110,109 @@ window.registrarModulo = function(mod){
 };
 
 function atualizarVisibilidadeSecoesAdmin(){
-  const secUsuarios = document.getElementById('admin-secao-usuarios');
-  const secMetas = document.getElementById('admin-secao-metas');
-  const secPromover = document.getElementById('admin-secao-promover');
-  const secAcessos = document.getElementById('admin-secao-acessos');
-  if(secUsuarios) secUsuarios.style.display = (window.souAdminPrincipal || window.minhasPermissoes.usuarios) ? '' : 'none';
-  if(secMetas) secMetas.style.display = (window.souAdminPrincipal || window.minhasPermissoes.metas) ? '' : 'none';
-  if(secPromover) secPromover.style.display = window.souAdminPrincipal ? '' : 'none';
-  if(secAcessos) secAcessos.style.display = window.souAdminPrincipal ? '' : 'none';
+  // quem pode ver cada seção — mesma regra de antes
+  const permitido = {
+    'admin-secao-usuarios': !!(window.souAdminPrincipal || window.minhasPermissoes.usuarios),
+    'admin-secao-metas'   : !!(window.souAdminPrincipal || window.minhasPermissoes.metas),
+    'admin-secao-promover': !!window.souAdminPrincipal,
+    'admin-secao-acessos' : !!window.souAdminPrincipal
+  };
+  // as seções viraram guias: esconde o BOTÃO de quem não tem permissão e abre a primeira liberada
+  const botoes = Array.from(document.querySelectorAll('#admTabs .tab-int'));
+  botoes.forEach(b=>{ b.style.display = permitido[b.dataset.alvo] ? '' : 'none'; });
+  const visiveis = botoes.filter(b=>permitido[b.dataset.alvo]);
+  const tabs = document.getElementById('admTabs');
+  if(tabs) tabs.style.display = visiveis.length > 1 ? '' : 'none';
+  const ativo = visiveis.find(b=>b.classList.contains('ativo'));
+  if(visiveis.length) admAbrirGuia((ativo || visiveis[0]).dataset.alvo);
+  else Object.keys(permitido).forEach(id=>{ const e=document.getElementById(id); if(e) e.style.display='none'; });
 }
+
+// mostra só a seção escolhida; as demais ficam ocultas
+function admAbrirGuia(alvo){
+  ['admin-secao-usuarios','admin-secao-promover','admin-secao-metas','admin-secao-acessos'].forEach(id=>{
+    const e = document.getElementById(id);
+    if(e) e.style.display = (id === alvo) ? '' : 'none';
+  });
+  document.querySelectorAll('#admTabs .tab-int').forEach(b=>b.classList.toggle('ativo', b.dataset.alvo===alvo));
+  if(alvo === 'admin-secao-metas') admDesenharCurvaMetas();
+}
+
+// realce visual das opções marcadas + resumo em texto do que será salvo
+function admAtualizarResumo(){
+  const alvo = document.getElementById('admResumo');
+  if(!alvo) return;
+  document.querySelectorAll('#mod-admin .adm-mod').forEach(l=>{
+    const i = l.querySelector('input'); if(i) l.classList.toggle('sel', i.checked);
+  });
+  document.querySelectorAll('#permNucleosQuadro label').forEach(l=>{
+    const i = l.querySelector('input'); if(i) l.classList.toggle('sel', i.checked);
+  });
+  const email = (document.getElementById('emailPromover')||{}).value || '';
+  if(!email){ alvo.textContent = 'Selecione uma pessoa acima para ver o resumo.'; return; }
+  const mods = Array.from(document.querySelectorAll('.perm-modulo-check:checked'))
+    .map(i=>{ const s=i.parentElement.querySelector('span'); return s?s.textContent.trim():i.value; });
+  const nucs = Array.from(document.querySelectorAll('#permNucleosQuadro input:checked'))
+    .map(i=>i.parentElement.textContent.trim());
+  const admin = [
+    document.getElementById('permUsuarios')?.checked ? 'gerenciar usuários' : null,
+    document.getElementById('permMetas')?.checked ? 'gerenciar metas' : null,
+    document.getElementById('permCombustivel')?.checked ? 'lançar combustível' : null
+  ].filter(Boolean);
+  let t = `<b>${email}</b> verá `;
+  t += mods.length ? `apenas <b>${mods.join(', ')}</b>` : '<b>todos os módulos</b>';
+  t += nucs.length
+    ? `, podendo <b>editar o Quadro de ${nucs.length} núcleo(s)</b>: ${nucs.join(', ')}.`
+    : ', com <b>todos os núcleos do Quadro em leitura</b> (sem edição).';
+  t += admin.length ? ` Na Administração, pode <b>${admin.join(', ')}</b>.` : ' Sem acesso à Administração.';
+  alvo.innerHTML = t;
+}
+
+// prévia da curva enquanto as metas são digitadas
+let admChartMetasObj = null;
+function admDesenharCurvaMetas(){
+  const el = document.getElementById('admChartMetas');
+  if(!el || typeof Chart === 'undefined') return;
+  const vals = ['meta7','meta14','meta21','meta28','meta35']
+    .map(id=>parseFloat((document.getElementById(id)||{}).value) || null);
+  if(admChartMetasObj) admChartMetasObj.destroy();
+  admChartMetasObj = new Chart(el.getContext('2d'), {
+    type:'line',
+    data:{ labels:['7d','14d','21d','28d','35d'], datasets:[{ data:vals,
+      borderColor:'#C1272D', borderWidth:2.6, tension:.35, fill:true,
+      backgroundColor:'rgba(193,39,45,.08)', pointRadius:4.5, pointBackgroundColor:'#fff',
+      pointBorderColor:'#C1272D', pointBorderWidth:2.2, spanGaps:true }]},
+    options:{ responsive:true, maintainAspectRatio:false,
+      plugins:{ legend:{display:false},
+        tooltip:{ backgroundColor:'rgba(15,20,26,.95)', padding:10, cornerRadius:8, displayColors:false,
+          callbacks:{ label:c=>c.parsed.y.toFixed(3).replace('.',',')+' kg' } } },
+      scales:{ x:{ grid:{display:false}, ticks:{font:{size:10}} },
+        y:{ grid:{color:'#EFF2F6'}, ticks:{font:{size:10}, callback:v=>v+' kg'} } } }
+  });
+}
+
+// liga os controles uma única vez
+(function admLigarControles(){
+  function ligar(){
+    const tabs = document.getElementById('admTabs');
+    if(!tabs || tabs.dataset.ligado) return;
+    tabs.dataset.ligado = '1';
+    tabs.querySelectorAll('.tab-int').forEach(b=>
+      b.addEventListener('click', ()=>admAbrirGuia(b.dataset.alvo)));
+    document.querySelectorAll('.perm-modulo-check, #permUsuarios, #permMetas, #permCombustivel')
+      .forEach(i=>i.addEventListener('change', admAtualizarResumo));
+    const sel = document.getElementById('emailPromover');
+    if(sel) sel.addEventListener('change', admAtualizarResumo);
+    const nuc = document.getElementById('permNucleosQuadro');
+    if(nuc) nuc.addEventListener('change', admAtualizarResumo);
+    ['meta7','meta14','meta21','meta28','meta35'].forEach(id=>{
+      const e = document.getElementById(id); if(e) e.addEventListener('input', admDesenharCurvaMetas);
+    });
+    admAtualizarResumo();
+  }
+  if(document.readyState === 'loading') document.addEventListener('DOMContentLoaded', ligar);
+  else ligar();
+})();
 
 function podeVerModulo(chave){
   if(window.souAdminPrincipal) return true;
