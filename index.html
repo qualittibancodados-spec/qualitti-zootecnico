@@ -1714,7 +1714,9 @@ h1,h2,h3{ letter-spacing:-.022em; }
 .logout-btn:hover{ background:rgba(255,255,255,.2); }
 
 /* ═══════════ ÁREA PRINCIPAL ═══════════ */
-main{ padding:28px 32px 80px; max-width:1320px; }
+/* mantém o margin-left que reserva o espaço da barra lateral fixa — sem ele o
+   conteúdo passa por baixo dela. No celular a regra do @media zera essa margem. */
+main{ margin-left:var(--sidebar-w); padding:28px 32px 80px; max-width:1320px; }
 .pagina-titulo{ font-size:25px; font-weight:800; letter-spacing:-.03em; color:var(--n900);
   position:relative; padding-bottom:2px; }
 
@@ -1854,7 +1856,13 @@ select:focus, input:focus,
 
 /* ═══════════ CELULAR ═══════════ */
 @media (max-width:860px){
-  main{ padding:18px 15px 70px; }
+  /* a barra lateral volta a ser gaveta: sai da tela e entra ao tocar no menu.
+     Precisa ser repetido aqui porque o bloco .sidebar acima vem depois da regra
+     original e, com a mesma especificidade, anulava o transform. */
+  .sidebar{ transform:translateX(-100%); transition:transform .28s cubic-bezier(.4,0,.2,1);
+    box-shadow:0 0 40px rgba(0,0,0,.3); }
+  .sidebar.aberta{ transform:translateX(0); }
+  main{ margin-left:0; padding:18px 15px 70px; }
   .pagina-titulo{ font-size:20px; }
   .painel, .painel-grafico,
   #mod-resultado .painel, #mod-peso .painel, #mod-condenas .painel{ padding:15px 14px; border-radius:var(--r-md); }
