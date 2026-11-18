@@ -1611,10 +1611,10 @@
 .qf-ativo-msg{font-size:11px;line-height:1.35;margin-top:4px;white-space:normal;max-width:280px;text-align:left}.qf-ativo-msg:empty{display:none}
 .qf-ativo-msg.erro{color:#C1272D}.qf-ativo-msg.aviso{color:#946200}
 .qf-sug{display:none;position:absolute;left:0;top:100%;margin-top:2px;min-width:300px;max-height:320px;overflow:auto;background:#fff;border:1px solid var(--borda);border-radius:8px;box-shadow:0 10px 24px rgba(0,0,0,.14);z-index:60;text-align:left}
-.qf-sug-op{padding:7px 12px;cursor:pointer;border-bottom:1px solid #F2F3F6}.qf-sug-op:hover{background:#FDF4F4}
+.qf-sug-op{padding:7px 12px;cursor:pointer;border-bottom:1px solid #F2F3F6}.qf-sug-op:hover{background:#FDF4F4}.qf-sug-op.ativo{background:#FBE7E8;box-shadow:inset 3px 0 0 var(--vermelho)}
 .qf-sug-n{display:block;font-size:12.8px;font-weight:600;color:var(--texto)}.qf-sug-n mark{background:#FCF1CF;color:inherit}
 .qf-sug-d{display:block;font-size:11px;color:var(--texto-suave);margin-top:1px}.qf-sug-af{color:#946200;font-weight:600}
-.qf-sug-rod{padding:6px 12px;font-size:11px;color:var(--texto-suave);background:#FAFBFC}
+.qf-sug-rod{position:sticky;bottom:0;padding:6px 12px;font-size:11px;color:var(--texto-suave);background:#FAFBFC}
 .qf-sug-vazio{padding:12px;font-size:12px;color:#C1272D;white-space:normal;line-height:1.4}.qf-sug-vazio span{display:block;color:var(--texto-suave);font-size:11px;margin-top:3px}
 #qfToast{position:fixed;right:22px;bottom:22px;z-index:2000;background:#198038;color:#fff;font:600 13px Inter,system-ui,sans-serif;padding:11px 16px;border-radius:8px;opacity:0;transform:translateY(8px);transition:.25s;pointer-events:none;max-width:380px}
 #qfToast.on{opacity:1;transform:none}#qfToast.ruim{background:#C1272D}
@@ -9648,26 +9648,51 @@ function qfAviso(texto, ruim){
   t.textContent = texto; t.className = 'on' + (ruim?' ruim':'');
   clearTimeout(t._t); t._t = setTimeout(()=>t.className='', 3200);
 }
+// busca por partes do nome, em qualquer ordem: "maria silva" acha "Maria José Alves Silva"
+function qfBateBusca(nomeNorm, palavras){ return palavras.every(w=> nomeNorm.includes(w)); }
+function qfDestacar(nome, palavras){
+  const n = qfNorm(nome), faixas = [];
+  palavras.forEach(w=>{ const i = n.indexOf(w); if(i>=0) faixas.push([i, i+w.length]); });
+  faixas.sort((x,y)=>x[0]-y[0]);
+  let html = '', pos = 0;
+  faixas.forEach(([i,f])=>{ if(i<pos) i = pos; if(f<=i) return; html += nome.slice(pos,i)+'<mark>'+nome.slice(i,f)+'</mark>'; pos = f; });
+  return html + nome.slice(pos);
+}
 function qfSugerir(el){
   const cel = el.closest('.qf-celula'); if(!cel) return;
   let box = cel.querySelector('.qf-sug');
   if(!box){ box = document.createElement('div'); box.className = 'qf-sug'; cel.appendChild(box); }
   if(!qfBaseCarregada()){ box.style.display='none'; return; }
-  const nucCard = (el.closest('[data-nucleo-card]')||{}).dataset || {};
-  const nuc = nucCard.nucleoCard || '';
-  const q = qfNorm(el.value);
-  const achados = qfAtivos().filter(p=> !q || qfNorm(p.nome).includes(q))
-    .sort((a,b)=> (qfMesmoNucleo(b.nucleo,nuc)-qfMesmoNucleo(a.nucleo,nuc)) || a.nome.localeCompare(b.nome,'pt-BR'));
+  const palavras = qfNorm(el.value).split(' ').filter(Boolean);
+  // lista TODOS os ativos, em ordem alfabética, sem priorizar núcleo (a pessoa pode estar cadastrada numa granja e atuar em outra)
+  // quem tem palavras COMEÇANDO com o que foi digitado vem primeiro; depois, ordem alfabética
+  const inicio = n => palavras.filter(w=> (' '+n).includes(' '+w)).length;
+  const achados = qfAtivos().filter(p=> !palavras.length || qfBateBusca(qfNorm(p.nome), palavras))
+    .sort((x,y)=> (inicio(qfNorm(y.nome)) - inicio(qfNorm(x.nome))) || x.nome.localeCompare(y.nome,'pt-BR'));
   box.innerHTML = achados.length
-    ? achados.slice(0,8).map(p=>{
-        const n = qfTitulo(p.nome), i = qfNorm(n).indexOf(q);
-        const nomeHtml = q && i>=0 ? n.slice(0,i)+'<mark>'+n.slice(i,i+q.length)+'</mark>'+n.slice(i+q.length) : n;
+    ? achados.map((p,i)=>{
         const afast = p.situacao && !/normal/i.test(p.situacao);
-        return `<div class="qf-sug-op" data-cod="${qfChave(p)}"><span class="qf-sug-n">${nomeHtml}</span>
-          <span class="qf-sug-d">${qfTitulo(p.cargo||'')} · ${qfTitulo(p.nucleo||'')}${afast?` · <b class="qf-sug-af">${p.situacao}</b>`:''}</span></div>`;
-      }).join('') + `<div class="qf-sug-rod">${achados.length} funcionário(s) ativo(s)${nuc?' · os deste núcleo aparecem primeiro':''}</div>`
+        return `<div class="qf-sug-op${i===0&&palavras.length?' ativo':''}" data-cod="${qfChave(p)}"><span class="qf-sug-n">${qfDestacar(qfTitulo(p.nome), palavras)}</span>
+          <span class="qf-sug-d">${qfTitulo(p.cargo||'')} · cadastro: ${qfTitulo(p.nucleo||'')}${afast?` · <b class="qf-sug-af">${p.situacao}</b>`:''}</span></div>`;
+      }).join('') + `<div class="qf-sug-rod">${achados.length} funcionário(s) ativo(s)${palavras.length?' com esse nome':' · role para ver todos'} · ↑↓ e Enter para escolher</div>`
     : `<div class="qf-sug-vazio">Nenhum funcionário ativo com esse nome.<span>Se a pessoa ainda não foi efetivada, ela não pode ser lançada.</span></div>`;
+  box.scrollTop = 0;
   box.style.display = 'block';
+}
+// teclado: ↑ ↓ andam na lista, Enter escolhe, Esc fecha
+function qfTeclaBusca(e){
+  const el = e.target, box = el.closest('.qf-celula') && el.closest('.qf-celula').querySelector('.qf-sug');
+  if(!box || box.style.display==='none') return;
+  const ops = Array.from(box.querySelectorAll('.qf-sug-op'));
+  let i = ops.findIndex(o=>o.classList.contains('ativo'));
+  if(e.key==='ArrowDown' || e.key==='ArrowUp'){
+    e.preventDefault(); if(!ops.length) return;
+    i = e.key==='ArrowDown' ? Math.min(ops.length-1, i+1) : Math.max(0, i-1);
+    ops.forEach((o,k)=>o.classList.toggle('ativo', k===i)); ops[i].scrollIntoView({block:'nearest'});
+  }else if(e.key==='Enter'){
+    if(i<0) return; e.preventDefault();
+    ops[i].dispatchEvent(new MouseEvent('mousedown', {bubbles:true}));
+  }else if(e.key==='Escape'){ box.style.display = 'none'; }
 }
 // liga busca e sinalização nos campos de nome (chamada no fim de renderQuadroFuncionarios)
 function qfAtivosAplicar(cont){
@@ -9683,6 +9708,7 @@ function qfAtivosAplicar(cont){
     if(el.disabled) return;
     el.setAttribute('autocomplete','off'); el.placeholder = 'Buscar funcionário ativo…';
     el.addEventListener('focus', ()=>qfSugerir(el));
+    el.addEventListener('keydown', qfTeclaBusca);
     el.addEventListener('input', ()=>{ el.classList.remove('qf-nome-invalido','qf-nome-fora'); qfMsg(el,''); qfSugerir(el); });
     el.addEventListener('blur', ()=>setTimeout(()=>{ const b = el.closest('.qf-celula') && el.closest('.qf-celula').querySelector('.qf-sug'); if(b) b.style.display='none'; }, 160));
   });
