@@ -1699,6 +1699,43 @@ table.qx td:nth-child(3),table.qx td:nth-child(5),table.qx td:nth-child(9){text-
  #mod-quadro .qf-celula input[type=checkbox]{width:20px;height:20px}
  #mod-quadro .quadro-saindo-label{font-size:13px;padding:6px 0}
 }
+/* em integração */
+#mod-quadro input.qf-nome-integ{border-color:#E0B54A!important;background:#FFF8E6!important;color:#6B4A00!important;font-style:italic}
+.qf-ativo-msg.integ{color:#8A5A00}
+.qf-sug-acao{display:flex;align-items:center;gap:10px;padding:9px 12px;cursor:pointer;background:#FFFBF0;border-bottom:1px solid #F3E6C2}
+.qf-sug-acao:hover{background:#FFF3D6}
+.qf-sug-acao .qf-sug-n{color:#6B4A00}.qf-av-integ{background:#FFEFC7!important;color:#8A5A00!important;font-size:14px!important}
+.qfe-acao{margin:2px 16px 0;border:1px solid #F3E6C2;border-radius:12px;overflow:hidden}.qfe-acao .qf-sug-acao{padding:11px 12px;min-height:52px;box-sizing:border-box}
+.qfe-tag-integ,.qfc-integ .qfc-tag{display:inline-block;font-size:10.5px;font-weight:700;color:#8A5A00;background:#FFEFC7;border-radius:6px;padding:1px 6px;margin-left:6px;font-style:normal}
+.qfc-integ{color:#6B4A00;font-style:italic}
+#qfInteg{display:none;position:fixed;inset:0;z-index:3100}#qfInteg.on{display:block}
+.qfi-fundo{position:absolute;inset:0;background:rgba(15,20,26,.45)}
+.qfi-caixa{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);width:min(440px,calc(100vw - 32px));background:#fff;border-radius:16px;padding:22px 22px 18px;box-shadow:0 24px 60px rgba(0,0,0,.25);box-sizing:border-box}
+.qfi-ic{width:44px;height:44px;border-radius:12px;background:#FFEFC7;display:grid;place-items:center;font-size:22px;margin-bottom:10px}
+.qfi-caixa>b{display:block;font-size:17px;color:var(--texto)}.qfi-ctx{display:block;font-size:12.5px;color:var(--texto-suave);margin-top:2px}
+.qfi-caixa p{font-size:13px;line-height:1.55;color:var(--texto);margin:12px 0 0}.qfi-caixa p.qfi-dica{color:var(--texto-suave);font-size:12.5px;margin-top:6px}
+.qfi-caixa label{display:block;font-size:11.5px;font-weight:700;color:var(--texto-suave);text-transform:uppercase;letter-spacing:.03em;margin:14px 0 6px}.qfi-caixa label i{text-transform:none;font-weight:500}
+.qfi-caixa input{width:100%;box-sizing:border-box;font-size:15px;padding:11px 12px;border:1.5px solid var(--borda);border-radius:10px;font-family:inherit}
+.qfi-caixa input:focus{outline:none;border-color:#E0B54A;box-shadow:0 0 0 3px rgba(224,181,74,.18)}
+.qfi-pe{display:flex;gap:10px;justify-content:flex-end;margin-top:16px}.qfi-pe button{min-height:42px}
+.qfi-ok{background:#B7791F!important;border-color:#B7791F!important;color:#fff!important}
+table.qx tr.integ td{background:#FFF6E0}table.qx tr.integ td:nth-child(6),table.qx tr.integ td:nth-child(11){color:#8A5A00;font-weight:700}
+@media(max-width:760px){.qfi-caixa{top:auto;bottom:0;left:0;transform:none;width:100%;border-radius:20px 20px 0 0;padding-bottom:calc(18px + env(safe-area-inset-bottom))}.qfi-pe button{flex:1}}
+#qfRevisao{display:none;position:fixed;inset:0;z-index:3050}#qfRevisao.on{display:block}
+.qfr-fundo{position:absolute;inset:0;background:rgba(15,20,26,.55)}
+.qfr-caixa{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);width:min(560px,calc(100vw - 32px));max-height:86vh;display:flex;flex-direction:column;background:#fff;border-radius:16px;box-shadow:0 24px 60px rgba(0,0,0,.28);overflow:hidden}
+.qfr-topo{display:flex;gap:12px;align-items:center;padding:18px 20px 6px}.qfr-topo .qfi-ic{margin:0;flex-shrink:0}
+.qfr-topo b{display:block;font-size:16.5px;color:var(--texto)}.qfr-topo span{font-size:12.5px;color:#8A5A00;font-weight:600}
+.qfr-txt{font-size:13px;line-height:1.55;color:var(--texto);margin:8px 20px 12px}
+.qfr-lista{overflow:auto;padding:0 20px 18px;display:flex;flex-direction:column;gap:10px}
+.qfr-item{border:1px solid #F0DDA8;background:#FFFBF0;border-radius:12px;padding:12px 14px}
+.qfr-info b{display:block;font-size:14.5px;color:var(--texto)}.qfr-info span{display:block;font-size:12px;color:var(--texto-suave);margin-top:2px}
+.qfr-info em{display:inline-block;margin-top:6px;font-style:normal;font-size:11.5px;font-weight:700;color:#8A5A00;background:#FFEFC7;border-radius:6px;padding:2px 8px}
+.qfr-sug{display:block;width:100%;text-align:left;margin-top:10px;border:1.5px solid #9FCBAE;background:#EAF6EE;color:#1B6B3A;border-radius:10px;padding:9px 12px;font:600 13px inherit;font-family:inherit;cursor:pointer}
+.qfr-sug span{font-weight:500;color:#2E7D4F}
+.qfr-acoes{display:flex;gap:8px;margin-top:10px;flex-wrap:wrap}.qfr-acoes button{flex:1;min-height:40px;min-width:150px}
+.qfr-nome{background:var(--vermelho)!important;border-color:var(--vermelho)!important;color:#fff!important}
+@media(max-width:760px){.qfr-caixa{top:auto;bottom:0;left:0;transform:none;width:100%;max-height:92vh;border-radius:20px 20px 0 0}.qfr-lista{padding-bottom:calc(18px + env(safe-area-inset-bottom))}.qfr-acoes button{min-height:46px}}
 </style>
 </head>
 <body>
@@ -9762,8 +9799,9 @@ function qfPosicionar(){
 function qfSugerir(el){
   if(!qfBaseCarregada()) return;
   window._qfSugEl = el;
-  const { lista, palavras } = qfFiltrar(el.value), pn = qfPainel(), c = qfContexto(el);
-  pn.innerHTML = `<div class="qf-sug-cab">${c.papel} · ${c.nucleo}${c.aviarios?' · aviários '+c.aviarios:''}</div>`
+  const texto = (el.dataset.integ && el.value===el.dataset.orig) ? '' : el.value;
+  const { lista, palavras } = qfFiltrar(texto), pn = qfPainel(), c = qfContexto(el);
+  pn.innerHTML = `<div class="qf-sug-cab">${c.papel} · ${c.nucleo}${c.aviarios?' · aviários '+c.aviarios:''}</div>` + qfAcaoInteg(el)
     + qfOpcoesHtml(lista, palavras, palavras.length>0)
     + (lista.length ? `<div class="qf-sug-rod">${lista.length} funcionário(s) ativo(s)${palavras.length?' com esse nome':''} · ↑↓ e Enter para escolher</div>` : '');
   pn.style.display = 'block'; pn.scrollTop = 0; qfPosicionar();
@@ -9786,6 +9824,8 @@ function qfTeclaBusca(e){
   }else if(e.key==='Escape'){ qfFecharLista(); }
 }
 document.addEventListener('mousedown', e=>{
+  const ac = e.target.closest('#qfSugFlut [data-acao="integ"]');
+  if(ac){ e.preventDefault(); const el = window._qfSugEl; qfFecharLista(); if(el) el.blur(); qfAbrirIntegracao(el); return; }
   const op = e.target.closest('#qfSugFlut .qf-sug-op'); if(!op) return;
   e.preventDefault(); qfEscolher(window._qfSugEl, op.dataset.cod);
 });
@@ -9799,8 +9839,9 @@ function qfAbrirEscolha(el){
   sh.innerHTML = `<div class="qfe-fundo" data-qfe-fechar></div><div class="qfe-folha">
     <div class="qfe-alca"></div>
     <div class="qfe-cab"><div><b>Escolher ${c.papel.toLowerCase()}</b><span>${c.nucleo}${c.aviarios?' · aviários '+c.aviarios:''}</span></div><button type="button" class="qfe-x" data-qfe-fechar aria-label="Fechar">✕</button></div>
-    ${el.value.trim()?`<div class="qfe-atual">Atual: <b>${el.value.trim()}</b></div>`:''}
+    ${el.value.trim()?`<div class="qfe-atual">Atual: <b>${el.value.trim()}</b>${qfEhInteg(el)?' <span class="qfe-tag-integ">⏳ em integração</span>':''}</div>`:''}
     <div class="qfe-busca"><input type="search" id="qfeBusca" placeholder="Digite parte do nome…" autocomplete="off" spellcheck="false"></div>
+    <div class="qfe-acao">${qfAcaoInteg(el)}</div>
     <div class="qfe-aviso">Apenas funcionários ativos · pode ser de qualquer granja</div>
     <div class="qfe-lista" id="qfeLista"></div>
     <div class="qfe-pe"><button type="button" class="btn-recolher" data-qfe-vago>Deixar vago</button><button type="button" class="btn-recolher" data-qfe-fechar>Cancelar</button></div></div>`;
@@ -9811,24 +9852,148 @@ function qfAbrirEscolha(el){
   sh.classList.add('on'); document.body.style.overflow = 'hidden';
   setTimeout(()=>{ const b = document.getElementById('qfeBusca'); if(b) b.focus(); }, 60);
 }
-function qfFecharEscolha(){ const sh = document.getElementById('qfEscolha'); if(sh) sh.classList.remove('on'); document.body.style.overflow = ''; window._qfEscolhaEl = null; }
+function qfFecharEscolha(){ const sh = document.getElementById('qfEscolha'); if(sh) sh.classList.remove('on'); document.body.style.overflow = ''; window._qfEscolhaEl = null; if(window._qfRevisaoPendente){ window._qfRevisaoPendente = false; setTimeout(qfChecarRevisao, 300); } }
 document.addEventListener('click', e=>{
   if(!document.getElementById('qfEscolha')) return;
   const op = e.target.closest('#qfEscolha .qf-sug-op');
   if(op){ const el = window._qfEscolhaEl; qfFecharEscolha(); qfEscolher(el, op.dataset.cod); return; }
+  if(e.target.closest('#qfEscolha [data-acao="integ"]')){ const el = window._qfEscolhaEl; qfFecharEscolha(); qfAbrirIntegracao(el); return; }
   if(e.target.closest('[data-qfe-vago]')){ const el = window._qfEscolhaEl; qfFecharEscolha(); if(el && el.value.trim()){ el.value=''; el.dispatchEvent(new Event('change')); } return; }
   if(e.target.closest('[data-qfe-fechar]')) qfFecharEscolha();
 });
+/* ─── Em integração ───
+   A pessoa já trabalha na vaga mas ainda não foi efetivada (não está na base de ativos).
+   O campo guarda o nome provisório (ou "Em integração") + a marcação <campo>Integ:true,
+   então a vaga conta como preenchida em todos os totais. Ao escolher o nome oficial na
+   lista (ou deixar vago), a marcação sai sozinha.                                        */
+function qfCampoDe(el){
+  if(el.classList.contains('qf-input-granjeiro')) return qfChavesCampo('granjeiro');
+  if(el.classList.contains('qf-input-ajudante')) return qfChavesCampo('ajudante');
+  return qfChavesCampo('extra');
+}
+function qfChavesCampo(k){
+  const nome = k==='extra' ? 'extraNome' : k;
+  return {nome, cod:k+'Cod', integ:k+'Integ', desde:k+'IntegDesde', conf:k+'IntegConf', papel: k==='granjeiro'?'Granjeiro':k==='ajudante'?'Ajudante':'Pessoa extra', classe: k==='granjeiro'?'qf-input-granjeiro':k==='ajudante'?'qf-input-ajudante':'qf-input-extra-nome'};
+}
+const qfHojeISO = () => { const d = new Date(); return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`; };
+const qfDiasDesde = iso => iso ? Math.max(0, Math.floor((new Date(qfHojeISO()+'T12:00:00') - new Date(iso+'T12:00:00')) / 864e5)) : 0;
+const qfTextoDias = n => n===0 ? 'desde hoje' : n===1 ? 'há 1 dia' : `há ${n} dias`;
+function qfPostoDe(el){ const l = el.closest('.qf-linha'); return l ? (window.POSTOS_QUADRO||[]).find(p=>p.id===l.dataset.postoId) : null; }
+function qfEhInteg(el){ const p = qfPostoDe(el); return !!(p && p[qfCampoDe(el).integ]); }
+function qfAbrirIntegracao(el){
+  if(!el) return;
+  window._qfIntegEl = el;
+  const c = qfContexto(el), atual = qfEhInteg(el) && el.value.trim()!=='Em integração' ? el.value.trim() : '';
+  let md = document.getElementById('qfInteg');
+  if(!md){ md = document.createElement('div'); md.id = 'qfInteg'; document.body.appendChild(md); }
+  md.innerHTML = `<div class="qfi-fundo" data-qfi-fechar></div><div class="qfi-caixa" role="dialog">
+    <div class="qfi-ic">⏳</div><b>Pessoa em integração</b><span class="qfi-ctx">${c.papel} · ${c.nucleo}${c.aviarios?' · aviários '+c.aviarios:''}</span>
+    <p>Use quando <b>já tem alguém trabalhando nessa vaga</b>, mas a pessoa ainda não foi efetivada e por isso não aparece na lista de ativos. A vaga <b>não conta como falta</b>.</p>
+    <p class="qfi-dica">Quando a pessoa for efetivada, é só abrir o campo e escolher o nome dela na lista.</p>
+    <label>Nome da pessoa <i>(opcional)</i></label>
+    <input type="text" id="qfiNome" value="${atual.replace(/"/g,'&quot;')}" placeholder="Ex.: João (ainda sem registro)" autocomplete="off" maxlength="60">
+    <div class="qfi-pe"><button type="button" class="btn-recolher" data-qfi-fechar>Cancelar</button><button type="button" class="btn-recolher qfi-ok" data-qfi-ok>Marcar como em integração</button></div></div>`;
+  md.classList.add('on');
+  setTimeout(()=>{ const i = document.getElementById('qfiNome'); if(i && !qfEhCelular()) i.focus(); }, 50);
+}
+function qfFecharIntegracao(){ const md = document.getElementById('qfInteg'); if(md) md.classList.remove('on'); window._qfIntegEl = null; }
+document.addEventListener('click', e=>{
+  if(!document.getElementById('qfInteg')) return;
+  if(e.target.closest('[data-qfi-ok]')){
+    const el = window._qfIntegEl, p = el && qfPostoDe(el); if(!p){ qfFecharIntegracao(); return; }
+    const k = qfCampoDe(el), nome = (document.getElementById('qfiNome').value||'').trim().replace(/\s+/g,' ');
+    qfFecharIntegracao();
+    salvarCampoPosto(p.id, {[k.nome]: nome || 'Em integração', [k.cod]: null, [k.integ]: true, [k.desde]: (p[k.integ] && p[k.desde]) || qfHojeISO(), [k.conf]: qfHojeISO()});
+    return;
+  }
+  if(e.target.closest('[data-qfi-fechar]')) qfFecharIntegracao();
+});
+document.addEventListener('keydown', e=>{ const md = document.getElementById('qfInteg'); if(!md || !md.classList.contains('on')) return;
+  if(e.key==='Enter' && e.target.id==='qfiNome'){ e.preventDefault(); md.querySelector('[data-qfi-ok]').click(); } if(e.key==='Escape') qfFecharIntegracao(); });
+const qfAcaoInteg = el => `<div class="qf-sug-acao" data-acao="integ"><span class="qf-sug-av qf-av-integ">⏳</span><span class="qf-sug-tx"><span class="qf-sug-n">${qfEhInteg(el)?'Editar pessoa em integração':'Pessoa em integração'}</span><span class="qf-sug-d">Já trabalha na vaga, mas ainda não foi efetivada · não conta como falta</span></span></div>`;
+/* ─── Revisão semanal das pessoas em integração ───
+   A cada 7 dias (contados da marcação ou da última confirmação), quem pode editar o núcleo
+   é obrigado a revisar ao abrir "Atualizar Funcionários": escolher o nome oficial ou
+   confirmar que a pessoa continua em integração. A janela não tem botão de fechar.        */
+const QF_REVISAO_DIAS = 7;
+function qfPendenciasIntegracao(){
+  const pode = new Set(nucleosQueEditoPodeQuadro());
+  const out = [];
+  (window.POSTOS_QUADRO||[]).forEach(p=>{
+    if(!pode.has(p.nucleo)) return;
+    ['granjeiro','ajudante','extra'].forEach(k=>{
+      const ch = qfChavesCampo(k);
+      if(!p[ch.integ]) return;
+      const ref = p[ch.conf] || p[ch.desde];
+      if(ref && qfDiasDesde(ref) < QF_REVISAO_DIAS) return;
+      const prov = (p[ch.nome]||'').trim(), provNorm = qfNorm(prov==='Em integração'?'':prov).split(' ').filter(w=>w.length>2);
+      // sugestão: alguém da base de ativos cujo nome contém todas as palavras do nome provisório
+      const sug = provNorm.length ? qfAtivos().filter(b=> qfBateBusca(qfNorm(b.nome), provNorm)) : [];
+      out.push({p, k, ch, prov, dias: qfDiasDesde(p[ch.desde]), sug: sug.length===1 ? sug[0] : null});
+    });
+  });
+  return out;
+}
+function qfAbaAtualizarVisivel(){ const v = document.querySelector('[data-aba-qf-view="atualizar"]'); return !!(v && v.offsetParent!==null); }
+function qfChecarRevisao(){
+  if(!qfBaseCarregada() || !qfAbaAtualizarVisivel()) return;
+  if(document.querySelector('#qfEscolha.on, #qfInteg.on')) return;
+  const pend = qfPendenciasIntegracao();
+  let md = document.getElementById('qfRevisao');
+  if(!pend.length){ if(md) md.classList.remove('on'); return; }
+  if(!md){ md = document.createElement('div'); md.id = 'qfRevisao'; document.body.appendChild(md); }
+  md.innerHTML = `<div class="qfr-fundo"></div><div class="qfr-caixa" role="dialog" aria-modal="true">
+    <div class="qfr-topo"><div class="qfi-ic">⏳</div><div><b>Revisão semanal — pessoas em integração</b>
+      <span>${pend.length} pessoa(s) aguardando o nome oficial. Revise para continuar.</span></div></div>
+    <p class="qfr-txt">Se a pessoa <b>já foi efetivada</b>, escolha o nome dela na lista de ativos. Se <b>ainda está em integração</b>, confirme — o sistema volta a perguntar em ${QF_REVISAO_DIAS} dias.</p>
+    <div class="qfr-lista">${pend.map((x,i)=>`<div class="qfr-item">
+      <div class="qfr-info"><b>${x.prov && x.prov!=='Em integração' ? x.prov : 'Nome não informado'}</b>
+        <span>${x.ch.papel} · ${x.p.nucleo} · aviários ${x.p.aviarios||'—'}</span>
+        <em>Em integração ${qfTextoDias(x.dias)}</em></div>
+      ${x.sug?`<button type="button" class="qfr-sug" data-qfr-efetivar="${i}"><span>Já está na base:</span> <b>${qfTitulo(x.sug.nome)}</b> — confirmar</button>`:''}
+      <div class="qfr-acoes"><button type="button" class="btn-recolher qfr-nome" data-qfr-escolher="${i}">Escolher nome oficial</button>
+        <button type="button" class="btn-recolher" data-qfr-continua="${i}">Ainda em integração</button></div></div>`).join('')}</div></div>`;
+  md._pend = pend; md.classList.add('on');
+}
+document.addEventListener('click', async e=>{
+  const md = document.getElementById('qfRevisao'); if(!md || !md._pend) return;
+  const b = e.target.closest('[data-qfr-continua],[data-qfr-escolher],[data-qfr-efetivar]'); if(!b) return;
+  const x = md._pend[+(b.dataset.qfrContinua ?? b.dataset.qfrEscolher ?? b.dataset.qfrEfetivar)]; if(!x) return;
+  if(b.dataset.qfrContinua!=null){
+    b.disabled = true; md.classList.remove('on');
+    await salvarCampoPosto(x.p.id, {[x.ch.conf]: qfHojeISO()});      // salva e re-renderiza; a revisão reabre se ainda faltar alguém
+    return;
+  }
+  if(b.dataset.qfrEfetivar!=null){
+    md.classList.remove('on');
+    await salvarCampoPosto(x.p.id, {[x.ch.nome]: qfTitulo(x.sug.nome), [x.ch.cod]: qfChave(x.sug), [x.ch.integ]: false, [x.ch.desde]: null, [x.ch.conf]: null});
+    qfAviso(`✓ ${qfTitulo(x.sug.nome)} efetivado(a) no quadro.`);
+    return;
+  }
+  // escolher nome oficial: fecha a revisão, leva até o campo e abre a lista
+  md.classList.remove('on');
+  const el = document.querySelector(`.qf-linha[data-posto-id="${x.p.id}"] .${x.ch.classe}`);
+  if(!el) return;
+  el.scrollIntoView({block:'center'});
+  setTimeout(()=>{ if(qfEhCelular()) qfAbrirEscolha(el); else { el.focus(); } window._qfRevisaoPendente = true; }, 250);
+});
+// sempre que abrir a guia Atualizar Funcionários
+document.addEventListener('click', e=>{ if(e.target.closest('[data-aba-qf="atualizar"]')) setTimeout(qfChecarRevisao, 120); });
 // liga busca e sinalização nos campos de nome (chamada no fim de renderQuadroFuncionarios)
 function qfAtivosAplicar(cont){
   qfAtualizarBanner();
   qfFecharLista();
+  setTimeout(qfChecarRevisao, 60);
   if(!qfBaseCarregada()) return;
   cont.querySelectorAll('.qf-input-granjeiro, .qf-input-ajudante, .qf-input-extra-nome').forEach(el=>{
     el.closest('.qf-celula').classList.add('qf-cel-nome');
     el.title = el.value || '';
     const v = el.value.trim();
-    if(v && !qfPessoa(v)){
+    if(qfEhInteg(el)){
+      el.classList.add('qf-nome-integ'); el.dataset.integ = '1'; el.dataset.orig = el.value;
+      const pI = qfPostoDe(el), kI = qfCampoDe(el);
+      qfMsg(el, `⏳ <b>Em integração ${qfTextoDias(qfDiasDesde(pI && pI[kI.desde]))}</b> — quando for efetivado, escolha o nome na lista.`, 'integ');
+    }else if(v && !qfPessoa(v)){
       el.classList.add('qf-nome-fora');
       qfMsg(el, 'Este nome não consta na base de ativos — substitua.', 'aviso');
     }
@@ -9840,10 +10005,10 @@ function qfAtivosAplicar(cont){
     el.addEventListener('pointerdown', ev=>{ if(qfEhCelular()) ev.preventDefault(); });
     el.addEventListener('click', ()=>{ if(qfEhCelular()) qfAbrirEscolha(el); });
     if(qfEhCelular()) el.readOnly = true;
-    el.addEventListener('focus', ()=>{ if(qfEhCelular()){ el.blur(); return; } qfSugerir(el); });
+    el.addEventListener('focus', ()=>{ if(qfEhCelular()){ el.blur(); return; } if(el.dataset.integ) el.select(); qfSugerir(el); });
     el.addEventListener('keydown', qfTeclaBusca);
     el.addEventListener('input', ()=>{ el.classList.remove('qf-nome-invalido','qf-nome-fora'); qfMsg(el,''); qfSugerir(el); });
-    el.addEventListener('blur', ()=>setTimeout(()=>{ if(window._qfSugEl===el) qfFecharLista(); }, 160));
+    el.addEventListener('blur', ()=>setTimeout(()=>{ if(window._qfSugEl===el) qfFecharLista(); if(window._qfRevisaoPendente && el.dataset.integ){ window._qfRevisaoPendente = false; setTimeout(qfChecarRevisao, 250); } }, 160));
   });
 }
 function qfAtualizarBanner(){
@@ -9868,11 +10033,20 @@ function qfModeloRH(){
     (a.nucleo||'').localeCompare(b.nucleo||'') || String(a.aviarios||'').localeCompare(String(b.aviarios||''), undefined, {numeric:true}));
   const nn = n => (typeof nomeNucleo==='function' ? nomeNucleo(n) : n) || '';
   const linhas = [], pend = [];
-  const pessoaLinha = (p, papel, nome, cod, saindo) => {
+  const pessoaLinha = (p, papel, nome, cod, saindo, integ) => {
     const nucleo = nn(p.nucleo);
     if(!nome || !nome.trim()){
       linhas.push({nucleo, aviarios:p.aviarios||'', funcao:papel, mat:'', nome:'VAGO', empresa:'', cargo:'', adm:'', sit:'', status:'Vago', obs:'Posto sem pessoa', tipo:'vago'});
       pend.push(['Vaga em aberto', nucleo, p.aviarios||'', papel, '—', 'Posto sem pessoa lançada']);
+      return;
+    }
+    if(integ){
+      const prov = nome.trim()==='Em integração' ? '' : nome.trim();
+      const kk = papel.startsWith('Granjeiro (') || papel.startsWith('Ajudante (') ? 'extra' : papel==='Granjeiro' ? 'granjeiro' : 'ajudante';
+      const desde = p[kk+'IntegDesde'], dias = desde ? ` · ${qfTextoDias(qfDiasDesde(desde))} (desde ${qfFmtData(desde)})` : '';
+      linhas.push({nucleo, aviarios:p.aviarios||'', funcao:papel, mat:'', nome: prov ? prov+' (provisório)' : 'EM INTEGRAÇÃO', empresa:'', cargo:'', adm:'', sit:'',
+        status: saindo?'Saída prevista':'Em integração', obs:'Aguardando efetivação'+dias, tipo:'integ'});
+      pend.push(['Em integração', nucleo, p.aviarios||'', papel, prov||'—', 'Aguardando efetivação'+dias]);
       return;
     }
     const b = qfPessoa(nome, cod);
@@ -9887,14 +10061,14 @@ function qfModeloRH(){
     if(b && b.situacao && !/normal/i.test(b.situacao)) pend.push(['Afastamento (RH)', nucleo, p.aviarios||'', papel, qfTitulo(b.nome), b.situacao]);
   };
   postos.forEach(p=>{
-    pessoaLinha(p, 'Granjeiro', p.granjeiro, p.granjeiroCod, p.granjeiroSaindo);
-    pessoaLinha(p, 'Ajudante', p.ajudante, p.ajudanteCod, p.ajudanteSaindo);
+    pessoaLinha(p, 'Granjeiro', p.granjeiro, p.granjeiroCod, p.granjeiroSaindo, p.granjeiroInteg);
+    pessoaLinha(p, 'Ajudante', p.ajudante, p.ajudanteCod, p.ajudanteSaindo, p.ajudanteInteg);
     const papel = qfExtraPapel(p), nome = qfExtraNome(p);
-    if(papel && nome && nome.trim()) pessoaLinha(p, papel==='granjeiro'?'Granjeiro (extra)':'Ajudante (extra)', nome, p.extraCod, qfExtraSaindo(p));
+    if(papel && nome && nome.trim()) pessoaLinha(p, papel==='granjeiro'?'Granjeiro (extra)':'Ajudante (extra)', nome, p.extraCod, qfExtraSaindo(p), p.extraInteg);
   });
   // mesma pessoa lançada em mais de um posto
   const vistos = new Map();
-  linhas.forEach(l=>{ if(l.tipo==='vago') return; const k = l.chaveP || qfNorm(l.nome); if(!vistos.has(k)) vistos.set(k, []); vistos.get(k).push(l); });
+  linhas.forEach(l=>{ if(l.tipo==='vago' || l.tipo==='integ') return; const k = l.chaveP || qfNorm(l.nome); if(!vistos.has(k)) vistos.set(k, []); vistos.get(k).push(l); });
   vistos.forEach(ls=>{ if(ls.length>1) ls.forEach(l=>{
     pend.push(['Pessoa em 2+ postos', l.nucleo, l.aviarios, l.funcao, l.nome, `Lançada em ${ls.length} postos — confira`]);
     l.obs = (l.obs?l.obs+' · ':'') + 'Lançada em mais de um posto'; if(l.tipo==='ok') l.tipo='fora';
@@ -9936,7 +10110,7 @@ function qfAbrirPlanilhaRH(){
   let nucAnt = null, faixa = false;
   const corpoQ = m.linhas.map(l=>{
     if(l.nucleo!==nucAnt){ faixa = !faixa; nucAnt = l.nucleo; }
-    const cls = (faixa?'z1':'z2') + (l.tipo==='vago'?' vago':l.tipo==='saindo'?' saindo':l.tipo==='fora'?' fora':'');
+    const cls = (faixa?'z1':'z2') + (l.tipo==='vago'?' vago':l.tipo==='saindo'?' saindo':l.tipo==='fora'?' fora':l.tipo==='integ'?' integ':'');
     return {cls, cells:[l.nucleo,l.aviarios,l.funcao,`<span class="num">${l.mat}</span>`,`<b>${l.nome}</b>`,l.empresa,l.cargo,qfFmtData(l.adm),l.sit,l.status,l.obs].map(v=>`<td>${v??''}</td>`).join('')};
   });
   const tot = k => m.resumo.reduce((s,x)=>s+x[k],0);
@@ -10023,6 +10197,7 @@ async function qfBaixarPlanilhaRH(){
         if(col===5) c.font = {name:'Calibri', size:10, bold:true, color:{argb:'FF1F2330'}};
         if(l.tipo==='vago'){ c.fill = {type:'pattern',pattern:'solid',fgColor:{argb:'FFFDECEC'}}; if(col===5||col===10) c.font = {name:'Calibri', size:10, bold:true, color:{argb:'FFB3261E'}}; }
         if(l.tipo==='saindo' && col===10) c.font = {name:'Calibri', size:10, bold:true, color:{argb:'FFA36A00'}};
+        if(l.tipo==='integ'){ c.fill = {type:'pattern',pattern:'solid',fgColor:{argb:'FFFFF6E0'}}; if(col===5||col===10) c.font = {name:'Calibri', size:10, bold:true, color:{argb:'FF8A5A00'}}; }
         if(l.tipo==='fora' && (col===5||col===11)) c.font = {name:'Calibri', size:10, bold:true, color:{argb:'FFB3261E'}};
       });
     });
@@ -10052,7 +10227,7 @@ async function qfBaixarPlanilhaRH(){
     // ── aba 3: pendências
     const ws3 = preparar('Pendências', QF_COLS_PEN, 'PENDÊNCIAS DO QUADRO');
     (m.pend.length ? m.pend : [['Nenhuma pendência','','','','','']]).forEach((p,i)=>linhaDados(ws3, p, i%2===1, (c,col)=>{
-      if(col===1) c.font = {name:'Calibri', size:10, bold:true, color:{argb: /Vaga|fora|2\+/.test(p[0])?'FFB3261E':'FFA36A00'}};
+      if(col===1) c.font = {name:'Calibri', size:10, bold:true, color:{argb: /Vaga|fora|2\+/.test(p[0])?'FFB3261E':/integra/.test(p[0])?'FF8A5A00':'FFA36A00'}};
       if(col===3) c.alignment = {vertical:'middle', horizontal:'center'};
     }));
     const buf = await wb.xlsx.writeBuffer();
@@ -10079,7 +10254,7 @@ async function qfZerarNomesQuadro(){
     await qfBaixarPlanilhaRH();                       // backup antes de apagar
     if(btn) btn.textContent = 'Apagando nomes…';
     const limpo = { granjeiro:'', ajudante:'', granjeiroCod:null, ajudanteCod:null, granjeiroSaindo:false, ajudanteSaindo:false,
-      extraPapel:'', extraNome:'', extraCod:null, extraSaindo:false, ajudante2:'', ajudante2Saindo:false, folguista:false,
+      extraPapel:'', extraNome:'', extraCod:null, extraSaindo:false, granjeiroInteg:false, ajudanteInteg:false, extraInteg:false, granjeiroIntegDesde:null, ajudanteIntegDesde:null, extraIntegDesde:null, granjeiroIntegConf:null, ajudanteIntegConf:null, extraIntegConf:null, ajudante2:'', ajudante2Saindo:false, folguista:false,
       atualizadoEm: firebase.firestore.FieldValue.serverTimestamp(), atualizadoPor: (auth.currentUser && auth.currentUser.email) || '' };
     for(let i=0; i<comNome.length; i+=400){
       const lote = db.batch();
@@ -10349,8 +10524,8 @@ function renderQuadroConsolidado(){
         linhasDetalhe = postosOrdenados.map(p=>{
           const temG = p.granjeiro && p.granjeiro.trim();
           const temA = p.ajudante && p.ajudante.trim();
-          const gTxt = temG ? (futuro && p.granjeiroSaindo ? `<span class="qfc-saindo">${p.granjeiro}<span class="qfc-tag">saindo</span></span>` : p.granjeiro) : '<span class="qfc-vago">vago</span>';
-          const aTxt = temA ? (futuro && p.ajudanteSaindo ? `<span class="qfc-saindo">${p.ajudante}<span class="qfc-tag">saindo</span></span>` : p.ajudante) : '<span class="qfc-vago">vago</span>';
+          const gTxt = temG ? (futuro && p.granjeiroSaindo ? `<span class="qfc-saindo">${p.granjeiro}<span class="qfc-tag">saindo</span></span>` : (p.granjeiroInteg ? `<span class="qfc-integ">${p.granjeiro}<span class="qfc-tag">integração</span></span>` : p.granjeiro)) : '<span class="qfc-vago">vago</span>';
+          const aTxt = temA ? (futuro && p.ajudanteSaindo ? `<span class="qfc-saindo">${p.ajudante}<span class="qfc-tag">saindo</span></span>` : (p.ajudanteInteg ? `<span class="qfc-integ">${p.ajudante}<span class="qfc-tag">integração</span></span>` : p.ajudante)) : '<span class="qfc-vago">vago</span>';
           const falta = statusPosto(p, futuro);
           const presentes = 2 - falta;
           if(falta===0) casaisCompletosGeral++;
@@ -10558,14 +10733,14 @@ function renderQuadroFuncionarios(){
     el.addEventListener('change', ()=>{
       const id = el.closest('.qf-linha').dataset.postoId;
       const pp = qfValidarAtivo(el); if(pp===false) return;
-      salvarCampoPosto(id, {granjeiro: el.value.trim(), granjeiroCod: pp ? qfChave(pp) : null});
+      salvarCampoPosto(id, {granjeiro: el.value.trim(), granjeiroCod: pp ? qfChave(pp) : null, granjeiroInteg: false, granjeiroIntegDesde: null, granjeiroIntegConf: null});
     });
   });
   cont.querySelectorAll('.qf-input-ajudante').forEach(el=>{
     el.addEventListener('change', ()=>{
       const id = el.closest('.qf-linha').dataset.postoId;
       const pp = qfValidarAtivo(el); if(pp===false) return;
-      salvarCampoPosto(id, {ajudante: el.value.trim(), ajudanteCod: pp ? qfChave(pp) : null});
+      salvarCampoPosto(id, {ajudante: el.value.trim(), ajudanteCod: pp ? qfChave(pp) : null, ajudanteInteg: false, ajudanteIntegDesde: null, ajudanteIntegConf: null});
     });
   });
   cont.querySelectorAll('.qf-check-granjeiro-sai').forEach(el=>{
@@ -10584,14 +10759,14 @@ function renderQuadroFuncionarios(){
     el.addEventListener('change', ()=>{
       const id = el.closest('.qf-linha').dataset.postoId;
       // trocar de papel (ou zerar) limpa o nome antigo, pra não ficar "granjeiro extra" com um nome salvo como ajudante por engano
-      salvarCampoPosto(id, {extraPapel: el.value, extraNome: '', extraSaindo: false, extraCod: null});
+      salvarCampoPosto(id, {extraPapel: el.value, extraNome: '', extraSaindo: false, extraCod: null, extraInteg: false, extraIntegDesde: null, extraIntegConf: null});
     });
   });
   cont.querySelectorAll('.qf-input-extra-nome').forEach(el=>{
     el.addEventListener('change', ()=>{
       const id = el.closest('.qf-linha').dataset.postoId;
       const pp = qfValidarAtivo(el); if(pp===false) return;
-      salvarCampoPosto(id, {extraNome: el.value.trim(), extraCod: pp ? qfChave(pp) : null});
+      salvarCampoPosto(id, {extraNome: el.value.trim(), extraCod: pp ? qfChave(pp) : null, extraInteg: false, extraIntegDesde: null, extraIntegConf: null});
     });
   });
   cont.querySelectorAll('.qf-check-extra-sai').forEach(el=>{
