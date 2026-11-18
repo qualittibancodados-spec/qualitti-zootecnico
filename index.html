@@ -1598,6 +1598,58 @@
   .linha-nucleo th, .linha-nucleo td{ border-top:2px solid #333 !important; }
 }
 </style>
+<style>
+/* ═══ Quadro: funcionários ativos + planilha do RH ═══ */
+.qf-ativos-banner{display:flex;align-items:center;gap:14px;background:#fff;border:1px solid var(--borda);border-left:4px solid var(--vermelho);border-radius:12px;padding:14px 18px;margin:0 0 16px}
+.qf-ativos-banner.sem-base{border-left-color:#D9A20B;background:#FFFBEB}
+.qf-ab-ic{width:38px;height:38px;border-radius:10px;background:#FDF0F0;display:grid;place-items:center;font-size:18px;flex-shrink:0}
+.qf-ab-tx b{display:block;font-size:14.5px;color:var(--texto)}.qf-ab-tx span{font-size:12.5px;color:var(--texto-suave);line-height:1.5}.qf-ab-tx span b{display:inline;font-size:12.5px}
+.qf-ab-n{margin-left:auto;text-align:right;padding-left:18px;border-left:1px solid var(--borda);flex-shrink:0}.qf-ab-n b{display:block;font-family:'Sora',sans-serif;font-size:24px}.qf-ab-n span{font-size:11.5px;color:var(--texto-suave)}
+#mod-quadro input.qf-nome-ok{border-color:#9FCBAE!important}
+#mod-quadro input.qf-nome-invalido{border-color:#D63A38!important;background:#FFF5F5!important;box-shadow:0 0 0 3px rgba(214,58,56,.12)!important}
+#mod-quadro input.qf-nome-fora{border-color:#D9A20B!important;background:#FFFBEB!important}
+.qf-ativo-msg{font-size:11px;line-height:1.35;margin-top:4px;white-space:normal;max-width:280px;text-align:left}.qf-ativo-msg:empty{display:none}
+.qf-ativo-msg.erro{color:#C1272D}.qf-ativo-msg.aviso{color:#946200}
+.qf-sug{display:none;position:absolute;left:0;top:100%;margin-top:2px;min-width:300px;max-height:320px;overflow:auto;background:#fff;border:1px solid var(--borda);border-radius:8px;box-shadow:0 10px 24px rgba(0,0,0,.14);z-index:60;text-align:left}
+.qf-sug-op{padding:7px 12px;cursor:pointer;border-bottom:1px solid #F2F3F6}.qf-sug-op:hover{background:#FDF4F4}
+.qf-sug-n{display:block;font-size:12.8px;font-weight:600;color:var(--texto)}.qf-sug-n mark{background:#FCF1CF;color:inherit}
+.qf-sug-d{display:block;font-size:11px;color:var(--texto-suave);margin-top:1px}.qf-sug-af{color:#946200;font-weight:600}
+.qf-sug-rod{padding:6px 12px;font-size:11px;color:var(--texto-suave);background:#FAFBFC}
+.qf-sug-vazio{padding:12px;font-size:12px;color:#C1272D;white-space:normal;line-height:1.4}.qf-sug-vazio span{display:block;color:var(--texto-suave);font-size:11px;margin-top:3px}
+#qfToast{position:fixed;right:22px;bottom:22px;z-index:2000;background:#198038;color:#fff;font:600 13px Inter,system-ui,sans-serif;padding:11px 16px;border-radius:8px;opacity:0;transform:translateY(8px);transition:.25s;pointer-events:none;max-width:380px}
+#qfToast.on{opacity:1;transform:none}#qfToast.ruim{background:#C1272D}
+/* prévia da planilha: aparência de Excel */
+#qfRhModal{display:none;position:fixed;inset:0;z-index:1500}
+.qx-fundo{position:absolute;inset:0;background:rgba(15,20,26,.55)}
+.qx-janela{position:absolute;inset:3vh 3vw;background:#fff;border-radius:12px;display:flex;flex-direction:column;overflow:hidden;box-shadow:0 30px 70px rgba(0,0,0,.3)}
+.qx-topo{display:flex;align-items:center;gap:14px;padding:14px 18px;border-bottom:1px solid #E1E4E8;flex-wrap:wrap}
+.qx-topo b{display:block;font-size:15px}.qx-topo span{font-size:12px;color:#6B7280}.qx-acoes{margin-left:auto;display:flex;gap:8px}
+.qx-acoes [data-qx-baixar]{background:#1E7145!important;color:#fff!important;border-color:#1E7145!important}
+.qx-folhas{flex:1;overflow:auto;background:#fff}
+table.qx{border-collapse:collapse;font:12px Calibri,Carlito,'Segoe UI',Arial,sans-serif;color:#1F2330;table-layout:fixed}
+table.qx td,table.qx th{border:1px solid #C9CDD3;padding:3px 6px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;height:20px}
+table.qx th.cn,table.qx th.rn{background:#F3F3F3;color:#666;font-weight:400;font-size:11px;text-align:center;position:sticky;z-index:2}
+table.qx th.cn{top:0}table.qx th.rn{left:0;width:34px;min-width:34px}
+table.qx td.t1{background:#8F1D22;color:#fff;font-weight:700;font-size:15px;height:30px;padding-left:10px}
+table.qx td.t2{font-style:italic;font-size:11px;color:#5B6170;padding-left:10px;border-bottom-color:#fff}
+table.qx td.hd{background:#3A3F4B;color:#fff;font-weight:700;text-align:center;white-space:normal;height:34px}
+table.qx tr.z1 td{background:#fff}table.qx tr.z2 td{background:#F4F5F7}
+table.qx tr.vago td{background:#FDECEC}table.qx tr.vago td:nth-child(6),table.qx tr.vago td:nth-child(11){color:#B3261E;font-weight:700}
+table.qx tr.saindo td:nth-child(11){color:#A36A00;font-weight:700}
+table.qx tr.fora td:nth-child(6),table.qx tr.fora td:nth-child(12){color:#B3261E;font-weight:700}
+table.qx tr.tot td{background:#E6E8EC;font-weight:700;border-top:2px solid #3A3F4B}
+table.qx td.num,table.qx .num{text-align:center}
+table.qx td:nth-child(3),table.qx td:nth-child(5),table.qx td:nth-child(9){text-align:center}
+.qx-abas{display:flex;gap:2px;padding:0 10px;background:#F3F3F3;border-top:1px solid #D0D4DA;overflow-x:auto}
+.qx-abas button{border:0;background:transparent;padding:8px 16px;font:500 12.5px Calibri,'Segoe UI',sans-serif;color:#444;cursor:pointer;border-bottom:3px solid transparent;white-space:nowrap}
+.qx-abas button.on{background:#fff;color:#1E7145;font-weight:700;border-bottom-color:#1E7145}
+@media(max-width:760px){.qf-ativos-banner{flex-wrap:wrap}.qf-ab-n{margin-left:0;padding:8px 0 0;border-left:0;border-top:1px solid var(--borda);width:100%;text-align:left;display:flex;gap:8px;align-items:baseline}.qf-ab-n b{font-size:18px}
+ .qf-sug{min-width:100%}.qx-janela{inset:0;border-radius:0}.qx-acoes{margin-left:0;width:100%}.qx-acoes button{flex:1}#qfToast{left:12px;right:12px;bottom:12px}}
+.qf-zerar{display:flex;align-items:center;gap:14px;background:#fff;border:1px dashed #E3B4B6;border-radius:12px;padding:12px 16px;margin:0 0 16px}
+.qf-zerar b{display:block;font-size:13.5px;color:var(--texto)}.qf-zerar span{font-size:12px;color:var(--texto-suave);line-height:1.5}
+.qf-zerar button{margin-left:auto;flex-shrink:0;color:#C1272D!important;border-color:#E3B4B6!important}
+@media(max-width:760px){.qf-zerar{flex-wrap:wrap}.qf-zerar button{margin-left:0;width:100%}}
+</style>
 </head>
 <body>
 
@@ -2541,7 +2593,7 @@ select:focus, input:focus,
         <div style="display:flex;gap:10px;margin-bottom:18px;flex-wrap:wrap;">
           <button class="btn-recolher" id="qf-btnExpandirTodos" type="button">Expandir todos</button>
           <button class="btn-recolher" id="qf-btnImprimir" type="button">🖨️ Imprimir</button>
-          <button class="btn-recolher" id="qf-btnExportarExcel" type="button">📊 Exportar Excel</button>
+          <button class="btn-recolher" id="qf-btnExportarExcel" type="button">📋 Planilha do RH</button>
         </div>
 
         <!-- ===== painel executivo (RH) ===== -->
@@ -2587,6 +2639,11 @@ select:focus, input:focus,
         <p class="nota" style="margin:16px 0 10px;">Cada aviário é coberto em dupla (granjeiro + ajudante). A <strong>necessidade</strong> de cada núcleo é calculada a partir do total de aviários dividido pela razão definida ali.</p>
         <p class="nota" style="margin:0 0 18px;color:var(--texto-suave);">🛈 Você só edita os núcleos para os quais tem autorização — os demais não aparecem aqui. Marque quem está <strong>saindo/em aviso</strong> assim que o desligamento for confirmado: isso não altera o quadro Atual, só atualiza a projeção <strong>Futuro</strong> na Visão Consolidada, que os gestores usam pra planejar reposição.</p>
         <button class="btn-recolher" id="btnImportarQuadroInicial" style="display:none;margin-bottom:18px;">Importar lista inicial (uma vez)</button>
+        <div class="qf-ativos-banner" id="qfAtivosBanner"><div class="qf-ab-ic">👥</div><div class="qf-ab-tx"><b>Apenas funcionários ativos</b>
+          <span>Os nomes vêm da base <b>Funcionários Ativos</b> (aba bd_funcionários), atualizada todo dia. Quem ainda não foi efetivado não aparece na busca e não pode ser lançado.</span></div>
+          <div class="qf-ab-n"></div></div>
+        <div class="qf-zerar" id="qfZerarBox" style="display:none;"><div><b>Recomeçar o preenchimento</b><span>Apaga todos os nomes do quadro (granjeiro, ajudante e pessoa extra) para a equipe lançar de novo só com funcionários ativos. Núcleos, aviários e necessidade são mantidos. Antes de apagar, baixa uma cópia do quadro atual.</span></div>
+          <button class="btn-recolher" type="button" id="qfBtnZerar">Zerar nomes do quadro</button></div>
         <div id="quadroNucleosContainer"></div>
       </div>
 
@@ -3621,7 +3678,8 @@ function fetchJSONSync(url, valorPadraoSeNaoExistir){
 }
 const RAW_DATA = fetchJSONSync('./data/mortalidade_data.json');
 const RESUMO_LOTES = fetchJSONSync('./data/resumo_lotes.json');
-const CALOS_PE = fetchJSONSync('./data/calos_pe.json', []); // 2º argumento = valor padrão, caso o arquivo ainda não exista (pipeline não rodou)
+const CALOS_PE = fetchJSONSync('./data/calos_pe.json', []);
+window.FUNC_ATIVOS = fetchJSONSync('./data/funcionarios_ativos.json', null); // base Funcionários Ativos (bd_funcionários) // 2º argumento = valor padrão, caso o arquivo ainda não exista (pipeline não rodou)
 const AGG_IDADE = fetchJSONSync('./data/agg_idade.json');
 const AGG_NUCLEO = fetchJSONSync('./data/agg_nucleo_idade.json');
 const MORT_DIARIA = fetchJSONSync('./data/mort_diaria_abertos.json');
@@ -9484,7 +9542,8 @@ function qfExtraPapel(p){ if(p.extraPapel) return p.extraPapel; if(p.ajudante2 &
 function qfExtraNome(p){ return p.extraNome!=null ? p.extraNome : (p.ajudante2||''); }
 function qfExtraSaindo(p){ return p.extraSaindo!=null ? p.extraSaindo : !!p.ajudante2Saindo; }
 
-function qfExportarExcel(){
+/* (export antigo mantido como reserva) */
+function qfExportarExcelSimples(){
   if(typeof XLSX === 'undefined'){ alert('Não foi possível carregar o gerador de Excel.'); return; }
   const postos = window.POSTOS_QUADRO || [];
   if(!postos.length){ alert('Nenhum posto cadastrado ainda.'); return; }
@@ -9528,6 +9587,364 @@ function qfExportarExcel(){
   XLSX.utils.book_append_sheet(wb, ws, 'Quadro Consolidado');
   XLSX.writeFile(wb, `quadro_consolidado_${new Date().toISOString().slice(0,10)}.xlsx`);
 }
+
+/* ═══════════════════════════════════════════════════════════════════
+   QUADRO DE FUNCIONÁRIOS — FUNCIONÁRIOS ATIVOS + PLANILHA DO RH
+   Base: planilha "Funcionários Ativos" › aba bd_funcionários (pasta do Drive),
+   convertida pelo atualizar_dados.py em ./data/funcionarios_ativos.json.
+   Regra: granjeiro, ajudante e pessoa extra só aceitam nomes dessa lista
+   (não trava por núcleo). Campo vazio continua permitido (= vaga).
+   ═══════════════════════════════════════════════════════════════════ */
+function qfNorm(t){ return String(t||'').normalize('NFD').replace(/[̀-ͯ]/g,'').toLowerCase().replace(/\s+/g,' ').trim(); }
+function qfTitulo(t){
+  const minus = ['de','da','do','das','dos','e','em'];
+  return String(t||'').toLowerCase().split(/\s+/).filter(Boolean)
+    .map((w,i)=> /^(i|ii|iii|iv|v|vi)$/.test(w) ? w.toUpperCase() : (i>0 && minus.includes(w) ? w : w.charAt(0).toUpperCase()+w.slice(1))).join(' ');
+}
+function qfNucChave(s){ return qfNorm(s).replace(/nucleo|fazenda/g,'').replace(/[^a-z0-9]/g,'').replace(/0+(\d)/g,'$1').replace('valzinho','vauzinho'); }
+function qfMesmoNucleo(a,b){ const x=qfNucChave(a), y=qfNucChave(b); return !!x && !!y && (x===y || x.startsWith(y) || y.startsWith(x)); }
+function qfAtivos(){ return (window.FUNC_ATIVOS && window.FUNC_ATIVOS.pessoas) || []; }
+function qfBaseCarregada(){ return qfAtivos().length > 0; }
+function qfIdx(){
+  if(!window._qfIdx){
+    window._qfIdx = { nome:new Map(), cod:new Map() };
+    qfAtivos().forEach(p=>{ window._qfIdx.nome.set(qfNorm(p.nome), p); window._qfIdx.cod.set(qfChave(p), p); });
+  }
+  return window._qfIdx;
+}
+// a matrícula se repete entre empresas: a identificação é sempre empresa + matrícula
+function qfChave(p){ return p.chave || `${p.codEmp}-${p.cod}`; }
+// encontra a pessoa da base pela chave salva no posto ou, se não tiver, pelo nome
+function qfPessoa(nome, cod){
+  const i = qfIdx();
+  if(cod!=null && i.cod.has(String(cod))) return i.cod.get(String(cod));
+  return i.nome.get(qfNorm(nome)) || null;
+}
+function qfMsg(el, html, tipo){
+  const cel = el.closest('.qf-celula'); if(!cel) return;
+  let m = cel.querySelector('.qf-ativo-msg');
+  if(!m){ m = document.createElement('div'); m.className = 'qf-ativo-msg'; cel.appendChild(m); }
+  m.className = 'qf-ativo-msg ' + (tipo||''); m.innerHTML = html || '';
+}
+// false = bloqueia o salvamento · null = vazio/base indisponível · objeto = pessoa válida
+function qfValidarAtivo(el){
+  const v = el.value.trim();
+  el.classList.remove('qf-nome-invalido','qf-nome-ok','qf-nome-fora'); qfMsg(el,'');
+  if(!v) return null;
+  if(!qfBaseCarregada()) return null;          // base ainda não gerada pelo workflow: não trava o sistema
+  const p = qfPessoa(v);
+  if(!p){
+    el.classList.add('qf-nome-invalido');
+    qfMsg(el, '<b>Não está na lista de funcionários ativos.</b> Só é possível lançar quem já foi efetivado.', 'erro');
+    qfAviso('Não salvo: nome fora da lista de funcionários ativos.', true);
+    return false;
+  }
+  el.value = qfTitulo(p.nome); el.classList.add('qf-nome-ok');
+  return p;
+}
+function qfAviso(texto, ruim){
+  let t = document.getElementById('qfToast');
+  if(!t){ t = document.createElement('div'); t.id = 'qfToast'; document.body.appendChild(t); }
+  t.textContent = texto; t.className = 'on' + (ruim?' ruim':'');
+  clearTimeout(t._t); t._t = setTimeout(()=>t.className='', 3200);
+}
+function qfSugerir(el){
+  const cel = el.closest('.qf-celula'); if(!cel) return;
+  let box = cel.querySelector('.qf-sug');
+  if(!box){ box = document.createElement('div'); box.className = 'qf-sug'; cel.appendChild(box); }
+  if(!qfBaseCarregada()){ box.style.display='none'; return; }
+  const nucCard = (el.closest('[data-nucleo-card]')||{}).dataset || {};
+  const nuc = nucCard.nucleoCard || '';
+  const q = qfNorm(el.value);
+  const achados = qfAtivos().filter(p=> !q || qfNorm(p.nome).includes(q))
+    .sort((a,b)=> (qfMesmoNucleo(b.nucleo,nuc)-qfMesmoNucleo(a.nucleo,nuc)) || a.nome.localeCompare(b.nome,'pt-BR'));
+  box.innerHTML = achados.length
+    ? achados.slice(0,8).map(p=>{
+        const n = qfTitulo(p.nome), i = qfNorm(n).indexOf(q);
+        const nomeHtml = q && i>=0 ? n.slice(0,i)+'<mark>'+n.slice(i,i+q.length)+'</mark>'+n.slice(i+q.length) : n;
+        const afast = p.situacao && !/normal/i.test(p.situacao);
+        return `<div class="qf-sug-op" data-cod="${qfChave(p)}"><span class="qf-sug-n">${nomeHtml}</span>
+          <span class="qf-sug-d">${qfTitulo(p.cargo||'')} · ${qfTitulo(p.nucleo||'')}${afast?` · <b class="qf-sug-af">${p.situacao}</b>`:''}</span></div>`;
+      }).join('') + `<div class="qf-sug-rod">${achados.length} funcionário(s) ativo(s)${nuc?' · os deste núcleo aparecem primeiro':''}</div>`
+    : `<div class="qf-sug-vazio">Nenhum funcionário ativo com esse nome.<span>Se a pessoa ainda não foi efetivada, ela não pode ser lançada.</span></div>`;
+  box.style.display = 'block';
+}
+// liga busca e sinalização nos campos de nome (chamada no fim de renderQuadroFuncionarios)
+function qfAtivosAplicar(cont){
+  qfAtualizarBanner();
+  if(!qfBaseCarregada()) return;
+  cont.querySelectorAll('.qf-input-granjeiro, .qf-input-ajudante, .qf-input-extra-nome').forEach(el=>{
+    el.closest('.qf-celula').style.position = 'relative';
+    const v = el.value.trim();
+    if(v && !qfPessoa(v)){
+      el.classList.add('qf-nome-fora');
+      qfMsg(el, 'Este nome não consta na base de ativos — substitua.', 'aviso');
+    }
+    if(el.disabled) return;
+    el.setAttribute('autocomplete','off'); el.placeholder = 'Buscar funcionário ativo…';
+    el.addEventListener('focus', ()=>qfSugerir(el));
+    el.addEventListener('input', ()=>{ el.classList.remove('qf-nome-invalido','qf-nome-fora'); qfMsg(el,''); qfSugerir(el); });
+    el.addEventListener('blur', ()=>setTimeout(()=>{ const b = el.closest('.qf-celula') && el.closest('.qf-celula').querySelector('.qf-sug'); if(b) b.style.display='none'; }, 160));
+  });
+}
+document.addEventListener('mousedown', e=>{
+  const op = e.target.closest('.qf-sug-op'); if(!op) return;
+  e.preventDefault();
+  const p = qfIdx().cod.get(String(op.dataset.cod));
+  const el = op.closest('.qf-celula').querySelector('input[type=text]');
+  if(!p || !el) return;
+  el.value = qfTitulo(p.nome); op.parentElement.style.display = 'none';
+  el.dispatchEvent(new Event('change'));   // dispara o mesmo salvamento de sempre
+});
+function qfAtualizarBanner(){
+  const z = document.getElementById('qfZerarBox'); if(z) z.style.display = window.souAdminPrincipal ? '' : 'none';
+  const b = document.getElementById('qfAtivosBanner'); if(!b) return;
+  const base = window.FUNC_ATIVOS;
+  if(qfBaseCarregada()){
+    b.classList.remove('sem-base');
+    b.querySelector('.qf-ab-n').innerHTML = `<b>${base.total||qfAtivos().length}</b><span>ativos · base de ${String(base.atualizadoEm||'').slice(0,10).split('-').reverse().join('/')}</span>`;
+  }else{
+    b.classList.add('sem-base');
+    b.querySelector('.qf-ab-n').innerHTML = `<b>—</b><span>base ainda não carregada</span>`;
+  }
+}
+
+/* ─────────────── PLANILHA DO RH: um único modelo de dados ───────────────
+   O mesmo modelo gera a prévia na tela e o arquivo .xlsx, então o que se vê
+   é exatamente o que sai.                                                   */
+function qfFmtData(iso){ return iso ? iso.slice(0,10).split('-').reverse().join('/') : ''; }
+function qfModeloRH(){
+  const postos = (window.POSTOS_QUADRO||[]).slice().sort((a,b)=>
+    (a.nucleo||'').localeCompare(b.nucleo||'') || String(a.aviarios||'').localeCompare(String(b.aviarios||''), undefined, {numeric:true}));
+  const nn = n => (typeof nomeNucleo==='function' ? nomeNucleo(n) : n) || '';
+  const linhas = [], pend = [];
+  const pessoaLinha = (p, papel, nome, cod, saindo) => {
+    const nucleo = nn(p.nucleo);
+    if(!nome || !nome.trim()){
+      linhas.push({nucleo, aviarios:p.aviarios||'', funcao:papel, mat:'', nome:'VAGO', empresa:'', cargo:'', adm:'', sit:'', status:'Vago', obs:'Posto sem pessoa', tipo:'vago'});
+      pend.push(['Vaga em aberto', nucleo, p.aviarios||'', papel, '—', 'Posto sem pessoa lançada']);
+      return;
+    }
+    const b = qfPessoa(nome, cod);
+    const obs = [];
+    if(p.folguista) obs.push('Coberto por folguista');
+    if(!b && qfBaseCarregada()) obs.push('Nome fora da base de ativos');
+    const status = saindo ? 'Saída prevista' : 'Ativo';
+    linhas.push({nucleo, aviarios:p.aviarios||'', funcao:papel, mat:b?b.cod:'', chaveP:b?qfChave(b):null, nome:b?qfTitulo(b.nome):nome.trim(), empresa:b?qfTitulo(b.empresa):'',
+      cargo:b?qfTitulo(b.cargo):'', adm:b?b.admissao:'', sit:b?b.situacao:'', status, obs:obs.join(' · '), tipo:saindo?'saindo':(!b&&qfBaseCarregada()?'fora':'ok')});
+    if(saindo) pend.push(['Saída prevista', nucleo, p.aviarios||'', papel, b?qfTitulo(b.nome):nome.trim(), 'Aviso/desligamento lançado no quadro']);
+    if(!b && qfBaseCarregada()) pend.push(['Nome fora da base', nucleo, p.aviarios||'', papel, nome.trim(), 'Não consta em Funcionários Ativos']);
+    if(b && b.situacao && !/normal/i.test(b.situacao)) pend.push(['Afastamento (RH)', nucleo, p.aviarios||'', papel, qfTitulo(b.nome), b.situacao]);
+  };
+  postos.forEach(p=>{
+    pessoaLinha(p, 'Granjeiro', p.granjeiro, p.granjeiroCod, p.granjeiroSaindo);
+    pessoaLinha(p, 'Ajudante', p.ajudante, p.ajudanteCod, p.ajudanteSaindo);
+    const papel = qfExtraPapel(p), nome = qfExtraNome(p);
+    if(papel && nome && nome.trim()) pessoaLinha(p, papel==='granjeiro'?'Granjeiro (extra)':'Ajudante (extra)', nome, p.extraCod, qfExtraSaindo(p));
+  });
+  // mesma pessoa lançada em mais de um posto
+  const vistos = new Map();
+  linhas.forEach(l=>{ if(l.tipo==='vago') return; const k = l.chaveP || qfNorm(l.nome); if(!vistos.has(k)) vistos.set(k, []); vistos.get(k).push(l); });
+  vistos.forEach(ls=>{ if(ls.length>1) ls.forEach(l=>{
+    pend.push(['Pessoa em 2+ postos', l.nucleo, l.aviarios, l.funcao, l.nome, `Lançada em ${ls.length} postos — confira`]);
+    l.obs = (l.obs?l.obs+' · ':'') + 'Lançada em mais de um posto'; if(l.tipo==='ok') l.tipo='fora';
+  }); });
+  // resumo por núcleo usando a mesma regra de cálculo da Visão Consolidada
+  const porNuc = new Map();
+  postos.forEach(p=>{ if(!porNuc.has(p.nucleo)) porNuc.set(p.nucleo, []); porNuc.get(p.nucleo).push(p); });
+  const resumo = Array.from(porNuc.entries()).map(([nuc, ps])=>{
+    const r = calcularResumoNucleo(nuc, ps);
+    const nec = r.necessidadeGranjeiro + r.necessidadeAjudante, atual = r.atualGranj + r.atualAjud, fut = r.futuroGranj + r.futuroAjud;
+    return { nucleo:nn(nuc), aviarios:r.totalAviarios, necG:r.necessidadeGranjeiro, atG:r.atualGranj, necA:r.necessidadeAjudante, atA:r.atualAjud,
+      vagas:Math.max(0,nec-atual), saidas:Math.max(0,atual-fut), cobAtual: nec?atual/nec:1, cobFut: nec?fut/nec:1 };
+  });
+  return { linhas, resumo, pend, emitido:new Date(), base:(window.FUNC_ATIVOS||{}).atualizadoEm||'' };
+}
+const QF_COLS = [
+  ['Núcleo',16],['Aviários',12],['Função no quadro',17],['Matrícula',11],['Nome do funcionário',34],['Empresa',22],
+  ['Cargo (RH)',24],['Admissão',12],['Situação (RH)',33],['Status no quadro',16],['Observação',30]];
+const QF_COLS_RES = [['Núcleo',18],['Aviários',10],['Necess. granjeiros',13],['Granjeiros',12],['Necess. ajudantes',13],['Ajudantes',12],['Vagas em aberto',12],['Saídas previstas',12],['Cobertura atual',13],['Cobertura após saídas',14]];
+const QF_COLS_PEN = [['Pendência',22],['Núcleo',16],['Aviários',12],['Função',17],['Nome',34],['Detalhe',44]];
+
+/* ── prévia na tela, com cara de planilha (letras de coluna, números de linha, abas) ── */
+function qfAbrirPlanilhaRH(){
+  if(!(window.POSTOS_QUADRO||[]).length){ alert('Nenhum posto cadastrado ainda.'); return; }
+  const m = qfModeloRH();
+  let modal = document.getElementById('qfRhModal');
+  if(!modal){ modal = document.createElement('div'); modal.id = 'qfRhModal'; document.body.appendChild(modal); }
+  const letra = i => String.fromCharCode(65+i);
+  const grade = (cols, cab, corpo, rodape) => {
+    let r = 0;
+    const tr = (cells, cls) => `<tr class="${cls||''}"><th class="rn">${++r}</th>${cells}</tr>`;
+    return `<table class="qx"><thead><tr><th class="cn"></th>${cols.map((c,i)=>`<th class="cn" style="width:${c[1]*7.2}px">${letra(i)}</th>`).join('')}</tr></thead><tbody>
+      ${cab.map(c=>tr(`<td colspan="${cols.length}" class="${c[1]}">${c[0]}</td>`)).join('')}
+      ${tr(cols.map(c=>`<td class="hd">${c[0]}</td>`).join(''),'')}
+      ${corpo.map(l=>tr(l.cells,l.cls)).join('')}
+      ${(rodape||[]).map(l=>tr(l.cells,l.cls)).join('')}</tbody></table>`;
+  };
+  const titulo = t => [[`QUALITTI ALIMENTOS — ${t}`,'t1'],[`Emitido em ${m.emitido.toLocaleString('pt-BR')} · Base de funcionários ativos de ${qfFmtData(m.base)} · Fonte: Zootécnico Web`,'t2']];
+  let nucAnt = null, faixa = false;
+  const corpoQ = m.linhas.map(l=>{
+    if(l.nucleo!==nucAnt){ faixa = !faixa; nucAnt = l.nucleo; }
+    const cls = (faixa?'z1':'z2') + (l.tipo==='vago'?' vago':l.tipo==='saindo'?' saindo':l.tipo==='fora'?' fora':'');
+    return {cls, cells:[l.nucleo,l.aviarios,l.funcao,`<span class="num">${l.mat}</span>`,`<b>${l.nome}</b>`,l.empresa,l.cargo,qfFmtData(l.adm),l.sit,l.status,l.obs].map(v=>`<td>${v??''}</td>`).join('')};
+  });
+  const tot = k => m.resumo.reduce((s,x)=>s+x[k],0);
+  const pct = v => (v*100).toFixed(1).replace('.',',')+'%';
+  const corpoR = m.resumo.map((x,i)=>({cls:i%2?'z2':'z1', cells:[x.nucleo,x.aviarios,x.necG,x.atG,x.necA,x.atA,x.vagas,x.saidas,pct(x.cobAtual),pct(x.cobFut)].map((v,j)=>`<td class="${j?'num':''}">${v}</td>`).join('')}));
+  const necT = tot('necG')+tot('necA'), atT = tot('atG')+tot('atA');
+  const rodR = [{cls:'tot', cells:['Total',tot('aviarios'),tot('necG'),tot('atG'),tot('necA'),tot('atA'),tot('vagas'),tot('saidas'),pct(necT?atT/necT:1),pct(necT?(atT-tot('saidas'))/necT:1)].map((v,j)=>`<td class="${j?'num':''}">${v}</td>`).join('')}];
+  const corpoP = m.pend.length ? m.pend.map((p,i)=>({cls:i%2?'z2':'z1', cells:p.map(v=>`<td>${v}</td>`).join('')})) : [{cls:'z1', cells:`<td colspan="6">Nenhuma pendência.</td>`}];
+  const abas = [
+    ['Quadro de Funcionários', grade(QF_COLS, titulo('QUADRO DE FUNCIONÁRIOS DAS GRANJAS'), corpoQ, [{cls:'tot', cells:`<td colspan="4">Total de pessoas no quadro</td><td class="num">${m.linhas.filter(l=>l.tipo!=='vago').length}</td><td colspan="6">${m.linhas.filter(l=>l.tipo==='vago').length} vaga(s) em aberto</td>`}])],
+    ['Resumo por núcleo', grade(QF_COLS_RES, titulo('RESUMO DO QUADRO POR NÚCLEO'), corpoR, rodR)],
+    ['Pendências', grade(QF_COLS_PEN, titulo('PENDÊNCIAS DO QUADRO'), corpoP)]
+  ];
+  modal.innerHTML = `<div class="qx-fundo" data-qx-fechar></div><div class="qx-janela">
+    <div class="qx-topo"><div><b>Planilha do RH</b><span>Prévia exata do arquivo que será baixado · ${m.linhas.length} linha(s) · 3 abas</span></div>
+      <div class="qx-acoes"><button class="btn-recolher" data-qx-baixar type="button">⬇ Baixar Excel (.xlsx)</button><button class="btn-recolher" data-qx-fechar type="button">Fechar</button></div></div>
+    <div class="qx-folhas">${abas.map((a,i)=>`<div class="qx-folha" data-qx-folha="${i}" style="${i?'display:none':''}">${a[1]}</div>`).join('')}</div>
+    <div class="qx-abas">${abas.map((a,i)=>`<button type="button" class="${i?'':'on'}" data-qx-aba="${i}">${a[0]}</button>`).join('')}</div></div>`;
+  modal.style.display = 'block';
+}
+document.addEventListener('click', e=>{
+  if(e.target.closest('[data-qx-fechar]')){ const m=document.getElementById('qfRhModal'); if(m) m.style.display='none'; return; }
+  const a = e.target.closest('[data-qx-aba]');
+  if(a){ const i=a.dataset.qxAba; document.querySelectorAll('[data-qx-aba]').forEach(b=>b.classList.toggle('on',b===a)); document.querySelectorAll('[data-qx-folha]').forEach(f=>f.style.display=f.dataset.qxFolha===i?'':'none'); return; }
+  if(e.target.closest('[data-qx-baixar]')) qfBaixarPlanilhaRH();
+});
+
+/* ── arquivo .xlsx formatado (ExcelJS, carregado só quando precisa) ── */
+function qfCarregarExcelJS(){
+  if(window.ExcelJS) return Promise.resolve();
+  return new Promise((ok, erro)=>{
+    const s = document.createElement('script');
+    s.src = 'https://cdnjs.cloudflare.com/ajax/libs/exceljs/4.4.0/exceljs.min.js';
+    s.onload = ok; s.onerror = ()=>erro(new Error('Não foi possível carregar o gerador de Excel. Verifique a internet.'));
+    document.head.appendChild(s);
+  });
+}
+async function qfBaixarPlanilhaRH(){
+  const btn = document.querySelector('[data-qx-baixar]'); if(btn){ btn.disabled = true; btn.textContent = 'Gerando…'; }
+  try{
+    await qfCarregarExcelJS();
+    const m = qfModeloRH(), wb = new ExcelJS.Workbook();
+    wb.creator = 'Qualitti Zootécnico Web'; wb.created = m.emitido;
+    const VERM='FF8F1D22', CINZA='FF3A3F4B', LINHA='FFC9CDD3', Z1='FFFFFFFF', Z2='FFF4F5F7';
+    const borda = {top:{style:'thin',color:{argb:LINHA}},left:{style:'thin',color:{argb:LINHA}},bottom:{style:'thin',color:{argb:LINHA}},right:{style:'thin',color:{argb:LINHA}}};
+    const preparar = (nome, cols, titulo) => {
+      const ws = wb.addWorksheet(nome, {views:[{state:'frozen', ySplit:4, showGridLines:false}],
+        pageSetup:{orientation:'landscape', paperSize:9, fitToPage:true, fitToWidth:1, fitToHeight:0, horizontalCentered:true,
+          margins:{left:0.4,right:0.4,top:0.6,bottom:0.6,header:0.3,footer:0.3}, printTitlesRow:'4:4'},
+        headerFooter:{oddFooter:`&L&8Qualitti Alimentos — ${titulo}&R&8Página &P de &N`}});
+      ws.columns = cols.map(c=>({width:c[1]}));
+      const n = cols.length;
+      ws.mergeCells(1,1,1,n); ws.mergeCells(2,1,2,n);
+      const t1 = ws.getCell(1,1); t1.value = `QUALITTI ALIMENTOS — ${titulo}`;
+      t1.font = {name:'Calibri', size:14, bold:true, color:{argb:'FFFFFFFF'}}; t1.fill = {type:'pattern', pattern:'solid', fgColor:{argb:VERM}};
+      t1.alignment = {vertical:'middle', indent:1}; ws.getRow(1).height = 26;
+      const t2 = ws.getCell(2,1);
+      t2.value = `Emitido em ${m.emitido.toLocaleString('pt-BR')} · Base de funcionários ativos de ${qfFmtData(m.base)} · Fonte: Zootécnico Web`;
+      t2.font = {name:'Calibri', size:9, italic:true, color:{argb:'FF5B6170'}}; t2.alignment = {indent:1}; ws.getRow(2).height = 18;
+      const hr = ws.getRow(4); hr.values = cols.map(c=>c[0]); hr.height = 30;
+      hr.eachCell(c=>{ c.font={name:'Calibri', size:10, bold:true, color:{argb:'FFFFFFFF'}}; c.fill={type:'pattern',pattern:'solid',fgColor:{argb:CINZA}};
+        c.alignment={vertical:'middle', horizontal:'center', wrapText:true}; c.border=borda; });
+      ws.autoFilter = {from:{row:4,column:1}, to:{row:4,column:n}};
+      return ws;
+    };
+    const linhaDados = (ws, valores, zebra, extra) => {
+      const r = ws.addRow(valores); r.height = 18;
+      r.eachCell({includeEmpty:true}, (c, col)=>{
+        c.font = {name:'Calibri', size:10, color:{argb:'FF1F2330'}}; c.border = borda; c.alignment = {vertical:'middle'};
+        c.fill = {type:'pattern', pattern:'solid', fgColor:{argb: zebra?Z2:Z1}};
+        if(extra) extra(c, col);
+      });
+      return r;
+    };
+    // ── aba 1: quadro (uma linha por pessoa ou vaga; núcleo repetido em toda linha para filtrar/PROCV)
+    const ws1 = preparar('Quadro de Funcionários', QF_COLS, 'QUADRO DE FUNCIONÁRIOS DAS GRANJAS');
+    let nucAnt = null, zebra = true;
+    m.linhas.forEach(l=>{
+      if(l.nucleo!==nucAnt){ zebra = !zebra; nucAnt = l.nucleo; }
+      linhaDados(ws1, [l.nucleo, l.aviarios, l.funcao, l.mat===''?null:Number(l.mat), l.nome, l.empresa, l.cargo,
+        l.adm ? new Date(Date.UTC(+l.adm.slice(0,4), +l.adm.slice(5,7)-1, +l.adm.slice(8,10))) : null, l.sit, l.status, l.obs], zebra, (c, col)=>{
+        if(col===4 || col===2 || col===8) c.alignment = {vertical:'middle', horizontal:'center'};
+        if(col===8) c.numFmt = 'dd/mm/yyyy';
+        if(col===5) c.font = {name:'Calibri', size:10, bold:true, color:{argb:'FF1F2330'}};
+        if(l.tipo==='vago'){ c.fill = {type:'pattern',pattern:'solid',fgColor:{argb:'FFFDECEC'}}; if(col===5||col===10) c.font = {name:'Calibri', size:10, bold:true, color:{argb:'FFB3261E'}}; }
+        if(l.tipo==='saindo' && col===10) c.font = {name:'Calibri', size:10, bold:true, color:{argb:'FFA36A00'}};
+        if(l.tipo==='fora' && (col===5||col===11)) c.font = {name:'Calibri', size:10, bold:true, color:{argb:'FFB3261E'}};
+      });
+    });
+    const fim1 = ws1.rowCount;
+    const tr1 = ws1.addRow(['Total de pessoas no quadro','','','',{formula:`COUNTIFS(E5:E${fim1},"<>VAGO",E5:E${fim1},"<>")`, result:m.linhas.filter(l=>l.tipo!=='vago').length},
+      {formula:`COUNTIF(E5:E${fim1},"VAGO")&" vaga(s) em aberto"`, result:`${m.linhas.filter(l=>l.tipo==='vago').length} vaga(s) em aberto`}]);
+    ws1.mergeCells(tr1.number,1,tr1.number,4); ws1.mergeCells(tr1.number,6,tr1.number,QF_COLS.length);
+    tr1.eachCell({includeEmpty:true}, c=>{ c.font={name:'Calibri', size:10, bold:true}; c.fill={type:'pattern',pattern:'solid',fgColor:{argb:'FFE6E8EC'}}; c.border={top:{style:'medium',color:{argb:CINZA}}}; });
+    // ── aba 2: resumo por núcleo (totais e coberturas com fórmula, para o RH conferir)
+    const ws2 = preparar('Resumo por núcleo', QF_COLS_RES, 'RESUMO DO QUADRO POR NÚCLEO');
+    m.resumo.forEach((x,i)=>{
+      const rn = 5+i;
+      linhaDados(ws2, [x.nucleo, x.aviarios, x.necG, x.atG, x.necA, x.atA, x.vagas, x.saidas,
+        {formula:`IFERROR((D${rn}+F${rn})/(C${rn}+E${rn}),1)`, result:x.cobAtual}, {formula:`IFERROR((D${rn}+F${rn}-H${rn})/(C${rn}+E${rn}),1)`, result:x.cobFut}], i%2===1, (c,col)=>{
+        if(col>1) c.alignment = {vertical:'middle', horizontal:'center'};
+        if(col>=9) c.numFmt = '0.0%';
+        if(col===7 && x.vagas>0) c.font = {name:'Calibri', size:10, bold:true, color:{argb:'FFB3261E'}};
+        if(col===8 && x.saidas>0) c.font = {name:'Calibri', size:10, bold:true, color:{argb:'FFA36A00'}};
+      });
+    });
+    const a = 5, b = 4+m.resumo.length, tn = b+1;
+    const soma = L => ({formula:`SUM(${L}${a}:${L}${b})`, result:m.resumo.reduce((s,x)=>s+({B:x.aviarios,C:x.necG,D:x.atG,E:x.necA,F:x.atA,G:x.vagas,H:x.saidas}[L]),0)});
+    const tr2 = ws2.addRow(['Total', soma('B'), soma('C'), soma('D'), soma('E'), soma('F'), soma('G'), soma('H'),
+      {formula:`IFERROR((D${tn}+F${tn})/(C${tn}+E${tn}),1)`}, {formula:`IFERROR((D${tn}+F${tn}-H${tn})/(C${tn}+E${tn}),1)`}]);
+    tr2.eachCell({includeEmpty:true}, (c,col)=>{ c.font={name:'Calibri', size:10, bold:true}; c.fill={type:'pattern',pattern:'solid',fgColor:{argb:'FFE6E8EC'}};
+      c.border={top:{style:'medium',color:{argb:CINZA}}, bottom:{style:'thin',color:{argb:LINHA}}}; if(col>1) c.alignment={horizontal:'center'}; if(col>=9) c.numFmt='0.0%'; });
+    // ── aba 3: pendências
+    const ws3 = preparar('Pendências', QF_COLS_PEN, 'PENDÊNCIAS DO QUADRO');
+    (m.pend.length ? m.pend : [['Nenhuma pendência','','','','','']]).forEach((p,i)=>linhaDados(ws3, p, i%2===1, (c,col)=>{
+      if(col===1) c.font = {name:'Calibri', size:10, bold:true, color:{argb: /Vaga|fora|2\+/.test(p[0])?'FFB3261E':'FFA36A00'}};
+      if(col===3) c.alignment = {vertical:'middle', horizontal:'center'};
+    }));
+    const buf = await wb.xlsx.writeBuffer();
+    const url = URL.createObjectURL(new Blob([buf], {type:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'}));
+    const ln = document.createElement('a'); ln.href = url; ln.download = `Quadro_Funcionarios_RH_${new Date().toISOString().slice(0,10)}.xlsx`;
+    document.body.appendChild(ln); ln.click(); ln.remove(); setTimeout(()=>URL.revokeObjectURL(url), 4000);
+  }catch(e){ alert('Erro ao gerar a planilha: '+e.message); }
+  finally{ if(btn){ btn.disabled = false; btn.textContent = '⬇ Baixar Excel (.xlsx)'; } }
+}
+
+/* ── Zerar nomes do quadro (uso único, só admin principal) ──
+   Mantém os postos (núcleo, aviários) e a necessidade; limpa só as pessoas.
+   Antes de apagar, baixa a Planilha do RH com o quadro atual como backup.      */
+async function qfZerarNomesQuadro(){
+  if(!window.souAdminPrincipal){ alert('Somente o administrador principal pode fazer isso.'); return; }
+  const postos = window.POSTOS_QUADRO || [];
+  const comNome = postos.filter(p=> (p.granjeiro||'').trim() || (p.ajudante||'').trim() || (qfExtraNome(p)||'').trim());
+  if(!comNome.length){ alert('O quadro já está sem nomes.'); return; }
+  const pessoas = comNome.reduce((s,p)=> s + ((p.granjeiro||'').trim()?1:0) + ((p.ajudante||'').trim()?1:0) + ((qfExtraNome(p)||'').trim()?1:0), 0);
+  const resp = prompt(`Isso vai APAGAR ${pessoas} nome(s) em ${comNome.length} posto(s) de todos os núcleos.\n\nNúcleos, aviários e necessidade continuam. Uma cópia do quadro atual será baixada antes.\n\nPara confirmar, digite ZERAR:`);
+  if((resp||'').trim().toUpperCase() !== 'ZERAR'){ qfAviso('Cancelado — nada foi apagado.'); return; }
+  const btn = document.getElementById('qfBtnZerar'); if(btn){ btn.disabled = true; btn.textContent = 'Baixando backup…'; }
+  try{
+    await qfBaixarPlanilhaRH();                       // backup antes de apagar
+    if(btn) btn.textContent = 'Apagando nomes…';
+    const limpo = { granjeiro:'', ajudante:'', granjeiroCod:null, ajudanteCod:null, granjeiroSaindo:false, ajudanteSaindo:false,
+      extraPapel:'', extraNome:'', extraCod:null, extraSaindo:false, ajudante2:'', ajudante2Saindo:false, folguista:false,
+      atualizadoEm: firebase.firestore.FieldValue.serverTimestamp(), atualizadoPor: (auth.currentUser && auth.currentUser.email) || '' };
+    for(let i=0; i<comNome.length; i+=400){
+      const lote = db.batch();
+      comNome.slice(i, i+400).forEach(p=> lote.set(db.collection('funcionarios').doc(p.id), limpo, {merge:true}));
+      await lote.commit();
+    }
+    comNome.forEach(p=> Object.assign(p, limpo, { atualizadoEm:{ toDate:()=>new Date() } }));
+    renderQuadroFuncionarios(); renderQuadroConsolidado();
+    qfAviso(`✓ ${pessoas} nome(s) apagado(s). O quadro está pronto para ser preenchido de novo.`);
+  }catch(e){ alert('Erro ao zerar: '+e.message+'\n\nNada foi alterado se o erro aconteceu antes de apagar.'); }
+  finally{ if(btn){ btn.disabled = false; btn.textContent = 'Zerar nomes do quadro'; } }
+}
+document.addEventListener('click', e=>{ if(e.target.closest('#qfBtnZerar')) qfZerarNomesQuadro(); });
+
+function qfExportarExcel(){ qfAbrirPlanilhaRH(); }
 
 async function iniciarQuadroFuncionarios(){
   try{
@@ -9978,6 +10395,7 @@ function renderQuadroFuncionarios(){
     </div>`;
   }).join('');
 
+  qfAtivosAplicar(cont);
   cont.querySelectorAll('.qf-input-aviarios').forEach(el=>{
     el.addEventListener('change', ()=>{
       const id = el.closest('.qf-linha').dataset.postoId;
@@ -9989,13 +10407,15 @@ function renderQuadroFuncionarios(){
   cont.querySelectorAll('.qf-input-granjeiro').forEach(el=>{
     el.addEventListener('change', ()=>{
       const id = el.closest('.qf-linha').dataset.postoId;
-      salvarCampoPosto(id, {granjeiro: el.value.trim()});
+      const pp = qfValidarAtivo(el); if(pp===false) return;
+      salvarCampoPosto(id, {granjeiro: el.value.trim(), granjeiroCod: pp ? qfChave(pp) : null});
     });
   });
   cont.querySelectorAll('.qf-input-ajudante').forEach(el=>{
     el.addEventListener('change', ()=>{
       const id = el.closest('.qf-linha').dataset.postoId;
-      salvarCampoPosto(id, {ajudante: el.value.trim()});
+      const pp = qfValidarAtivo(el); if(pp===false) return;
+      salvarCampoPosto(id, {ajudante: el.value.trim(), ajudanteCod: pp ? qfChave(pp) : null});
     });
   });
   cont.querySelectorAll('.qf-check-granjeiro-sai').forEach(el=>{
@@ -10014,13 +10434,14 @@ function renderQuadroFuncionarios(){
     el.addEventListener('change', ()=>{
       const id = el.closest('.qf-linha').dataset.postoId;
       // trocar de papel (ou zerar) limpa o nome antigo, pra não ficar "granjeiro extra" com um nome salvo como ajudante por engano
-      salvarCampoPosto(id, {extraPapel: el.value, extraNome: '', extraSaindo: false});
+      salvarCampoPosto(id, {extraPapel: el.value, extraNome: '', extraSaindo: false, extraCod: null});
     });
   });
   cont.querySelectorAll('.qf-input-extra-nome').forEach(el=>{
     el.addEventListener('change', ()=>{
       const id = el.closest('.qf-linha').dataset.postoId;
-      salvarCampoPosto(id, {extraNome: el.value.trim()});
+      const pp = qfValidarAtivo(el); if(pp===false) return;
+      salvarCampoPosto(id, {extraNome: el.value.trim(), extraCod: pp ? qfChave(pp) : null});
     });
   });
   cont.querySelectorAll('.qf-check-extra-sai').forEach(el=>{
