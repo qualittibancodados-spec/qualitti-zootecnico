@@ -1649,6 +1649,56 @@ table.qx td:nth-child(3),table.qx td:nth-child(5),table.qx td:nth-child(9){text-
 .qf-zerar b{display:block;font-size:13.5px;color:var(--texto)}.qf-zerar span{font-size:12px;color:var(--texto-suave);line-height:1.5}
 .qf-zerar button{margin-left:auto;flex-shrink:0;color:#C1272D!important;border-color:#E3B4B6!important}
 @media(max-width:760px){.qf-zerar{flex-wrap:wrap}.qf-zerar button{margin-left:0;width:100%}}
+/* lista flutuante (computador) */
+#qfSugFlut{position:fixed;z-index:3000;min-width:0;margin:0;overflow:auto;border-radius:12px;box-shadow:0 16px 40px rgba(20,24,32,.22);border:1px solid var(--borda);background:#fff}
+.qf-sug-cab{position:sticky;top:0;z-index:1;background:#FAFBFC;border-bottom:1px solid var(--borda);padding:8px 12px;font-size:11px;font-weight:700;color:var(--texto-suave);text-transform:uppercase;letter-spacing:.03em}
+.qf-sug-op{display:flex;align-items:center;gap:10px}
+.qf-sug-av{width:30px;height:30px;border-radius:50%;background:#FDF0F0;color:#A61C1C;font-size:11px;font-weight:800;display:grid;place-items:center;flex-shrink:0}
+.qf-sug-tx{min-width:0;flex:1}.qf-sug-n,.qf-sug-d{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+/* tabela de edição (computador): colunas de nome largas, nome inteiro visível */
+#mod-quadro .qf-cabecalho > div:nth-child(1){width:96px}
+#mod-quadro .qf-cabecalho > div:nth-child(2),#mod-quadro .qf-cabecalho > div:nth-child(4){width:26%}
+#mod-quadro .qf-cabecalho > div:nth-child(3),#mod-quadro .qf-cabecalho > div:nth-child(5),#mod-quadro .qf-cabecalho > div:nth-child(8){width:58px}
+#mod-quadro .qf-cabecalho > div:nth-child(6){width:120px}
+#mod-quadro .qf-cabecalho > div:nth-child(9){width:96px}
+#mod-quadro .qf-cabecalho > div:nth-child(10){width:40px}
+#mod-quadro .quadro-tabela{min-width:1080px}
+#mod-quadro .qf-cel-nome input[type=text]{width:100%!important;min-width:0;font-size:13px;padding:8px 10px}
+#mod-quadro .qf-celula:first-child input{width:100%!important}
+/* tela de escolha (celular) */
+#qfEscolha{display:none;position:fixed;inset:0;z-index:3000}
+#qfEscolha.on{display:block}
+.qfe-fundo{position:absolute;inset:0;background:rgba(15,20,26,.45)}
+.qfe-folha{position:absolute;left:0;right:0;bottom:0;max-height:92vh;height:92vh;background:#fff;border-radius:20px 20px 0 0;display:flex;flex-direction:column;box-shadow:0 -10px 30px rgba(0,0,0,.2);animation:qfeSobe .2s ease-out}
+@keyframes qfeSobe{from{transform:translateY(40px);opacity:.6}to{transform:none;opacity:1}}
+.qfe-alca{width:40px;height:4px;border-radius:2px;background:#D6DAE0;margin:8px auto 4px}
+.qfe-cab{display:flex;align-items:center;gap:10px;padding:6px 16px 10px}
+.qfe-cab b{display:block;font-size:17px;color:var(--texto)}.qfe-cab span{font-size:12.5px;color:var(--texto-suave)}
+.qfe-x{margin-left:auto;width:38px;height:38px;border-radius:50%;border:0;background:#F2F3F6;font-size:15px;cursor:pointer}
+.qfe-atual{margin:0 16px 8px;padding:8px 12px;background:#F6F7F9;border-radius:10px;font-size:12.5px;color:var(--texto-suave)}.qfe-atual b{color:var(--texto)}
+.qfe-busca{padding:0 16px}
+.qfe-busca input{width:100%;box-sizing:border-box;font-size:16px;padding:12px 14px;border:1.5px solid var(--borda);border-radius:12px;font-family:inherit}
+.qfe-busca input:focus{outline:none;border-color:var(--vermelho);box-shadow:0 0 0 3px rgba(193,39,45,.12)}
+.qfe-aviso{font-size:11.5px;color:var(--texto-suave);padding:8px 16px 6px}
+.qfe-lista{flex:1;overflow:auto;-webkit-overflow-scrolling:touch;border-top:1px solid #F0F1F4}
+.qfe-lista .qf-sug-op{padding:11px 16px;min-height:52px;box-sizing:border-box}
+.qfe-lista .qf-sug-av{width:36px;height:36px;font-size:12px}
+.qfe-lista .qf-sug-n{font-size:15px}.qfe-lista .qf-sug-d{font-size:12px}
+.qfe-pe{display:flex;gap:10px;padding:10px 16px calc(12px + env(safe-area-inset-bottom));border-top:1px solid var(--borda)}
+.qfe-pe button{flex:1;min-height:46px;font-size:14px}
+.qfe-pe [data-qfe-vago]{color:#C1272D!important}
+/* celular: campos de nome ocupam a linha inteira e parecem botão de escolha */
+@media(max-width:760px){
+ #mod-quadro .quadro-tabela{min-width:0}
+ #mod-quadro .qf-celula.qf-cel-nome{flex-wrap:wrap!important;align-items:stretch!important}
+ #mod-quadro .qf-celula.qf-cel-nome::before{width:100%}
+ #mod-quadro .qf-cel-nome input[type=text]{flex:1 1 100%!important;max-width:none!important;width:100%!important;font-size:15px!important;min-height:46px;padding:10px 38px 10px 12px!important;text-align:left!important;cursor:pointer;
+  background:#fff url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%23667085' stroke-width='1.8' fill='none'/%3E%3C/svg%3E") no-repeat right 14px center!important;caret-color:transparent}
+ #mod-quadro .qf-cel-nome input[type=text]:disabled{background-image:none!important;cursor:default}
+ #mod-quadro .qf-cel-nome .qf-ativo-msg{max-width:none;width:100%}
+ #mod-quadro .qf-celula input[type=checkbox]{width:20px;height:20px}
+ #mod-quadro .quadro-saindo-label{font-size:13px;padding:6px 0}
+}
 </style>
 </head>
 <body>
@@ -9658,70 +9708,144 @@ function qfDestacar(nome, palavras){
   faixas.forEach(([i,f])=>{ if(i<pos) i = pos; if(f<=i) return; html += nome.slice(pos,i)+'<mark>'+nome.slice(i,f)+'</mark>'; pos = f; });
   return html + nome.slice(pos);
 }
-function qfSugerir(el){
-  const cel = el.closest('.qf-celula'); if(!cel) return;
-  let box = cel.querySelector('.qf-sug');
-  if(!box){ box = document.createElement('div'); box.className = 'qf-sug'; cel.appendChild(box); }
-  if(!qfBaseCarregada()){ box.style.display='none'; return; }
-  const palavras = qfNorm(el.value).split(' ').filter(Boolean);
-  // lista TODOS os ativos, em ordem alfabética, sem priorizar núcleo (a pessoa pode estar cadastrada numa granja e atuar em outra)
+/* ─── Escolha do funcionário ───
+   Computador: lista flutuante presa à página (position:fixed), então nunca é cortada
+   pela tabela do núcleo. Celular: tela de escolha que sobe de baixo, com busca própria. */
+const qfEhCelular = () => window.matchMedia('(max-width: 760px)').matches;
+function qfFiltrar(texto){
+  const palavras = qfNorm(texto).split(' ').filter(Boolean);
   // quem tem palavras COMEÇANDO com o que foi digitado vem primeiro; depois, ordem alfabética
   const inicio = n => palavras.filter(w=> (' '+n).includes(' '+w)).length;
-  const achados = qfAtivos().filter(p=> !palavras.length || qfBateBusca(qfNorm(p.nome), palavras))
+  const lista = qfAtivos().filter(p=> !palavras.length || qfBateBusca(qfNorm(p.nome), palavras))
     .sort((x,y)=> (inicio(qfNorm(y.nome)) - inicio(qfNorm(x.nome))) || x.nome.localeCompare(y.nome,'pt-BR'));
-  box.innerHTML = achados.length
-    ? achados.map((p,i)=>{
-        const afast = p.situacao && !/normal/i.test(p.situacao);
-        return `<div class="qf-sug-op${i===0&&palavras.length?' ativo':''}" data-cod="${qfChave(p)}"><span class="qf-sug-n">${qfDestacar(qfTitulo(p.nome), palavras)}</span>
-          <span class="qf-sug-d">${qfTitulo(p.cargo||'')} · cadastro: ${qfTitulo(p.nucleo||'')}${afast?` · <b class="qf-sug-af">${p.situacao}</b>`:''}</span></div>`;
-      }).join('') + `<div class="qf-sug-rod">${achados.length} funcionário(s) ativo(s)${palavras.length?' com esse nome':' · role para ver todos'} · ↑↓ e Enter para escolher</div>`
-    : `<div class="qf-sug-vazio">Nenhum funcionário ativo com esse nome.<span>Se a pessoa ainda não foi efetivada, ela não pode ser lançada.</span></div>`;
-  box.scrollTop = 0;
-  box.style.display = 'block';
+  return { lista, palavras };
 }
+function qfOpcoesHtml(lista, palavras, marcarPrimeiro){
+  if(!lista.length) return `<div class="qf-sug-vazio">Nenhum funcionário ativo com esse nome.<span>Se a pessoa ainda não foi efetivada, ela não pode ser lançada.</span></div>`;
+  return lista.map((p,i)=>{
+    const afast = p.situacao && !/normal/i.test(p.situacao);
+    return `<div class="qf-sug-op${i===0&&marcarPrimeiro?' ativo':''}" data-cod="${qfChave(p)}"><span class="qf-sug-av">${qfTitulo(p.nome).split(' ').filter(w=>w.length>2).slice(0,2).map(w=>w[0]).join('')}</span>
+      <span class="qf-sug-tx"><span class="qf-sug-n">${qfDestacar(qfTitulo(p.nome), palavras)}</span>
+      <span class="qf-sug-d">${qfTitulo(p.cargo||'')} · cadastro: ${qfTitulo(p.nucleo||'')}${afast?` · <b class="qf-sug-af">${p.situacao}</b>`:''}</span></span></div>`;
+  }).join('');
+}
+function qfContexto(el){
+  const papel = el.classList.contains('qf-input-granjeiro') ? 'Granjeiro' : el.classList.contains('qf-input-ajudante') ? 'Ajudante' : 'Pessoa extra';
+  const card = el.closest('[data-nucleo-card]'), linha = el.closest('.qf-linha');
+  const av = linha && linha.querySelector('.qf-input-aviarios');
+  return { papel, nucleo: card ? card.dataset.nucleoCard : '', aviarios: av ? av.value : '' };
+}
+function qfEscolher(el, cod){
+  const p = qfIdx().cod.get(String(cod)); if(!p || !el) return;
+  el.value = qfTitulo(p.nome); qfFecharLista();
+  el.dispatchEvent(new Event('change'));   // dispara o mesmo salvamento de sempre
+}
+/* ── computador: lista flutuante ── */
+function qfPainel(){
+  let pn = document.getElementById('qfSugFlut');
+  if(!pn){ pn = document.createElement('div'); pn.id = 'qfSugFlut'; pn.className = 'qf-sug'; document.body.appendChild(pn); }
+  return pn;
+}
+function qfPosicionar(){
+  const el = window._qfSugEl, pn = document.getElementById('qfSugFlut');
+  if(!el || !pn || pn.style.display==='none') return;
+  const r = el.getBoundingClientRect();
+  if(r.bottom < 0 || r.top > window.innerHeight){ qfFecharLista(); return; }
+  const largura = Math.max(r.width, 360), abaixo = window.innerHeight - r.bottom - 12, acima = r.top - 12;
+  const emCima = abaixo < 240 && acima > abaixo;
+  pn.style.width = largura + 'px';
+  pn.style.left = Math.max(8, Math.min(r.left, window.innerWidth - largura - 8)) + 'px';
+  pn.style.maxHeight = Math.max(160, Math.min(380, emCima ? acima : abaixo)) + 'px';
+  pn.style.top = emCima ? 'auto' : (r.bottom + 4) + 'px';
+  pn.style.bottom = emCima ? (window.innerHeight - r.top + 4) + 'px' : 'auto';
+}
+function qfSugerir(el){
+  if(!qfBaseCarregada()) return;
+  window._qfSugEl = el;
+  const { lista, palavras } = qfFiltrar(el.value), pn = qfPainel(), c = qfContexto(el);
+  pn.innerHTML = `<div class="qf-sug-cab">${c.papel} · ${c.nucleo}${c.aviarios?' · aviários '+c.aviarios:''}</div>`
+    + qfOpcoesHtml(lista, palavras, palavras.length>0)
+    + (lista.length ? `<div class="qf-sug-rod">${lista.length} funcionário(s) ativo(s)${palavras.length?' com esse nome':''} · ↑↓ e Enter para escolher</div>` : '');
+  pn.style.display = 'block'; pn.scrollTop = 0; qfPosicionar();
+}
+function qfFecharLista(){ const pn = document.getElementById('qfSugFlut'); if(pn) pn.style.display = 'none'; window._qfSugEl = null; }
+window.addEventListener('scroll', qfPosicionar, true);
+window.addEventListener('resize', qfPosicionar);
 // teclado: ↑ ↓ andam na lista, Enter escolhe, Esc fecha
 function qfTeclaBusca(e){
-  const el = e.target, box = el.closest('.qf-celula') && el.closest('.qf-celula').querySelector('.qf-sug');
-  if(!box || box.style.display==='none') return;
-  const ops = Array.from(box.querySelectorAll('.qf-sug-op'));
+  const pn = document.getElementById('qfSugFlut');
+  if(!pn || pn.style.display==='none') return;
+  const ops = Array.from(pn.querySelectorAll('.qf-sug-op'));
   let i = ops.findIndex(o=>o.classList.contains('ativo'));
   if(e.key==='ArrowDown' || e.key==='ArrowUp'){
     e.preventDefault(); if(!ops.length) return;
     i = e.key==='ArrowDown' ? Math.min(ops.length-1, i+1) : Math.max(0, i-1);
     ops.forEach((o,k)=>o.classList.toggle('ativo', k===i)); ops[i].scrollIntoView({block:'nearest'});
   }else if(e.key==='Enter'){
-    if(i<0) return; e.preventDefault();
-    ops[i].dispatchEvent(new MouseEvent('mousedown', {bubbles:true}));
-  }else if(e.key==='Escape'){ box.style.display = 'none'; }
+    if(i<0) return; e.preventDefault(); qfEscolher(e.target, ops[i].dataset.cod);
+  }else if(e.key==='Escape'){ qfFecharLista(); }
 }
+document.addEventListener('mousedown', e=>{
+  const op = e.target.closest('#qfSugFlut .qf-sug-op'); if(!op) return;
+  e.preventDefault(); qfEscolher(window._qfSugEl, op.dataset.cod);
+});
+/* ── celular: tela de escolha ── */
+function qfAbrirEscolha(el){
+  if(!qfBaseCarregada()) return;
+  window._qfEscolhaEl = el;
+  const c = qfContexto(el);
+  let sh = document.getElementById('qfEscolha');
+  if(!sh){ sh = document.createElement('div'); sh.id = 'qfEscolha'; document.body.appendChild(sh); }
+  sh.innerHTML = `<div class="qfe-fundo" data-qfe-fechar></div><div class="qfe-folha">
+    <div class="qfe-alca"></div>
+    <div class="qfe-cab"><div><b>Escolher ${c.papel.toLowerCase()}</b><span>${c.nucleo}${c.aviarios?' · aviários '+c.aviarios:''}</span></div><button type="button" class="qfe-x" data-qfe-fechar aria-label="Fechar">✕</button></div>
+    ${el.value.trim()?`<div class="qfe-atual">Atual: <b>${el.value.trim()}</b></div>`:''}
+    <div class="qfe-busca"><input type="search" id="qfeBusca" placeholder="Digite parte do nome…" autocomplete="off" spellcheck="false"></div>
+    <div class="qfe-aviso">Apenas funcionários ativos · pode ser de qualquer granja</div>
+    <div class="qfe-lista" id="qfeLista"></div>
+    <div class="qfe-pe"><button type="button" class="btn-recolher" data-qfe-vago>Deixar vago</button><button type="button" class="btn-recolher" data-qfe-fechar>Cancelar</button></div></div>`;
+  const desenhar = ()=>{ const { lista, palavras } = qfFiltrar(document.getElementById('qfeBusca').value);
+    document.getElementById('qfeLista').innerHTML = qfOpcoesHtml(lista, palavras, false) + (lista.length?`<div class="qf-sug-rod">${lista.length} funcionário(s) ativo(s)</div>`:''); };
+  desenhar();
+  document.getElementById('qfeBusca').addEventListener('input', desenhar);
+  sh.classList.add('on'); document.body.style.overflow = 'hidden';
+  setTimeout(()=>{ const b = document.getElementById('qfeBusca'); if(b) b.focus(); }, 60);
+}
+function qfFecharEscolha(){ const sh = document.getElementById('qfEscolha'); if(sh) sh.classList.remove('on'); document.body.style.overflow = ''; window._qfEscolhaEl = null; }
+document.addEventListener('click', e=>{
+  if(!document.getElementById('qfEscolha')) return;
+  const op = e.target.closest('#qfEscolha .qf-sug-op');
+  if(op){ const el = window._qfEscolhaEl; qfFecharEscolha(); qfEscolher(el, op.dataset.cod); return; }
+  if(e.target.closest('[data-qfe-vago]')){ const el = window._qfEscolhaEl; qfFecharEscolha(); if(el && el.value.trim()){ el.value=''; el.dispatchEvent(new Event('change')); } return; }
+  if(e.target.closest('[data-qfe-fechar]')) qfFecharEscolha();
+});
 // liga busca e sinalização nos campos de nome (chamada no fim de renderQuadroFuncionarios)
 function qfAtivosAplicar(cont){
   qfAtualizarBanner();
+  qfFecharLista();
   if(!qfBaseCarregada()) return;
   cont.querySelectorAll('.qf-input-granjeiro, .qf-input-ajudante, .qf-input-extra-nome').forEach(el=>{
-    el.closest('.qf-celula').style.position = 'relative';
+    el.closest('.qf-celula').classList.add('qf-cel-nome');
+    el.title = el.value || '';
     const v = el.value.trim();
     if(v && !qfPessoa(v)){
       el.classList.add('qf-nome-fora');
       qfMsg(el, 'Este nome não consta na base de ativos — substitua.', 'aviso');
     }
     if(el.disabled) return;
-    el.setAttribute('autocomplete','off'); el.placeholder = 'Buscar funcionário ativo…';
-    el.addEventListener('focus', ()=>qfSugerir(el));
+    el.setAttribute('autocomplete','off');
+    el.placeholder = qfEhCelular() ? 'Tocar para escolher' : 'Buscar funcionário ativo…';
+    // no celular o campo vira um botão: toca e abre a tela de escolha (sem teclado em cima da tabela)
+    // pointerdown só impede o teclado; a tela abre no click (depois que o dedo sai), senão o mesmo toque fecharia a tela
+    el.addEventListener('pointerdown', ev=>{ if(qfEhCelular()) ev.preventDefault(); });
+    el.addEventListener('click', ()=>{ if(qfEhCelular()) qfAbrirEscolha(el); });
+    if(qfEhCelular()) el.readOnly = true;
+    el.addEventListener('focus', ()=>{ if(qfEhCelular()){ el.blur(); return; } qfSugerir(el); });
     el.addEventListener('keydown', qfTeclaBusca);
     el.addEventListener('input', ()=>{ el.classList.remove('qf-nome-invalido','qf-nome-fora'); qfMsg(el,''); qfSugerir(el); });
-    el.addEventListener('blur', ()=>setTimeout(()=>{ const b = el.closest('.qf-celula') && el.closest('.qf-celula').querySelector('.qf-sug'); if(b) b.style.display='none'; }, 160));
+    el.addEventListener('blur', ()=>setTimeout(()=>{ if(window._qfSugEl===el) qfFecharLista(); }, 160));
   });
 }
-document.addEventListener('mousedown', e=>{
-  const op = e.target.closest('.qf-sug-op'); if(!op) return;
-  e.preventDefault();
-  const p = qfIdx().cod.get(String(op.dataset.cod));
-  const el = op.closest('.qf-celula').querySelector('input[type=text]');
-  if(!p || !el) return;
-  el.value = qfTitulo(p.nome); op.parentElement.style.display = 'none';
-  el.dispatchEvent(new Event('change'));   // dispara o mesmo salvamento de sempre
-});
 function qfAtualizarBanner(){
   const z = document.getElementById('qfZerarBox'); if(z) z.style.display = window.souAdminPrincipal ? '' : 'none';
   const b = document.getElementById('qfAtivosBanner'); if(!b) return;
