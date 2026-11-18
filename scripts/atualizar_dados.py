@@ -83,6 +83,10 @@ def identificar_planilha(xls_bytes):
         return 'condenas', xl
     if 'bd_calos' in abas:
         return 'calos', xl
+    # aba com ou sem acento ("bd_funcionários" / "bd_funcionarios")
+    for aba in abas:
+        if aba.strip().lower().replace('á', 'a') == 'bd_funcionarios':
+            return 'funcionarios', xl
     return None, xl
 
 
@@ -338,6 +342,43 @@ def processar_calos(xl):
     print(f"  Calos de Pé: {len(registros)} dia(s)")
 
 
+# ============================================================
+# FUNCIONÁRIOS ATIVOS (planilha "Funcionários Ativos" › aba bd_funcionários)
+# Usada no Quadro de Funcionários: só nomes desta lista podem ser lançados.
+# ============================================================
+def processar_funcionarios(xl):
+    aba = next(a for a in xl.sheet_names if a.strip().lower().replace('á', 'a') == 'bd_funcionarios')
+    df = pd.read_excel(xl, sheet_name=aba)
+    df.columns = [str(c).strip().upper() for c in df.columns]
+    df = df.dropna(subset=['NOMEFUNC']).copy()
+
+    def txt(v):
+        v = clean(v)
+        return ' '.join(str(v).split()) if v is not None else None
+
+    pessoas = []
+    for _, r in df.iterrows():
+        adm = pd.to_datetime(r.get('ADMISSAO'), errors='coerce')
+        cod = int(r['CODFUNC']) if pd.notna(r.get('CODFUNC')) else None
+        cod_emp = int(r['CODEMP']) if pd.notna(r.get('CODEMP')) else None
+        pessoas.append({
+            # a matrícula (CODFUNC) se repete entre empresas; empresa + matrícula é única
+            'chave': f"{cod_emp}-{cod}",
+            'cod': cod,
+            'nome': txt(r['NOMEFUNC']),
+            'codEmp': cod_emp,
+            'empresa': txt(r.get('RAZAOSOCIAL')),
+            'cargo': txt(r.get('DESCRCARGO')),
+            'nucleo': txt(r.get('DESCRDEP')),
+            'admissao': adm.strftime('%Y-%m-%d') if pd.notna(adm) else None,
+            'situacao': txt(r.get('SITUACAO')),
+        })
+    pessoas.sort(key=lambda x: x['nome'] or '')
+    hoje = pd.Timestamp.now(tz='America/Sao_Paulo').strftime('%Y-%m-%d %H:%M')
+    salvar('funcionarios_ativos.json', {'atualizadoEm': hoje, 'total': len(pessoas), 'pessoas': pessoas})
+    print(f"  Funcionários ativos: {len(pessoas)} pessoa(s)")
+
+
 def main():
     print("Conectando ao Google Drive...")
     servico = conectar_drive()
@@ -349,6 +390,7 @@ def main():
         'resultado': processar_resultado,
         'condenas': processar_condenas,
         'calos': processar_calos,
+        'funcionarios': processar_funcionarios,
     }
     encontrados = set()
 
