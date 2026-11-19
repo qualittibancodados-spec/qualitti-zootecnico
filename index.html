@@ -11607,6 +11607,24 @@ function esBarraPct(r,W){const mx=1.25,w=Math.max(0,Math.min(r??0,mx)/mx*W),c=r=
 const esTint=r=>r==null?'':(r<ES_PDF_CRIT.muitoBaixa?'background:#F8DEDE;color:#8E1B20;font-weight:700':(r<ES_PDF_CRIT.ideal?'background:#FBEBD3;color:#8A4F0B;font-weight:600':''));
 
 // ---------- 3) páginas ----------
+function esSvgUsinasDia(M,W,H){
+  const ls=M.linhas.slice().sort((a,b)=>a.usina.localeCompare(b.usina,'pt-BR',{numeric:true}));
+  const n=ls.length,L=36,R=4,T=20,B=78,mx=Math.max(...ls.map(l=>Math.max(l.pD||0,l.mD||0)))*1.15||1;
+  const bw=(W-L-R)/n,X=i=>L+bw*i+bw/2,Y=v=>T+(H-T-B)*(1-v/mx);
+  const passo=Math.pow(10,Math.floor(Math.log10(mx/4)));const st=[1,2,2.5,5,10].map(k=>k*passo).find(s=>mx/s<=5)||passo*10;
+  let s='';for(let v=0;v<=mx;v+=st)s+=`<line x1="${L}" x2="${W-R}" y1="${Y(v)}" y2="${Y(v)}" stroke="${v?ESC.ln2:'#C9D0D8'}"/><text x="${L-6}" y="${Y(v)+3}" text-anchor="end" font-size="8" fill="${ESC.tx3}">${esN(v)}</text>`;
+  let g='';
+  ls.forEach((l,i)=>{const r=l.rD,c=r==null?'#C9D0D8':(r<ES_PDF_CRIT.muitoBaixa?ESC.crit:(r<ES_PDF_CRIT.ideal?ESC.warn:ESC.prod));
+    if(g&&g!==l.granja)s+=`<line x1="${L+bw*i}" x2="${L+bw*i}" y1="${T-6}" y2="${H-4}" stroke="${ESC.ln}" stroke-dasharray="2 2"/>`;g=l.granja;
+    // faixa 80-100% da meta da usina
+    if(l.mD)s+=`<rect x="${X(i)-bw*.42}" y="${Y(l.mD)}" width="${bw*.84}" height="${Y(l.mD*ES_PDF_CRIT.ideal)-Y(l.mD)}" fill="#E9EEF3"/>`;
+    const p=l.pD||0;s+=`<rect x="${X(i)-bw*.27}" y="${Y(p)}" width="${bw*.54}" height="${Math.max(Y(0)-Y(p),0)}" rx="1.5" fill="${c}"/>`;
+    if(l.mD)s+=`<line x1="${X(i)-bw*.42}" x2="${X(i)+bw*.42}" y1="${Y(l.mD)}" y2="${Y(l.mD)}" stroke="${ESC.tx}" stroke-width="1.3" stroke-dasharray="3 1.5"/>`;
+    if(l.pD==null)s+=`<text x="${X(i)}" y="${Y(0)-4}" text-anchor="middle" font-size="7" fill="${ESC.crit}" font-weight="700">s/d</text>`;
+    s+=`<text x="${X(i)}" y="${Y(0)+12}" text-anchor="middle" font-size="7.8" font-weight="700" fill="${r!=null&&r<ES_PDF_CRIT.ideal?c:ESC.tx2}">${r==null?'–':esPct(r)}</text>`;
+    s+=`<text transform="translate(${X(i)+3},${Y(0)+20}) rotate(-45)" text-anchor="end" font-size="8" fill="${ESC.tx}" font-weight="${l.nivel>=2?700:400}">${esEsc(l.usina)}</text>`});
+  return `<svg width="${W}" height="${H}" xmlns="http://www.w3.org/2000/svg" font-family="Inter,Arial,sans-serif">${s}</svg>`;
+}
 function esSvgEvolucao(M,W,H){
   const L=38,R=6,T=22,B=40,n=M.frota14.length,mx=Math.max(...M.frota14.map(f=>Math.max(f.p,f.m)))*1.12||1;
   const bw=(W-L-R)/n,X=i=>L+bw*i+bw/2,Y=v=>T+(H-T-B)*(1-v/mx);
@@ -11772,7 +11790,7 @@ const ES_PDF_CSS=`
 .espdf .lus{gap:0 16px}
 .espdf .lu{border:1px solid ${ESC.ln};border-radius:3px;border-collapse:separate!important;border-spacing:0;overflow:hidden}
 .espdf .lu th{background:#F3F5F8;border-bottom:1px solid ${ESC.ln}!important;padding:5px 7px!important;font-size:7px}
-.espdf .lu td{padding:2px 7px!important;font-size:8.4px;height:16.5px;border-bottom:1px solid ${ESC.ln2}!important}
+.espdf .lu td{padding:3px 6px!important;font-size:8.4px;height:19px;border-bottom:1px solid ${ESC.ln2}!important}
 .espdf .lu tr:last-child td{border-bottom:0!important}
 .espdf .lu tr:nth-child(even) td{background:#FAFBFC}
 .espdf .pl{display:inline-block;min-width:36px;text-align:center;font-size:8px;font-weight:700;padding:1.5px 5px;border-radius:9px}
@@ -11851,11 +11869,14 @@ function esPdfPaginas(M,logo,emitido){
   const todas=M.linhas.slice().sort((a,b)=>a.usina.localeCompare(b.usina,'pt-BR',{numeric:true}));
   const nc=N>30?4:3,pc=Math.ceil(todas.length/nc);
   const pill=r=>{if(r==null)return `<span class="pl" style="background:#EEF0F3;color:#8590A0">s/d</span>`;const st=r<ES_PDF_CRIT.muitoBaixa?'background:#FBE3E3;color:#A51F25':(r<ES_PDF_CRIT.ideal?'background:#FCEBD2;color:#8F5A08':'background:#E8EEF5;color:#1F3B5A');return `<span class="pl" style="${st}">${esPct(r)}</span>`};
-  const colU=k=>`<table class="lu"><colgroup><col><col style="width:${nc>3?42:50}px"><col style="width:${nc>3?40:46}px"></colgroup><thead><tr><th>Usina</th><th class="r">kWh</th><th class="r">Meta</th></tr></thead><tbody>${todas.slice(k*pc,(k+1)*pc).map(l=>{const nv=ES_NIV[l.nivel];return `<tr><td><span class="dot" style="color:${ESC.tx};font-weight:500"><i style="background:${nv.cor}"></i>${esEsc(l.usina)}</span></td><td class="r">${l.pD==null?'–':esN(l.pD)}</td><td class="r">${pill(l.rD)}</td></tr>`}).join('')}</tbody></table>`;
-  const sec3=`<div class="sec3"><div class="h" style="margin-top:14px"><span class="nr">03</span><h2>Todas as usinas — ${esDataBR(M.D)}</h2><span class="ln"></span><span>${N} usinas</span></div>
+  const colU=k=>`<table class="lu"><colgroup><col><col style="width:${nc>3?38:44}px"><col style="width:${nc>3?38:44}px"><col style="width:${nc>3?40:44}px"></colgroup><thead><tr><th>Usina</th><th class="r">Gerado</th><th class="r">Meta</th><th class="r">%</th></tr></thead><tbody>${todas.slice(k*pc,(k+1)*pc).map(l=>{const nv=ES_NIV[l.nivel];return `<tr><td><span class="dot" style="color:${ESC.tx};font-weight:500"><i style="background:${nv.cor}"></i>${esEsc(l.usina)}</span></td><td class="r" style="font-weight:600">${l.pD==null?'–':esN(l.pD)}</td><td class="r" style="color:${ESC.tx3}">${l.mD==null?'–':esN(l.mD)}</td><td class="r">${pill(l.rD)}</td></tr>`}).join('')}</tbody></table>`;
+  const sec3=`<div class="h"><span class="nr">03</span><h2>Geração × meta por usina — ${esDataBR(M.D)}</h2><span class="ln"></span><div class="lg" style="margin:0"><span><i style="background:${ESC.prod}"></i>Geração</span><span><i style="background:${ESC.warn}"></i>Abaixo de 80%</span><span><i style="background:${ESC.crit}"></i>Abaixo de 50%</span><span><i style="background:#E9EEF3"></i>Faixa ideal</span><span><i style="border-top:1.5px dashed ${ESC.tx};height:0;vertical-align:2px"></i>Meta</span></div></div>
+    ${esSvgUsinasDia(M,706,360)}
+    ${leg(`<b>Como ler:</b> cada barra é a geração da usina no dia (kWh); o traço tracejado é a meta diária dela e a faixa cinza vai de 80% a 100% da meta. Embaixo, o % atingido — em laranja abaixo de 80%, em vermelho abaixo de 50%. Linhas pontilhadas separam as granjas.`)}
+    <div class="h" style="margin-top:18px"><span class="nr">04</span><h2>Todas as usinas — ${esDataBR(M.D)}</h2><span class="ln"></span><span>${N} usinas · kWh</span></div>
     <div class="lus" style="grid-template-columns:repeat(${nc},1fr)">${Array.from({length:nc},(_,k)=>colU(k)).join('')}</div>
-    ${leg(`<b>Como ler:</b> kWh gerados no dia e % da meta diária da usina. Bolinha = status (<i class="d" style="background:${ESC.ok}"></i>normal <i class="d" style="background:${ESC.att}"></i>atenção <i class="d" style="background:#D9822B"></i>alerta <i class="d" style="background:${ESC.crit}"></i>crítico). <b>Metas repassadas pelo último responsável técnico.</b>`)}
-    <div class="nota1"><b>Observação:</b> os números podem ter pequenas variações — quando o inversor perde a internet, ele retransmite as leituras depois, o que pode gerar divergências pontuais. A equipe de apoio confere os dados com frequência para garantir a confiabilidade.</div></div>`;
+    ${leg(`<b>Como ler:</b> geração do dia, meta diária e % atingido de cada usina. Bolinha = status (<i class="d" style="background:${ESC.ok}"></i>normal <i class="d" style="background:${ESC.att}"></i>atenção <i class="d" style="background:#D9822B"></i>alerta <i class="d" style="background:${ESC.crit}"></i>crítico). <b>Metas repassadas pelo último responsável técnico.</b>`)}
+    <div class="nota1"><b>Observação:</b> os números podem ter pequenas variações — quando o inversor perde a internet, ele retransmite as leituras depois, o que pode gerar divergências pontuais. A equipe de apoio confere os dados com frequência para garantir a confiabilidade.</div>`;
   const p1=`<div class="pg">${esPdfCabecalho(M,logo,true)}<div class="ct">
    <div class="sum1" style="--sc:${sc}"><span class="st1">${rotGeral}</span><b>${titulo}</b>${M.nublado?`<span class="nb">Dia nublado no parque todo (${esPct(M.medD)}) — efeito do clima</span>`:''}</div>
    <div class="k3">
@@ -11864,12 +11885,12 @@ function esPdfPaginas(M,logo,emitido){
      ${kpi(`Mês · ${mesNome}`,esN(M.fMes.p),M.fMes.r,esN(M.fMes.m),`1º a ${+M.D.slice(8,10)}`)}
    </div>
    <div class="h" style="margin-top:14px"><span class="nr">01</span><h2>Geração do parque — últimos 14 dias</h2><span class="ln"></span><div class="lg" style="margin:0"><span><i style="background:${ESC.prod}"></i>Geração</span><span><i style="background:${ESC.warn}"></i>Abaixo de 80%</span><span><i style="background:#E9EEF3"></i>Faixa ideal</span><span><i style="border-top:1.5px dashed ${ESC.tx};height:0;vertical-align:2px"></i>Meta</span></div></div>
-   ${esSvgEvolucao(M,706,158)}
+   ${esSvgEvolucao(M,706,210)}
    ${leg(`<b>Como ler:</b> cada barra é a soma da geração de todas as usinas no dia (kWh). Tracejado = meta do dia; faixa cinza = 80% a 100% da meta. Embaixo, o % atingido — em laranja, dias abaixo de 80%.`)}
    <div class="h" style="margin-top:12px"><span class="nr">02</span><h2>Alertas — encaminhar ao responsável técnico</h2><span class="ln"></span><span>${nAl} usina(s) · por prioridade</span></div>
    ${alertas}
-   ${sec3}
   </div><div class="ft"></div></div>`;
+  const p2u=`<div class="pg">${esPdfCabecalho(M,logo,false,'Usinas no dia')}<div class="ct">${sec3}</div><div class="ft"></div></div>`;
   // página 2 — alcance da meta no mês
   const R=esSvgRitmo(M,10,10);
   const abaixo=M.linhas.filter(l=>l.rMes!=null&&l.rMes<ES_PDF_CRIT.ideal).length;
@@ -11886,17 +11907,9 @@ function esPdfPaginas(M,logo,emitido){
    ${esSvgAlcance(M,706)}
    ${leg(`<b>Como ler:</b> cada barra é uma usina, do maior para o menor alcance. A barra inteira (até 100%) representa a meta acumulada do mês até ${esDataBR(M.D)}; a parte colorida é o que já foi gerado e a parte cinza é o que falta. A linha vermelha marca 80% — o mínimo considerado ideal. À direita, gerado / meta em kWh. <b>Metas repassadas pelo último responsável técnico.</b>`)}
   </div><div class="ft"></div></div>`;
-  return [p1];
+  return [p1,p2u];
 }
 function esPdfPaginar(box,M,logo,emitido){
-  const LIM=1123-58,pgs=box.querySelectorAll('.pg'),pg=pgs[0];
-  const s3=pg&&pg.querySelector('.sec3');
-  if(s3&&s3.getBoundingClientRect().bottom-pg.getBoundingClientRect().top>LIM){
-    // não coube: a lista vai para uma página própria logo depois da 1ª
-    const nova=document.createElement('div');nova.className='pg';
-    nova.innerHTML=esPdfCabecalho(M,logo,false,'Todas as usinas')+'<div class="ct"></div><div class="ft"></div>';
-    s3.querySelector('.h').style.marginTop='0';nova.querySelector('.ct').appendChild(s3);pg.after(nova);
-  }
   const todas=[...box.querySelectorAll('.pg')];
   todas.forEach((p,i)=>{p.querySelector('.ft').outerHTML=esPdfRodape(i+1,todas.length,emitido,M)});
 }
@@ -11925,7 +11938,7 @@ async function energiaSolarGerarPdfDiretoria(btn){
     }
     box.remove();
     pdf.setProperties({title:`Energia Solar — Relatório ${esDataBR(M.D)}`,author:'Qualitti Alimentos',subject:'Relatório diário de produção das usinas solares'});
-    const nome=`Energia_Solar_Relatorio_${M.D}.pdf`;const blob=pdf.output('blob');const arq=new File([blob],nome,{type:'application/pdf'});
+    const nome=`Energia_Solar_Relatorio_${M.D.split('-').reverse().join('-')}.pdf`;const blob=pdf.output('blob');const arq=new File([blob],nome,{type:'application/pdf'});
     if(window.matchMedia('(max-width:860px)').matches&&navigator.canShare&&navigator.canShare({files:[arq]})){
       try{await navigator.share({files:[arq],title:`Energia Solar — ${esDataBR(M.D)}`})}catch(e){}
     }else{const u=URL.createObjectURL(blob);const a=document.createElement('a');a.href=u;a.download=nome;document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(u),4000)}
