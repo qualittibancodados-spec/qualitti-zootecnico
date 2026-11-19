@@ -11,6 +11,44 @@
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <link href="https://fonts.googleapis.com/css2?family=Sora:wght@500;600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<script id="qz-refino-js">
+/* REFINO VISUAL — padrões dos gráficos (Chart.js). Só aparência: nenhum dado ou cálculo é alterado. */
+(function(){
+  if(!window.Chart) return;
+  const C=Chart.defaults;
+  C.font.family="'Inter',system-ui,-apple-system,'Segoe UI',sans-serif";
+  C.font.size=11; C.color='#5B6573'; C.borderColor='#E9EDF1';
+  C.plugins.legend.labels.boxWidth=8; C.plugins.legend.labels.boxHeight=8;
+  C.plugins.legend.labels.usePointStyle=true; C.plugins.legend.labels.pointStyle='rectRounded';
+  C.plugins.legend.labels.padding=14; C.plugins.legend.labels.font={size:11};
+  Object.assign(C.plugins.tooltip,{backgroundColor:'#1F2630',titleColor:'#fff',bodyColor:'#E5E8EC',titleFont:{size:11.5,weight:'600'},bodyFont:{size:11.5},padding:9,cornerRadius:4,boxPadding:4,caretSize:5,borderWidth:0});
+  C.elements.bar.borderRadius=2; C.elements.bar.borderSkipped='start';
+  C.elements.line.borderWidth=1.8;
+  C.elements.point.radius=2; C.elements.point.hoverRadius=4; C.elements.point.borderWidth=1;
+  if(C.datasets&&C.datasets.bar) C.datasets.bar.maxBarThickness=34;
+  C.scale.grid.color='#EEF1F4'; C.scale.grid.tickColor='#EEF1F4';
+  C.scale.border={display:true,color:'#DDE2E8',width:1};
+  C.scale.ticks.color='#6B7584'; C.scale.ticks.font={size:10.5};
+  C.scale.title=Object.assign({},C.scale.title,{color:'#6B7584',font:{size:10.5,weight:'500'}});
+
+  /* paleta mais sóbria: o dourado vira azul-aço (o vermelho continua sendo o destaque de alerta) */
+  const MAPA={'#f2a900':'#7A93AD','#f8ce66':'#B9C7D6','#8a6d00':'#4A6683','#8a6200':'#4A6683','#2e9e6b':'#2F855A','#fbbf24':'#7A93AD','#f59e0b':'#7A93AD'};
+  const RGBA=[[/rgba?\(\s*242\s*,\s*169\s*,\s*0\s*(,\s*([\d.]+))?\)/i,(m,a,al)=>`rgba(122,147,173,${al||1})`],[/rgba?\(\s*248\s*,\s*206\s*,\s*102\s*(,\s*([\d.]+))?\)/i,(m,a,al)=>`rgba(185,199,214,${al||1})`]];
+  const troca=c=>{if(typeof c!=='string')return c;const k=c.trim().toLowerCase();
+    if(MAPA[k])return MAPA[k];
+    if(k.length===9&&MAPA[k.slice(0,7)])return MAPA[k.slice(0,7)]+k.slice(7);
+    for(const [re,fn] of RGBA){if(re.test(c))return c.replace(re,fn)}
+    return c};
+  const CAMPOS=['backgroundColor','borderColor','pointBackgroundColor','pointBorderColor','hoverBackgroundColor','hoverBorderColor'];
+  const remap=data=>{(data&&data.datasets||[]).forEach(ds=>{CAMPOS.forEach(p=>{const v=ds[p];
+    if(Array.isArray(v))ds[p]=v.map(troca);else if(typeof v==='string')ds[p]=troca(v)})})};
+  const eixos=ch=>{const sc=(ch.options&&ch.options.scales)||{};Object.values(sc).forEach(s=>{if(!s)return;
+    if(s.grid&&typeof s.grid.color==='string')s.grid.color='#EEF1F4';
+    if(s.ticks&&typeof s.ticks.color==='string')s.ticks.color='#6B7584'})};
+  const barras=ch=>{const t=ch.config.type;(ch.data.datasets||[]).forEach(ds=>{if((ds.type||t)==='bar'&&ds.maxBarThickness==null&&ds.barThickness==null)ds.maxBarThickness=38})};
+  Chart.register({id:'qzRefino',beforeInit(ch){remap(ch.config.data);eixos(ch);barras(ch)},beforeUpdate(ch){remap(ch.data);eixos(ch);barras(ch)}});
+})();
+</script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <style>
@@ -3038,6 +3076,10 @@ select:focus, input:focus,
       <p class="nota" id="energiasolar-erroImportar" style="min-height:16px;margin-top:12px;"></p>
     </div>
 
+    <div id="energiasolar-barraPdf" style="display:flex;align-items:center;gap:12px;flex-wrap:wrap;background:#fff;border:1px solid var(--borda);border-radius:8px;padding:10px 14px;margin:0 0 14px;">
+      <button class="btn-recolher" id="energiasolar-btnPdf" type="button" onclick="energiaSolarGerarPdfDiretoria(this)" style="background:var(--vermelho);color:#fff;border-color:var(--vermelho);display:inline-flex;align-items:center;gap:6px;font-weight:600;"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 3h7l5 5v13H7z"/><path d="M14 3v5h5M10 13h6M10 17h6"/></svg>PDF para a diretoria</button>
+      <span class="nota" style="margin:0;">Relatório do último dia importado, com alertas, comparativos e detalhamento por usina — pronto para enviar.</span>
+    </div>
     <div class="tabs-internas" id="energiasolar-tabs">
       <button class="tab-int ativo" data-aba-solar="geral">Visão Geral</button>
       <button class="tab-int" data-aba-solar="relatorio">Relatório Diário</button>
@@ -11241,7 +11283,7 @@ function energiaSolarRenderTudo(){
     tabelaEl.innerHTML = '';
     if(infoUsinas) infoUsinas.textContent = '';
     if(painelFiltros) painelFiltros.style.display = 'none';
-    document.getElementById('energiasolar-painel-alertas').style.display = 'none';
+    const _pa=document.getElementById('energiasolar-painel-alertas'); if(_pa) _pa.style.display = 'none';
     return;
   }
   if(painelFiltros) painelFiltros.style.display = '';
@@ -11438,6 +11480,460 @@ function energiaSolarRenderRelatorio(){
 function energiaSolarCompartilharRelatorio(){
   compartilharTabelaWhatsApp('energiasolar-relatorioCompartilhavel', `energia_solar_${new Date().toISOString().slice(0,10)}.png`, document.getElementById('energiasolar-btnCompartilhar'));
 }
+
+// ================= Energia Solar — PDF diário para a diretoria =================
+// Monta o relatório em páginas A4 (HTML), fotografa cada página e junta num PDF.
+// Usa sempre TODAS as usinas (ignora os filtros da tela) e o último dia com dado importado.
+const ES_PDF_CRIT = {
+  ideal: 0.80,          // produção ideal a partir de 80% da estimativa (mesma regra do painel)
+  muitoBaixa: 0.50,     // abaixo de 50% da meta no dia
+  relativa: 0.70,       // rendeu menos de 70% do que as demais usinas renderam no mesmo dia
+  diaNublado: 0.60,     // se a mediana das usinas ficou abaixo de 60% da meta, o dia foi ruim pra todo mundo (clima)
+  seqDias: 3            // dias seguidos abaixo do ideal pra virar alerta de tendência
+};
+const ES_PDF_LIBS = {
+  jspdf: 'https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js',
+  html2canvas: 'https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js'
+};
+function esPdfCarregarScript(src){
+  return new Promise((ok,erro)=>{const s=document.createElement('script');s.src=src;s.onload=ok;s.onerror=()=>erro(new Error('Não foi possível carregar '+src));document.head.appendChild(s)});
+}
+const esN = (v,d=0)=>(v==null||isNaN(v))?'–':Number(v).toLocaleString('pt-BR',{minimumFractionDigits:d,maximumFractionDigits:d});
+const esPct = (v,d=0)=>(v==null||isNaN(v))?'–':esN(v*100,d)+'%';
+const esDataBR = iso=>{const [a,m,d]=iso.split('-');return `${d}/${m}/${a}`};
+const esDiaMes = iso=>iso.slice(8,10)+'/'+iso.slice(5,7);
+const esSomaDias=(iso,n)=>{const d=new Date(iso+'T12:00:00');d.setDate(d.getDate()+n);return d.toISOString().slice(0,10)};
+const esMediana=a=>{const b=a.filter(x=>x!=null&&isFinite(x)).sort((x,y)=>x-y);if(!b.length)return null;const k=Math.floor(b.length/2);return b.length%2?b[k]:(b[k-1]+b[k])/2};
+const esEsc = s=>String(s==null?'':s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const ES_MESES=['janeiro','fevereiro','março','abril','maio','junho','julho','agosto','setembro','outubro','novembro','dezembro'];
+
+// ---------- 1) cálculo ----------
+function esPdfModelo(dados){
+  const regs=(dados||[]).filter(r=>r&&r.dia&&r.planta);
+  if(!regs.length) return null;
+  const idx=new Map();regs.forEach(r=>{const k=r.planta+'|'+r.dia;const o=idx.get(k);
+    if(o){o.producao=(o.producao||0)+(r.producao||0);o.estimativa=(o.estimativa||0)+(r.estimativa||0)}else idx.set(k,{producao:r.producao||0,estimativa:r.estimativa||0,galpoes:r.galpoes})});
+  const D=regs.reduce((m,r)=>r.dia>m?r.dia:m,'');
+  const dias14=[];for(let i=13;i>=0;i--)dias14.push(esSomaDias(D,-i));
+  const ini30=esSomaDias(D,-29), iniMes=D.slice(0,8)+'01';
+  // usinas ativas = com algum registro nos últimos 30 dias
+  const usinas=Array.from(new Set(regs.filter(r=>r.dia>=ini30).map(r=>r.planta))).sort((a,b)=>a.localeCompare(b,'pt-BR',{numeric:true}));
+  const galpoesDe={};regs.forEach(r=>{if(r.galpoes)galpoesDe[r.planta]=r.galpoes});
+  const get=(u,d)=>idx.get(u+'|'+d);
+  const razao=(u,d)=>{const r=get(u,d);return r&&r.estimativa>0?(r.producao||0)/r.estimativa:null};
+  // mediana da frota por dia (referência do "clima" do dia)
+  const medDia={};dias14.forEach(d=>medDia[d]=esMediana(usinas.map(u=>razao(u,d))));
+  const soma=(u,de,ate)=>{let p=0,m=0,n=0;regs.forEach(r=>{if(r.planta===u&&r.dia>=de&&r.dia<=ate){p+=r.producao||0;m+=r.estimativa||0;n++}});return{p,m,n,r:m>0?p/m:null}};
+  const somaFrota=(de,ate)=>{let p=0,m=0;regs.forEach(r=>{if(r.dia>=de&&r.dia<=ate&&usinas.includes(r.planta)){p+=r.producao||0;m+=r.estimativa||0}});return{p,m,r:m>0?p/m:null}};
+  const nublado=medDia[D]!=null&&medDia[D]<ES_PDF_CRIT.diaNublado;
+
+  const diasMesL=[];for(let d=iniMes;d<=D;d=esSomaDias(d,1))diasMesL.push(d);
+  const linhas=usinas.map(u=>{
+    const hoje=get(u,D), ontem=get(u,esSomaDias(D,-1));
+    const pD=hoje?hoje.producao||0:null, mD=hoje?hoje.estimativa||0:null, rD=razao(u,D);
+    const s7=soma(u,esSomaDias(D,-6),D), sm=soma(u,iniMes,D);
+    const serie=dias14.map(d=>razao(u,d));
+    const serieMes=diasMesL.map(d=>razao(u,d));
+    // sequência de dias zerados / abaixo do ideal terminando em D
+    let zer=0;for(let i=dias14.length-1;i>=0;i--){const r=get(u,dias14[i]);if(r&&r.estimativa>0&&!(r.producao>0))zer++;else break}
+    let semDado=0;for(let i=dias14.length-1;i>=0;i--){if(!get(u,dias14[i]))semDado++;else break}
+    let abx=0;for(let i=dias14.length-1;i>=0;i--){const r=serie[i];if(r!=null&&r<ES_PDF_CRIT.ideal)abx++;else break}
+    const rel=(rD!=null&&medDia[D])?rD/medDia[D]:null;
+    const alertas=[];
+    if(semDado>0) alertas.push({nivel:3,tipo:'Sem leitura',txt:semDado>1?`Sem registro de produção há ${semDado} dias`:'Sem registro de produção no dia — verificar medidor/comunicação'});
+    else if(zer>0) alertas.push({nivel:3,tipo:'Produção zerada',txt:zer>1?`Zerada há ${zer} dias seguidos`:'Nenhuma produção no dia, com meta prevista'});
+    else{
+      if(rD!=null&&rD<ES_PDF_CRIT.muitoBaixa&&!nublado) alertas.push({nivel:2,tipo:'Produção muito baixa',txt:`Gerou ${esPct(rD)} da meta no dia`});
+      if(rel!=null&&rel<ES_PDF_CRIT.relativa) alertas.push({nivel:2,tipo:'Fora do padrão',txt:`Rendeu ${esPct(rel)} do que as demais usinas renderam no mesmo dia`});
+      if(abx>=ES_PDF_CRIT.seqDias) alertas.push({nivel:1,tipo:'Abaixo do ideal',txt:`${abx} dias seguidos abaixo de 80% da meta`});
+    }
+    alertas.sort((a,b)=>b.nivel-a.nivel);
+    const nivel=alertas.length?alertas[0].nivel:0;
+    return {usina:u,granja:(window.energiaSolarGranjaDe?energiaSolarGranjaDe(u):u.replace(/\s*\d+(\s*\/\s*\d+)?$/,'')),galpoes:galpoesDe[u]||'',
+      serieMes,pOntem:ontem?ontem.producao||0:null,pD,mD,rD,r7:s7.r,p7:s7.p,rMes:sm.r,pMes:sm.p,mMes:sm.m,serie,rel,alertas,nivel,zer,semDado,abx};
+  });
+  const ordem=(a,b)=>b.nivel-a.nivel||((a.rD??-1)-(b.rD??-1));
+  const alertas=linhas.filter(l=>l.nivel>0).sort(ordem);
+  const fD=somaFrota(D,D), fAnt=somaFrota(esSomaDias(D,-1),esSomaDias(D,-1)), f7=somaFrota(esSomaDias(D,-6),D), f7a=somaFrota(esSomaDias(D,-13),esSomaDias(D,-7)), fMes=somaFrota(iniMes,D);
+  const frota14=dias14.map(d=>({dia:d,...somaFrota(d,d)}));
+  const frotaMes=[];for(let d=iniMes;d<=D;d=esSomaDias(d,1))frotaMes.push({dia:d,...somaFrota(d,d)});
+  // por granja (mês)
+  const gmap=new Map();linhas.forEach(l=>{const g=gmap.get(l.granja)||{granja:l.granja,p:0,m:0,n:0,al:0};g.p+=l.pMes||0;g.m+=l.mMes||0;g.n++;if(l.nivel>=2)g.al++;gmap.set(l.granja,g)});
+  const granjas=[...gmap.values()].map(g=>({...g,r:g.m>0?g.p/g.m:null})).sort((a,b)=>(a.r??9)-(b.r??9));
+  return {D,dias14,iniMes,frotaMes,usinas,linhas:linhas.sort(ordem),alertas,fD,fAnt,f7,f7a,fMes,frota14,granjas,nublado,medD:medDia[D],
+    cont:{crit:linhas.filter(l=>l.nivel===3).length,alto:linhas.filter(l=>l.nivel===2).length,aten:linhas.filter(l=>l.nivel===1).length,ok:linhas.filter(l=>l.nivel===0).length}};
+}
+
+
+// ---------- 2) paleta e gráficos em SVG ----------
+const ESC={tx:'#16202C',tx2:'#4A5565',tx3:'#8590A0',ln:'#E3E7EC',ln2:'#EEF1F4',prod:'#3E5F82',prodL:'#A9BBCF',warn:'#C98A1E',crit:'#B42328',ok:'#2E7A55',att:'#C9A227',nav:'#16202C'};
+const ES_NIV={3:{rot:'Crítico',cor:ESC.crit,bg:'#FBE9E9'},2:{rot:'Alerta',cor:'#B7620F',bg:'#FCEFDF'},1:{rot:'Atenção',cor:'#8C7310',bg:'#FBF4D9'},0:{rot:'Normal',cor:ESC.ok,bg:'#E6F2EB'}};
+const ES_ACAO={'Sem leitura':'Verificar medidor e comunicação do inversor','Produção zerada':'Acionar manutenção: inspecionar inversor e proteção','Produção muito baixa':'Inspecionar inversor, strings e conexões','Fora do padrão':'Inspecionar inversor, strings e sujeira dos módulos','Abaixo do ideal':'Programar limpeza e inspeção dos módulos'};
+
+function esSvgFrota(M,W,H){
+  const L=40,R=8,T=18,B=40,n=M.frota14.length,mx=Math.max(...M.frota14.map(f=>Math.max(f.p,f.m)))*1.1||1;
+  const bw=(W-L-R)/n,X=i=>L+bw*i+bw/2,Y=v=>T+(H-T-B)*(1-v/mx);
+  const passo=Math.pow(10,Math.floor(Math.log10(mx/4)));const st=[1,2,2.5,5,10].map(k=>k*passo).find(s=>mx/s<=5)||passo*10;
+  let s='';for(let v=0;v<=mx;v+=st){s+=`<line x1="${L}" x2="${W-R}" y1="${Y(v)}" y2="${Y(v)}" stroke="${v?ESC.ln2:'#C9D0D8'}"/><text x="${L-8}" y="${Y(v)+3}" text-anchor="end" font-size="8.5" fill="${ESC.tx3}">${v?esN(v/1000,v%1000?1:0)+' mil':'0'}</text>`}
+  M.frota14.forEach((f,i)=>{const r=f.m>0?f.p/f.m:1,last=i===n-1,c=r<ES_PDF_CRIT.ideal?ESC.warn:(last?ESC.prod:ESC.prodL);
+    s+=`<rect x="${X(i)-bw*.3}" y="${Y(f.p)}" width="${bw*.6}" height="${Math.max(Y(0)-Y(f.p),0)}" rx="1.5" fill="${c}"/>`;
+    s+=`<text x="${X(i)}" y="${H-24}" text-anchor="middle" font-size="8.5" fill="${last?ESC.tx:ESC.tx3}" font-weight="${last?700:400}">${esDiaMes(f.dia)}</text>`;
+    s+=`<text x="${X(i)}" y="${H-9}" text-anchor="middle" font-size="8.5" font-weight="600" fill="${r<ES_PDF_CRIT.ideal?ESC.warn:ESC.tx2}">${esPct(r)}</text>`});
+  s+=`<line x1="${L}" x2="${W-R}" y1="${H-20}" y2="${H-20}" stroke="${ESC.ln2}"/>`;
+  const lp=M.frota14.map((f,i)=>(i?'L':'M')+X(i)+' '+Y(f.m)).join(' ');
+  s+=`<path d="${lp}" fill="none" stroke="${ESC.tx}" stroke-width="1.2"/>`;
+  M.frota14.forEach((f,i)=>s+=`<circle cx="${X(i)}" cy="${Y(f.m)}" r="1.8" fill="#fff" stroke="${ESC.tx}" stroke-width="1.1"/>`);
+  return `<svg width="${W}" height="${H}" xmlns="http://www.w3.org/2000/svg" font-family="Inter,Arial,sans-serif">${s}</svg>`;
+}
+function esSvgSpark(serie,W,H,forte){
+  const v=serie.map(x=>x==null?null:Math.min(x,1.3)),mx=1.3,X=i=>1.5+(W-3)*i/(v.length-1),Y=x=>1.5+(H-3)*(1-x/mx);
+  let s=`<rect x="0" y="${Y(1.3)}" width="${W}" height="${Y(.8)-Y(1.3)}" fill="#F2F5F8"/>`,p='',ab=false;
+  v.forEach((x,i)=>{if(x==null){ab=false;return}p+=(ab?'L':'M')+X(i).toFixed(1)+' '+Y(x).toFixed(1);ab=true});
+  const u=v[v.length-1],c=u==null||u<ES_PDF_CRIT.ideal?ESC.crit:ESC.prod;
+  s+=`<path d="${p}" fill="none" stroke="${forte?ESC.tx2:'#7F8B99'}" stroke-width="1.1" stroke-linejoin="round"/>`;
+  if(u!=null)s+=`<circle cx="${X(v.length-1)}" cy="${Y(u)}" r="2" fill="${c}"/>`;else s+=`<circle cx="${W-2}" cy="${Y(0)}" r="2" fill="${ESC.crit}"/>`;
+  return `<svg width="${W}" height="${H}" xmlns="http://www.w3.org/2000/svg">${s}</svg>`;
+}
+function esSvgDonut(c,tot,S){
+  const r=S/2-5,cx=S/2,cy=S/2,seg=[[c.ok,ESC.ok],[c.aten,ESC.att],[c.alto,'#D9822B'],[c.crit,ESC.crit]];let a=-Math.PI/2,s='';
+  seg.forEach(([n,cor])=>{if(!n)return;const b=a+2*Math.PI*n/tot,lg=b-a>Math.PI?1:0;
+    if(n===tot)s+=`<circle cx="${cx}" cy="${cy}" r="${r}" fill="none" stroke="${cor}" stroke-width="7"/>`;
+    else s+=`<path d="M${cx+r*Math.cos(a)} ${cy+r*Math.sin(a)} A${r} ${r} 0 ${lg} 1 ${cx+r*Math.cos(b)} ${cy+r*Math.sin(b)}" fill="none" stroke="${cor}" stroke-width="7"/>`;a=b});
+  s+=`<text x="${cx}" y="${cy+1}" text-anchor="middle" font-size="15" font-weight="700" fill="${ESC.tx}">${c.ok}</text><text x="${cx}" y="${cy+12}" text-anchor="middle" font-size="7.5" fill="${ESC.tx3}">de ${tot}</text>`;
+  return `<svg width="${S}" height="${S}" xmlns="http://www.w3.org/2000/svg" font-family="Inter,Arial,sans-serif">${s}</svg>`;
+}
+function esBarraPct(r,W){const mx=1.25,w=Math.max(0,Math.min(r??0,mx)/mx*W),c=r==null?'#ccc':(r<ES_PDF_CRIT.muitoBaixa?ESC.crit:(r<ES_PDF_CRIT.ideal?ESC.warn:ESC.prod));
+  return `<svg width="${W}" height="6" xmlns="http://www.w3.org/2000/svg"><rect width="${W}" height="6" rx="1" fill="#EDF0F3"/><rect width="${w}" height="6" rx="1" fill="${c}"/><rect x="${.8/mx*W-.5}" y="-1" width="1" height="8" fill="${ESC.crit}"/><rect x="${1/mx*W-.5}" y="-1" width="1" height="8" fill="${ESC.tx}"/></svg>`}
+const esTint=r=>r==null?'':(r<ES_PDF_CRIT.muitoBaixa?'background:#F8DEDE;color:#8E1B20;font-weight:700':(r<ES_PDF_CRIT.ideal?'background:#FBEBD3;color:#8A4F0B;font-weight:600':''));
+
+// ---------- 3) páginas ----------
+function esSvgEvolucao(M,W,H){
+  const L=38,R=6,T=22,B=40,n=M.frota14.length,mx=Math.max(...M.frota14.map(f=>Math.max(f.p,f.m)))*1.12||1;
+  const bw=(W-L-R)/n,X=i=>L+bw*i+bw/2,Y=v=>T+(H-T-B)*(1-v/mx);
+  const passo=Math.pow(10,Math.floor(Math.log10(mx/4)));const st=[1,2,2.5,5,10].map(k=>k*passo).find(s=>mx/s<=5)||passo*10;
+  let s='';for(let v=0;v<=mx;v+=st){s+=`<line x1="${L}" x2="${W-R}" y1="${Y(v)}" y2="${Y(v)}" stroke="${v?ESC.ln2:'#C9D0D8'}"/><text x="${L-7}" y="${Y(v)+3}" text-anchor="end" font-size="8" fill="${ESC.tx3}">${v?esN(v/1000,v%1000?1:0)+' mil':'0'}</text>`}
+  // faixa 80–100% da estimativa
+  const top=M.frota14.map((f,i)=>`${i?'L':'M'}${X(i)} ${Y(f.m)}`).join(' '),bot=M.frota14.slice().reverse().map((f,i)=>`L${X(n-1-i)} ${Y(f.m*ES_PDF_CRIT.ideal)}`).join(' ');
+  s+=`<path d="${top} ${bot} Z" fill="#E9EEF3"/>`;
+  M.frota14.forEach((f,i)=>{const r=f.m>0?f.p/f.m:1,last=i===n-1,c=r<ES_PDF_CRIT.ideal?ESC.warn:(last?'#1F3B5A':ESC.prod);
+    s+=`<rect x="${X(i)-bw*.28}" y="${Y(f.p)}" width="${bw*.56}" height="${Math.max(Y(0)-Y(f.p),0)}" rx="1.5" fill="${c}" opacity="${last||r<ES_PDF_CRIT.ideal?1:.82}"/>`;
+    s+=`<text x="${X(i)}" y="${H-25}" text-anchor="middle" font-size="8" fill="${last?ESC.tx:ESC.tx3}" font-weight="${last?700:400}">${esDiaMes(f.dia)}</text>`;
+    s+=`<text x="${X(i)}" y="${H-10}" text-anchor="middle" font-size="8.2" font-weight="700" fill="${r<ES_PDF_CRIT.ideal?ESC.warn:ESC.tx2}">${esPct(r)}</text>`;
+    if(last)s+=`<text x="${X(i)}" y="${Math.min(Y(f.p),Y(f.m))-7}" text-anchor="middle" font-size="8.5" font-weight="700" fill="${ESC.tx}">${esN(f.p)}</text>`});
+  s+=`<line x1="${L}" x2="${W-R}" y1="${H-20}" y2="${H-20}" stroke="${ESC.ln2}"/>`;
+  s+=`<path d="${top}" fill="none" stroke="${ESC.tx}" stroke-width="1.1" stroke-dasharray="3 2"/>`;
+  return `<svg width="${W}" height="${H}" xmlns="http://www.w3.org/2000/svg" font-family="Inter,Arial,sans-serif">${s}</svg>`;
+}
+function esSvgRitmo(M,W,H){
+  const ds=M.frotaMes,ano=+M.D.slice(0,4),mes=+M.D.slice(5,7),nd=new Date(ano,mes,0).getDate();
+  let ap=0,am=0;const cp=ds.map(d=>ap+=d.p),cm=ds.map(d=>am+=d.m);
+  const mDia=am/ds.length,proj=ap/ds.length*nd,metaFim=mDia*nd,mx=Math.max(proj,metaFim)*1.08||1;
+  const L=40,R=64,T=12,B=22,X=d=>L+(W-L-R)*(d-1)/(nd-1),Y=v=>T+(H-T-B)*(1-v/mx);
+  const passo=Math.pow(10,Math.floor(Math.log10(mx/4)));const st=[1,2,2.5,5,10].map(k=>k*passo).find(s=>mx/s<=5)||passo*10;
+  let s='';for(let v=0;v<=mx;v+=st)s+=`<line x1="${L}" x2="${W-R}" y1="${Y(v)}" y2="${Y(v)}" stroke="${v?ESC.ln2:'#C9D0D8'}"/><text x="${L-7}" y="${Y(v)+3}" text-anchor="end" font-size="8" fill="${ESC.tx3}">${v?esN(v/1000)+' mil':'0'}</text>`;
+  [1,5,10,15,20,25,nd].forEach(d=>s+=`<text x="${X(d)}" y="${H-6}" text-anchor="middle" font-size="8" fill="${ESC.tx3}">${d}</text>`);
+  const k=ds.length;
+  s+=`<path d="M${X(1)} ${Y(cm[0])} ${cm.map((v,i)=>`L${X(i+1)} ${Y(v)}`).join(' ')} L${X(nd)} ${Y(metaFim)}" fill="none" stroke="${ESC.tx}" stroke-width="1.1" stroke-dasharray="3 2"/>`;
+  s+=`<path d="M${X(1)} ${Y(0)} ${cp.map((v,i)=>`L${X(i+1)} ${Y(v)}`).join(' ')} L${X(k)} ${Y(0)} Z" fill="${ESC.prod}" opacity=".1"/>`;
+  s+=`<path d="${cp.map((v,i)=>`${i?'L':'M'}${X(i+1)} ${Y(v)}`).join(' ')}" fill="none" stroke="${ESC.prod}" stroke-width="2"/>`;
+  s+=`<path d="M${X(k)} ${Y(cp[k-1])} L${X(nd)} ${Y(proj)}" fill="none" stroke="${ESC.prod}" stroke-width="1.4" stroke-dasharray="1.5 2.5"/>`;
+  s+=`<circle cx="${X(k)}" cy="${Y(cp[k-1])}" r="3" fill="${ESC.prod}" stroke="#fff" stroke-width="1.2"/>`;
+  s+=`<text x="${X(nd)+6}" y="${Y(metaFim)+3}" font-size="8" fill="${ESC.tx}" font-weight="600">Estimativa</text><text x="${X(nd)+6}" y="${Y(metaFim)+13}" font-size="8" fill="${ESC.tx3}">${esN(metaFim/1000,1)} mil</text>`;
+  s+=`<text x="${X(nd)+6}" y="${Y(proj)+(proj<metaFim?14:-8)}" font-size="8" fill="${ESC.prod}" font-weight="600">Projeção</text><text x="${X(nd)+6}" y="${Y(proj)+(proj<metaFim?24:2)}" font-size="8" fill="${ESC.tx3}">${esN(proj/1000,1)} mil</text>`;
+  return {svg:`<svg width="${W}" height="${H}" xmlns="http://www.w3.org/2000/svg" font-family="Inter,Arial,sans-serif">${s}</svg>`,proj,metaFim,nd};
+}
+function esMapaMes(M,nd){
+  const ls=M.linhas.slice().sort((a,b)=>a.usina.localeCompare(b.usina,'pt-BR',{numeric:true}));
+  const cw=19.6,lw=84,rh=9.2,W=lw+cw*nd,H=14+ls.length*rh;
+  const cor=r=>r==null?'#D5DAE0':(r<ES_PDF_CRIT.muitoBaixa?'#C93A3F':(r<ES_PDF_CRIT.ideal?'#E9A94A':(r<1?'#B7C8DA':'#2F5375')));
+  let s='';for(let d=1;d<=nd;d++)s+=`<text x="${lw+cw*(d-.5)}" y="9" text-anchor="middle" font-size="7" fill="${ESC.tx3}" font-weight="${d===+M.D.slice(8,10)?700:400}">${d}</text>`;
+  let g='';ls.forEach((l,i)=>{const y=14+i*rh;if(g!==l.granja&&i)s+=`<line x1="0" x2="${W}" y1="${y-.6}" y2="${y-.6}" stroke="#AEB7C2" stroke-width=".6"/>`;g=l.granja;
+    s+=`<text x="0" y="${y+rh-2.3}" font-size="7.3" fill="${l.nivel>=2?ESC.crit:ESC.tx}" font-weight="${l.nivel>=2?700:400}">${esEsc(l.usina)}</text>`;
+    for(let d=1;d<=nd;d++){const r=d<=l.serieMes.length?l.serieMes[d-1]:undefined;if(r===undefined){s+=`<rect x="${lw+cw*(d-1)+.6}" y="${y+.6}" width="${cw-1.2}" height="${rh-1.2}" fill="#F6F7F9"/>`;continue}
+      s+=`<rect x="${lw+cw*(d-1)+.6}" y="${y+.6}" width="${cw-1.2}" height="${rh-1.2}" rx="1" fill="${cor(r)}"/>`}});
+  return `<svg width="${W}" height="${H}" xmlns="http://www.w3.org/2000/svg" font-family="Inter,Arial,sans-serif">${s}</svg>`;
+}
+
+const ES_PDF_CSS=`
+.espdf{position:fixed;left:-20000px;top:0;z-index:-1}
+.espdf .pg{width:794px;height:1123px;background:#fff;position:relative;overflow:hidden;font-family:Inter,'Segoe UI',Arial,sans-serif;color:${ESC.tx};font-size:9.5px;line-height:1.42;margin-bottom:20px}
+.espdf .pg,.espdf .pg *{font-variant-numeric:normal!important;font-feature-settings:normal!important;box-sizing:border-box}
+.espdf .pg *{margin:0;padding:0}
+.espdf .band{height:108px;padding:0 44px;display:flex;align-items:center;gap:20px;color:#fff;background:linear-gradient(120deg,#8C1A1F 0%,#B3242A 55%,#C1272D 100%);position:relative;overflow:hidden}
+.espdf .band::before{content:'';position:absolute;right:-90px;top:-120px;width:330px;height:330px;border-radius:50%;border:48px solid rgba(255,255,255,.05)}
+.espdf .band::after{content:'';position:absolute;left:0;right:0;bottom:0;height:3px;background:#D9A441}
+.espdf .band img{height:62px;filter:drop-shadow(0 2px 6px rgba(0,0,0,.28));position:relative}
+.espdf .band .tt{flex:1;border-left:1px solid rgba(255,255,255,.25);padding-left:20px;position:relative}
+.espdf .band .tt small{font-size:7.8px;letter-spacing:.24em;text-transform:uppercase;color:rgba(255,255,255,.72);font-weight:600}
+.espdf .band .tt b{display:block;font-size:23px;font-weight:700;letter-spacing:-.015em;margin:3px 0 2px}
+.espdf .band .tt span{font-size:9px;color:rgba(255,255,255,.75)}
+.espdf .band .dt{text-align:right;position:relative}
+.espdf .band .dt small{font-size:7.8px;letter-spacing:.22em;text-transform:uppercase;color:rgba(255,255,255,.72);font-weight:600}
+.espdf .band .dt b{display:block;font-size:21px;font-weight:700;margin:2px 0 1px;letter-spacing:-.01em}
+.espdf .band .dt span{font-size:9px;color:rgba(255,255,255,.75)}
+.espdf .mini{height:62px;padding:0 44px;display:flex;align-items:center;gap:16px;color:#fff;background:linear-gradient(120deg,#8C1A1F,#C1272D);position:relative}
+.espdf .mini::after{content:'';position:absolute;left:0;right:0;bottom:0;height:2px;background:#D9A441}
+.espdf .mini img{height:36px;filter:drop-shadow(0 1px 3px rgba(0,0,0,.25))}
+.espdf .mini .tt{flex:1;border-left:1px solid rgba(255,255,255,.25);padding-left:16px;font-size:12px;font-weight:600}
+.espdf .mini .tt small{display:block;font-size:7.2px;letter-spacing:.22em;text-transform:uppercase;color:rgba(255,255,255,.72);font-weight:600}
+.espdf .mini .dt{font-size:8.5px;color:rgba(255,255,255,.75);text-align:right}.espdf .mini .dt b{color:#fff;font-size:12px;display:block}
+.espdf .ct{padding:20px 44px 0}
+.espdf .h{display:flex;align-items:baseline;gap:10px;margin:0 0 10px}
+.espdf .h .nr{font-size:9px;font-weight:700;color:#C1272D;letter-spacing:.06em}
+.espdf .h h2{font-size:10.5px;font-weight:700;letter-spacing:.12em;text-transform:uppercase}
+.espdf .h .ln{flex:1;height:1px;background:${ESC.ln};align-self:center}
+.espdf .h span{font-size:8.5px;color:${ESC.tx3}}
+.espdf .sumr{display:flex;gap:16px;align-items:stretch;border:1px solid ${ESC.ln};border-left:4px solid var(--sc);border-radius:3px;padding:12px 16px;background:#FBFCFD}
+.espdf .sumr .st{display:inline-block;font-size:7.5px;font-weight:700;letter-spacing:.16em;text-transform:uppercase;color:var(--sc)}
+.espdf .sumr h1{font-size:15px;font-weight:700;letter-spacing:-.01em;line-height:1.3;margin:3px 0 4px}
+.espdf .sumr p{font-size:9.6px;color:${ESC.tx2};line-height:1.6}
+.espdf .sumr p b{color:${ESC.tx};font-weight:600}
+.espdf .sumr .para{border-left:1px solid ${ESC.ln};padding-left:16px;min-width:160px;font-size:8.6px;color:${ESC.tx2};line-height:1.65}
+.espdf .sumr .para small{font-size:7.2px;font-weight:700;letter-spacing:.16em;text-transform:uppercase;color:${ESC.tx3};display:block;margin-bottom:2px}
+.espdf .sumr .para b{color:${ESC.tx};font-weight:600}
+.espdf .evo{display:grid;grid-template-columns:178px 1fr;gap:18px;align-items:stretch}
+.espdf .ks>div{padding:10px 0 10px;border-bottom:1px solid ${ESC.ln}}
+.espdf .ks>div:first-child{padding-top:2px}.espdf .ks>div:last-child{border:0}
+.espdf .ks small{font-size:7.2px;font-weight:700;letter-spacing:.15em;text-transform:uppercase;color:${ESC.tx3};display:block}
+.espdf .ks .v{font-size:20px;font-weight:700;letter-spacing:-.02em;margin:3px 0 1px;line-height:1.1}
+.espdf .ks .v em{font-style:normal;font-size:9px;font-weight:500;color:${ESC.tx3};margin-left:3px;letter-spacing:0}
+.espdf .ks .m{display:flex;justify-content:space-between;font-size:8.3px;color:${ESC.tx3};margin:4px 0 4px}
+.espdf .ks .m b{color:${ESC.tx};font-weight:700}
+.espdf .ks .dl{font-size:8px;color:${ESC.tx2};margin-top:4px;display:block}
+.espdf .chb{border:1px solid ${ESC.ln};border-radius:3px;padding:8px 10px 2px}
+.espdf .lg{display:flex;gap:12px;font-size:7.8px;color:${ESC.tx3};justify-content:flex-end;margin-bottom:2px}
+.espdf .lg i{display:inline-block;width:9px;height:7px;margin-right:4px;vertical-align:-.5px}
+.espdf table{width:100%!important;min-width:0!important;max-width:none!important;border-collapse:collapse}
+.espdf th{font-size:7.2px;font-weight:700;letter-spacing:.11em;text-transform:uppercase;color:${ESC.tx3};text-align:left;padding:0 5px 6px;border-bottom:1px solid ${ESC.tx};white-space:nowrap}
+.espdf td{padding:8px 5px;border-bottom:1px solid ${ESC.ln};vertical-align:middle;font-size:9.2px}
+.espdf td svg{display:block}.espdf td.c svg{margin:0 auto}
+.espdf .r{text-align:right}.espdf .c{text-align:center}
+.espdf .pr{width:18px;height:18px;border-radius:50%;color:#fff;font-size:8.5px;font-weight:700;display:grid;place-items:center}
+.espdf .u{font-weight:700;font-size:9.8px}.espdf .u small{display:block;font-weight:400;color:${ESC.tx3};font-size:7.8px;margin-top:1px}
+.espdf .tg{display:inline-block;font-size:7.2px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;padding:2px 5px;border-radius:2px}
+.espdf .ds{font-size:8.4px;color:${ESC.tx2};margin-top:3px;line-height:1.4}
+.espdf .ac{font-size:8.4px;color:${ESC.tx2};line-height:1.4}
+.espdf .mt{font-size:7.8px;color:${ESC.tx3}}
+.espdf .h7{display:flex;gap:2px}
+.espdf .h7 span{width:24px;height:17px;display:grid;place-items:center;font-size:7.6px;font-weight:700;border-radius:2px}
+.espdf .h7d{display:flex;gap:2px}.espdf .h7d span{width:24px;text-align:center;font-size:6.8px;color:${ESC.tx3};font-weight:600;letter-spacing:0}
+.espdf .ck{width:11px;height:11px;border:1.2px solid #9AA3AE;border-radius:2px;margin:0 auto}
+.espdf .ok{padding:16px;text-align:center;color:${ESC.ok};background:#F2F8F4;border:1px solid #D2E8DB;font-weight:600;font-size:10px}
+.espdf .enc{display:flex;justify-content:space-between;gap:16px;margin-top:9px;font-size:8.3px;color:${ESC.tx2}}
+.espdf .enc b{color:${ESC.tx};font-weight:600}
+.espdf .assin{display:flex;gap:22px}.espdf .assin span{border-top:1px solid #9AA3AE;padding-top:3px;width:130px;font-size:7.5px;color:${ESC.tx3}}
+.espdf .mk{display:grid;grid-template-columns:repeat(4,1fr);border-top:1px solid ${ESC.tx};border-bottom:1px solid ${ESC.ln};margin-bottom:14px}
+.espdf .mk>div{padding:10px 14px 10px 0;margin-right:14px;border-right:1px solid ${ESC.ln}}.espdf .mk>div:last-child{border:0;margin:0}
+.espdf .mk small{font-size:7.2px;font-weight:700;letter-spacing:.15em;text-transform:uppercase;color:${ESC.tx3};display:block}
+.espdf .mk .v{font-size:19px;font-weight:700;letter-spacing:-.02em;margin-top:4px;line-height:1.1}
+.espdf .mk .v em{font-style:normal;font-size:9px;font-weight:500;color:${ESC.tx3};margin-left:3px}
+.espdf .mk span{font-size:8px;color:${ESC.tx2};display:block;margin-top:3px}
+.espdf .mes2{display:grid;grid-template-columns:438px 250px;gap:18px}
+.espdf .mes2>div{min-width:0}
+.espdf .gt td{padding:4px 5px}
+.espdf .gt td.bx,.espdf .gt th.bx{padding-left:12px}
+.espdf .tb td{padding:2.5px 5px;font-size:8.7px;line-height:1.3;height:19px}
+.espdf .tb tr.g td{background:#F4F6F8;font-weight:700;font-size:8.5px;border-top:1px solid #CDD4DC;border-bottom:1px solid #CDD4DC;padding:4px 5px}
+.espdf .tb tr.g td.gn{letter-spacing:.08em;text-transform:uppercase;font-size:7.8px}
+.espdf .dot{display:inline-flex;align-items:center;gap:5px;font-size:8px;font-weight:600}
+.espdf .dot i{width:6px;height:6px;border-radius:50%}
+.espdf .don{display:flex;gap:12px;align-items:center}
+.espdf .don ul{list-style:none;font-size:8.4px;color:${ESC.tx2};line-height:1.8}
+.espdf .don ul i{display:inline-block;width:7px;height:7px;border-radius:1.5px;margin-right:5px;vertical-align:-.5px}
+.espdf .don ul b{color:${ESC.tx};font-weight:700;margin-right:3px}
+.espdf .met{margin-top:14px;display:grid;grid-template-columns:repeat(4,1fr);gap:14px;border-top:1px solid ${ESC.ln};padding-top:10px}
+.espdf .met div{font-size:7.8px;color:${ESC.tx2};line-height:1.5}
+.espdf .met b{display:flex;align-items:center;gap:5px;font-size:7.2px;letter-spacing:.12em;text-transform:uppercase;color:${ESC.tx};margin-bottom:3px}
+.espdf .met b i{width:6px;height:6px;border-radius:50%}
+.espdf .sum1{display:flex;align-items:center;gap:12px;padding:10px 16px;border-left:4px solid var(--sc);background:#F7F8FA}
+.espdf .sum1 .st1{font-size:7.8px;font-weight:700;letter-spacing:.16em;text-transform:uppercase;color:#fff;background:var(--sc);padding:4px 9px;border-radius:2px;white-space:nowrap}
+.espdf .sum1 b{font-size:13.5px;font-weight:700;letter-spacing:-.01em;flex:1}
+.espdf .sum1 .nb{font-size:8.5px;color:${ESC.tx2}}
+.espdf .k3{display:grid;grid-template-columns:repeat(3,1fr);margin-top:16px;border-top:1px solid ${ESC.tx};border-bottom:1px solid ${ESC.ln}}
+.espdf .k3>div{padding:12px 16px 12px 0;margin-right:16px;border-right:1px solid ${ESC.ln}}.espdf .k3>div:last-child{border:0;margin:0;padding-right:0}
+.espdf .k3 small{font-size:7.5px;font-weight:700;letter-spacing:.15em;text-transform:uppercase;color:${ESC.tx3};display:block}
+.espdf .k3 .v{font-size:25px;font-weight:700;letter-spacing:-.02em;margin:5px 0 8px;line-height:1.05}
+.espdf .k3 .v em{font-style:normal;font-size:9.5px;font-weight:500;color:${ESC.tx3};margin-left:4px;letter-spacing:0}
+.espdf .k3 .m{display:flex;justify-content:space-between;font-size:8.6px;color:${ESC.tx2};margin-top:6px}
+.espdf .al1 td{padding:7px 5px}
+.espdf .lus{display:grid;gap:0 18px}
+.espdf .lu th{padding:0 4px 4px}
+.espdf .lu td{padding:2.5px 4px;font-size:8.6px;height:17px;line-height:1.2}
+.espdf .lu td .dot{font-size:8.6px}
+.espdf .nota1{margin-top:8px;font-size:8px;color:${ESC.tx2};background:#F7F8FA;border-left:3px solid #D9A441;padding:6px 10px}
+.espdf .nota1 b{color:${ESC.tx};font-weight:600}
+.espdf .al1 td{padding:6px 5px}
+.espdf .leg1{margin-top:6px;font-size:7.8px;color:${ESC.tx2};line-height:1.55}
+.espdf .leg1 b{color:${ESC.tx};font-weight:600}
+.espdf .leg1 i{display:inline-block;width:9px;height:8px;border-radius:1.5px;margin:0 3px 0 6px;vertical-align:-1px}
+.espdf .leg1 i.d{width:6px;height:6px;border-radius:50%;margin-left:5px;vertical-align:0}
+.espdf .h7 span{width:27px!important;font-size:7.3px!important}
+.espdf .h7d span{width:27px!important}
+.espdf .lus{gap:0 16px}
+.espdf .lu{border:1px solid ${ESC.ln};border-radius:3px;border-collapse:separate!important;border-spacing:0;overflow:hidden}
+.espdf .lu th{background:#F3F5F8;border-bottom:1px solid ${ESC.ln}!important;padding:5px 7px!important;font-size:7px}
+.espdf .lu td{padding:2px 7px!important;font-size:8.4px;height:16.5px;border-bottom:1px solid ${ESC.ln2}!important}
+.espdf .lu tr:last-child td{border-bottom:0!important}
+.espdf .lu tr:nth-child(even) td{background:#FAFBFC}
+.espdf .pl{display:inline-block;min-width:36px;text-align:center;font-size:8px;font-weight:700;padding:1.5px 5px;border-radius:9px}
+.espdf .al1 thead th{background:#F3F5F8;border-bottom:1px solid ${ESC.ln}!important;padding:5px 5px!important}
+.espdf .al1 td{padding:4.5px 5px}
+.espdf .k3 .v{font-size:23px!important;margin:4px 0 7px!important}
+.espdf .k3>div{padding:10px 16px 10px 0!important}
+.espdf .k4{display:grid;grid-template-columns:repeat(5,1fr);border-top:1px solid ${ESC.tx};border-bottom:1px solid ${ESC.ln}}
+.espdf .k4>div{padding:10px 12px 10px 0;margin-right:12px;border-right:1px solid ${ESC.ln}}.espdf .k4>div:last-child{border:0;margin:0}
+.espdf .k4 small{font-size:7.2px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:${ESC.tx3};display:block}
+.espdf .k4 .v{font-size:18px;font-weight:700;letter-spacing:-.02em;margin-top:4px}
+.espdf .k4 .v em{font-style:normal;font-size:8.5px;font-weight:500;color:${ESC.tx3};margin-left:3px}
+.espdf .k4 span{font-size:7.8px;color:${ESC.tx2};display:block;margin-top:2px}
+.espdf .ft{position:absolute;left:44px;right:44px;bottom:22px;display:flex;justify-content:space-between;align-items:center;font-size:7.6px;color:${ESC.tx3};border-top:1px solid ${ESC.ln};padding-top:8px}
+.espdf .ft b{color:${ESC.tx2};font-weight:600}
+`;
+const ES_DIAS_SEM=['domingo','segunda-feira','terça-feira','quarta-feira','quinta-feira','sexta-feira','sábado'];
+const ES_MES_ABR=['jan','fev','mar','abr','mai','jun','jul','ago','set','out','nov','dez'];
+function esDataLonga(iso){const d=new Date(iso+'T12:00:00');return `${iso.slice(8,10)} ${ES_MES_ABR[d.getMonth()]} ${d.getFullYear()}`}
+function esPdfCabecalho(M,logo,grande,sub){
+  const d=new Date(M.D+'T12:00:00');
+  if(grande) return `<div class="band"><img src="${logo}"><div class="tt"><small>Report diário · Diretoria e responsável técnico</small><b>Energia Solar</b><span>Geração das usinas fotovoltaicas das granjas × estimativa</span></div>
+    <div class="dt"><small>Referência</small><b>${esDataLonga(M.D)}</b><span>${ES_DIAS_SEM[d.getDay()]} · último dia completo</span></div></div>`;
+  return `<div class="mini"><img src="${logo}"><div class="tt"><small>Report diário · Energia Solar</small>${sub}</div><div class="dt">Referência<b>${esDataLonga(M.D)}</b></div></div>`;
+}
+function esPdfRodape(pag,tot,emitido,M){return `<div class="ft"><span><b>Qualitti Alimentos</b> · Uso interno</span><span>Fonte: Zootécnico Web · dados até ${esDataBR(M.D)} · emitido em ${emitido}</span><span><b>${pag}</b> / ${tot}</span></div>`}
+
+function esHeat7(serie){const v=serie.slice(-7);return `<div class="h7">${v.map(r=>{const bg=r==null?'#EEF0F3':(r<ES_PDF_CRIT.muitoBaixa?'#C93A3F':(r<ES_PDF_CRIT.ideal?'#E9A94A':'#E3EAF2')),c=r==null?'#9AA3AE':(r<ES_PDF_CRIT.ideal?'#fff':'#2C4560');return `<span style="background:${bg};color:${c}">${r==null?'s/d':esN(Math.min(r,9.99)*100)+'%'}</span>`}).join('')}</div>`}
+function esSvgAlcance(M,W){
+  const ls=M.linhas.filter(l=>l.mMes>0).slice().sort((a,b)=>b.rMes-a.rMes);
+  const rh=Math.max(12,Math.min(23,560/Math.max(ls.length,1))),T=18,L=98,R=150,mx=1.25,BW=W-L-R,X=v=>L+BW*Math.min(v,mx)/mx,H=T+ls.length*rh+6;
+  let s='';
+  [0,.25,.5,1,1.25].forEach(v=>{s+=`<text x="${X(v)}" y="10" text-anchor="middle" font-size="7.5" fill="${v===1?ESC.tx:(v===.8?ESC.crit:ESC.tx3)}" font-weight="${v===1?700:400}">${esN(v*100)}%</text><line x1="${X(v)}" x2="${X(v)}" y1="${T-4}" y2="${H-4}" stroke="${v===1?'#9AA3AE':ESC.ln2}" stroke-width="${v===1?.8:.6}"/>`});
+  s+=`<text x="${X(.8)}" y="10" text-anchor="middle" font-size="7.5" fill="${ESC.crit}" font-weight="700">80%</text><line x1="${X(.8)}" x2="${X(.8)}" y1="${T-4}" y2="${H-4}" stroke="${ESC.crit}" stroke-width=".8" stroke-dasharray="2 2"/>`;
+  s+=`<text x="${W}" y="10" text-anchor="end" font-size="7.5" fill="${ESC.tx3}" font-weight="700" letter-spacing=".6">GERADO / META NO MÊS</text>`;
+  ls.forEach((l,i)=>{const y=T+i*rh,r=l.rMes,c=r<ES_PDF_CRIT.muitoBaixa?ESC.crit:(r<ES_PDF_CRIT.ideal?ESC.warn:ESC.prod);
+    if(i%2===0)s+=`<rect x="0" y="${y-1}" width="${W}" height="${rh}" fill="#F8F9FB"/>`;
+    s+=`<text x="0" y="${y+rh/2+2.2}" font-size="8.8" fill="${ESC.tx}" font-weight="${l.nivel>=2?700:500}">${esEsc(l.usina)}</text>`;
+    s+=`<rect x="${L}" y="${y+2.5}" width="${X(1)-L}" height="${rh-6}" fill="#E4E9EF" rx="1"/>`;
+    s+=`<rect x="${L}" y="${y+2.5}" width="${X(Math.min(r,1))-L}" height="${rh-6}" fill="${c}" rx="1"/>`;
+    if(r>1)s+=`<rect x="${X(1)}" y="${y+2.5}" width="${X(r)-X(1)}" height="${rh-6}" fill="#1F3B5A" rx="1"/>`;
+    s+=`<text x="${X(Math.max(r,1))+6}" y="${y+rh/2+2.4}" font-size="8.3" font-weight="700" fill="${r<ES_PDF_CRIT.ideal?c:ESC.tx}">${esPct(r)}</text>`;
+    s+=`<text x="${W}" y="${y+rh/2+2.2}" text-anchor="end" font-size="8" fill="${ESC.tx2}">${esN(l.pMes)} / ${esN(l.mMes)} kWh</text>`});
+  s+=`<line x1="${X(.8)}" x2="${X(.8)}" y1="${T-4}" y2="${H-4}" stroke="#fff" stroke-width="1.6" opacity=".7"/><line x1="${X(.8)}" x2="${X(.8)}" y1="${T-4}" y2="${H-4}" stroke="${ESC.crit}" stroke-width=".9" stroke-dasharray="3 2"/>`;
+  return `<svg width="${W}" height="${H}" xmlns="http://www.w3.org/2000/svg" font-family="Inter,Arial,sans-serif">${s}</svg>`;
+}
+function esPdfPaginas(M,logo,emitido){
+  const c=M.cont,N=M.usinas.length,nAl=M.alertas.length;
+  const nivelGeral=c.crit?3:(c.alto?2:(c.aten?1:0));
+  const rotGeral={3:'Ação imediata',2:'Requer verificação',1:'Acompanhar',0:'Operação normal'}[nivelGeral];
+  const titulo=nAl?`${nAl} usina${nAl>1?'s':''} para verificar · ${N-nAl} de ${N} dentro do esperado`:`Todas as ${N} usinas dentro do esperado`;
+  const varD=M.fAnt.p>0?(M.fD.p-M.fAnt.p)/M.fAnt.p:null, var7=M.f7a.p>0?(M.f7.p-M.f7a.p)/M.f7a.p:null;
+  const sg=v=>v==null?'':(v>=0?'▲ ':'▼ ')+esN(Math.abs(v)*100,1)+'%';
+  const mesNome=ES_MESES[+M.D.slice(5,7)-1];
+  const sc=ES_NIV[nivelGeral].cor;
+  const kpi=(t,v,r,meta,delta)=>`<div><small>${t}</small><div class="v">${v}<em>kWh</em></div>${esBarraPct(r,200)}<div class="m"><span style="white-space:nowrap"><b style="color:${r!=null&&r<ES_PDF_CRIT.ideal?ESC.warn:ESC.tx}">${esPct(r)}</b> de ${meta}</span><span style="white-space:nowrap">${delta}</span></div></div>`;
+  const curto=l=>{const a=l.alertas[0];
+    if(a.tipo==='Sem leitura')return l.semDado>1?`Sem leitura há ${l.semDado} dias`:'Sem leitura no dia';
+    if(a.tipo==='Produção zerada')return l.zer>1?`Zerada há ${l.zer} dias`:'Zerada no dia';
+    if(a.tipo==='Abaixo do ideal')return `${l.abx} dias abaixo de 80%`;
+    if(a.tipo==='Fora do padrão')return `${esPct(l.rD)} da meta · abaixo das demais usinas`;
+    return `${esPct(l.rD)} da meta${l.abx>=ES_PDF_CRIT.seqDias?` · ${l.abx} dias abaixo de 80%`:''}`};
+  const desde=l=>{const n=Math.max(l.zer||0,l.semDado||0,l.abx||0,1);return esDiaMes(esSomaDias(M.D,-(n-1)))};
+  const dias7=[];for(let i=6;i>=0;i--)dias7.push(esSomaDias(M.D,-i));
+  const alv=M.alertas.slice(0,10);
+  const leg=t=>`<div class="leg1">${t}</div>`;
+  const alertas=nAl?`<table class="al1"><colgroup><col style="width:22px"><col style="width:100px"><col><col style="width:38px"><col style="width:208px"><col style="width:132px"></colgroup>
+    <thead><tr><th></th><th>Usina</th><th>Ocorrência</th><th class="c">Desde</th><th><div class="h7d">${dias7.map(d=>`<span>${esDiaMes(d)}</span>`).join('')}</div></th><th>Verificar</th></tr></thead><tbody>
+    ${alv.map((l,i)=>{const nv=ES_NIV[l.nivel];return `<tr><td><div class="pr" style="background:${nv.cor}">${i+1}</div></td>
+      <td><div class="u">${esEsc(l.usina)}<small>${l.galpoes?'aviários '+esEsc(l.galpoes):''}</small></div></td>
+      <td><span style="color:${nv.cor};font-weight:700">${l.alertas[0].tipo}</span><div class="mt" style="font-size:8px;margin-top:1px">${curto(l)}</div></td>
+      <td class="c" style="font-weight:600">${desde(l)}</td><td>${esHeat7(l.serie)}</td><td class="ac">${ES_ACAO[l.alertas[0].tipo]||'Verificar'}</td></tr>`}).join('')}</tbody></table>
+    ${nAl>10?`<p class="mt" style="margin-top:5px">+ ${nAl-10} usina(s) com alerta.</p>`:''}
+    ${leg(`<b>Como ler:</b> cada quadrinho é o % da meta atingido no dia. <i style="background:#E3EAF2"></i>80% ou mais <i style="background:#E9A94A"></i>50 a 79% <i style="background:#C93A3F"></i>abaixo de 50% · s/d = sem registro. “Desde” = primeiro dia da ocorrência.`)}`
+    :`<div class="ok">Nenhuma usina com alerta — todas dentro do esperado.</div>`;
+  const todas=M.linhas.slice().sort((a,b)=>a.usina.localeCompare(b.usina,'pt-BR',{numeric:true}));
+  const nc=N>30?4:3,pc=Math.ceil(todas.length/nc);
+  const pill=r=>{if(r==null)return `<span class="pl" style="background:#EEF0F3;color:#8590A0">s/d</span>`;const st=r<ES_PDF_CRIT.muitoBaixa?'background:#FBE3E3;color:#A51F25':(r<ES_PDF_CRIT.ideal?'background:#FCEBD2;color:#8F5A08':'background:#E8EEF5;color:#1F3B5A');return `<span class="pl" style="${st}">${esPct(r)}</span>`};
+  const colU=k=>`<table class="lu"><colgroup><col><col style="width:${nc>3?42:50}px"><col style="width:${nc>3?40:46}px"></colgroup><thead><tr><th>Usina</th><th class="r">kWh</th><th class="r">Meta</th></tr></thead><tbody>${todas.slice(k*pc,(k+1)*pc).map(l=>{const nv=ES_NIV[l.nivel];return `<tr><td><span class="dot" style="color:${ESC.tx};font-weight:500"><i style="background:${nv.cor}"></i>${esEsc(l.usina)}</span></td><td class="r">${l.pD==null?'–':esN(l.pD)}</td><td class="r">${pill(l.rD)}</td></tr>`}).join('')}</tbody></table>`;
+  const sec3=`<div class="sec3"><div class="h" style="margin-top:14px"><span class="nr">03</span><h2>Todas as usinas — ${esDataBR(M.D)}</h2><span class="ln"></span><span>${N} usinas</span></div>
+    <div class="lus" style="grid-template-columns:repeat(${nc},1fr)">${Array.from({length:nc},(_,k)=>colU(k)).join('')}</div>
+    ${leg(`<b>Como ler:</b> kWh gerados no dia e % da meta diária da usina. Bolinha = status (<i class="d" style="background:${ESC.ok}"></i>normal <i class="d" style="background:${ESC.att}"></i>atenção <i class="d" style="background:#D9822B"></i>alerta <i class="d" style="background:${ESC.crit}"></i>crítico). <b>Metas repassadas pelo último responsável técnico.</b>`)}
+    <div class="nota1"><b>Observação:</b> os números podem ter pequenas variações — quando o inversor perde a internet, ele retransmite as leituras depois, o que pode gerar divergências pontuais. A equipe de apoio confere os dados com frequência para garantir a confiabilidade.</div></div>`;
+  const p1=`<div class="pg">${esPdfCabecalho(M,logo,true)}<div class="ct">
+   <div class="sum1" style="--sc:${sc}"><span class="st1">${rotGeral}</span><b>${titulo}</b>${M.nublado?`<span class="nb">Dia nublado no parque todo (${esPct(M.medD)}) — efeito do clima</span>`:''}</div>
+   <div class="k3">
+     ${kpi(`Dia · ${esDiaMes(M.D)}`,esN(M.fD.p),M.fD.r,esN(M.fD.m),varD!=null?`${sg(varD)} vs. ontem`:'')}
+     ${kpi('Últimos 7 dias',esN(M.f7.p),M.f7.r,esN(M.f7.m),var7!=null?`${sg(var7)} vs. 7d ant.`:'')}
+     ${kpi(`Mês · ${mesNome}`,esN(M.fMes.p),M.fMes.r,esN(M.fMes.m),`1º a ${+M.D.slice(8,10)}`)}
+   </div>
+   <div class="h" style="margin-top:14px"><span class="nr">01</span><h2>Geração do parque — últimos 14 dias</h2><span class="ln"></span><div class="lg" style="margin:0"><span><i style="background:${ESC.prod}"></i>Geração</span><span><i style="background:${ESC.warn}"></i>Abaixo de 80%</span><span><i style="background:#E9EEF3"></i>Faixa ideal</span><span><i style="border-top:1.5px dashed ${ESC.tx};height:0;vertical-align:2px"></i>Meta</span></div></div>
+   ${esSvgEvolucao(M,706,158)}
+   ${leg(`<b>Como ler:</b> cada barra é a soma da geração de todas as usinas no dia (kWh). Tracejado = meta do dia; faixa cinza = 80% a 100% da meta. Embaixo, o % atingido — em laranja, dias abaixo de 80%.`)}
+   <div class="h" style="margin-top:12px"><span class="nr">02</span><h2>Alertas — encaminhar ao responsável técnico</h2><span class="ln"></span><span>${nAl} usina(s) · por prioridade</span></div>
+   ${alertas}
+   ${sec3}
+  </div><div class="ft"></div></div>`;
+  // página 2 — alcance da meta no mês
+  const R=esSvgRitmo(M,10,10);
+  const abaixo=M.linhas.filter(l=>l.rMes!=null&&l.rMes<ES_PDF_CRIT.ideal).length;
+  const p2=`<div class="pg">${esPdfCabecalho(M,logo,false,'Alcance da meta no mês')}<div class="ct">
+   <div class="h"><span class="nr">04</span><h2>Resultado do mês — ${mesNome}</h2><span class="ln"></span><span>1º a ${+M.D.slice(8,10)} de ${R.nd} dias</span></div>
+   <div class="k4">
+     <div><small>Gerado no mês</small><div class="v">${esN(M.fMes.p)}<em>kWh</em></div></div>
+     <div><small>Meta até hoje</small><div class="v">${esN(M.fMes.m)}<em>kWh</em></div></div>
+     <div><small>Alcance</small><div class="v" style="color:${M.fMes.r<ES_PDF_CRIT.ideal?ESC.warn:ESC.tx}">${esPct(M.fMes.r)}</div></div>
+     <div><small>Projeção do mês</small><div class="v">${esN(R.proj)}<em>kWh</em></div><span>no ritmo atual · meta ${esN(R.metaFim)}</span></div>
+     <div><small>Usinas abaixo de 80%</small><div class="v" style="color:${abaixo?ESC.warn:ESC.ok}">${abaixo}<em>de ${N}</em></div></div>
+   </div>
+   <div class="h" style="margin-top:20px"><span class="nr">05</span><h2>Alcance da meta por usina no mês</h2><span class="ln"></span><div class="lg" style="margin:0"><span><i style="background:${ESC.prod}"></i>Gerado</span><span><i style="background:#1F3B5A"></i>Acima da meta</span><span><i style="background:#E4E9EF"></i>Falta para a meta</span><span><i style="background:${ESC.warn}"></i>Abaixo de 80%</span></div></div>
+   ${esSvgAlcance(M,706)}
+   ${leg(`<b>Como ler:</b> cada barra é uma usina, do maior para o menor alcance. A barra inteira (até 100%) representa a meta acumulada do mês até ${esDataBR(M.D)}; a parte colorida é o que já foi gerado e a parte cinza é o que falta. A linha vermelha marca 80% — o mínimo considerado ideal. À direita, gerado / meta em kWh. <b>Metas repassadas pelo último responsável técnico.</b>`)}
+  </div><div class="ft"></div></div>`;
+  return [p1];
+}
+function esPdfPaginar(box,M,logo,emitido){
+  const LIM=1123-58,pgs=box.querySelectorAll('.pg'),pg=pgs[0];
+  const s3=pg&&pg.querySelector('.sec3');
+  if(s3&&s3.getBoundingClientRect().bottom-pg.getBoundingClientRect().top>LIM){
+    // não coube: a lista vai para uma página própria logo depois da 1ª
+    const nova=document.createElement('div');nova.className='pg';
+    nova.innerHTML=esPdfCabecalho(M,logo,false,'Todas as usinas')+'<div class="ct"></div><div class="ft"></div>';
+    s3.querySelector('.h').style.marginTop='0';nova.querySelector('.ct').appendChild(s3);pg.after(nova);
+  }
+  const todas=[...box.querySelectorAll('.pg')];
+  todas.forEach((p,i)=>{p.querySelector('.ft').outerHTML=esPdfRodape(i+1,todas.length,emitido,M)});
+}
+
+// ---------- 4) gerar e entregar ----------
+async function energiaSolarGerarPdfDiretoria(btn){
+  const txt=btn?btn.innerHTML:'';
+  try{
+    if(!energiaSolarDados||!energiaSolarDados.length){alert('Nenhum dado de Energia Solar importado ainda.');return}
+    if(btn){btn.disabled=true;btn.innerHTML='Gerando PDF…'}
+    if(!window.jspdf) await esPdfCarregarScript(ES_PDF_LIBS.jspdf);
+    if(!window.html2canvas) await esPdfCarregarScript(ES_PDF_LIBS.html2canvas);
+    const M=esPdfModelo(energiaSolarDados);if(!M)throw new Error('sem dados');
+    if(!document.getElementById('espdf-css')){const st=document.createElement('style');st.id='espdf-css';st.textContent=ES_PDF_CSS;document.head.appendChild(st)}
+    const logo=(document.querySelector('.sidebar .logo-mark img')||document.querySelector('img[alt="Qualitti"]')||{}).src||'logo.png';
+    const emitido=new Date().toLocaleString('pt-BR',{day:'2-digit',month:'2-digit',year:'numeric',hour:'2-digit',minute:'2-digit'});
+    const box=document.createElement('div');box.className='espdf';box.innerHTML=esPdfPaginas(M,logo,emitido).join('');document.body.appendChild(box);
+    if(document.fonts&&document.fonts.ready)await document.fonts.ready;
+    await Promise.all([...box.querySelectorAll('img')].map(im=>im.complete?0:new Promise(r=>{im.onload=im.onerror=r})));
+    esPdfPaginar(box,M,logo,emitido);
+    const {jsPDF}=window.jspdf;const pdf=new jsPDF({orientation:'portrait',unit:'mm',format:'a4',compress:true});
+    const pgs=[...box.querySelectorAll('.pg')];
+    for(let k=0;k<pgs.length;k++){
+      const cv=await html2canvas(pgs[k],{scale:3,backgroundColor:'#ffffff',useCORS:true,logging:false,windowWidth:794});
+      if(k)pdf.addPage();pdf.addImage(cv.toDataURL('image/jpeg',0.92),'JPEG',0,0,210,297,undefined,'FAST');
+    }
+    box.remove();
+    pdf.setProperties({title:`Energia Solar — Relatório ${esDataBR(M.D)}`,author:'Qualitti Alimentos',subject:'Relatório diário de produção das usinas solares'});
+    const nome=`Energia_Solar_Relatorio_${M.D}.pdf`;const blob=pdf.output('blob');const arq=new File([blob],nome,{type:'application/pdf'});
+    if(window.matchMedia('(max-width:860px)').matches&&navigator.canShare&&navigator.canShare({files:[arq]})){
+      try{await navigator.share({files:[arq],title:`Energia Solar — ${esDataBR(M.D)}`})}catch(e){}
+    }else{const u=URL.createObjectURL(blob);const a=document.createElement('a');a.href=u;a.download=nome;document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(u),4000)}
+  }catch(e){console.error(e);alert('Não foi possível gerar o PDF: '+e.message)}
+  finally{if(btn){btn.disabled=false;btn.innerHTML=txt}}
+}
+window.energiaSolarGerarPdfDiretoria=energiaSolarGerarPdfDiretoria;
+
 
 async function energiaSolarImportarArquivo(){
   const input = document.getElementById('energiasolar-inputArquivo');
@@ -13855,5 +14351,117 @@ if(regPinForm){
   btn.addEventListener('click', ()=> window.scrollTo({top:0, behavior:'smooth'}));
 })();
 </script>
+<style id="qz-refino">
+/* =====================================================================
+   REFINO VISUAL — camada aplicada por cima do layout atual (só tela).
+   Fonte única (Inter), tabelas estilo planilha, cartões e gráficos sóbrios.
+   ===================================================================== */
+@media screen{
+:root{
+  --rf-font:'Inter',system-ui,-apple-system,'Segoe UI',sans-serif;
+  --rf-tx:#1F2733; --rf-tx2:#4B5563; --rf-tx3:#7A8494;
+  --rf-bd:#DCE1E7; --rf-grid:#E6E9EE; --rf-head:#F1F3F6; --rf-grp:#EEF1F5; --rf-tot:#E3E7EC;
+  --rf-hover:#F4F7FB; --rf-sel:#E8F0FA;
+  --raio:8px; --r-md:8px; --sombra:0 1px 2px rgba(16,24,40,.04); --e1:0 1px 2px rgba(16,24,40,.04); --e2:0 2px 6px rgba(16,24,40,.07);
+}
+/* ---------- tipografia ---------- */
+:root:root body, :root:root body *:not(.qx):not(.qx *):not(svg):not(svg *){font-family:var(--rf-font)!important}
+:root:root body{font-size:13px;letter-spacing:0;color:var(--rf-tx)}
+:root:root body [data-modulo-view]{font-variant-numeric:tabular-nums;font-feature-settings:"tnum" 1,"cv11" 1}
+:root:root body .pagina-titulo{font-size:19px!important;font-weight:700!important;letter-spacing:-.01em!important;color:var(--rf-tx)!important}
+:root:root body .pagina-head{margin-bottom:12px}
+:root:root body .painel-header h2,:root:root body .painel-grafico-header h2,:root:root body .quadro-header h2,:root:root body [data-modulo-view] h2{font-size:13.5px!important;font-weight:600!important;letter-spacing:0!important;color:var(--rf-tx)!important}
+:root:root body [data-modulo-view] h3{font-weight:600!important;letter-spacing:0!important}
+:root:root body .nota,:root:root body .nota-grafico,:root:root body .painel-header .info,:root:root body .info{font-size:11.5px!important;color:var(--rf-tx3)!important;line-height:1.5!important}
+
+/* ---------- painéis e cartões ---------- */
+:root:root body .painel,:root:root body .painel-grafico,:root:root body .filtros{border-radius:8px!important;box-shadow:var(--sombra)!important;border:1px solid var(--rf-bd)!important;padding:14px 16px!important;margin-bottom:12px!important}
+:root:root body .painel-header,:root:root body .painel-grafico-header{margin-bottom:10px!important;padding-bottom:8px;border-bottom:1px solid var(--rf-grid)}
+:root:root body .cards{gap:10px!important;margin-bottom:12px!important}
+:root:root body .card,:root:root body [data-modulo-view] .card{border-radius:8px!important;padding:11px 14px!important;box-shadow:var(--sombra)!important;border:1px solid var(--rf-bd)!important;transform:none!important}
+:root:root body .card:hover{box-shadow:var(--e2)!important}
+:root:root body .card::before{display:none!important}
+:root:root body .card .label{font-size:10.5px!important;font-weight:600!important;letter-spacing:.04em!important;color:var(--rf-tx3)!important;margin-bottom:5px!important}
+:root:root body .card .valor{font-size:21px!important;font-weight:600!important;letter-spacing:-.015em!important;line-height:1.15!important}
+:root:root body .card .sub{font-size:11px!important;color:var(--rf-tx3)!important;margin-top:4px!important}
+
+/* ---------- filtros e controles ---------- */
+:root:root body .campo label,:root:root body .filtros label{font-size:10.5px!important;font-weight:600!important;letter-spacing:.03em!important;color:var(--rf-tx3)!important;margin-bottom:4px!important}
+:root:root body select,:root:root body input[type=text],:root:root body input[type=date],:root:root body input[type=number],:root:root body input[type=search],:root:root body input[type=email],:root:root body textarea{border-radius:6px!important;border:1px solid var(--rf-bd)!important;font-size:12.5px!important;font-weight:400!important}
+:root:root body select,:root:root body input[type=text],:root:root body input[type=date],:root:root body input[type=number],:root:root body input[type=search],:root:root body input[type=email]{height:32px;padding:0 10px!important}
+:root:root body select{padding-right:26px!important}
+:root:root body .filtros-grid{gap:10px!important}
+:root:root body .segmented{border-radius:7px!important;padding:3px!important;gap:2px!important;background:#EDF0F3!important}
+:root:root body .segmented button{font-size:12px!important;font-weight:500!important;padding:5px 11px!important;border-radius:5px!important}
+:root:root body .segmented button.ativo{font-weight:600!important;box-shadow:0 1px 2px rgba(16,24,40,.08)!important}
+:root:root body .tabs-internas{border-radius:8px!important;padding:3px!important;gap:2px!important;box-shadow:none!important;border:1px solid var(--rf-bd)!important}
+:root:root body .tab-int,:root:root body #mod-resultado .tab-int{font-size:12.5px!important;font-weight:500!important;padding:6px 14px!important;border-radius:6px!important}
+:root:root body .tab-int.ativo,:root:root body #mod-resultado .tab-int.ativo{font-weight:600!important;box-shadow:none!important}
+:root:root body button,:root:root body .btn-recolher{font-size:12px}
+:root:root body .btn-recolher{border-radius:6px!important;padding:5px 10px!important;font-weight:500!important}
+
+/* ---------- TABELAS estilo planilha ---------- */
+:root:root body [data-modulo-view] table:not(.qx){border-collapse:collapse!important;border-spacing:0!important;font-size:12px!important}
+:root:root body [data-modulo-view] table:not(.qx) thead th{
+  background:var(--rf-head)!important;color:var(--rf-tx2)!important;
+  font-size:10.5px!important;font-weight:600!important;text-transform:none!important;letter-spacing:0!important;
+  padding:5px 8px!important;border:1px solid var(--rf-bd)!important;line-height:1.3!important;vertical-align:bottom;white-space:nowrap}
+:root:root body [data-modulo-view] table:not(.qx) tbody td,:root:root body [data-modulo-view] table:not(.qx) tbody th,:root:root body [data-modulo-view] table:not(.qx) tfoot td,:root:root body [data-modulo-view] table:not(.qx) tfoot th{
+  padding:4px 8px!important;border:1px solid var(--rf-grid)!important;line-height:1.35!important;height:25px;vertical-align:middle!important;font-size:12px}
+:root:root body [data-modulo-view] table:not(.qx) tbody tr:hover>td,:root:root body [data-modulo-view] table:not(.qx) tbody tr:hover>th{background-color:var(--rf-hover)}
+:root:root body [data-modulo-view] table:not(.qx) tbody tr.selecionada>td{background:var(--rf-sel)!important}
+:root:root body [data-modulo-view] table:not(.qx) td.cel,:root:root body [data-modulo-view] table:not(.qx) td{font-weight:400}
+:root:root body [data-modulo-view] .tabela-scroll,:root:root body [data-modulo-view] .quadro-tabela-wrap{border:1px solid var(--rf-bd);border-radius:6px}
+:root:root body [data-modulo-view] .tabela-scroll>table,:root:root body [data-modulo-view] .quadro-tabela-wrap>table{border-style:hidden!important}
+/* coluna fixa (nome do núcleo/aviário) */
+:root:root body [data-modulo-view] table:not(.qx) th.rowhead,:root:root body [data-modulo-view] table:not(.qx) .qfc-col-first{box-shadow:1px 0 0 var(--rf-bd)!important;font-weight:500!important;color:var(--rf-tx)!important}
+:root:root body [data-modulo-view] table:not(.qx) thead th.rowhead,:root:root body [data-modulo-view] table:not(.qx) thead .qfc-col-first{background:var(--rf-head)!important}
+:root:root body [data-modulo-view] table:not(.qx) th.rowhead.av,:root:root body [data-modulo-view] table:not(.qx) th.rowhead.aviario{color:var(--rf-tx2)!important;font-weight:400!important}
+/* linhas de grupo (núcleo) */
+:root:root body [data-modulo-view] tr.linha-nucleo>td,:root:root body [data-modulo-view] tr.linha-nucleo>th,:root:root body [data-modulo-view] tr.linha-nuc>td,:root:root body [data-modulo-view] tr.linha-nuc>th,
+:root:root body [data-modulo-view] tr.qfc-linha-nucleo>td,:root:root body [data-modulo-view] tr.qfc-linha-nucleo>th,:root:root body [data-modulo-view] tr.aviario-expandido>td,:root:root body [data-modulo-view] tr.aviario-expandido>th{
+  background:var(--rf-grp)!important;color:var(--rf-tx)!important;font-weight:600!important;box-shadow:none!important}
+:root:root body [data-modulo-view] tr.linha-nucleo th.rowhead,:root:root body [data-modulo-view] tr.linha-nuc th.rowhead,:root:root body [data-modulo-view] tr.qfc-linha-nucleo th.qfc-col-first{box-shadow:inset 2px 0 0 var(--vermelho),1px 0 0 var(--rf-bd)!important}
+:root:root body [data-modulo-view] tr.linha-nucleo:hover>td,:root:root body [data-modulo-view] tr.linha-nucleo:hover>th,:root:root body [data-modulo-view] tr.linha-nuc:hover>td,:root:root body [data-modulo-view] tr.qfc-linha-nucleo:hover>td,:root:root body [data-modulo-view] tr.qfc-linha-nucleo:hover>th{background:#E6EAF0!important}
+/* totais */
+:root:root body [data-modulo-view] tr.linha-total-geral>td,:root:root body [data-modulo-view] tr.linha-total-geral>th,:root:root body [data-modulo-view] tr.qfc-linha-total>td,:root:root body [data-modulo-view] tr.qfc-linha-total>th,
+:root:root body [data-modulo-view] tr.qf-linha-total-geral>td,:root:root body [data-modulo-view] tr.qf-linha-total-geral>th,:root:root body [data-modulo-view] tr.fer2-linha-resumo>td,:root:root body [data-modulo-view] tr.fer2-linha-resumo>th,:root:root body [data-modulo-view] tr.fab-total>td{
+  background:var(--rf-tot)!important;color:var(--rf-tx)!important;font-weight:700!important;border-top:1.5px solid #9AA3AF!important;font-size:12px!important;padding-top:5px!important;padding-bottom:5px!important;box-shadow:none!important}
+/* colunas de subtotal/média */
+:root:root body [data-modulo-view] table td.subano,:root:root body [data-modulo-view] table th.subano,:root:root body [data-modulo-view] .matriz-diaria td.tot,:root:root body [data-modulo-view] .matriz-diaria td.pct,:root:root body [data-modulo-view] .matriz-diaria td.cel-relacao-col{background:#F6F7F9!important;font-weight:600!important;border-left-color:var(--rf-bd)!important}
+:root:root body [data-modulo-view] table td.media{background:#EDF0F4!important;font-weight:600!important;border-left:1.5px solid #9AA3AF!important}
+:root:root body [data-modulo-view] table .sep{border-left:1.5px solid #B7BFC9!important}
+:root:root body [data-modulo-view] table th.th-sort:hover{background:#E6EAF0!important;color:var(--rf-tx)!important}
+/* hierarquia da Fábrica de Rações */
+:root:root body #mod-fabrica .fab-n1 td{background:#2B3440!important;color:#fff!important;font-weight:600!important}
+:root:root body #mod-fabrica .fab-n2 td{background:var(--rf-grp)!important;font-weight:600!important}
+:root:root body #mod-fabrica .fab-tab thead th.col-destaque{background:#E9EDF2!important;color:var(--rf-tx)!important}
+/* linhas filhas */
+:root:root body [data-modulo-view] tr.linha-aviario-filho td{font-size:12px!important;color:var(--rf-tx2)!important;border-bottom-style:solid!important}
+
+/* ---------- etiquetas e listas ---------- */
+:root:root body .ranking-lista{gap:4px!important}
+:root:root body .ranking-lista>*{border-radius:6px!important;padding-top:7px!important;padding-bottom:7px!important;box-shadow:none!important}
+:root:root body [data-modulo-view] .badge,:root:root body [data-modulo-view] [class*="badge"],:root:root body [data-modulo-view] [class*="-tag"],:root:root body [data-modulo-view] [class*="pill"]{border-radius:4px!important;font-weight:600!important;letter-spacing:.01em!important}
+
+/* ---------- gráficos ---------- */
+:root:root body .chart-wrap{height:300px}
+
+/* ---------- celular ---------- */
+@media (max-width:860px){
+  :root:root body main{padding:14px 12px 60px!important}
+  :root:root body .pagina-titulo{font-size:17px!important}
+  :root:root body .painel,:root:root body .painel-grafico,:root:root body .filtros{padding:12px!important}
+  :root:root body .cards{grid-template-columns:repeat(2,minmax(0,1fr))!important;gap:8px!important}
+  :root:root body .card .valor{font-size:18px!important}
+  :root:root body .card .label{font-size:10px!important}
+  :root:root body .chart-wrap{height:240px}
+  :root:root body [data-modulo-view] table:not(.qx) tbody td,:root:root body [data-modulo-view] table:not(.qx) tbody th{padding:4px 7px!important;font-size:11.5px!important}
+  :root:root body [data-modulo-view] table:not(.qx) thead th{padding:5px 7px!important;font-size:10px!important}
+}
+}
+/* legendas/pontos desenhados em HTML com o dourado antigo */
+@media screen{:root:root body #mod-quadro [style*="background:#F2A900"],:root:root body #mod-quadro [style*="background: #F2A900"],:root:root body #mod-quadro [style*="background:#f2a900"]{background:#7A93AD!important}}
+</style>
 </body>
 </html>
