@@ -83,6 +83,8 @@ def identificar_planilha(xls_bytes):
         return 'condenas', xl
     if 'bd_calos' in abas:
         return 'calos', xl
+    if 'bd_uniformidade' in abas:
+        return 'uniformidade', xl
     # aba com ou sem acento ("bd_funcionários" / "bd_funcionarios")
     for aba in abas:
         if aba.strip().lower().replace('á', 'a') == 'bd_funcionarios':
@@ -343,6 +345,76 @@ def processar_calos(xl):
 
 
 # ============================================================
+# UNIFORMIDADE DE PINTINHOS (planilha bd_uniformidade / Uniformidade_Granjas › aba bd_uniformidade)
+# ============================================================
+def processar_uniformidade(xl):
+    df = pd.read_excel(xl, sheet_name='bd_uniformidade')
+    df = df.dropna(subset=['Lote']).copy()
+
+    def num(v, casas=None):
+        v = clean(v)
+        if v is None:
+            return None
+        try:
+            f = float(v)
+        except (TypeError, ValueError):
+            return None
+        if casas == 0:
+            return int(round(f))
+        return round(f, casas) if casas is not None else f
+
+    def data(v):
+        d = pd.to_datetime(v, errors='coerce')
+        return None if pd.isna(d) else d.strftime('%Y-%m-%d')
+
+    def aviario(lote):
+        # 2026.VIN3.51.1 -> 51 (3º bloco do código do lote)
+        partes = str(lote).split('.')
+        try:
+            return int(partes[2])
+        except (IndexError, ValueError):
+            return None
+
+    lotes = []
+    for _, r in df.iterrows():
+        nuc = ' '.join(str(clean(r.get('Núcleo')) or '').split())
+        nuc = nuc.replace('NÚCLEO ', '').replace('NUCLEO ', '')
+        meta_u = num(r.get('Meta Uniformidade'))
+        if meta_u is not None and meta_u > 1:
+            meta_u = meta_u / 100.0          # base traz 80 -> 0,80
+        lotes.append({
+            'lote': str(clean(r.get('Lote'))),
+            'nuc': nuc,
+            'av': aviario(r.get('Lote')),
+            'inc': ' '.join(str(clean(r.get('Incubatório')) or '').split()),
+            'aloj': data(r.get('Data Alojamento')),
+            'abate': data(r.get('Data Abate')),
+            'sit': clean(r.get('Situação')),
+            'aves': num(r.get('Aves Alojadas'), 0),
+            'amostra': num(r.get('Amostragem'), 0),
+            'metaPeso': clean(r.get('Meta Peso Médio')),
+            'peso': num(r.get('Peso Médio'), 2),
+            'metaU': meta_u,
+            'unif': num(r.get('Percentual Uniforme'), 4),
+            'unifs': num(r.get('Aves Uniformes'), 0),
+            'limInf': num(r.get('Limite Inferior'), 2),
+            'limSup': num(r.get('Limite Superior'), 2),
+            'acima': num(r.get('Aves Acima'), 0),
+            'abaixo': num(r.get('Aves Abaixo'), 0),
+            'maior': num(r.get('Maior Peso'), 2),
+            'menor': num(r.get('Menor Peso'), 2),
+            'fp': num(r.get('Fator Produção'), 2),
+            'iep': num(r.get('IEP'), 2),
+            'ca': num(r.get('Conversão Alimentar'), 4),
+            'ano': int(num(r.get('Ano Aloja'))) if num(r.get('Ano Aloja')) is not None else None,
+            'rod': int(num(r.get('Rodada'))) if num(r.get('Rodada')) is not None else None,
+        })
+    lotes.sort(key=lambda x: (x['aloj'] or '', x['lote']))
+    salvar('uniformidade.json', {'atualizadoEm': pd.Timestamp.now(tz='America/Sao_Paulo').strftime('%Y-%m-%d %H:%M'), 'lotes': lotes})
+    print(f"  Uniformidade: {len(lotes)} lote(s)")
+
+
+# ============================================================
 # FUNCIONÁRIOS ATIVOS (planilha "Funcionários Ativos" › aba bd_funcionários)
 # Usada no Quadro de Funcionários: só nomes desta lista podem ser lançados.
 # ============================================================
@@ -391,6 +463,7 @@ def main():
         'condenas': processar_condenas,
         'calos': processar_calos,
         'funcionarios': processar_funcionarios,
+        'uniformidade': processar_uniformidade,
     }
     encontrados = set()
 
